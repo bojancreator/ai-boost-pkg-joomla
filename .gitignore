@@ -1,0 +1,30 @@
+# Continue/AI tooling
+.continue/secrets.json
+
+# Node/JS common
+node_modules/
+
+# Build artifacts
+build/
+*.zip
+
+# Public generated files
+public/search-index.json
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Docs: prevent accidental secrets
+docs/Untitled-1.txt
+
+# Build artifacts
+tools/*.zip
+tools/__build/
+tools/__inspect_*/
+
+# Archive - offroadseo legacy (arhiviran plugin)
+archive/offroadseo-legacy/
+
+#Ignore vscode AI rules
+.github\instructions\codacy.instructions.md
