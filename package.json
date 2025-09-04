@@ -8,8 +8,12 @@
     "**/node_modules/**",
     "build/**",
     "**/build/**",
+  "archive/**",
+  "tools/**",
     "tools/__inspect_external_plugin/**",
     "tools/__inspect_offroadseo_zip/**",
-    "tools/__inspect_offroadseo_zip2/**"
+  "tools/__inspect_offroadseo_zip2/**",
+  "**/*.min.js",
+  "**/dist/**"
   ]
 }
