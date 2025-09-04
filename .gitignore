@@ -16,6 +16,12 @@ Thumbs.db
 *.zip
 *.tar.gz
 
+# Tooling inspection/build artifacts
+tools/__build/
+tools/__inspect_*/
+tools/__inspect_offroadseo_zip*/
+tools/__inspect_1.8.8/
+
 # Logs and cache
 *.log
 logs/
