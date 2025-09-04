@@ -1,30 +1,8 @@
-# Exclude vendor and build artifacts from JS/TS linting
-vendor/
-node_modules/
-build/
-**/vendor/**
-**/node_modules/**
-**/build/**
-/vendor/**
-/node_modules/**
-/build/**
-/tools/**
-tools/__inspect_external_plugin/**
-# Ignore third-party and inspection/build artifacts
-archive/
-tools/__build/
-tools/__inspect_*/
+# Ignore third-party and non-first-party assets for JS/TS linting
+vendor/**
+node_modules/**
+build/**
+archive/**
 tools/**
-/archive/**
-# Anchor from repo root as well (some analyzers resolve absolute paths)
-/.eslintignore
-/tools/**
-/archive/**
-/vendor/**
-/node_modules/**
-/build/**
-# Generated or packaged assets
-**/*.min.js
 **/dist/**
-/**/*.min.js
-/**/dist/**
+**/*.min.js
