@@ -1,0 +1,27 @@
+{
+  "root": true,
+  "ignorePatterns": ["**/*"],
+  "overrides": [
+    {
+      "files": [
+        "src/**/*.js",
+        "src/**/*.mjs",
+        "src/**/*.cjs",
+        "joomla/**/*.js",
+        "plugins/**/*.js",
+        "modules/**/*.js",
+        "templates/**/*.js"
+      ],
+      "excludedFiles": [
+        "**/vendor/**",
+        "**/node_modules/**",
+        "**/build/**",
+        "archive/**",
+        "tools/**",
+        "**/*.min.js",
+        "**/dist/**"
+      ],
+      "rules": {}
+    }
+  ]
+}

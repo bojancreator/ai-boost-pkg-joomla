@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build-and-release:
@@ -15,7 +15,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
         with:
-          php-version: '8.1'
+          php-version: "8.1"
           coverage: none
           tools: composer
 

@@ -43,9 +43,10 @@ JoomlaBoost je univerzalni SEO i performance plugin koji se automatski prilagođ
    - Aktiviraj plugin u `System Plugins`
 
 ### Sistemski zahtevi
+
 ## Promene (kratko)
 
-```text
+````text
 - **Memorija:** Minimum 64MB PHP memorije
 - **Disk:** ~50KB slobodnog prostora
 
@@ -69,7 +70,7 @@ https://example.com/index.php?option=com_joomlaboost&task=robots
 
 # Sitemap.xml
 https://example.com/index.php?option=com_joomlaboost&task=sitemap
-```
+````
 
 ### Konfiguracija
 

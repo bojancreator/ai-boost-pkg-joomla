@@ -6,3 +6,8 @@ exclude_paths:
   - "tools/__inspect_external_plugin/**"
   - "tools/__inspect_offroadseo_zip/**"
   - "tools/__inspect_offroadseo_zip2/**"
+  - "tools/**"
+  - "tools/__inspect_*/**"
+  - "archive/**"
+  - "**/*.min.js"
+  - "**/dist/**"

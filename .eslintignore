@@ -6,3 +6,11 @@ build/
 **/node_modules/**
 **/build/**
 tools/__inspect_external_plugin/**
+# Ignore third-party and inspection/build artifacts
+archive/
+tools/__build/
+tools/__inspect_*/
+tools/**
+# Generated or packaged assets
+**/*.min.js
+**/dist/**
