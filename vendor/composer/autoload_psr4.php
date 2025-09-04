@@ -6,6 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'OffroadSerbia\\' => array($baseDir . '/src'),
     'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\' => array($baseDir . '/src/plugins/system/joomlaboost/src'),
+    'JoomlaBoost\\' => array($baseDir . '/src'),
 );

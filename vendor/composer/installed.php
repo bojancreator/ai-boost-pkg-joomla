@@ -1,19 +1,19 @@
 <?php return array(
     'root' => array(
-        'name' => 'offroadserbia/joomla-dev',
+        'name' => 'joomlaboost/joomlaboost',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '235320c4855caf5f00b0a741fda74cb1432ce0f3',
+        'reference' => 'bb76dd01b4dd6f7f66c2e6426d60d6b77b4daf2c',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => true,
     ),
     'versions' => array(
-        'offroadserbia/joomla-dev' => array(
+        'joomlaboost/joomlaboost' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '235320c4855caf5f00b0a741fda74cb1432ce0f3',
+            'reference' => 'bb76dd01b4dd6f7f66c2e6426d60d6b77b4daf2c',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
