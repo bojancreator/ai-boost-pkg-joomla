@@ -112,7 +112,7 @@ if (file_exists($xmlFile)) {
     'enable_sitemap' => 'Sitemap configuration',
     'enable_schema' => 'Schema configuration',
     'debug_mode' => 'Debug configuration',
-    '0.1.0-beta' => 'New version number'
+    '0.1.17' => 'New version number'
   ];
 
   foreach ($universalFeatures as $feature => $description) {

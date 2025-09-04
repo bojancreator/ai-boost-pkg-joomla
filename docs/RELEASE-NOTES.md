@@ -1,4 +1,4 @@
-# OffroadSEO – Release Notes
+# JoomlaBoost – Release Notes
 
 ## 1.8.5 — 2025-09-01
 
@@ -9,12 +9,12 @@
 
 ## 1.8.4 — 2025-09-01
 
-- Diagnostics endpoint (`/offseo-diag`) now responds regardless of `active_domain` to simplify staging/host debugging. It still reports `active_match` flag for visibility.
+- Diagnostics endpoint (`/jb-diag`) now responds regardless of `active_domain` to simplify staging/host debugging. It still reports `active_match` flag for visibility.
 - Bumped internal version and manifest; rebuilt package.
 
 ## 1.8.3 — 2025-09-01
 
-- Added path-based diagnostics endpoint handling in plugin: `GET /offseo-diag` → `text/plain` with host, active domain match, and enable flags.
+- Added path-based diagnostics endpoint handling in plugin: `GET /jb-diag` → `text/plain` with host, active domain match, and enable flags.
 - Keeps early routing via Router + com_ajax; returns immediately in `onAfterInitialise`.
 - Manifest/version bump and packaging.
 
@@ -27,7 +27,7 @@
 
 ## 1.8.1 — 2025-09-01
 
-- Lightweight diagnostics via query param `?offseo_diag=1` for quick environment checks.
+- Lightweight diagnostics via query param `?jb_diag=1` for quick environment checks.
 
 ## 1.8.0 — 2025-09-01
 

@@ -1,0 +1,254 @@
+{
+    "base": {
+        "yes": "Da",
+        "no": "Nu",
+        "ok": "OK",
+        "auto": "Automat",
+        "enabled": "Activat",
+        "disabled": "Dezactivat",
+        "none": "Niciunul",
+        "details": "Detalii",
+        "required": "obligatoriu",
+        "from": "De la",
+        "to": "La",
+        "done": "Gata!",
+        "reset": "Resetare!",
+        "clear": "Golire",
+        "doNotChange": "Nu modificați",
+        "default": "Implicit",
+        "custom": "Personalizat",
+        "close": "Închide",
+        "open": "Deschide"
+    },
+    "weekDays": {
+        "mon": "Luni",
+        "tue": "Marți",
+        "wed": "Miercuri",
+        "thu": "Joi",
+        "fri": "Vineri",
+        "sat": "Sâmbătă",
+        "sun": "Duminică"
+    },
+    "duration": {
+        "1_hour": "1 oră",
+        "1_day": "1 zi",
+        "1_week": "1 săptămână",
+        "1_month": "1 lună",
+        "3_month": "3 luni",
+        "1_year": "1 an",
+        "never": "Niciodată",
+        "5_mn": "5 min",
+        "30_mn": "30 min",
+        "6_hour": "6 ore",
+        "12_hours": "12 ore",
+        "16_month": "16 luni"
+    },
+    "edition": {
+        "community": "Ediție comunitară",
+        "full": "Ediție Pro",
+        "alpha": "Versiune Alpha, doar pentru testare",
+        "beta": "Versiune Beta, doar pentru testare"
+    },
+    "update": {
+        "noticeTitle": "Versiune nouă disponibilă!",
+        "noticeDetails": "Versiunea %1 este disponibilă, <a class='wb-underline wb-gray-900 hover:wb-underline' href='%2'>vă rugăm să actualizați!</a> - <a target='_blank' rel='noopener' class='wb-underline wb-gray-900 hover:wb-underline' href='%3'>Aici găsiți lista completă de modificări</a>.",
+        "noticeDetailsCannotUpdate": "Versiunea %1 este disponibilă, dar nu puteți face actualizarea în acest moment.",
+        "noticeDetailsCannotUpdatePlatform": "Versiunea Joomla curentă nu este compatibilă cu această versiune.",
+        "noticeDetailsCannotUpdatePhp": "Versiunea PHP curentă nu este compatibilă cu această versiune."
+    },
+    "inputError": {
+        "greaterThanZero": "Trebuie să fie mai mare decât zero.",
+        "onlyLettersAndNumbers": "Fără spațiu sau simbol, doar litere și numere",
+        "onlyLettersDashesAndNumbers": "Doar litere, linii ( - ) și numere",
+        "invalidCssSelector": "Selector CSS invalid: există o eroare în selectorul CSS pe care l-ați tastat, browserul dvs. nu îl acceptă."
+    },
+    "backendComm": {
+        "errorCannotCommunicateWithServer": "Nu se poate comunica cu serverul",
+        "errorLoadingDataFromServer": "Eroare la încărcarea datelor de pe server.",
+        "errorViewDetailsInConsole": "Mai multe detalii pot fi găsite în consola Javascript a browserului."
+    },
+    "ui": {
+        "noItemAvailable": "Niciun element disponibil.",
+        "noDataAvailable": "Nu există date disponibile.",
+        "noDataAvailableYet": "Încă nu există date disponibile.",
+        "noItemSelected": "Niciun element selectat.",
+        "noItemAvailableOrSelected": "Niciun element disponibil sau selectat.",
+        "copyToClipboard": "Copiază în clipboard",
+        "copiedToClipboard": "Copiat!",
+        "selectAComponent": "Selectează un component...",
+        "selectCategories": "Selectează categorii...",
+        "first": "Primul",
+        "last": "Ultimul",
+        "moveAfter": "Mută \"%1\" după \"%2\"",
+        "moveFirst": "Mută \"%1\" în prima poziție",
+        "moveLast": "Mută \"%1\" în ultima poziție",
+        "expandHelp": "Afișează informații de ajutor pentru acest element.",
+        "quickEdit": "Editare rapidă",
+        "mobile": "Mobil",
+        "desktop": "Desktop",
+        "connectionLost": "Nu putem ajunge la serverul dvs.!",
+        "connectionRecovered": "Putem ajunge din nou la serverul dvs. după o întrerupere!",
+        "connectionLostDetails": "Fie serverul dvs. este în jos, sesiunea Joomla! a expirat sau poate ați ieșit dintr-o altă filă a acestui browser.",
+        "connectionLostDetailsPrompt": "Dacă ați ieșit, vă rugăm să actualizați pagina cu butonul de mai jos și să vă conectați din nou pentru a continua lucrul.",
+        "connectionLostResume": "Acum putem conecta la serverul dvs. în mod normal, vă rugăm să reîncărcați această pagină pentru a continua:",
+        "goToLoginPageOrRefresh": "Reîncărcați această pagină",
+        "home": "Acasă",
+        "width": "Lățime",
+        "height": "Înălțime",
+        "helpExpanded": "Ascunde textele de ajutor inline.",
+        "helpNotExpanded": "Afișează textele de ajutor inline.",
+        "tablet": "Tabletă",
+        "device": "Dispozitiv",
+        "allDevices": "Toate dispozitivele",
+        "deviceSelect": "Tip de dispozitiv",
+        "allLanguages": "Toate limbile.",
+        "expand": "Extinde elementul colapsat",
+        "collapse": "Restrânge elementul extins",
+        "expandAll": "Extinde toate elementele colapsate",
+        "collapseAll": "Restrânge toate elementele extinse",
+        "table": "Tabel",
+        "chart": "Diagramă",
+        "learnMore": "Află mai multe...",
+        "suggestAutoClear": "Notificările pot fi închise automat. Accesați <strong>Configurare | Sistem | Închidere automată a notificărilor</strong> pentru a activa."
+    },
+    "url": {
+        "internal": "Intern",
+        "external": "Extern",
+        "openInNewTab": "Deschideți %1 într-o filă nouă",
+        "duplicate": "Duplicat",
+        "duplicateShort": "Dupl.",
+        "duplicates": "Duplicări",
+        "genericFullUrlCaption": "Introduceți URL-ul complet. Trebuie să înceapă cu <span class=\"wb-c-code-inline\">https://</span> sau <span class=\"wb-c-code-inline\">http://</span>.",
+        "mustEndWithSlash": "Trebuie să se termine cu <span class=\"wb-c-code-inline\">/</span>."
+    },
+    "content": {
+        "title": "Titlu",
+        "url": "URL",
+        "type": "Tip",
+        "item": "Articol",
+        "itemId": "ID articol",
+        "status": "Stare",
+        "source": "Sursă",
+        "hits": "Vizualizări",
+        "lastHit": "Ultima vizualizare",
+        "statusAll": "Toate",
+        "statusOthers": "Altele",
+        "selectStatus": "Stare",
+        "page": "Pagină",
+        "extension": "Extensie",
+        "view": "Vizualizare",
+        "layout": "Aspect",
+        "target": "Țintă",
+        "enabled": "Activat",
+        "disabled": "Dezactivat",
+        "language": "Limba",
+        "keyword": "Cuvânt cheie"
+    },
+    "pagination": {
+        "total": "Total",
+        "errors": "Erori",
+        "goToPage": "Mergi la pagina",
+        "search": "Căutare",
+        "perPage": "Pe pagină",
+        "first": "Prima",
+        "previous": "Anterioara",
+        "next": "Următoarea",
+        "last": "Ultima",
+        "selected": "Selectate",
+        "selectAllItems": "Selectează toate articolele din listă",
+        "selectItem": "Selectează elementul %1",
+        "exactSearch": "Căutare exactă",
+        "searchIn": "Caută în"
+    },
+    "table": {
+        "cellToggle": "Comută %1 pentru rândul %2"
+    },
+    "lists": {
+        "noData": "Nu există elemente disponibile.",
+        "selectAnItem": "Vă rugăm să selectați mai întâi un element din listă.",
+        "selectOnlyOneItem": "Vă rugăm să selectați doar un singur element din listă.",
+        "actionsFor": "Acțiuni pentru %1",
+        "optionsFor": "Opțiuni pentru %1"
+    },
+    "colors": {
+        "blue": "Albastru",
+        "green": "Verde",
+        "orange": "Portocaliu",
+        "red": "Roșu",
+        "indigo": "Indigo",
+        "purple": "Violet"
+    },
+    "crud": {
+        "new": "Nou",
+        "edit": "Editare",
+        "delete": "Ștergere",
+        "deleteAll": "Ștergeți tot",
+        "publish": "Publică",
+        "unpublish": "Anulează publicarea",
+        "enable": "Activare",
+        "disable": "Dezactivare",
+        "save": "Salvare",
+        "saveAndClose": "Salvare și închidere",
+        "close": "Închidere",
+        "select": "Selectare",
+        "fixErrors": "Vă rugăm să remediați erorile înainte de a salva!",
+        "confirmDeleteItems": "Vă rugăm să confirmați ștergerea a %1 element(e)",
+        "confirmDeleteAllItems": "Vă rugăm să confirmați ștergerea <strong>tuturor elementelor</strong> din această listă.",
+        "deleteItems": "Ștergeți aceste elemente",
+        "keepItems": "Păstrați-le",
+        "confirmGeneric": "Vă rugăm să confirmați %1"
+    },
+    "helpSystem": {
+        "buttonTitle": "Ajutor",
+        "cannotLoad": "Ne pare rău, pare că serverul de ajutor este indisponibil sau nu avem acces la internet pentru a încărca acest text de ajutor. Poate încercați din nou mai târziu?"
+    },
+    "fileBrowser": {
+        "homeFolder": "Mergi la folderul principal",
+        "goToParentFolder": "Mergi la folderul părinte",
+        "currentlySelected": "Selectat",
+        "previewImage": "Previzualizare %1",
+        "gotToFolder": "Mergi la folderul %1",
+        "selectImage": "Selectați imaginea..."
+    },
+    "imageGrid": {
+        "titleSelectSingle": "...sau selectați una dintre imaginile găsite pe această pagină (recomandat)"
+    },
+    "rules": {
+        "dateRangeWarning": "În prezent în afara acestui interval de date, regulă care nu rulează momentan."
+    },
+    "searchEngines": {
+        "google": "Google",
+        "bing": "Bing",
+        "yandex": "Yandex",
+        "baidu": "Baidu",
+        "yahoo": "Yahoo",
+        "duckDuckGo": "DuckDuckGo"
+    },
+    "status": {
+        "automatic": "Automat",
+        "auto": "Auto",
+        "manual": "Manual",
+        "completion": "Finalizare"
+    },
+    "operators": {
+        "equals": "=",
+        "different": "Diferit",
+        "greater": "Mai mare",
+        "greaterEq": "Mai mare sau =",
+        "less": "Mai mic",
+        "lessEq": "Mai mic sau =",
+        "between": "Între",
+        "contains": "Conține",
+        "doesNotContains": "Nu conține",
+        "startsWith": "Începe cu",
+        "endsWith": "Se termină cu"
+    },
+    "dateTime": {
+        "day": "Zi",
+        "date": "Data"
+    },
+    "notifications": {
+        "openList": "Deschide lista de notificări",
+        "closeList": "Închide lista de notificări"
+    }
+}

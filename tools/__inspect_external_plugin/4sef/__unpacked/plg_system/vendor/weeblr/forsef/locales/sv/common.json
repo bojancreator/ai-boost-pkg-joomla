@@ -1,0 +1,254 @@
+{
+    "base": {
+        "yes": "Ja",
+        "no": "Nej",
+        "ok": "OK",
+        "auto": "Auto",
+        "enabled": "Aktiverad",
+        "disabled": "Inaktiverad",
+        "none": "Ingen",
+        "details": "Detaljer",
+        "required": "obligatoriskt",
+        "from": "Från",
+        "to": "Till",
+        "done": "Klart!",
+        "reset": "Återställ!",
+        "clear": "Rensa",
+        "doNotChange": "Ändra inte",
+        "default": "Standard",
+        "custom": "Anpassad",
+        "close": "Stäng",
+        "open": "Öppna"
+    },
+    "weekDays": {
+        "mon": "Måndag",
+        "tue": "Tisdag",
+        "wed": "Onsdag",
+        "thu": "Torsdag",
+        "fri": "Fredag",
+        "sat": "Lördag",
+        "sun": "Söndag"
+    },
+    "duration": {
+        "1_hour": "1 timme",
+        "1_day": "1 dag",
+        "1_week": "1 vecka",
+        "1_month": "1 månad",
+        "3_month": "3 månader",
+        "1_year": "1 år",
+        "never": "Aldrig",
+        "5_mn": "5 min",
+        "30_mn": "30 min",
+        "6_hour": "6 timmar",
+        "12_hours": "12 timmar",
+        "16_month": "16 månader"
+    },
+    "edition": {
+        "community": "Community-utgåva",
+        "full": "Pro-utgåva",
+        "alpha": "Alfaversion, endast för testning",
+        "beta": "Betaversion, endast för testning"
+    },
+    "update": {
+        "noticeTitle": "Ny version tillgänglig!",
+        "noticeDetails": "Version %1 är tillgänglig, <a class='wb-underline wb-gray-900 hover:wb-underline' href='%2'>vänligen uppdatera!</a> - <a target='_blank' rel='noopener' class='wb-underline wb-gray-900 hover:wb-underline' href='%3'>Hela ändringsloggen här</a>.",
+        "noticeDetailsCannotUpdate": "Version %1 är tillgänglig, men du kan inte uppdatera för tillfället.",
+        "noticeDetailsCannotUpdatePlatform": "Din nuvarande Joomla-version är inte kompatibel med denna version.",
+        "noticeDetailsCannotUpdatePhp": "Din nuvarande PHP-version är inte kompatibel med denna version."
+    },
+    "inputError": {
+        "greaterThanZero": "Måste vara större än noll.",
+        "onlyLettersAndNumbers": "Inga mellanslag eller symboler, endast bokstäver och siffror",
+        "onlyLettersDashesAndNumbers": "Endast bokstäver, bindestreck ( - ) och siffror",
+        "invalidCssSelector": "Ogiltig CSS-väljare: det finns ett fel i den CSS-väljare du skrev, din webbläsare accepterar den inte."
+    },
+    "backendComm": {
+        "errorCannotCommunicateWithServer": "Kan inte kommunicera med servern",
+        "errorLoadingDataFromServer": "Fel vid inläsning av data från servern.",
+        "errorViewDetailsInConsole": "Mer information finns i webbläsarens Javascript-konsol."
+    },
+    "ui": {
+        "noItemAvailable": "Inget objekt tillgängligt.",
+        "noDataAvailable": "Ingen data tillgänglig.",
+        "noDataAvailableYet": "Ingen data tillgänglig ännu.",
+        "noItemSelected": "Inget objekt valt.",
+        "noItemAvailableOrSelected": "Inget objekt tillgängligt eller valt.",
+        "copyToClipboard": "Kopiera till urklipp",
+        "copiedToClipboard": "Kopierad!",
+        "selectAComponent": "Välj en komponent...",
+        "selectCategories": "Välj kategorier...",
+        "first": "Första",
+        "last": "Sista",
+        "moveAfter": "Flytta \"%1\" efter \"%2\"",
+        "moveFirst": "Flytta \"%1\" till första positionen",
+        "moveLast": "Flytta \"%1\" till sista positionen",
+        "expandHelp": "Visa hjälpinformation för detta element.",
+        "quickEdit": "Snabbredigering",
+        "mobile": "Mobil",
+        "desktop": "Skrivbord",
+        "connectionLost": "Vi kan inte nå din server!",
+        "connectionRecovered": "Vi kan nå din server igen efter ett avbrott!",
+        "connectionLostDetails": "Antingen är din server nere, din Joomla!-session har gått ut eller så loggade du ut från en annan flik i den här webbläsaren.",
+        "connectionLostDetailsPrompt": "Om du loggade ut, uppdatera sidan med knappen nedan och logga in igen för att fortsätta arbeta.",
+        "connectionLostResume": "Vi kan nu ansluta till din server som vanligt, ladda om den här sidan för att fortsätta:",
+        "goToLoginPageOrRefresh": "Ladda om den här sidan",
+        "home": "Hem",
+        "width": "Bredd",
+        "height": "Höjd",
+        "helpExpanded": "Dölj inlinetext för hjälp.",
+        "helpNotExpanded": "Visa inlinetext för hjälp.",
+        "tablet": "Surfplatta",
+        "device": "Enhet",
+        "allDevices": "Alla enheter",
+        "deviceSelect": "Enhetstyp",
+        "allLanguages": "Alla språk.",
+        "expand": "Expandera ihopfällt objekt",
+        "collapse": "Kollapsa utökat objekt",
+        "expandAll": "Expandera alla ihopfällda objekt",
+        "collapseAll": "Kollapsa alla utökade objekt",
+        "table": "Tabell",
+        "chart": "Diagram",
+        "learnMore": "Läs mer...",
+        "suggestAutoClear": "Meddelanden kan stängas automatiskt. Gå till <strong>Konfiguration | System | Automatiskt rensa meddelanden</strong> för att aktivera."
+    },
+    "url": {
+        "internal": "Intern",
+        "external": "Extern",
+        "openInNewTab": "Öppna %1 i ny flik",
+        "duplicate": "Duplicera",
+        "duplicateShort": "Dupl.",
+        "duplicates": "Dupliceringar",
+        "genericFullUrlCaption": "Ange den fullständiga URL:en. Måste börja med <span class=\"wb-c-code-inline\">https://</span> eller <span class=\"wb-c-code-inline\">http://</span>.",
+        "mustEndWithSlash": "Måste sluta med en <span class=\"wb-c-code-inline\">/</span>."
+    },
+    "content": {
+        "title": "Titel",
+        "url": "URL",
+        "type": "Typ",
+        "item": "Objekt",
+        "itemId": "Objekt id",
+        "status": "Status",
+        "source": "Källa",
+        "hits": "Träffar",
+        "lastHit": "Senaste träff",
+        "statusAll": "Alla",
+        "statusOthers": "Andra",
+        "selectStatus": "Status",
+        "page": "Sida",
+        "extension": "Tillägg",
+        "view": "Vy",
+        "layout": "Layout",
+        "target": "Mål",
+        "enabled": "Aktiverad",
+        "disabled": "Inaktiverad",
+        "language": "Språk",
+        "keyword": "Nyckelord"
+    },
+    "pagination": {
+        "total": "Totalt",
+        "errors": "Fel",
+        "goToPage": "Gå till sida",
+        "search": "Sök",
+        "perPage": "Per sida",
+        "first": "Första",
+        "previous": "Föregående",
+        "next": "Nästa",
+        "last": "Sista",
+        "selected": "Valda",
+        "selectAllItems": "Välj alla objekt i listan",
+        "selectItem": "Välj objekt %1",
+        "exactSearch": "Exakt sökning",
+        "searchIn": "Sök i"
+    },
+    "table": {
+        "cellToggle": "Växla %1 för rad %2"
+    },
+    "lists": {
+        "noData": "Inget objekt tillgängligt.",
+        "selectAnItem": "Vänligen välj ett objekt från listan först.",
+        "selectOnlyOneItem": "Vänligen välj endast ett objekt från listan.",
+        "actionsFor": "Åtgärder för %1",
+        "optionsFor": "Alternativ för %1"
+    },
+    "colors": {
+        "blue": "Blå",
+        "green": "Grön",
+        "orange": "Orange",
+        "red": "Röd",
+        "indigo": "Indigo",
+        "purple": "Lila"
+    },
+    "crud": {
+        "new": "Ny",
+        "edit": "Redigera",
+        "delete": "Ta bort",
+        "deleteAll": "Ta bort alla",
+        "publish": "Publicera",
+        "unpublish": "Avpublicera",
+        "enable": "Aktivera",
+        "disable": "Inaktivera",
+        "save": "Spara",
+        "saveAndClose": "Spara och stäng",
+        "close": "Stäng",
+        "select": "Välj",
+        "fixErrors": "Vänligen åtgärda fel innan du sparar!",
+        "confirmDeleteItems": "Vänligen bekräfta att du vill ta bort %1 objekt",
+        "confirmDeleteAllItems": "Vänligen bekräfta att du vill ta bort <strong>alla objekt</strong> från denna lista.",
+        "deleteItems": "Ta bort dessa objekt",
+        "keepItems": "Behåll dem",
+        "confirmGeneric": "Vänligen bekräfta %1"
+    },
+    "helpSystem": {
+        "buttonTitle": "Hjälp",
+        "cannotLoad": "Tyvärr verkar hjälptjänsten vara nere eller så har vi ingen internetanslutning för att ladda denna hjälptext. Försök igen senare?"
+    },
+    "fileBrowser": {
+        "homeFolder": "Gå till startsida",
+        "goToParentFolder": "Gå upp en mapp",
+        "currentlySelected": "Vald",
+        "previewImage": "Förhandsgranska %1",
+        "gotToFolder": "Gå till mapp %1",
+        "selectImage": "Välj bild..."
+    },
+    "imageGrid": {
+        "titleSelectSingle": "...eller välj en av bilderna som hittats på denna sida (rekommenderas)"
+    },
+    "rules": {
+        "dateRangeWarning": "För närvarande utanför detta datumintervall, regeln körs inte för tillfället."
+    },
+    "searchEngines": {
+        "google": "Google",
+        "bing": "Bing",
+        "yandex": "Yandex",
+        "baidu": "Baidu",
+        "yahoo": "Yahoo",
+        "duckDuckGo": "DuckDuckGo"
+    },
+    "status": {
+        "automatic": "Automatisk",
+        "auto": "Auto",
+        "manual": "Manuell",
+        "completion": "Slutförande"
+    },
+    "operators": {
+        "equals": "=",
+        "different": "Olika",
+        "greater": "Större",
+        "greaterEq": "Större eller =",
+        "less": "Mindre",
+        "lessEq": "Mindre eller =",
+        "between": "Mellan",
+        "contains": "Innehåller",
+        "doesNotContains": "Innehåller inte",
+        "startsWith": "Börjar med",
+        "endsWith": "Slutar med"
+    },
+    "dateTime": {
+        "day": "Dag",
+        "date": "Datum"
+    },
+    "notifications": {
+        "openList": "Öppna meddelandelista",
+        "closeList": "Stäng meddelandelista"
+    }
+}

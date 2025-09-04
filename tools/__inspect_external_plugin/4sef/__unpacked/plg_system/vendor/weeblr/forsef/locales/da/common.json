@@ -1,0 +1,254 @@
+{
+    "base": {
+        "no": "Nej",
+        "ok": "OK",
+        "auto": "Auto",
+        "enabled": "Aktiveret",
+        "disabled": "Deaktiveret",
+        "none": "Ingen",
+        "details": "Detaljer",
+        "required": "krævet",
+        "from": "Fra",
+        "to": "Til",
+        "done": "Færdig!",
+        "reset": "Nulstil!",
+        "yes": "Ja",
+        "clear": "Ryd",
+        "doNotChange": "Skal ikke ændres",
+        "default": "Standard",
+        "custom": "Brugerdefineret",
+        "close": "Luk",
+        "open": "Åben"
+    },
+    "weekDays": {
+        "mon": "Mandag",
+        "tue": "Tirsdag",
+        "wed": "Onsdag",
+        "thu": "Torsdag",
+        "fri": "Fredag",
+        "sat": "Lørdag",
+        "sun": "Søndag"
+    },
+    "duration": {
+        "1_hour": "1 time",
+        "1_day": "1 dag",
+        "1_week": "1 uge",
+        "1_month": "1 måned",
+        "3_month": "3 måneder",
+        "1_year": "1 år",
+        "never": "Aldrig",
+        "5_mn": "5 min",
+        "30_mn": "30 min",
+        "6_hour": "6 timer",
+        "12_hours": "12 timer",
+        "16_month": "16 måneder"
+    },
+    "edition": {
+        "community": "Fællesskabs udgave",
+        "full": "Pro udgave",
+        "beta": "Beta version, kun til test",
+        "alpha": "Alfa version, kun til test"
+    },
+    "update": {
+        "noticeTitle": "Ny version tilgængelig!",
+        "noticeDetailsCannotUpdate": "Version %1 er tilgængelig, men du kan ikke opdatere på nuværende tidspunkt.",
+        "noticeDetailsCannotUpdatePlatform": "Din aktuelle Joomla version er ikke kompatibel med denne udgivelse.",
+        "noticeDetailsCannotUpdatePhp": "Din aktuelle PHP version er ikke kompatibel med denne udgivelse.",
+        "noticeDetails": "Version %1 er tilgængelig, <a class='wb-underline wb-gray-900 hover:wb-underline' href='%2'>please update!</a> - <a target='_blank' rel='noopener' class='wb-underline wb-gray-900 hover:wb-underline' href='%3'>Fuld ændringslog her</a>."
+    },
+    "inputError": {
+        "greaterThanZero": "Skal være større end nul.",
+        "onlyLettersDashesAndNumbers": "Kun bogstaver, bindestreger ( - ) og tal",
+        "onlyLettersAndNumbers": "Ingen mellemrum eller symboler, kun bogstaver og tal",
+        "invalidCssSelector": "Ugyldig CSS-selector: der er en fejl i den CSS-selector, du har indtastet, din browser accepterer den ikke."
+    },
+    "backendComm": {
+        "errorCannotCommunicateWithServer": "Kan ikke kommunikere med server",
+        "errorLoadingDataFromServer": "Fejl under indlæsning af data fra server.",
+        "errorViewDetailsInConsole": "Flere detaljer kan finde i browser javascript konsollen."
+    },
+    "ui": {
+        "noItemAvailable": "Intet element tilgængeligt.",
+        "noDataAvailable": "Ingen data tilgængelig.",
+        "noDataAvailableYet": "Endnu ingen data tilgængelig.",
+        "noItemSelected": "Intet element valgt.",
+        "noItemAvailableOrSelected": "Intet element tilgængeligt eller valgt.",
+        "copyToClipboard": "Kopier til udklipsholder",
+        "copiedToClipboard": "Kopieret!",
+        "selectAComponent": "Vælg en komponent...",
+        "selectCategories": "Vælg kategorier...",
+        "first": "Førtst",
+        "last": "Sidst",
+        "moveAfter": "Flyt \"%1\" efter \"%2\"",
+        "moveLast": "Flyt \"%1\" til sidste position",
+        "expandHelp": "Vis hjælpeinformation for dette element.",
+        "quickEdit": "Hurtig redigering",
+        "mobile": "Mobil",
+        "connectionLost": "Vi kan ikke kontakte din server!",
+        "connectionLostResume": "Vi kan nu forbinde til din server normalt, genindlæs venligst denne side for at fortsætte:",
+        "goToLoginPageOrRefresh": "Genindlæs denne side",
+        "home": "Hjem",
+        "width": "Bredde",
+        "height": "Højde",
+        "moveFirst": "Flyt \"%1\" til første position",
+        "desktop": "Desktop",
+        "connectionRecovered": "Vi kan igen kommunikere med din server efter en afbrydelse!",
+        "connectionLostDetails": "Enten er din server nede, din Joomla! session udløbet, eller måske er du logget ud via en anden fane i din browser.",
+        "connectionLostDetailsPrompt": "Hvis du loggede af, så opdater venligst siden v.hja knappen nedenunder og log på igen for at genoptage arbejdet.",
+        "helpExpanded": "Skjul inline hjælpetekster.",
+        "helpNotExpanded": "Vis inline hjælpetekster.",
+        "tablet": "Tablet",
+        "device": "Enhed",
+        "allDevices": "Alle enheder",
+        "deviceSelect": "Enheds type",
+        "allLanguages": "Alle sprog.",
+        "expand": "Udvid sammenklappet element",
+        "collapse": "Skjul udvidet element",
+        "expandAll": "Udvid alle sammenklappede elementer",
+        "collapseAll": "Skjul alle udvidede elementer",
+        "table": "Tabel",
+        "chart": "Diagram",
+        "learnMore": "Lær mere...",
+        "suggestAutoClear": "Notifikationer kan lukkes automatisk. Gå til <strong>Konfiguration | System | Automatisk rydning af notifikationer</strong> for at aktivere."
+    },
+    "url": {
+        "external": "Ekstern",
+        "openInNewTab": "Åben %1 i ny fane",
+        "duplicate": "Dupliker",
+        "duplicateShort": "Dupl.",
+        "duplicates": "Dubletter",
+        "mustEndWithSlash": "Skal slutte med en <span class=\"wb-c-code-inline\">/</span>.",
+        "internal": "Intern",
+        "genericFullUrlCaption": "Angiv den fulde URL. Skal starte med <span class=\"wb-c-code-inline\">https://</span> eller <span class=\"wb-c-code-inline\">http://</span>."
+    },
+    "content": {
+        "title": "Titel",
+        "url": "URL",
+        "type": "Type",
+        "item": "Element",
+        "itemId": "Element ID",
+        "status": "Status",
+        "source": "Kilde",
+        "hits": "Visninger",
+        "lastHit": "Seneste visning",
+        "statusAll": "Alle",
+        "statusOthers": "Andre",
+        "selectStatus": "Status",
+        "page": "Side",
+        "extension": "Udvidelse",
+        "view": "Visning",
+        "layout": "Layout",
+        "target": "Mål",
+        "enabled": "Aktiveret",
+        "disabled": "Deaktiveret",
+        "language": "Sprog",
+        "keyword": "Nøgleord"
+    },
+    "pagination": {
+        "total": "Total",
+        "errors": "Fejl",
+        "goToPage": "Gå til side",
+        "search": "Søg",
+        "perPage": "Per side",
+        "first": "Først",
+        "previous": "Forrige",
+        "next": "Næste",
+        "last": "Sidst",
+        "selected": "Valgte",
+        "selectItem": "Vælg element %1",
+        "exactSearch": "Præcis søgning",
+        "selectAllItems": "Vælg alle elementer på listen",
+        "searchIn": "Søg i"
+    },
+    "table": {
+        "cellToggle": "Skift %1 for række %2"
+    },
+    "lists": {
+        "noData": "Intet element tilgængeligt.",
+        "selectOnlyOneItem": "Vælg venligst kun et element fra listen.",
+        "actionsFor": "Handlinger for %1",
+        "selectAnItem": "Vælg venligst først et element fra listen.",
+        "optionsFor": "Indstillinger for %1"
+    },
+    "colors": {
+        "blue": "Blå",
+        "green": "Grøn",
+        "orange": "Orange",
+        "red": "Rød",
+        "indigo": "Indigo",
+        "purple": "Violet"
+    },
+    "crud": {
+        "new": "Ny",
+        "edit": "Rediger",
+        "delete": "Slet",
+        "deleteAll": "Slet alle",
+        "publish": "Publicer",
+        "unpublish": "Afpublicer",
+        "enable": "Aktiver",
+        "disable": "Deaktiver",
+        "save": "Gem",
+        "saveAndClose": "Gem & luk",
+        "close": "Luk",
+        "select": "Vælg",
+        "confirmDeleteItems": "Bekræft venligst at du ønsker at slette %1 element(er)",
+        "confirmDeleteAllItems": "Bekræft venligst at du ønsker at slette <strong>alle elemener</strong> fra denne liste.",
+        "deleteItems": "Slet elementerne",
+        "keepItems": "Behold dem",
+        "confirmGeneric": "Bekræft venligst %1",
+        "fixErrors": "Ret venligst indførselsfejl inden lagring!"
+    },
+    "helpSystem": {
+        "buttonTitle": "Hjælp",
+        "cannotLoad": "Beklager, det ser ud til at hjælpeserveren er nede eller at vi ikke har internetadgang til at indlæse denne hjælpetekst. Prøv venligst igen lidt senere?"
+    },
+    "fileBrowser": {
+        "homeFolder": "Gå til hjemmemappen",
+        "goToParentFolder": "Gå et mappeniveau op",
+        "currentlySelected": "Valgt",
+        "previewImage": "Forhåndsvis %1",
+        "gotToFolder": "Gå til mappe %1",
+        "selectImage": "Vælg billede..."
+    },
+    "imageGrid": {
+        "titleSelectSingle": "...eller vælg et af billederne på denne side (anbefalet)"
+    },
+    "searchEngines": {
+        "google": "Google",
+        "bing": "Bing",
+        "yandex": "Yandex",
+        "baidu": "Baidu",
+        "yahoo": "Yahoo",
+        "duckDuckGo": "DuckDuckGo"
+    },
+    "status": {
+        "automatic": "Automatisk",
+        "auto": "Auto",
+        "manual": "Manuel",
+        "completion": "Gennemførsel"
+    },
+    "rules": {
+        "dateRangeWarning": "Aktuelt udenfor dette datoområde, regel kører ikke pt."
+    },
+    "operators": {
+        "equals": "=",
+        "different": "Forskellig",
+        "greater": "Større",
+        "greaterEq": "Større eller =",
+        "less": "Mindre",
+        "lessEq": "Mindre eller =",
+        "between": "Mellem",
+        "contains": "Indeholder",
+        "doesNotContains": "Indeholder ikke",
+        "startsWith": "Starter med",
+        "endsWith": "Slutter med"
+    },
+    "dateTime": {
+        "day": "Dag",
+        "date": "Dato"
+    },
+    "notifications": {
+        "openList": "Åbn notifikationsliste",
+        "closeList": "Luk notifikationsliste"
+    }
+}

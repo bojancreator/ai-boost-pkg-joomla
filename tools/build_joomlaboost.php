@@ -14,7 +14,7 @@ echo "============================\n\n";
 $baseDir = __DIR__ . '/..';
 $sourceDir = $baseDir . '/src/plugins/system/joomlaboost';
 $buildDir = $baseDir . '/tools/__build';
-$version = '0.1.0-beta';
+$version = '0.1.17';
 $timestamp = date('Y-m-d_H-i-s');
 $zipName = "joomlaboost-{$version}.zip";
 

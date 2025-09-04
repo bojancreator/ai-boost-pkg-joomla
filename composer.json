@@ -1,6 +1,6 @@
 {
-  "name": "offroadserbia/joomla-dev",
-  "description": "Monorepo for Joomla development (plugins/modules/templates) for OffRoad Serbia.",
+  "name": "joomlaboost/joomlaboost",
+  "description": "Monorepo for JoomlaBoost universal plugin and related assets.",
   "type": "project",
   "license": "MIT",
   "require": {
@@ -12,7 +12,7 @@
   },
   "autoload": {
     "psr-4": {
-      "OffroadSerbia\\": "src/",
+      "JoomlaBoost\\": "src/",
       "JoomlaBoost\\Plugin\\System\\JoomlaBoost\\": "src/plugins/system/joomlaboost/src/"
     }
   },

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="tests/bootstrap.php">
+	<filter>
+		<whitelist>
+			<directory suffix=".php">src/RobotsTxtParser/</directory>
+		</whitelist>
+	</filter>
+	<testsuites>
+		<testsuite name="RobotsTxtParser Test Suite">
+			<directory>tests/RobotsTxtParser</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

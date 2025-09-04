@@ -1,15 +1,17 @@
-# OffRoad Joomla - JoomlaBoost Plugin
+# JoomlaBoost - Universal Joomla Plugin
 
 🚀 **Universal SEO & Performance Plugin for Joomla 4/5/6**
 
-[![Version](https://img.shields.io/badge/version-0.1.0--beta-blue.svg)](https://github.com/OffroadSerbia/offroad-joomla/releases)
+[![Version](https://img.shields.io/badge/version-0.1.17-blue.svg)](https://github.com/bojancreator/JoomlaBoost/releases)
+[![CI](https://github.com/bojancreator/JoomlaBoost/actions/workflows/ci.yml/badge.svg)](https://github.com/bojancreator/JoomlaBoost/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/bojancreator/JoomlaBoost?include_prereleases)](https://github.com/bojancreator/JoomlaBoost/releases)
 [![Joomla](https://img.shields.io/badge/Joomla-4.0%20%7C%205.x%20%7C%206.x-green.svg)](https://www.joomla.org/)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-purple.svg)](https://www.php.net/)
-[![License](https://img.shields.io/badge/license-GPL%20v2%2B-lightgrey.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](LICENSE)
 
 ## 📋 Pregled
 
-JoomlaBoost je univerzalni SEO i performance plugin koji se automatski prilagođava bilo kom Joomla sajtu. Naslednik je OffroadSEO plugina, potpuno refaktorisan za moderne Joomla verzije i PHP 8.1+.
+JoomlaBoost je univerzalni SEO i performance plugin koji se automatski prilagođava bilo kom Joomla sajtu. Naslednik je prethodnih rešenja, potpuno refaktorisan za moderne Joomla verzije i PHP 8.1+.
 
 ### ✨ Ključne karakteristike
 
@@ -28,8 +30,8 @@ JoomlaBoost je univerzalni SEO i performance plugin koji se automatski prilagođ
 
    ```bash
    # Kloniraj repozitorijum
-   git clone https://github.com/OffroadSerbia/offroad-joomla.git
-   cd offroad-joomla
+   git clone https://github.com/bojancreator/JoomlaBoost.git
+   cd JoomlaBoost
 
    # Napravi ZIP paket
    .\tools\build_joomlaboost.ps1
@@ -37,13 +39,13 @@ JoomlaBoost je univerzalni SEO i performance plugin koji se automatski prilagođ
 
 2. **Instaliraj u Joomla:**
    - Idite na `Extensions > Manage > Install`
-   - Upload `tools/__build/joomlaboost-0.1.0-beta.zip`
+   - Upload `tools/__build/joomlaboost-0.1.17.zip`
    - Aktiviraj plugin u `System Plugins`
 
 ### Sistemski zahtevi
+## Promene (kratko)
 
-- **Joomla:** 4.0+ (kompatibilan sa 4.x, 5.x, 6.x)
-- **PHP:** 8.1+ (preporučeno 8.2+)
+```text
 - **Memorija:** Minimum 64MB PHP memorije
 - **Disk:** ~50KB slobodnog prostora
 
@@ -63,10 +65,10 @@ JoomlaBoost je univerzalni SEO i performance plugin koji se automatski prilagođ
 
 ```bash
 # Robots.txt
-https://vasesajt.com/index.php?option=com_joomlaboost&task=robots
+https://example.com/index.php?option=com_joomlaboost&task=robots
 
 # Sitemap.xml
-https://vasesajt.com/index.php?option=com_joomlaboost&task=sitemap
+https://example.com/index.php?option=com_joomlaboost&task=sitemap
 ```
 
 ### Konfiguracija
@@ -91,7 +93,7 @@ Plugin se konfiguriše kroz Joomla admin panel:
 ### Struktura projekta
 
 ```
-offroad-joomla/
+JoomlaBoost/
 ├── src/plugins/system/joomlaboost/    # Main plugin files
 │   ├── joomlaboost.php               # Entry point
 │   ├── joomlaboost.xml               # Manifest
@@ -121,26 +123,15 @@ php tools/test-joomlaboost.php
 - `composer lint` – PHPCS (PSR-12)
 - `composer stan` – PHPStan (level 6)
 
-## 🔄 Migracija sa OffroadSEO
+## 🔄 Migracija
 
-JoomlaBoost je evolucija OffroadSEO plugina sa sledećim poboljšanjima:
+Ako migrirate sa starijih rešenja, preporuka je:
 
-### Šta je novo
-
-| OffroadSEO         | JoomlaBoost      | Napredak        |
-| ------------------ | ---------------- | --------------- |
-| Joomla 3.x only    | Joomla 4/5/6     | ✅ Modern       |
-| PHP 7.x            | PHP 8.1+         | ✅ Future-proof |
-| Domain-specific    | Universal        | ✅ Flexible     |
-| Complex namespaces | Simple structure | ✅ Stable       |
-
-### Migracija koraci
-
-1. **Backup postojeći plugin**
-2. **Deinstaliraj OffroadSEO**
-3. **Instaliraj JoomlaBoost**
-4. **Konfiguriši parametre**
-5. **Testiraj funkcionalnosti**
+1. Backup postojećeg plugina
+2. Deinstalacija starog plugina
+3. Instalacija JoomlaBoost
+4. Konfiguracija parametara
+5. Test funkcionalnosti
 
 ## 🧪 Testiranje
 
@@ -166,7 +157,7 @@ tail -f logs/joomla_error.log
 
 ## 📝 Changelog
 
-### v0.1.0-beta (September 2025)
+### v0.1.17 (September 2025)
 
 - 🚀 Initial release
 - ✨ Universal domain support
@@ -191,33 +182,32 @@ Pozivamo vas da doprinesete razvoju JoomlaBoost plugina!
 ### Development setup
 
 ```bash
-git clone https://github.com/OffroadSerbia/offroad-joomla.git
-cd offroad-joomla
-# Setup your local Joomla dev environment
-# Install plugin for testing
+# Kloniraj ovaj repo i pripremi lokalni Joomla dev sajt
+git clone https://github.com/bojancreator/JoomlaBoost.git
+cd JoomlaBoost
+# Napravi build pa instaliraj ZIP kroz Joomla admin
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\build_joomlaboost.ps1
 ```
 
 ## 📞 Podrška
 
-- **📧 Email:** info@offroadserbia.com
-- **🌐 Website:** https://offroadserbia.com
-- **📱 GitHub Issues:** [Prijavite problem](https://github.com/OffroadSerbia/offroad-joomla/issues)
+- **GitHub Issues:** [Prijavite problem](https://github.com/bojancreator/JoomlaBoost/issues)
 - **📖 Dokumentacija:** [docs/](docs/)
 
 ## 📄 Licenca
 
 Ovaj projekt je licenciran pod [GNU General Public License v2 or later](LICENSE).
 
-```
-Copyright (C) 2025 OffRoad Serbia. All rights reserved.
+```text
+Copyright (C) 2025 JoomlaBoost.
 JoomlaBoost Plugin - Universal SEO & Performance optimization for Joomla
 ```
 
 ---
 
-**🏆 Napravljeno sa ❤️ za Joomla zajednicu**
+### 🏆 Napravljeno sa ❤️ za Joomla zajednicu
 
-_JoomlaBoost - Univerzalni SEO plugin koji radi na bilo kom Joomla sajtu! 🚀_
+JoomlaBoost - Univerzalni SEO plugin koji radi na bilo kom Joomla sajtu! 🚀
 
 ## Struktura
 
@@ -231,14 +221,14 @@ _JoomlaBoost - Univerzalni SEO plugin koji radi na bilo kom Joomla sajtu! 🚀_
 
 **Plugin-ovi:**
 
-- `joomla/plugins/content/offroadmeta/` - Automatski meta tagovi, OpenGraph i Schema.org
+- `src/plugins/system/joomlaboost/` - Glavni univerzalni system plugin
 
 **Tools:**
 
 - `tools/indexer.php` - CLI za generiranje search indeksa
 - `tools/build.sh` - Build skripta za ZIP pakete
 
-## Komande (Composer)
+## Komande (Composer) – dodatno
 
 - `composer lint` – PHPCS (PSR-12).
 - `composer stan` – PHPStan (level 6, podesivo).
@@ -256,37 +246,9 @@ Pogledaj `CONTRIBUTING.md` za grananje, commit stil i PR pravila.
 
 MIT – vidi `LICENSE`.
 
-## Deploy na staging (čist deploy bez repo fajlova)
+## Deploy na staging (opciono)
 
-Ovaj repo ne klonira se u staging docroot. Umesto toga koristimo GitHub Actions workflow `deploy-staging.yml` koji prebacuje SAMO potrebne putanje:
-
-1. `plugins/system/offroadseo/`
-2. `plugins/system/offroadstage/`
-3. `templates/yootheme_offroad/`
-
-Pokretanje:
-
-- Automatski: na svaki push u `main` koji dira ove putanje.
-- Ručno: Actions → “Deploy to Staging (SFTP)” → Run workflow.
-
-Potrebni Secrets (postavi u GitHub repo Settings → Secrets and variables → Actions):
-
-- SSH varianta (preporučeno)
-
-  - `STAGING_HOST` – npr. `staging.offroadserbia.com` ili server hostname
-  - `STAGING_USER` – SSH korisnik
-  - `STAGING_SSH_KEY` – privatni ključ (PEM) tog korisnika
-  - `STAGING_DOCROOT` – apsolutna putanja docroot-a, npr. `/home/montstar/public_html/staging.offroadserbia.com`
-  - (opciono) `STAGING_SSH_PORT` – ako nije 22; dodajemo po potrebi
-
-- FTP/FTPS fallback (ako nema SSH)
-  - `STAGING_FTP_HOST`, `STAGING_FTP_USER`, `STAGING_FTP_PASS`
-  - `STAGING_DOCROOT_RELATIVE` – relativna putanja docroot-a (npr. `public_html/staging.offroadserbia.com`)
-
-Napomena:
-
-- Workflow briše suvišne fajlove u target putanjama (sync sa `--delete`), tako da staging ostaje čist i usklađen sa repoom samo za ta tri direktorijuma.
-- `.cpanel.yml` je namerno deaktiviran da se izbegne automatski cPanel Git Deploy u docroot.
+U ovom repozitorijumu ne postoji obavezna staging integracija. Ako želite automatski deploy, dodajte sopstveni GitHub Actions workflow i SFTP/SSH tajne za VAŠ staging domen (npr. staging.example.com). Ovaj projekat je domen-agnostičan i ne koristi fiksne staging URL-ove.
 
 ## Promene (kratko)
 

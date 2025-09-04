@@ -107,7 +107,7 @@ src/
 
 ### 🎯 **Package Details**
 
-- **File:** `joomlaboost-0.1.0-beta.zip`
+- **File:** `joomlaboost-0.1.17.zip`
 - **Size:** 14.6 KB (increased due to modern features)
 - **Files:** 13 fajlova (uključujući novi Enum)
 - **Build:** Tested and optimized for PHP 8.1+
@@ -135,7 +135,7 @@ Plugin će automatski proveriti:
 
 ```php
 // Automatska detekcija okruženja
-$env = EnvironmentType::detectFromDomain('staging.offroadserbia.com');
+$env = EnvironmentType::detectFromDomain('staging.example.com');
 // Result: EnvironmentType::STAGING
 
 // Smart robots rules
@@ -186,7 +186,7 @@ $allowSEO = $env->allowSearchEngines();
 
 ## 🎉 **Summary**
 
-**JoomlaBoost 0.1.0-beta** je sada **potpuno modernizovan** za:
+**JoomlaBoost 0.1.17** je sada **potpuno modernizovan** za:
 
 ✅ **PHP 8.1+** sa enum-ima, match expressions, i strict typing  
 ✅ **Joomla 4/5/6** sa forward compatibility  
@@ -198,5 +198,5 @@ Plugin je spreman za deployment na bilo koji modern Joomla sajt! 🚀
 
 ---
 
-**Build Location:** `tools/__build/joomlaboost-0.1.0-beta.zip` (14.6 KB)  
-**Next Step:** Deploy na staging.offroadserbia.com za testiranje! 🎯
+**Build Location:** `tools/__build/joomlaboost-0.1.17.zip` (14.6 KB)  
+**Next Step:** Deploy na staging.example.com za testiranje! 🎯

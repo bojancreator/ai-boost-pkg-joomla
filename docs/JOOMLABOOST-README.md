@@ -1,6 +1,6 @@
 # JoomlaBoost - Universal SEO & Performance Plugin
 
-## Version 0.1.0-beta
+## Version 0.1.17
 
 Universal SEO and performance optimization plugin that automatically adapts to any Joomla site and environment.
 
@@ -118,21 +118,21 @@ curl https://yoursite.com/sitemap.xml
 
 ## 📝 Changelog
 
-### Version 0.1.0-beta
+### Version 0.1.17 (current)
 
 - Initial release of universal plugin
-- Complete rewrite from OffroadSEO
+- Complete rewrite from legacy plugin
 - Domain-agnostic architecture
 - Service-oriented design
 - Multi-environment support
 - Universal configuration system
 
-## 🔄 Migration from OffroadSEO
+## 🔄 Migration from legacy plugin
 
-If migrating from the old OffroadSEO plugin:
+If migrating from the old legacy plugin:
 
 1. Export your current configuration
-2. Disable/uninstall OffroadSEO
+2. Disable/uninstall the old plugin
 3. Install JoomlaBoost
 4. Reconfigure settings (settings are not automatically migrated)
 5. Test all functionality
@@ -161,9 +161,9 @@ JoomlaBoost\Plugin\System\JoomlaBoost\Services\
 
 ## 📞 Support
 
-- **Documentation**: [GitHub Wiki](https://github.com/OffroadSerbia/offroad-joomla/wiki)
-- **Issues**: [GitHub Issues](https://github.com/OffroadSerbia/offroad-joomla/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/OffroadSerbia/offroad-joomla/discussions)
+- Documentation: See README in this repo and docs/\*
+- Issues: <https://github.com/bojancreator/JoomlaBoost/issues>
+- Discussions: <https://github.com/bojancreator/JoomlaBoost/discussions>
 
 ## 📄 License
 
@@ -172,12 +172,12 @@ GNU General Public License version 2 or later
 ## 👥 Credits
 
 - **Development Team**: JoomlaBoost Team
-- **Original OffroadSEO**: OffroadSerbia Team
+- **Original legacy plugin**: OffroadSerbia Team
 - **Joomla CMS**: Joomla Community
 
 ---
 
-**Version**: 0.1.0-beta  
+**Version**: 0.1.17  
 **Release Date**: September 2025  
 **Joomla Compatibility**: 4.0+  
 **PHP Compatibility**: 8.0+

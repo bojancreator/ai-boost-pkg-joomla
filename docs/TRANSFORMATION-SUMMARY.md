@@ -4,9 +4,9 @@
 
 ### ✅ 1. Promena naziva plugina - univerzalno ime
 
-- **Staro ime**: OffroadSEO (vezano za jedan sajt)
+- **Staro ime**: OffroadSEO (vezano za jedan specifičan sajt)
 - **Novo ime**: JoomlaBoost (univerzalno)
-- **Nova verzija**: 0.1.0-beta
+- **Nova verzija**: 0.1.17
 - **Namespace**: `JoomlaBoost\Plugin\System\JoomlaBoost`
 
 ### ✅ 2. Domain detection - prepoznavanje domena
@@ -23,11 +23,11 @@
 - **Backup trenutne verzije**: Kompletna kopija pre refaktorisanja
 - **Očišćeni tools folder**: Uklonjeni nepotrebni test fajlovi
 
-### ✅ 4. Nova verzija 0.1.0-beta
+### ✅ 4. Nova verzija 0.1.17
 
-- **Verzija**: 0.1.0-beta (fresh start)
+- **Verzija**: 0.1.17 (fresh start)
 - **Buildovan**: installable ZIP package (12.2 KB)
-- **Lokacija**: `tools/__build/joomlaboost-0.1.0-beta.zip`
+- **Lokacija**: `tools/__build/joomlaboost-0.1.17.zip`
 - **Ready for deployment**: Spreman za instalaciju
 
 ### ✅ 5. Čišćenje lokalnih fajlova
@@ -50,9 +50,9 @@
 
 ```php
 // Auto-detekcija domena
-$domain = $this->getCurrentDomain(); // npr. "staging.offroadserbia.com"
+$domain = $this->getCurrentDomain(); // npr. "staging.example.com"
 $env = $this->getEnvironmentType();   // "staging"
-$baseUrl = $this->getBaseUrl();      // "https://staging.offroadserbia.com"
+$baseUrl = $this->getBaseUrl();      // "https://staging.example.com"
 
 // Environment-specific robots.txt
 if ($env === 'production') {
@@ -128,7 +128,7 @@ test_features=1        # Enable test features
 ### 1. Staging Deployment
 
 ```bash
-# Upload joomlaboost-0.1.0-beta.zip to staging
+# Upload joomlaboost-0.1.17.zip to staging
 # Install via Joomla Extensions Manager
 # Test all endpoints and features
 ```
@@ -145,8 +145,8 @@ test_features=1        # Enable test features
 ### 3. Production Deployment
 
 - [ ] Backup current site
-- [ ] Disable old OffroadSEO plugin
-- [ ] Install JoomlaBoost 0.1.0-beta
+- [ ] Disable old plugin (legacy)
+- [ ] Install JoomlaBoost 0.1.17
 - [ ] Configure settings
 - [ ] Verify all functionality
 - [ ] Monitor for issues
@@ -204,8 +204,8 @@ test_features=1        # Enable test features
 
 ## ✨ Status: COMPLETED ✨
 
-**JoomlaBoost 0.1.0-beta je spreman za production testing!**
+**JoomlaBoost 0.1.17 je spreman za production testing!**
 
-Sve je pripremljeno za deployment na staging.offroadserbia.com i testiranje funkcionalnosti. Plugin je potpuno univerzalan i automatski će se prilagoditi bilo kom domenu.
+Sve je pripremljeno za deployment na staging.example.com (primer) i testiranje funkcionalnosti. Plugin je potpuno univerzalan i automatski će se prilagoditi bilo kom domenu.
 
-**Fajl za download**: `tools/__build/joomlaboost-0.1.0-beta.zip` (12.2 KB)
+**Fajl za download**: `tools/__build/joomlaboost-0.1.17.zip` (12.2 KB)

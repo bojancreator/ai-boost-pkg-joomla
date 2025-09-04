@@ -1,0 +1,254 @@
+{
+    "base": {
+        "details": "Ayrıntılar",
+        "none": "Hiçbiri",
+        "disabled": "Devre Dışı Bırakılmış",
+        "enabled": "Etkinleştirilmiş",
+        "auto": "Otomatik",
+        "ok": "Tamam",
+        "no": "Hayır",
+        "yes": "Evet",
+        "to": "Buraya",
+        "from": "Buradan",
+        "reset": "Sıfırla!",
+        "done": "Bitti!",
+        "required": "Gerekli",
+        "clear": "Temizle",
+        "doNotChange": "Değiştirmeyin",
+        "default": "Varsayılan",
+        "custom": "Özel",
+        "close": "Kapat",
+        "open": "Aç"
+    },
+    "url": {
+        "mustEndWithSlash": "<span class=\"wb-c-code-inline\">/</span> ile bitmelidir.",
+        "genericFullUrlCaption": "Tam bağlantıyı girin. <span class=\"wb-c-code-inline\">https://</span> veya <span class=\"wb-c-code-inline\">http://</span> ile başlamalıdır.",
+        "duplicateShort": "Çok.",
+        "duplicates": "Kopyalar",
+        "duplicate": "Çoğalt",
+        "openInNewTab": "%1'i yeni sekmede açın",
+        "external": "Harici",
+        "internal": "Dahili"
+    },
+    "status": {
+        "completion": "Tamamlama",
+        "manual": "El İle",
+        "auto": "Otomatik",
+        "automatic": "Otomatik"
+    },
+    "searchEngines": {
+        "bing": "Bing",
+        "google": "Google",
+        "yandex": "Yandex",
+        "baidu": "Baidu",
+        "yahoo": "Yahoo",
+        "duckDuckGo": "DuckDuckGo"
+    },
+    "rules": {
+        "dateRangeWarning": "Şu anda bu tarih aralığının dışında, kural şimdilik çalışmıyor."
+    },
+    "imageGrid": {
+        "titleSelectSingle": "...veya bu sayfada bulunan resimlerden birini seçin (önerilir)"
+    },
+    "fileBrowser": {
+        "selectImage": "Görüntü seç...",
+        "gotToFolder": "%1 klasörüne git",
+        "previewImage": "%1'i Önizle",
+        "currentlySelected": "Seçilen",
+        "goToParentFolder": "Bir klasör yukarı git",
+        "homeFolder": "Ana klasöre git"
+    },
+    "helpSystem": {
+        "cannotLoad": "Maalesef yardım sunucusu çalışmıyor veya bu yardım metnini yüklemek için internet erişimimiz yok. Belki biraz sonra tekrar deneyin?",
+        "buttonTitle": "Yardım"
+    },
+    "crud": {
+        "confirmGeneric": "Lütfen %1'i onaylayın",
+        "keepItems": "Onları Sakla",
+        "deleteItems": "Bu Ögeleri Sil",
+        "confirmDeleteAllItems": "Lütfen bu listeden <strong>tüm ögeleri</strong> silmek istediğinizi onaylayın.",
+        "confirmDeleteItems": "Lütfen %1 ögeyi/ögeleri silmek istediğinizi onaylayın",
+        "fixErrors": "Lütfen kaydetmeden önce giriş hatalarını düzeltin!",
+        "select": "Seç",
+        "close": "Kapat",
+        "saveAndClose": "Kaydet & Kapat",
+        "save": "Kaydet",
+        "disable": "Devre Dışı",
+        "enable": "Etkin",
+        "unpublish": "Yayımdan Kaldır",
+        "publish": "Yayımla",
+        "deleteAll": "Tümünü Sil",
+        "delete": "Sil",
+        "edit": "Düzenle",
+        "new": "Yeni"
+    },
+    "colors": {
+        "purple": "Mor",
+        "indigo": "Çivit",
+        "red": "Kırmızı",
+        "orange": "Turuncu",
+        "green": "Yeşil",
+        "blue": "Mavi"
+    },
+    "lists": {
+        "optionsFor": "%1 için seçenekler",
+        "actionsFor": "%1 için işlemler",
+        "selectOnlyOneItem": "Lütfen listeden yalnızca bir öge seçin.",
+        "selectAnItem": "Lütfen önce listeden bir öge seçin.",
+        "noData": "Hiçbir öge mevcut değil."
+    },
+    "table": {
+        "cellToggle": "%2 satırı için %1'i değiştir"
+    },
+    "pagination": {
+        "exactSearch": "Tam Arama",
+        "selectItem": "%1 ögesini seçin",
+        "selectAllItems": "Listedeki tüm ögeleri seçin",
+        "selected": "Seçilen",
+        "last": "Son",
+        "next": "Sonraki",
+        "previous": "Önceki",
+        "first": "İlk",
+        "perPage": "Sayfa Başına",
+        "search": "Arama",
+        "goToPage": "Sayfaya Git",
+        "errors": "Hatalar",
+        "total": "Toplam",
+        "searchIn": "İçinde ara"
+    },
+    "content": {
+        "selectStatus": "Durum",
+        "statusOthers": "Diğerleri",
+        "statusAll": "Tümü",
+        "lastHit": "Son İzlenme",
+        "hits": "İzlenme",
+        "source": "Kaynak",
+        "status": "Durum",
+        "itemId": "Öge Kimliği",
+        "item": "Öge",
+        "type": "Tür",
+        "url": "Bağlantı",
+        "title": "Başlık",
+        "page": "Sayfa",
+        "extension": "Uzantı",
+        "view": "Görünüm",
+        "layout": "Düzen",
+        "target": "Hedef",
+        "enabled": "Etkin",
+        "disabled": "Devre dışı",
+        "language": "Dil",
+        "keyword": "Anahtar kelime"
+    },
+    "ui": {
+        "height": "Yükseklik",
+        "width": "Genişlik",
+        "home": "Anasayfa",
+        "goToLoginPageOrRefresh": "Sayfayı Yeniden Yükleyin",
+        "connectionLostResume": "Artık sunucunuza normal şekilde bağlanabiliyoruz, devam etmek için lütfen bu sayfayı yeniden yükleyin:",
+        "connectionLostDetailsPrompt": "Çıkış yaptıysanız, lütfen aşağıdaki düğme ile sayfayı güncelleyin ve çalışmaya devam etmek için tekrar giriş yapın.",
+        "connectionLostDetails": "Ya sunucunuz kapalı, joomla oturumunuzun süresi doldu ya da bu tarayıcının başka bir sekmesinden çıkış yapmış olabilirsiniz.",
+        "connectionRecovered": "Bir kesintiden sonra sunucunuza tekrar ulaşabiliriz!",
+        "connectionLost": "Sunucunuza Ulaşamıyoruz!",
+        "desktop": "Masaüstü",
+        "mobile": "Mobil",
+        "quickEdit": "Hızlı Düzenleme",
+        "expandHelp": "Bu öğe için yardım bilgilerini göster.",
+        "moveLast": "\"%1\"i son konuma taşı",
+        "moveFirst": "\"%1\"i ilk konuma taşı",
+        "moveAfter": "\"%2\"den sonra \"%1\"i taşı",
+        "last": "Son",
+        "first": "İlk",
+        "selectCategories": "Kategorileri seçin...",
+        "selectAComponent": "Bir bileşen seçin...",
+        "copiedToClipboard": "Kopyalandı!",
+        "copyToClipboard": "Panoya Kopyala",
+        "noItemSelected": "Hiçbir öge seçilmedi.",
+        "noDataAvailableYet": "Henüz hiçbir veri mevcut değil.",
+        "noDataAvailable": "Kullanılabilir veri yok.",
+        "noItemAvailable": "Hiçbir öge yok.",
+        "noItemAvailableOrSelected": "Kullanılabilir veya seçili öge yok.",
+        "helpExpanded": "Satır içi yardım metinlerini gizle.",
+        "helpNotExpanded": "Satır içi yardım metinlerini göster.",
+        "tablet": "Tablet",
+        "device": "Cihaz",
+        "allDevices": "Tüm cihazlar",
+        "deviceSelect": "Cihaz türü",
+        "allLanguages": "Tüm diller.",
+        "expand": "Daraltılmış öğeyi genişlet",
+        "collapse": "Genişletilmiş öğeyi daralt",
+        "expandAll": "Tüm daraltılmış öğeleri genişlet",
+        "collapseAll": "Tüm genişletilmiş öğeleri daralt",
+        "table": "Tablo",
+        "chart": "Grafik",
+        "learnMore": "Daha fazla bilgi edinin...",
+        "suggestAutoClear": "Bildirimler otomatik olarak kapatılabilir. Etkinleştirmek için <strong>Yapılandırma | Sistem | Bildirimleri otomatik olarak temizle</strong> bölümüne gidin."
+    },
+    "backendComm": {
+        "errorViewDetailsInConsole": "Daha fazla ayrıntı tarayıcının javascript konsolunda bulunabilir.",
+        "errorLoadingDataFromServer": "Sunucudan veri yüklenirken hata oluştu.",
+        "errorCannotCommunicateWithServer": "Sunucuyla İletişim Kurulamıyor"
+    },
+    "inputError": {
+        "onlyLettersDashesAndNumbers": "Yalnızca harfler, tireler ( - ) ve sayılar",
+        "onlyLettersAndNumbers": "Boşluk veya sembol yok, sadece harfler ve rakamlar",
+        "greaterThanZero": "Sıfırdan büyük olmalıdır.",
+        "invalidCssSelector": "Geçersiz CSS seçici: yazdığınız CSS seçicisinde bir hata var, tarayıcınız kabul etmiyor."
+    },
+    "update": {
+        "noticeDetailsCannotUpdatePhp": "Mevcut PHP sürümünüz bu sürümle uyumlu değil.",
+        "noticeDetailsCannotUpdatePlatform": "Mevcut joomla sürümünüz bu sürümle uyumlu değil.",
+        "noticeDetailsCannotUpdate": "%1 sürümü mevcut, ancak şu anda güncelleyemezsiniz.",
+        "noticeDetails": "%1 sürümü mevcut, <a class='wb-underline wb-gray-900 hover:wb-underline' href='%2'>lütfen güncelleyin!</a> - <a target='_blank' rel='noopener' class='wb-underline wb-gray-900 hover:wb-underline' href='%3'>Tam değişiklik günlüğü burada</a>.",
+        "noticeTitle": "Yeni sürüm mevcut!"
+    },
+    "edition": {
+        "beta": "Beta sürümü, yalnızca test için",
+        "alpha": "Alfa sürümü, yalnızca test için",
+        "full": "Pro Sürüm",
+        "community": "Topluluk Sürümü"
+    },
+    "duration": {
+        "never": "Hiçbir Zaman",
+        "1_year": "1 Yıl",
+        "3_month": "3 ay",
+        "1_month": "1 Ay",
+        "1_week": "1 Hafta",
+        "1_day": "1 Gün",
+        "1_hour": "1 Saat",
+        "5_mn": "5 dk",
+        "30_mn": "30 dk",
+        "6_hour": "6 saat",
+        "12_hours": "12 saat",
+        "16_month": "16 ay"
+    },
+    "weekDays": {
+        "sun": "Pazar",
+        "sat": "Cumartesi",
+        "fri": "Cuma",
+        "thu": "Perşembe",
+        "wed": "Çarşamba",
+        "tue": "Salı",
+        "mon": "Pazartesi"
+    },
+    "operators": {
+        "equals": "=",
+        "different": "Farklı",
+        "greater": "Büyük",
+        "greaterEq": "Büyük veya =",
+        "less": "Küçük",
+        "lessEq": "Küçük veya =",
+        "between": "Arasında",
+        "contains": "İçerir",
+        "doesNotContains": "İçermez",
+        "startsWith": "İle başlar",
+        "endsWith": "İle biter"
+    },
+    "dateTime": {
+        "day": "Gün",
+        "date": "Tarih"
+    },
+    "notifications": {
+        "openList": "Bildirim listesini aç",
+        "closeList": "Bildirim listesini kapat"
+    }
+}

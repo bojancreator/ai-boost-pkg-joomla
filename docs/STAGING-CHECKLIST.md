@@ -1,24 +1,24 @@
-# Staging-only activation checklist (OffroadSEO)
+# Staging-only activation checklist (JoomlaBoost)
 
 Ovaj dokument vodi korak‑po‑korak samo na STAGING okruženju. NEMA produkcije dok sve ne prođe ovde 100%.
 
 ## 1) Preduslovi (Joomla admin)
 
-1. Plugin “System – OffroadSEO” je instaliran, omogućen i verzija je 1.8.7 (ili novija).
+1. Plugin “System – JoomlaBoost” je instaliran i omogućen (0.1.0+).
 2. Parametar “Active domain” postavljen na staging host (prazno = svi hostovi; preporuka: eksplicitno staviti staging domen).
-3. Poredak pluginova: OffroadSEO iznad ostalih SEO/Cache/Template pluginova (posebno ispred Page Cache, minify, JSitemap, 4SEF itd.).
+3. Poredak pluginova: JoomlaBoost visoko iznad ostalih SEO/Cache/Template pluginova (posebno ispred Page Cache, minify, JSitemap, 4SEF itd.).
 4. Isključiti “System – Page Cache” i obrisati sve keševe (System > Clear Cache + Purge Expired Cache).
-5. (Opcionalno) Uključiti “Show staging badge” u OffroadSEO da vizuelno vidite da ste na stagingu.
+5. (Opcionalno) Uključiti “Show staging badge” u JoomlaBoost da vizuelno vidite da ste na stagingu.
 
 ## 2) Direktni com_ajax testovi (MORAJU raditi)
 
 Otvorite sledeće URL‑ove i proverite da su čisti (bez HTML templata u output‑u):
 
-- Diag: /index.php?option=com_ajax&plugin=offroadseo&group=system&format=raw&resource=diag
-  - Očekuje se “OffroadSEO diag v1.8.7…” i flagovi (active_match=1, enable_robots=1, enable_sitemap=1, itd.).
-- Robots: /index.php?option=com_ajax&plugin=offroadseo&group=system&format=raw&resource=robots
+- Diag: /index.php?jb_diag=1
+  - Očekuje se “JoomlaBoost diag v0.1.0…” i flagovi (active_match=1, enable_robots=1, enable_sitemap=1, itd.).
+- Robots (fallback): /index.php?jb_robots=1
   - Content-Type: text/plain; sadrži “Sitemap: https://…/sitemap.xml”.
-- Sitemap (index/pages/articles): /index.php?option=com_ajax&plugin=offroadseo&group=system&format=raw&resource=sitemap
+- Sitemap (index/pages/articles): /index.php?jb_sitemap=index|pages|articles
   - Content-Type: application/xml; prvi red:
 
 ```xml
@@ -34,13 +34,13 @@ Headers (poželjno):
 
 Treba da vrate identičan čist output, bez HTML‑a:
 
-- Robots fallback: /?offseo_robots=1
-- Sitemap index/pages/articles: /?offseo_sitemap=index | pages | articles
-- Diag fallback: /?offseo_diag=1
+- Robots fallback: /?jb_robots=1
+- Sitemap index/pages/articles: /?jb_sitemap=index | pages | articles
+- Diag fallback: /?jb_diag=1
 
 Ako ovde dobijete HTML umesto čistog teksta/XML:
 
-1. Proverite opet redosled pluginova (OffroadSEO visoko).
+1. Proverite opet redosled pluginova (JoomlaBoost visoko).
 2. Isključite Page Cache i minify/optimizer ekstenzije.
 3. Proverite da li u `head`/`body` ništa ne injektuje com_ajax output (u 1.8.7 smo to već zaštitili, ali redosled može uticati).
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension version="3.9" type="component" method="upgrade">
+    <name>com_forsef</name>
+    <author>Yannick Gaultier - Weeblr llc</author>
+    <creationDate>2025-06-02</creationDate>
+    <copyright>Copyright Weeblr llc - 2022 -2025</copyright>
+    <license>GNU General Public License version 3; see LICENSE.md</license>
+    <authorEmail>contact@weeblr.com</authorEmail>
+    <authorUrl>https://weeblr.com/</authorUrl>
+    <version>2.6.2.644</version>
+    <description>COM_FORSEF_XML_DESCRIPTION</description>
+    <namespace>Weeblr\Forsef</namespace>
+    <administration>
+        <menu link="index.php?option=com_forsef#/forsef/dashboard">COM_FORSEF_ADMIN_MENU</menu>
+        <files folder="admin">
+            <folder>language</folder>
+            <file>forsef.php</file>
+            <file>config.xml</file>
+            <file>access.xml</file>
+            <filename>LICENSE.md</filename>
+        </files>
+    </administration>
+</extension>

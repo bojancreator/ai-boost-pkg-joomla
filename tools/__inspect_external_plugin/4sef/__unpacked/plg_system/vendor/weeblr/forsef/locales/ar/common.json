@@ -1,0 +1,254 @@
+{
+    "base": {
+        "yes": "نعم",
+        "no": "لا",
+        "ok": "موافق",
+        "auto": "تلقائي",
+        "enabled": "مفعل",
+        "disabled": "معطل",
+        "none": "لا شيء",
+        "details": "تفاصيل",
+        "required": "مطلوب",
+        "from": "من",
+        "to": "إلى",
+        "done": "تم!",
+        "reset": "إعادة تعيين!",
+        "clear": "مسح",
+        "doNotChange": "لا تغيير",
+        "default": "الافتراضي",
+        "custom": "مخصص",
+        "close": "إغلاق",
+        "open": "فتح"
+    },
+    "weekDays": {
+        "mon": "الاثنين",
+        "tue": "الثلاثاء",
+        "wed": "الأربعاء",
+        "thu": "الخميس",
+        "fri": "الجمعة",
+        "sat": "السبت",
+        "sun": "الأحد"
+    },
+    "duration": {
+        "1_hour": "ساعة واحدة",
+        "1_day": "يوم واحد",
+        "1_week": "أسبوع واحد",
+        "1_month": "شهر واحد",
+        "3_month": "3 أشهر",
+        "1_year": "سنة واحدة",
+        "never": "أبدًا",
+        "5_mn": "5 دقائق",
+        "30_mn": "30 دقيقة",
+        "6_hour": "6 ساعات",
+        "12_hours": "12 ساعة",
+        "16_month": "16 شهرًا"
+    },
+    "edition": {
+        "community": "الإصدار المجتمعي",
+        "full": "الإصدار المحترف",
+        "alpha": "الإصدار ألفا، للتجربة فقط",
+        "beta": "الإصدار بيتا، للتجربة فقط"
+    },
+    "update": {
+        "noticeTitle": "نسخة جديدة متاحة!",
+        "noticeDetails": "النسخة %1 متاحة، <a class='wb-underline wb-gray-900 hover:wb-underline' href='%2'>يرجى التحديث!</a> - <a target='_blank' rel='noopener' class='wb-underline wb-gray-900 hover:wb-underline' href='%3'>تفاصيل التغييرات الكاملة هنا</a>.",
+        "noticeDetailsCannotUpdate": "النسخة %1 متاحة، ولكن لا يمكنك التحديث في الوقت الحالي.",
+        "noticeDetailsCannotUpdatePlatform": "إصدار Joomla الحالي الخاص بك غير متوافق مع هذا الإصدار.",
+        "noticeDetailsCannotUpdatePhp": "إصدار PHP الحالي الخاص بك غير متوافق مع هذا الإصدار."
+    },
+    "inputError": {
+        "greaterThanZero": "يجب أن يكون أكبر من الصفر.",
+        "onlyLettersAndNumbers": "بدون مسافة أو رمز، فقط حروف وأرقام",
+        "onlyLettersDashesAndNumbers": "فقط حروف وشرطات ( - ) وأرقام",
+        "invalidCssSelector": "محدد CSS غير صالح: هناك خطأ في المحدد CSS الذي قمت بكتابته، متصفحك لا يقبله."
+    },
+    "backendComm": {
+        "errorCannotCommunicateWithServer": "لا يمكن التواصل مع الخادم",
+        "errorLoadingDataFromServer": "حدث خطأ أثناء تحميل البيانات من الخادم.",
+        "errorViewDetailsInConsole": "يمكن العثور على مزيد من التفاصيل في وحدة التحكم جافا سكريبت في المتصفح."
+    },
+    "ui": {
+        "noItemAvailable": "لا يوجد عنصر متاح.",
+        "noDataAvailable": "لا توجد بيانات متاحة.",
+        "noDataAvailableYet": "لا توجد بيانات متاحة حتى الآن.",
+        "noItemSelected": "لم يتم تحديد أي عنصر.",
+        "noItemAvailableOrSelected": "لا يوجد عنصر متاح أو تم تحديده.",
+        "copyToClipboard": "نسخ إلى الحافظة",
+        "copiedToClipboard": "تم النسخ!",
+        "selectAComponent": "اختر مكونًا...",
+        "selectCategories": "اختر الفئات...",
+        "first": "الأول",
+        "last": "الأخير",
+        "moveAfter": "نقل \"%1\" بعد \"%2\"",
+        "moveFirst": "نقل \"%1\" إلى الموضع الأول",
+        "moveLast": "نقل \"%1\" إلى الموضع الأخير",
+        "expandHelp": "عرض معلومات المساعدة لهذا العنصر.",
+        "quickEdit": "تحرير سريع",
+        "mobile": "الجوال",
+        "desktop": "سطح المكتب",
+        "connectionLost": "لا يمكننا الوصول إلى الخادم الخاص بك!",
+        "connectionRecovered": "يمكننا الوصول إلى الخادم الخاص بك مرة أخرى بعد انقطاع!",
+        "connectionLostDetails": "إما أن الخادم الخاص بك غير متاح، أو انتهت جلستك في جوملا!، أو ربما قمت بتسجيل الخروج من علامة تبويب أخرى في هذا المتصفح.",
+        "connectionLostDetailsPrompt": "إذا قمت بتسجيل الخروج، يرجى تحديث الصفحة باستخدام الزر أدناه وتسجيل الدخول مرة أخرى لاستئناف العمل.",
+        "connectionLostResume": "يمكننا الآن الاتصال بالخادم الخاص بك بشكل طبيعي، يرجى إعادة تحميل هذه الصفحة للاستمرار:",
+        "goToLoginPageOrRefresh": "إعادة تحميل هذه الصفحة",
+        "home": "الصفحة الرئيسية",
+        "width": "العرض",
+        "height": "الارتفاع",
+        "helpExpanded": "إخفاء نصوص المساعدة المضمنة.",
+        "helpNotExpanded": "عرض نصوص المساعدة المضمنة.",
+        "tablet": "جهاز لوحي",
+        "device": "جهاز",
+        "allDevices": "جميع الأجهزة",
+        "deviceSelect": "نوع الجهاز",
+        "allLanguages": "جميع اللغات.",
+        "expand": "توسيع العنصر المطوي",
+        "collapse": "طي العنصر الموسع",
+        "expandAll": "توسيع جميع العناصر المطوية",
+        "collapseAll": "طي جميع العناصر الموسعة",
+        "table": "جدول",
+        "chart": "رسم بياني",
+        "learnMore": "تعلم المزيد...",
+        "suggestAutoClear": "يمكن إغلاق الإشعارات تلقائيًا. انتقل إلى <strong>التكوين | النظام | إغلاق الإشعارات تلقائيًا</strong> للتمكين."
+    },
+    "url": {
+        "internal": "داخلي",
+        "external": "خارجي",
+        "openInNewTab": "فتح %1 في علامة تبويب جديدة",
+        "duplicate": "تكرار",
+        "duplicateShort": "تكر.",
+        "duplicates": "تكرارات",
+        "genericFullUrlCaption": "أدخل الرابط الكامل. يجب أن يبدأ بـ <span class=\"wb-c-code-inline\">https://</span> أو <span class=\"wb-c-code-inline\">http://</span>.",
+        "mustEndWithSlash": "يجب أن ينتهي بـ <span class=\"wb-c-code-inline\">/</span>."
+    },
+    "content": {
+        "title": "العنوان",
+        "url": "الرابط",
+        "type": "النوع",
+        "item": "العنصر",
+        "itemId": "معرف العنصر",
+        "status": "الحالة",
+        "source": "المصدر",
+        "hits": "الزيارات",
+        "lastHit": "آخر زيارة",
+        "statusAll": "الكل",
+        "statusOthers": "أخرى",
+        "selectStatus": "اختر الحالة",
+        "page": "صفحة",
+        "extension": "الامتداد",
+        "view": "عرض",
+        "layout": "تخطيط",
+        "target": "الهدف",
+        "enabled": "ممكّن",
+        "disabled": "معطّل",
+        "language": "اللغة",
+        "keyword": "كلمة مفتاحية"
+    },
+    "pagination": {
+        "total": "الإجمالي",
+        "errors": "الأخطاء",
+        "goToPage": "انتقل إلى الصفحة",
+        "search": "بحث",
+        "perPage": "لكل صفحة",
+        "first": "الأولى",
+        "previous": "السابقة",
+        "next": "التالية",
+        "last": "الأخيرة",
+        "selected": "المحددة",
+        "selectAllItems": "تحديد جميع العناصر في القائمة",
+        "selectItem": "اختر العنصر %1",
+        "exactSearch": "بحث دقيق",
+        "searchIn": "البحث في"
+    },
+    "table": {
+        "cellToggle": "تبديل %1 للصف %2"
+    },
+    "lists": {
+        "noData": "لا تتوفر عناصر.",
+        "selectAnItem": "يرجى تحديد عنصر من القائمة أولاً.",
+        "selectOnlyOneItem": "يرجى تحديد عنصر واحد فقط من القائمة.",
+        "actionsFor": "الإجراءات لـ %1",
+        "optionsFor": "الخيارات لـ %1"
+    },
+    "colors": {
+        "blue": "أزرق",
+        "green": "أخضر",
+        "orange": "برتقالي",
+        "red": "أحمر",
+        "indigo": "نيلي",
+        "purple": "أرجواني"
+    },
+    "crud": {
+        "new": "جديد",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "deleteAll": "حذف الكل",
+        "publish": "نشر",
+        "unpublish": "إلغاء النشر",
+        "enable": "تمكين",
+        "disable": "تعطيل",
+        "save": "حفظ",
+        "saveAndClose": "حفظ وإغلاق",
+        "close": "إغلاق",
+        "select": "اختيار",
+        "fixErrors": "يرجى إصلاح أخطاء الإدخال قبل الحفظ!",
+        "confirmDeleteItems": "يرجى تأكيد رغبتك في حذف %1 عنصر(عناصر)",
+        "confirmDeleteAllItems": "يرجى تأكيد رغبتك في حذف <strong>جميع العناصر</strong> من هذه القائمة.",
+        "deleteItems": "حذف تلك العناصر",
+        "keepItems": "الاحتفاظ بها",
+        "confirmGeneric": "يرجى تأكيد %1"
+    },
+    "helpSystem": {
+        "buttonTitle": "المساعدة",
+        "cannotLoad": "عذرًا، يبدو أن خادم المساعدة غير متاح أو ليس لدينا اتصال بالإنترنت لتحميل نص المساعدة. جرب مرة أخرى في وقت لاحق؟"
+    },
+    "fileBrowser": {
+        "homeFolder": "الانتقال إلى المجلد الرئيسي",
+        "goToParentFolder": "الانتقال إلى المجلد الأصل",
+        "currentlySelected": "محدد",
+        "previewImage": "معاينة %1",
+        "gotToFolder": "الانتقال إلى المجلد %1",
+        "selectImage": "اختيار صورة..."
+    },
+    "imageGrid": {
+        "titleSelectSingle": "...أو حدد إحدى الصور الموجودة على هذه الصفحة (مستحسن)"
+    },
+    "rules": {
+        "dateRangeWarning": "حاليًا خارج نطاق هذا النطاق الزمني، لا يتم تشغيل القاعدة الآن."
+    },
+    "searchEngines": {
+        "google": "Google",
+        "bing": "Bing",
+        "yandex": "ياندكس",
+        "baidu": "بايدو",
+        "yahoo": "ياهو",
+        "duckDuckGo": "داك داك غو"
+    },
+    "status": {
+        "automatic": "تلقائي",
+        "auto": "تلقائي",
+        "manual": "يدوي",
+        "completion": "اكتمال"
+    },
+    "operators": {
+        "equals": "=",
+        "different": "مختلف",
+        "greater": "أكبر",
+        "greaterEq": "أكبر أو يساوي",
+        "less": "أقل",
+        "lessEq": "أقل أو يساوي",
+        "between": "بين",
+        "contains": "يحتوي",
+        "doesNotContains": "لا يحتوي",
+        "startsWith": "يبدأ ب",
+        "endsWith": "ينتهي ب"
+    },
+    "dateTime": {
+        "day": "يوم",
+        "date": "تاريخ"
+    },
+    "notifications": {
+        "openList": "فتح قائمة الإشعارات",
+        "closeList": "إغلاق قائمة الإشعارات"
+    }
+}

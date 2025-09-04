@@ -1,19 +1,22 @@
-Naslov: Kratak opis promene
+# Pull Request
 
-1. Šta je urađeno
+## Šta je urađeno
 
--
+Kratak opis promena.
 
-2. Zašto
+## Zašto
 
--
+Koji problem rešava ili šta unapređuje.
 
-3. Kako testirati
+## Kako testirati
 
--
+Kratki koraci za verifikaciju.
 
-4. Checklista
+## Kontrolna lista
 
-- [ ] Lint prolazi (composer lint)
-- [ ] PHPStan prolazi (composer stan)
+- [ ] Testirano lokalno
+- [ ] PHPStan prolazi (`composer stan`)
+- [ ] PHPCS prolazi (`composer lint`)
+- [ ] Nema hardkodovanih domena (plugin je univerzalan)
 - [ ] Nema suvišnih fajlova u diff-u
+- [ ] Ažurirana dokumentacija (po potrebi)

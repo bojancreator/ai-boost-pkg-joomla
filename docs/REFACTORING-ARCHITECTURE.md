@@ -1,8 +1,8 @@
-# OffroadSEO Plugin - Refactored Architecture
+# JoomlaBoost Plugin - Refactored Architecture
 
 ## 📋 Pregled refaktorisanja
 
-Plugin je refaktorisan iz monolitne klase od 1773 linije u organizovanu arhitekturu servisa za bolju čitljivost, održivost i proširivost.
+Plugin je refaktorisan iz monolitne klase u organizovanu arhitekturu servisa za bolju čitljivost, održivost i proširivost.
 
 ## 🏗️ Nova arhitektura
 
@@ -15,18 +15,16 @@ src/
 ├── Services/
 │   ├── ServiceInterface.php      # Base interface za sve servise
 │   ├── AbstractService.php       # Apstraktna base klasa
-│   ├── ServiceManager.php        # Service manager (DI container)
+│   ├── AllServices.php           # Registry / DI
 │   ├── RobotService.php          # robots.txt & X-Robots-Tag
-│   ├── SitemapService.php        # XML sitemap generiranje
+│   ├── SitemapService.php        # XML sitemap generisanje
 │   ├── SchemaService.php         # JSON-LD structured data
 │   ├── OpenGraphService.php      # OG/Twitter meta tagovi
-│   ├── AnalyticsService.php      # GA/FB Pixel/GTM tracking
+│   ├── AnalyticsService.php      # GA4/Meta Pixel/GTM tracking
 │   ├── HreflangService.php       # hreflang alternate URLs
 │   ├── InjectionService.php      # HTML content injection
-│   └── HealthService.php         # diagnostic endpoints
-├── Routing/
-│   └── Router.php                # URL routing (postojao)
-└── offroadseo.php                # Glavna plugin klasa (refaktorisana)
+│   └── HealthService.php         # dijagnostički endpointi
+└── joomlaboost.php               # Glavna plugin klasa
 ```
 
 ## 🎯 Servisi i njihove odgovornosti
@@ -85,22 +83,13 @@ src/
 - `generateDiagnosticResponse()` - Detaljne dijagnostičke info
 - Vraća system info, feature status, configuration summary
 
-## 🔧 ServiceManager (Dependency Injection)
+## 🔧 AllServices (Dependency Injection)
 
-ServiceManager upravlja svim servisima i implementira **lazy loading**:
+AllServices upravlja registracijom servisa i omogućava lazy loading po potrebi.
 
-```php
-$serviceManager = new ServiceManager($app, $params);
+## 📝 Glavna klasa
 
-// Lazy instantiation - kreira se tek kad se pozove
-$robotService = $serviceManager->getRobotService();
-$sitemapService = $serviceManager->getSitemapService();
-// ... itd
-```
-
-## 📝 Refaktorisana glavna klasa
-
-Nova `PlgSystemOffroadseo` klasa je smanjena sa **1773** na **~650** linija i fokusira se na:
+`PlgSystemJoomlaboost` klasa fokusira se na:
 
 1. **Event handling** - Joomla event lifecycle
 2. **Service coordination** - Poziva odgovarajuće servise
@@ -113,7 +102,7 @@ Nova `PlgSystemOffroadseo` klasa je smanjena sa **1773** na **~650** linija i fo
 - `onAfterRoute()` - Fallback routing
 - `onBeforeCompileHead()` - Schema, OG, analytics setup
 - `onAfterRender()` - HTML modifications
-- `onAjaxOffroadseo()` - Endpoint responses
+- `onAjaxJoomlaboost()` - Endpoint responses
 
 ## ✅ Prednosti nove arhitekture
 
@@ -162,14 +151,10 @@ $this->params->get('enable_analytics', 1)
 $this->params->get('enable_opengraph', 1)
 ```
 
-## 🔄 Backward Compatibility
+## � Backward Compatibility napomene
 
-Refaktorisana verzija je **100% backward compatible**:
-
-- Isti AJAX endpoints (`/robots.txt`, `/sitemap.xml`, `/offseo-diag`)
-- Isti configuration parametri
-- Isti output format
-- Isti plugin manifest (offroadseo.xml)
+- Endpoints su generički i domen-agnostični (`/robots.txt`, `/sitemap*.xml`, `/jb-diag`).
+- Konfiguracija i output formati su stabilni i dokumentovani.
 
 ## 🚀 Sledeći koraci
 

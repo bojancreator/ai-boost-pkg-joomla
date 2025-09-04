@@ -61,7 +61,7 @@ final class MetaPixelService
         }
 
         $pixelId = $this->getPixelId();
-        $version = 'JoomlaBoost v0.1.17-meta-pixel';
+    $version = 'JoomlaBoost v0.1.17';
 
         $pixelCode = $this->generatePixelCode($pixelId, $version);    // Add to document head
         $document->addCustomTag($pixelCode);
@@ -106,8 +106,8 @@ fbq(\'track\', \'PageView\');
             return '';
         }
 
-        $events = [];
-        $version = 'JoomlaBoost v0.1.17-meta-pixel';
+    $events = [];
+    $version = 'JoomlaBoost v0.1.17';
 
       // Purchase event
         if ($this->params->get('meta_pixel_track_purchase', false)) {

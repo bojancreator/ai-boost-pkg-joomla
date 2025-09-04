@@ -19,11 +19,11 @@ if (Test-Path $xmlPath) {
         $version = $matches[1]
         Write-Host "🔍 Version read from XML: $version" -ForegroundColor Green
     } else {
-        $version = "0.1.0-beta"
+    $version = "0.1.17"
         Write-Host "⚠️  Could not read version from XML, using default: $version" -ForegroundColor Yellow
     }
 } else {
-    $version = "0.1.0-beta"
+    $version = "0.1.17"
     Write-Host "⚠️  XML file not found, using default version: $version" -ForegroundColor Yellow
 }
 

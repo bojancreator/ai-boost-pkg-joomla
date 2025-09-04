@@ -1,4 +1,4 @@
-# OffroadSEO — Troubleshooting (404/HTML umesto robots/sitemap/diag)
+# JoomlaBoost — Troubleshooting (404/HTML umesto robots/sitemap/diag)
 
 Ako vidiš HTML (homepage/404) umesto plain XML/TXT, velika je šansa da zahtev nije ni došao do plugina. Radi redom:
 
@@ -17,17 +17,17 @@ RewriteRule ^sitemap-(pages|articles)\.xml$ index.php [L]
 
 2. WAF/CDN (Cloudflare, surogate cache)
 
-- Dodaj izuzetke (no cache + skip security): `/robots.txt`, `/sitemap*.xml`, `/offseo-diag`.
+- Dodaj izuzetke (no cache + skip security): `/robots.txt`, `/sitemap*.xml`, `/jb-diag`.
 
 3. Non‑SEF fallback test
 
-- Probaj: `/index.php?offseo_sitemap=index` i `/index.php?offseo_diag=1`.
-- Ako query parametre neko seče, koristi `/offseo-diag` (putanja) i proveri .htaccess pravila.
+- Probaj: `/index.php?jb_sitemap=index` i `/index.php?jb_diag=1`.
+- Ako query parametre neko seče, koristi `/jb-diag` (putanja) i proveri .htaccess pravila.
 
 4. Provera domena i verzije
 
-- U diag izlazu `active_match` mora biti `1` na target domenu/subdomenu.
-- U Adminu plugin verzija: 1.8.2 (ili novija).
+- U diag izlazu `active_match` treba da bude `1` na aktivnom domenu/subdomenu.
+- U Adminu plugin verzija: proveri da je aktuelna JoomlaBoost verzija.
 
 5. SEF podešavanja
 

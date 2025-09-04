@@ -1,0 +1,254 @@
+{
+    "base": {
+        "yes": "Sí",
+        "no": "No",
+        "ok": "OK",
+        "auto": "Automático",
+        "enabled": "Habilitado",
+        "disabled": "Deshabilitado",
+        "none": "Ninguno",
+        "details": "Detalles",
+        "required": "requerido",
+        "from": "Desde",
+        "to": "Hasta",
+        "done": "¡Hecho!",
+        "reset": "Reiniciar!",
+        "clear": "Limpiar",
+        "doNotChange": "No cambiar",
+        "default": "Predeterminado",
+        "custom": "Personalizado",
+        "close": "Cerrar",
+        "open": "Abrir"
+    },
+    "weekDays": {
+        "mon": "Lunes",
+        "tue": "Martes",
+        "wed": "Miércoles",
+        "thu": "Jueves",
+        "fri": "Viernes",
+        "sat": "Sábado",
+        "sun": "Domingo"
+    },
+    "duration": {
+        "1_hour": "1 hora",
+        "1_day": "1 día",
+        "1_week": "1 semana",
+        "1_month": "1 mes",
+        "3_month": "3 meses",
+        "1_year": "1 año",
+        "never": "Nunca",
+        "5_mn": "5 min",
+        "30_mn": "30 min",
+        "6_hour": "6 horas",
+        "12_hours": "12 horas",
+        "16_month": "16 meses"
+    },
+    "edition": {
+        "community": "Edición Comunidad",
+        "full": "Edición Pro",
+        "alpha": "Versión Alpha, solo para pruebas",
+        "beta": "Versión Beta, solo para pruebas"
+    },
+    "update": {
+        "noticeTitle": "¡Nueva versión disponible!",
+        "noticeDetails": "La versión %1 está disponible, <a class='wb-underline wb-gray-900 hover:wb-underline' href='%2'>por favor actualice</a> - <a target='_blank' rel='noopener' class='wb-underline wb-gray-900 hover:wb-underline' href='%3'>Aquí puede ver el registro de cambios completo</a>.",
+        "noticeDetailsCannotUpdate": "La versión %1 está disponible, pero no puede actualizar en este momento.",
+        "noticeDetailsCannotUpdatePlatform": "Su versión actual de Joomla no es compatible con esta versión.",
+        "noticeDetailsCannotUpdatePhp": "Su versión actual de PHP no es compatible con esta versión."
+    },
+    "inputError": {
+        "greaterThanZero": "Debe ser mayor que cero.",
+        "onlyLettersAndNumbers": "Sin espacios ni símbolos, solo letras y números",
+        "onlyLettersDashesAndNumbers": "Solo letras, guiones ( - ) y números",
+        "invalidCssSelector": "Selector CSS inválido: hay un error en el selector CSS que escribiste, tu navegador no lo acepta."
+    },
+    "backendComm": {
+        "errorCannotCommunicateWithServer": "No se puede comunicar con el servidor",
+        "errorLoadingDataFromServer": "Error al cargar datos del servidor.",
+        "errorViewDetailsInConsole": "Se pueden encontrar más detalles en la consola de Javascript del navegador."
+    },
+    "ui": {
+        "noItemAvailable": "No hay elementos disponibles.",
+        "noDataAvailable": "No hay datos disponibles.",
+        "noDataAvailableYet": "Aún no hay datos disponibles.",
+        "noItemSelected": "Ningún elemento seleccionado.",
+        "noItemAvailableOrSelected": "No hay elementos disponibles o seleccionados.",
+        "copyToClipboard": "Copiar al portapapeles",
+        "copiedToClipboard": "¡Copiado!",
+        "selectAComponent": "Seleccionar un componente...",
+        "selectCategories": "Seleccionar categorías...",
+        "first": "Primero",
+        "last": "Último",
+        "moveAfter": "Mover \"%1\" después de \"%2\"",
+        "moveFirst": "Mover \"%1\" a la primera posición",
+        "moveLast": "Mover \"%1\" a la última posición",
+        "expandHelp": "Mostrar información de ayuda para este elemento.",
+        "quickEdit": "Edición rápida",
+        "mobile": "Móvil",
+        "desktop": "Escritorio",
+        "connectionLost": "¡No podemos conectarnos a su servidor!",
+        "connectionRecovered": "¡Podemos conectarnos con su servidor nuevamente después de una interrupción!",
+        "connectionLostDetails": "Ya sea que su servidor esté caído, su sesión de Joomla! haya expirado o tal vez haya cerrado sesión desde otra pestaña de este navegador.",
+        "connectionLostDetailsPrompt": "Si cerró sesión, actualice la página con el botón a continuación e inicie sesión nuevamente para reanudar el trabajo.",
+        "connectionLostResume": "Ahora podemos conectarnos a su servidor normalmente, por favor recargue esta página para continuar:",
+        "goToLoginPageOrRefresh": "Recargar esta página",
+        "home": "Inicio",
+        "width": "Ancho",
+        "height": "Altura",
+        "helpExpanded": "Ocultar textos de ayuda en línea.",
+        "helpNotExpanded": "Mostrar textos de ayuda en línea.",
+        "tablet": "Tableta",
+        "device": "Dispositivo",
+        "allDevices": "Todos los dispositivos",
+        "deviceSelect": "Tipo de dispositivo",
+        "allLanguages": "Todos los idiomas.",
+        "expand": "Expandir elemento colapsado",
+        "collapse": "Colapsar elemento expandido",
+        "expandAll": "Expandir todos los elementos colapsados",
+        "collapseAll": "Colapsar todos los elementos expandidos",
+        "table": "Tabla",
+        "chart": "Gráfico",
+        "learnMore": "Más información...",
+        "suggestAutoClear": "Las notificaciones se pueden cerrar automáticamente. Ve a <strong>Configuración | Sistema | Borrar notificaciones automáticamente</strong> para habilitar."
+    },
+    "url": {
+        "internal": "Interno",
+        "external": "Externo",
+        "openInNewTab": "Abrir %1 en una nueva pestaña",
+        "duplicate": "Duplicar",
+        "duplicateShort": "Dupl.",
+        "duplicates": "Duplicados",
+        "genericFullUrlCaption": "Ingrese la URL completa. Debe comenzar con <span class=\"wb-c-code-inline\">https://</span> o <span class=\"wb-c-code-inline\">http://</span>.",
+        "mustEndWithSlash": "Debe terminar con una <span class=\"wb-c-code-inline\">/</span>."
+    },
+    "content": {
+        "title": "Título",
+        "url": "URL",
+        "type": "Tipo",
+        "item": "Elemento",
+        "itemId": "ID de artículo",
+        "status": "Estado",
+        "source": "Fuente",
+        "hits": "Visitas",
+        "lastHit": "Última visita",
+        "statusAll": "Todos",
+        "statusOthers": "Otros",
+        "selectStatus": "Seleccionar estado",
+        "page": "Página",
+        "extension": "Extensión",
+        "view": "Vista",
+        "layout": "Diseño",
+        "target": "Objetivo",
+        "enabled": "Activado",
+        "disabled": "Desactivado",
+        "language": "Idioma",
+        "keyword": "Palabra clave"
+    },
+    "pagination": {
+        "total": "Total",
+        "errors": "Errores",
+        "goToPage": "Ir a la página",
+        "search": "Buscar",
+        "perPage": "Por página",
+        "first": "Primero",
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "last": "Último",
+        "selected": "Seleccionado",
+        "selectAllItems": "Seleccionar todos los elementos de la lista",
+        "selectItem": "Seleccionar elemento %1",
+        "exactSearch": "Búsqueda exacta",
+        "searchIn": "Buscar en"
+    },
+    "table": {
+        "cellToggle": "Alternar %1 para la fila %2"
+    },
+    "lists": {
+        "noData": "No hay elementos disponibles.",
+        "selectAnItem": "Por favor, seleccione un elemento de la lista primero.",
+        "selectOnlyOneItem": "Por favor, seleccione solo un elemento de la lista.",
+        "actionsFor": "Acciones para %1",
+        "optionsFor": "Opciones para %1"
+    },
+    "colors": {
+        "blue": "Azul",
+        "green": "Verde",
+        "orange": "Naranja",
+        "red": "Rojo",
+        "indigo": "Índigo",
+        "purple": "Morado"
+    },
+    "crud": {
+        "new": "Nuevo",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "deleteAll": "Eliminar todo",
+        "publish": "Publicar",
+        "unpublish": "Despublicar",
+        "enable": "Habilitar",
+        "disable": "Desactivar",
+        "save": "Guardar",
+        "saveAndClose": "Guardar y cerrar",
+        "close": "Cerrar",
+        "select": "Seleccionar",
+        "fixErrors": "¡Por favor, corrija los errores antes de guardar!",
+        "confirmDeleteItems": "Por favor, confirme que desea eliminar %1 elemento(s)",
+        "confirmDeleteAllItems": "Por favor, confirme que desea eliminar <strong>todos los elementos</strong> de esta lista.",
+        "deleteItems": "Eliminar estos elementos",
+        "keepItems": "Mantenerlos",
+        "confirmGeneric": "Por favor, confirme %1"
+    },
+    "helpSystem": {
+        "buttonTitle": "Ayuda",
+        "cannotLoad": "Lo siento, parece que el servidor de ayuda está caído o no tenemos acceso a internet para cargar este texto de ayuda. ¿Podría intentarlo de nuevo más tarde?"
+    },
+    "fileBrowser": {
+        "homeFolder": "Ir a la carpeta de inicio",
+        "goToParentFolder": "Ir a la carpeta superior",
+        "currentlySelected": "Seleccionado",
+        "previewImage": "Previsualizar %1",
+        "gotToFolder": "Ir a la carpeta %1",
+        "selectImage": "Seleccionar imagen..."
+    },
+    "imageGrid": {
+        "titleSelectSingle": "...o seleccione una de las imágenes encontradas en esta página (recomendado)"
+    },
+    "rules": {
+        "dateRangeWarning": "Actualmente fuera de este rango de fechas, la regla no se está ejecutando por ahora."
+    },
+    "searchEngines": {
+        "google": "Google",
+        "bing": "Bing",
+        "yandex": "Yandex",
+        "baidu": "Baidu",
+        "yahoo": "Yahoo",
+        "duckDuckGo": "DuckDuckGo"
+    },
+    "status": {
+        "automatic": "Automático",
+        "auto": "Auto",
+        "manual": "Manual",
+        "completion": "Finalización"
+    },
+    "operators": {
+        "equals": "=",
+        "different": "Diferente",
+        "greater": "Mayor",
+        "greaterEq": "Mayor o =",
+        "less": "Menor",
+        "lessEq": "Menor o =",
+        "between": "Entre",
+        "contains": "Contiene",
+        "doesNotContains": "No contiene",
+        "startsWith": "Comienza con",
+        "endsWith": "Termina con"
+    },
+    "dateTime": {
+        "day": "Día",
+        "date": "Fecha"
+    },
+    "notifications": {
+        "openList": "Abrir lista de notificaciones",
+        "closeList": "Cerrar lista de notificaciones"
+    }
+}

@@ -4,23 +4,28 @@ about: Prijavi problem ili regresiju
 labels: bug
 ---
 
-1. Opis problema
+## Opis problema
 
-- Šta ne radi kako treba?
+Kratko objasni šta ne radi kako treba i šta si očekivao/la.
 
-2. Koraci za reprodukciju
+## Koraci za reprodukciju
 
-- 1.
-- 2.
-- 3.
+1. ...
+2. ...
+3. ...
 
-3. Očekivano ponašanje
+## Očekivano ponašanje
 
-4. Okruženje
+Šta je trebalo da se desi.
 
-- URL:
+## Okruženje
+
+- URL/domen: (napomena: plugin je univerzalan, nema hardkodovanih domena)
 - Joomla verzija:
 - PHP verzija:
+- Plugin verzija/commit:
 - Browser/OS:
 
-5. Logovi/screenshot
+## Logovi / screenshot
+
+Ako imaš, dodaj ispis ili sliku koji pomažu da se problem shvati brže.

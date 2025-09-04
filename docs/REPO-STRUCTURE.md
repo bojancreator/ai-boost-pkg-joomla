@@ -2,8 +2,8 @@
 
 1. src/
    - modules/ – Joomla moduli (po potrebi)
-   - plugins/ – Joomla pluginovi (npr. system/offroadseo, system/offroadstage)
-   - templates/ – Template i overrides (yootheme_offroad)
+   - plugins/ – Joomla pluginovi (npr. system/joomlaboost)
+   - templates/ – Template i overrides (primer: site template i custom overrides)
 2. tools/
    - build skripte i ZIP izlazi
 3. docs/

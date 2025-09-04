@@ -1,4 +1,4 @@
-# OffroadSerbia.com — inicijalni audit (Joomla)
+# Inicijalni audit Joomla sajta (primer: example.com)
 
 Ovo je brz, praktičan plan kako da unapredimo sajt i spremimo ga za AI pretragu, SEO i bolju organizaciju.
 
@@ -32,7 +32,7 @@ Ovo je brz, praktičan plan kako da unapredimo sajt i spremimo ga za AI pretragu
 ## 3) Tehnički koraci u repou
 
 1. Napraviti `joomla/` folder za template overrides, plugin-e i build skripte.
-2. Kreirati minimalan Joomla plugin `plg_content_offroadmeta`:
+2. Kreirati minimalan Joomla plugin za meta/OG/schema (ili koristiti JoomlaBoost gde je primenljivo):
    - Izvlači polja članka i ubacuje meta/OG i schema.org JSON-LD.
 3. Dodati generator `tools/indexer.php` koji pravi `public/search-index.json` iz baze (CLI, read-only).
 4. GitHub Actions: deploy artefakata (ZIP) i opcioni rsync/SFTP na staging.

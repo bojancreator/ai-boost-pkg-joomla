@@ -1,6 +1,6 @@
-# OffroadSEO — Endpoints i specifikacija
+# JoomlaBoost — Endpoints i specifikacija
 
-Ovo je izlistano i u AI‑OVERVIEW, ovde su detalji + očekivana zaglavlja i brzi testovi.
+Ovo je izlistano i u AI‑OVERVIEW, ovde su detalji + očekivana zaglavlja i brzi testovi. Primeri koriste example.com samo kao ilustraciju.
 
 ## robots.txt
 
@@ -8,11 +8,11 @@ Ovo je izlistano i u AI‑OVERVIEW, ovde su detalji + očekivana zaglavlja i brz
 - Metod: GET
 - Content‑Type: `text/plain; charset=UTF-8`
 - Keš: `ETag` + 304 na `If-None-Match`
-- Sadržaj: standardne Disallow linije + `Sitemap: https://staging.offroadserbia.com/sitemap_index.xml` (ili `sitemap.xml` ako index nije uključen)
+- Sadržaj: standardne Disallow linije + `Sitemap: https://example.com/sitemap_index.xml` (ili `sitemap.xml` ako index nije uključen; na stagingu biće `https://staging.example.com/...`)
 
 Fallback (bez rewrite):
 
-- `GET /index.php?offseo_robots=1`
+- `GET /index.php?jb_robots=1`
 
 ## Sitemape
 
@@ -25,7 +25,7 @@ Varijante ruta:
 
 Fallback (non‑SEF, mora raditi i kad path rewrite ne prolazi):
 
-- `GET /index.php?offseo_sitemap=index|pages|articles`
+- `GET /index.php?jb_sitemap=index|pages|articles`
 
 Zaglavlja:
 
@@ -40,21 +40,24 @@ Format:
 
 ## Dijagnostika
 
-- `GET /offseo-diag` → `text/plain`
-- `GET /index.php?offseo_diag=1` → `text/plain`
+- `GET /index.php?jb_diag=1` → `application/json`
 
 Primer izlaza:
 
-```text
-OffroadSEO diag v1.8.2
-host=staging.offroadserbia.com
-active_cfg=staging.offroadserbia.com
-active_match=1
-enable_robots=1
-enable_sitemap=1
-sitemap_use_index=1
-path=offseo-diag
-qp_offseo_sitemap=
+```json
+{
+  "plugin_info": {
+    "name": "JoomlaBoost",
+    "version": "0.1.17",
+    "enabled": true
+  },
+  "domain_config": {
+    "domain": "staging.example.com",
+    "environment": "staging"
+  },
+  "services": { "sitemap": { "enabled": true } },
+  "joomla_info": { "version": "4.x", "debug_mode": false }
+}
 ```
 
 Napomene:

@@ -1,30 +1,36 @@
-# Continue/AI tooling
-.continue/secrets.json
-
-# Node/JS common
-node_modules/
-
-# Build artifacts
-build/
-*.zip
-
-# Public generated files
-public/search-index.json
-
-# OS junk
+# IDE and OS specific files
+.vscode/
+.idea/
+*.swp
+*~
 .DS_Store
 Thumbs.db
 
-# Docs: prevent accidental secrets
-docs/Untitled-1.txt
+# Dependencies
+/vendor/
+/node_modules/
 
 # Build artifacts
-tools/*.zip
-tools/__build/
-tools/__inspect_*/
+/build/
+/dist/
+*.zip
+*.tar.gz
 
-# Archive - offroadseo legacy (arhiviran plugin)
-archive/offroadseo-legacy/
+# Logs and cache
+*.log
+logs/
+!logs/.gitkeep
+cache/
+!cache/.gitkeep
+tmp/
+!tmp/.gitkeep
 
-#Ignore vscode AI rules
-.github\instructions\codacy.instructions.md
+# Local configuration
+.env
+.env.*.local
+
+# Codacy CLI cache
+.codacy-cli-v2/
+
+# Continue extension cache
+.continue/

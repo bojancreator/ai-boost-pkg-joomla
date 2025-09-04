@@ -25,10 +25,10 @@ Uputstvo (kratko):
 - [ ] Analytics tab: Poboljšati opcije "GA config options" i "Meta Pixel init options" - dodati chekboxove za najkorišćenije opcije i ostaviti ispod polje za upis ostalih manje korišćenih opcija (ovo dobro analiziraj i daj predloge pre nego što uradiš)
 - [x] Plugin tab - izbaciti UI mod (Advanced / Simple), nek sve opcije budu otvorene
 
-Sitemap/robots (staging):
+Sitemap/robots (primer):
 
-- [ ] /sitemap.xml, /sitemap-pages.xml i /sitemap-articles.xml trenutno vraćaju 404 — proveriti .htaccess/Nginx mapiranje da .xml rute idu u Joomlu (ne na fajl sistem)
-- [ ] robots.txt: dodaj "Sitemap: <https://staging.offroadserbia.com/sitemap.xml>"
+- [ ] /sitemap.xml, /sitemap-pages.xml i /sitemap-articles.xml: proveriti .htaccess/Nginx mapiranje da .xml rute idu u Joomlu (ne na fajl sistem)
+- [ ] robots.txt: dodaj "Sitemap: <https://example.com/sitemap.xml>" (primer domen)
 - [ ]
 
 ## Glavna lista

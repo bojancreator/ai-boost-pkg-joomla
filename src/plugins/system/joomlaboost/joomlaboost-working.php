@@ -6,7 +6,7 @@
  *
  * @package     JoomlaBoost
  * @subpackage  Plugin.System
- * @version     0.1.0-beta
+ * @version     0.1.17
  * @since       Joomla 4.0, PHP 8.1+
  * @author      JoomlaBoost Team
  * @copyright   (C) 2025 JoomlaBoost. All rights reserved.

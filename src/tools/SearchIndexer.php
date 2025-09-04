@@ -1,15 +1,14 @@
 <?php
 
 /**
- * OffRoad Serbia Search Tools
+ * JoomlaBoost Search Tools
  *
- * @package    OffroadSerbia\Tools
- * @author     OffRoad Serbia
- * @copyright  Copyright (C) 2025 OffRoad Serbia. All rights reserved.
+ * @package    JoomlaBoost\Tools
+ * @author     JoomlaBoost Team
  * @license    MIT License
  */
 
-namespace OffroadSerbia\Tools;
+namespace JoomlaBoost\Tools;
 
 /**
  * Klasa za generiranje search indeksa

@@ -10,7 +10,7 @@ Write-Host ""
 $baseDir = Split-Path -Parent $PSScriptRoot
 $sourceDir = Join-Path $baseDir "src\plugins\system\joomlaboost"
 $buildDir = Join-Path $baseDir "tools\__build"
-$version = "0.1.0-beta"
+$version = "0.1.17"
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 $zipName = "joomlaboost-$version-debug.zip"
 

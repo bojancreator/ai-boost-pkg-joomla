@@ -19,7 +19,8 @@ Treba da ti dam pristup super useru u joomla ako ti je neophodan.
 
 Ostalo ćeš mi reći šta ti treba dok budemo radili.
 
-produkcijski web sajt koji ćemo popravljati je:
-https://offroadserbia.com
-staging sajt za ovaj projekat je:
+radimo univerzalni plugin koji će prepoznati na kom domenu radi i tako će se postaviti.
+Plugin nije vezan za specifičan domen.
+
+Probe i testiranje se mogu vršiti na bilo kom Joomla sajtu, na primer na:
 https://staging.offroadserbia.com

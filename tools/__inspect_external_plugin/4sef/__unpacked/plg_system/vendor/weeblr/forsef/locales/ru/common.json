@@ -1,0 +1,254 @@
+{
+    "base": {
+        "yes": "Да",
+        "no": "Нет",
+        "auto": "Автоматически",
+        "disabled": "Отключено",
+        "none": "Ничего",
+        "details": "Подробности",
+        "required": "обязательно",
+        "from": "От",
+        "to": "До",
+        "done": "Готово!",
+        "reset": "Сброс!",
+        "ok": "OK",
+        "enabled": "Включено",
+        "clear": "Очистить",
+        "doNotChange": "Не изменять",
+        "default": "По умолчанию",
+        "custom": "Пользовательский",
+        "close": "Закрыть",
+        "open": "Открыть"
+    },
+    "weekDays": {
+        "mon": "Понедельник",
+        "tue": "Вторник",
+        "wed": "Среда",
+        "thu": "Четверг",
+        "fri": "Пятница",
+        "sat": "Суббота",
+        "sun": "Воскресенье"
+    },
+    "duration": {
+        "1_hour": "1 час",
+        "1_day": "1 дня",
+        "1_week": "1 недели",
+        "1_month": "1 месяца",
+        "3_month": "3 месяца",
+        "1_year": "1 год",
+        "never": "Никогда",
+        "5_mn": "5 мин",
+        "30_mn": "30 мин",
+        "6_hour": "6 часов",
+        "12_hours": "12 часов",
+        "16_month": "16 месяцев"
+    },
+    "edition": {
+        "community": "Community версия",
+        "full": "Pro версия",
+        "alpha": "Альфа-версия, только для тестирования",
+        "beta": "Бета-версия, только для тестирования"
+    },
+    "content": {
+        "item": "Элемент",
+        "itemId": "ID элемента",
+        "status": "Статус",
+        "source": "Источник",
+        "hits": "Визиты",
+        "lastHit": "Последний визит",
+        "statusAll": "Все",
+        "statusOthers": "Другие",
+        "title": "Заголовок",
+        "url": "URL",
+        "type": "Тип",
+        "selectStatus": "Статус",
+        "page": "Страница",
+        "extension": "Расширение",
+        "view": "Просмотр",
+        "layout": "Макет",
+        "target": "Цель",
+        "enabled": "Включено",
+        "disabled": "Отключено",
+        "language": "Язык",
+        "keyword": "Ключевое слово"
+    },
+    "update": {
+        "noticeTitle": "Доступна новая версия!",
+        "noticeDetails": "Доступна версия %1, <a class='wb-underline wb-gray-900 hover:wb-underline' href='%2'>пожалуйста, обновите!</a> - <a target='_blank' rel=' noopener' class='wb-underline wb-gray-900 hover:wb-underline' href='%3'>Полный список изменений здесь</a>.",
+        "noticeDetailsCannotUpdate": "Доступна версия %1, но в настоящее время вы не можете её обновить.",
+        "noticeDetailsCannotUpdatePlatform": "Ваша текущая версия Joomla несовместима с этим выпуском.",
+        "noticeDetailsCannotUpdatePhp": "Ваша текущая версия PHP несовместима с этим выпуском."
+    },
+    "inputError": {
+        "onlyLettersAndNumbers": "Без пробелов и символов, только буквы и цифры",
+        "greaterThanZero": "Должно быть больше нуля.",
+        "onlyLettersDashesAndNumbers": "Только буквы, тире (-) и цифры",
+        "invalidCssSelector": "Неверный CSS-селектор: введен неправильный CSS-селектор, ваш браузер его не принимает."
+    },
+    "backendComm": {
+        "errorViewDetailsInConsole": "Более подробную информацию можно найти в Javascript консоли браузера.",
+        "errorCannotCommunicateWithServer": "Не удается связаться с сервером",
+        "errorLoadingDataFromServer": "Ошибка загрузки данных с сервера."
+    },
+    "ui": {
+        "selectCategories": "Выберите категории...",
+        "moveLast": "Переместить \"%1\" на последнюю позицию",
+        "connectionLost": "Мы не можем связаться с вашим сервером!",
+        "connectionLostDetails": "Либо ваш сервер не работает, либо истекло время сессии Joomla, или, возможно, вы вышли из другой вкладки этого браузера.",
+        "connectionLostResume": "Теперь мы можем нормально подключиться к вашему серверу, перезагрузите эту страницу, чтобы продолжить:",
+        "noItemAvailable": "Нет доступного элемента.",
+        "noDataAvailable": "Данные недоступны.",
+        "noDataAvailableYet": "Данных пока нет.",
+        "noItemSelected": "Элемент не выбран.",
+        "copyToClipboard": "Скопировать в буфер обмена",
+        "copiedToClipboard": "Скопировано!",
+        "selectAComponent": "Выберите компонент...",
+        "first": "Первая",
+        "last": "Последняя",
+        "moveAfter": "Переместить \"%1\" после \"%2\"",
+        "moveFirst": "Переместите \"%1\" на первую позицию",
+        "expandHelp": "Показать информацию для этого элемента.",
+        "quickEdit": "Быстрое редактирование",
+        "mobile": "Мобильный",
+        "desktop": "Компьютер",
+        "connectionRecovered": "Мы снова можем связаться с вашим сервером после перерыва!",
+        "connectionLostDetailsPrompt": "Если вы вышли из системы, обновите страницу с помощью кнопки ниже и войдите снова, чтобы возобновить работу.",
+        "goToLoginPageOrRefresh": "Перезагрузить эту страницу",
+        "home": "Главная",
+        "width": "Ширина",
+        "height": "Высота",
+        "noItemAvailableOrSelected": "Нет доступных или выбранных элементов.",
+        "helpExpanded": "Скрыть встроенные тексты справки.",
+        "helpNotExpanded": "Показать встроенные тексты справки.",
+        "tablet": "Планшет",
+        "device": "Устройство",
+        "allDevices": "Все устройства",
+        "deviceSelect": "Тип устройства",
+        "allLanguages": "Все языки.",
+        "expand": "Развернуть свернутый элемент",
+        "collapse": "Свернуть развернутый элемент",
+        "expandAll": "Развернуть все свернутые элементы",
+        "collapseAll": "Свернуть все развернутые элементы",
+        "table": "Таблица",
+        "chart": "Диаграмма",
+        "learnMore": "Узнать больше...",
+        "suggestAutoClear": "Уведомления могут быть закрыты автоматически. Перейдите в <strong>Конфигурация | Система | Автоматическая очистка уведомлений</strong>, чтобы включить."
+    },
+    "url": {
+        "genericFullUrlCaption": "Введите полный URL-адрес. Должен начинаться с <span class=\"wb-c-code-inline\">https://</span> или <span class=\"wb-c-code-inline\">http://</span>.",
+        "internal": "Внутренний",
+        "external": "Внешний",
+        "openInNewTab": "Открыть %1 в новой вкладке",
+        "duplicate": "Дублировать",
+        "duplicateShort": "Дубл.",
+        "duplicates": "Дубликаты",
+        "mustEndWithSlash": "Должен заканчиваться <span class=\"wb-c-code-inline\">/</span>."
+    },
+    "pagination": {
+        "total": "Всего",
+        "previous": "Предыдущая",
+        "selectItem": "Выберите элемент %1",
+        "errors": "Ошибки",
+        "goToPage": "Перейти к странице",
+        "search": "Поиск",
+        "perPage": "На странице",
+        "first": "Первая",
+        "next": "Следующая",
+        "last": "Последняя",
+        "selected": "Выбранный",
+        "selectAllItems": "Выбрать все элементы в списке",
+        "exactSearch": "Точный поиск",
+        "searchIn": "Искать в"
+    },
+    "lists": {
+        "selectAnItem": "Сначала выберите элемент из списка.",
+        "noData": "Нет доступного элемента.",
+        "selectOnlyOneItem": "Пожалуйста, выберите только один элемент из списка.",
+        "actionsFor": "Действия для %1",
+        "optionsFor": "Опции для %1"
+    },
+    "colors": {
+        "indigo": "Индиго",
+        "blue": "Синий",
+        "green": "Зеленый",
+        "orange": "Orange",
+        "red": "Красный",
+        "purple": "Пурпурный"
+    },
+    "crud": {
+        "unpublish": "Снять с публикации",
+        "select": "Выбрать",
+        "confirmDeleteItems": "Подтвердите, что хотите удалить элементы в количестве %1",
+        "confirmDeleteAllItems": "Подтвердите, что хотите удалить <strong>все элементы</strong> из этого списка.",
+        "new": "Новый",
+        "edit": "Редактировать",
+        "delete": "Удалить",
+        "deleteAll": "Удалить все",
+        "publish": "Опубликовать",
+        "enable": "Включить",
+        "disable": "Отключить",
+        "save": "Сохранить",
+        "saveAndClose": "Сохранить и закрыть",
+        "close": "Закрыть",
+        "fixErrors": "Пожалуйста, исправьте ошибки ввода перед сохранением!",
+        "deleteItems": "Удалить эти элементы",
+        "keepItems": "Держать их",
+        "confirmGeneric": "Пожалуйста, подтвердите %1"
+    },
+    "helpSystem": {
+        "cannotLoad": "Извините, кажется, сервер справки не работает или у нас нет доступа к Интернету, чтобы загрузить этот текст справки. Может быть, попробовать еще раз чуть позже?",
+        "buttonTitle": "Справка"
+    },
+    "rules": {
+        "dateRangeWarning": "В настоящее время за пределами этого диапазона дат, правило пока не действует."
+    },
+    "searchEngines": {
+        "google": "Google",
+        "bing": "Bing",
+        "yandex": "Яндекс",
+        "baidu": "Baidu",
+        "yahoo": "Yahoo",
+        "duckDuckGo": "DuckDuckGo"
+    },
+    "status": {
+        "automatic": "Автоматически",
+        "auto": "Авто",
+        "manual": "Вручную",
+        "completion": "Завершение"
+    },
+    "table": {
+        "cellToggle": "Переключить %1 для строки %2"
+    },
+    "fileBrowser": {
+        "homeFolder": "Перейти в домашнюю папку",
+        "goToParentFolder": "Перейти на одну папку вверх",
+        "currentlySelected": "Выбрано",
+        "previewImage": "Предварительный просмотр %1",
+        "gotToFolder": "Перейти в папку %1",
+        "selectImage": "Выбрать изображение..."
+    },
+    "imageGrid": {
+        "titleSelectSingle": "...или выберите одно из изображений на этой странице (рекомендуется)"
+    },
+    "operators": {
+        "equals": "=",
+        "different": "Не равно",
+        "greater": "Больше",
+        "greaterEq": "Больше или =",
+        "less": "Меньше",
+        "lessEq": "Меньше или =",
+        "between": "Между",
+        "contains": "Содержит",
+        "doesNotContains": "Не содержит",
+        "startsWith": "Начинается с",
+        "endsWith": "Заканчивается на"
+    },
+    "dateTime": {
+        "day": "День",
+        "date": "Дата"
+    },
+    "notifications": {
+        "openList": "Открыть список уведомлений",
+        "closeList": "Закрыть список уведомлений"
+    }
+}

@@ -1,4 +1,4 @@
-# JoomlaBoost Plugin Build Procedure
+12122212# JoomlaBoost Plugin Build Procedure
 
 ## 🎯 OBAVEZNA PROCEDURA PRIJE BUILD-a
 
@@ -9,10 +9,6 @@
 ```xml
 <files>
     <filename plugin="joomlaboost">joomlaboost.php</filename>
-    <filename>joomlaboost-simple.php</filename>
-    <filename>joomlaboost-complex.php</filename>
-    <filename>joomlaboost-minimal.php</filename>
-    <filename>joomlaboost-working.php</filename>
     <folder>language</folder>
     <folder>src</folder>         <!-- MORA postojati! -->
     <folder>media</folder>       <!-- MORA postojati! -->
@@ -99,25 +95,25 @@ php -l src/Services/*.php
 **3. Build Command:**
 
 ```powershell
-cd "c:\POSLOVI\__OffRoad_Joomla\tools"
+cd "c:\POSLOVI\__JoomlaBoost\tools"
 pwsh -NoProfile -ExecutionPolicy Bypass -File ".\build_joomlaboost.ps1"
 ```
 
 **4. Verification:**
 
-- Check ZIP size (should be ~27-28 KB)
+- Verify ZIP is created in `tools/__build/`
 - Extract and verify folder structure
 - Test on staging before production
 
 ### 🏗️ Tipovi Build-ova
 
-#### Standard Build (glavni joomlaboost.php):
+#### Standard Build (glavni joomlaboost.php)
 
 - Koristi glavni `joomlaboost.php` fajl
 - Za production use
 - Kompatibilan sa postojećim instalacijama
 
-#### Simple Build (joomlaboost-simple.php kao glavni):
+#### Simple Build (joomlaboost-simple.php kao glavni)
 
 - Koristi `build_joomlaboost_simple.ps1`
 - Za testing alternative implementations
@@ -144,7 +140,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File ".\build_joomlaboost.ps1"
 
 Prije build-a, struktura MORA biti:
 
-```
+```text
 src/plugins/system/joomlaboost/
 ├── joomlaboost.php               # Glavni fajl
 ├── joomlaboost.xml               # Manifest
@@ -177,4 +173,4 @@ ls .\__build\
 
 ---
 
-## 💾 Save this checklist and follow it EVERY TIME!
+## 💾 Save this checklist and follow it EVERY TIME

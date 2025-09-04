@@ -1,0 +1,9 @@
+{
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "Weeblr\\Wblib\\Forsef\\Symfony\\": "symfony-static/",
+      "Weeblr\\Wblib\\Forsef\\Symfony\\Component\\CssSelector\\": "symfony-static/css-selector/"
+    }
+  }
+}

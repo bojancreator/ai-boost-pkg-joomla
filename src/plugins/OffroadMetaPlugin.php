@@ -3,15 +3,14 @@
 declare(strict_types=1);
 
 /**
- * OffRoad Serbia Extension for Joomla
+ * JoomlaBoost Extension for Joomla
  *
- * @package    OffroadSerbia\Content
- * @author     OffRoad Serbia
- * @copyright  Copyright (C) 2025 OffRoad Serbia. All rights reserved.
+ * @package    JoomlaBoost\Content
+ * @author     JoomlaBoost Team
  * @license    MIT License
  */
 
-namespace OffroadSerbia\Content;
+namespace JoomlaBoost\Content;
 
 /**
  * Plugin klasa po novom Joomla 4+ standardu

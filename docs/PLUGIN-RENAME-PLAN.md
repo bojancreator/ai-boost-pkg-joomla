@@ -4,7 +4,7 @@
 
 ## New Name: JoomlaBoost
 
-### Files to rename/update:
+### Files to rename/update
 
 1. Plugin folder: `offroadseo` → `joomlaboost`
 2. Plugin class: `PlgSystemOffroadseo` → `PlgSystemJoomlaboost`
@@ -13,7 +13,7 @@
 5. Language files
 6. Configuration files
 
-### Domain Detection Features:
+### Domain Detection Features
 
 - Auto-detect current domain
 - Generate domain-specific robots.txt
@@ -27,7 +27,7 @@
 - Domain-agnostic functionality
 - Universal SEO optimization
 
-### Archive Plan:
+### Archive Plan
 
-- Move old versions to `/archive/offroadseo/`
+- Move old versions to `/archive/offroadseo-legacy/`
 - Keep for reference and rollback if needed

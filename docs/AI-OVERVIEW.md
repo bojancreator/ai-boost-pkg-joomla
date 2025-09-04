@@ -1,6 +1,6 @@
-# OffroadSEO — AI pregled i kontekst
+# JoomlaBoost — AI pregled i kontekst
 
-Kratačko ali masno: ovo je monorepo za Joomla sajt offroadserbia.com; ključni deo je system plugin `offroadseo` koji upravlja SEO stvarima (robots, sitemaps, meta/OG/JSON‑LD, sitni popravci) i ima dijagnostičke endpoint‑e.
+Kratačko ali masno: ovo je univerzalni monorepo za Joomla sajtove. Ključni deo je system plugin `joomlaboost` koji upravlja SEO/statičkim resursima (robots, sitemaps, meta/OG/JSON‑LD, sitni popravci) i ima dijagnostičke endpoint‑e. Primeri koriste example.com samo kao ilustraciju.
 
 ## Šta je implementirano (suština)
 
@@ -9,16 +9,15 @@ Kratačko ali masno: ovo je monorepo za Joomla sajt offroadserbia.com; ključni 
   - `sitemap.xml` (može biti index ili pages zavisno od podešavanja),
   - `sitemap_index.xml` (index varijanta),
   - `sitemap-pages.xml`, `sitemap-articles.xml`.
-  - Query fallback: `index.php?offseo_sitemap=index|pages|articles`.
+  - Query fallback: `index.php?jb_sitemap=index|pages|articles`.
 - Dijagnostika (za rutiranje i stanje):
-  - Putanja: `/offseo-diag` (text/plain),
-  - Query: `?offseo_diag=1` (text/plain).
+  - Query: `?jb_diag=1` (text/plain).
 - Keš zaglavlja za sitemape (ETag + Last‑Modified + 304), robots sa ETag/304.
 - „Active domain“ ograda: plugin radi samo na domenu/ subdomenima zadatim u `active_domain` (podržani i poddomene).
 
 ## Arhitektura
 
-- Joomla System Plugin: `src/plugins/system/offroadseo/offroadseo.php` (+ manifest `.xml`).
+- Joomla System Plugin: `src/plugins/system/joomlaboost/joomlaboost.php` (+ manifest `.xml`).
 - Ključni hook‑ovi:
   - `onAfterInitialise` — rani interceptor (robots/sitemaps/diag),
   - `onAfterRoute` — fallback interceptor (ako rani hook bude preskočen),
@@ -33,8 +32,8 @@ Kratačko ali masno: ovo je monorepo za Joomla sajt offroadserbia.com; ključni 
   - `GET /sitemap.xml` → `application/xml` (index ili pages),
   - `GET /sitemap_index.xml` → `application/xml` (index),
   - `GET /sitemap-pages.xml`, `GET /sitemap-articles.xml` → `application/xml`,
-  - Fallback: `GET /index.php?offseo_sitemap=index|pages|articles`.
-- Diag: `GET /offseo-diag` ili `GET /index.php?offseo_diag=1` → `text/plain` stanje (host, active_match, enable_robots/sitemap…).
+  - Fallback: `GET /index.php?jb_sitemap=index|pages|articles`.
+- Diag/Health: `GET /index.php?jb_diag=1` i/ili `GET /index.php?jb_health=1` → `application/json` stanje (host, environment, flags…).
 
 Detaljna specifikacija je u `docs/ENDPOINTS.md`.
 
@@ -49,30 +48,35 @@ Detaljna specifikacija je u `docs/ENDPOINTS.md`.
 
 ## Build i instalacija
 
-- ZIP build: `tools/build_offroadseo.ps1` čita verziju iz manifesta i pravi `tools/offroadseo-<version>.zip`.
+- ZIP build: `tools/build_joomlaboost.ps1` (ili `build_joomlaboost_smart.ps1`) čita verziju iz manifesta i pravi `tools/__build/joomlaboost-<version>.zip`.
 - Instalacija: Joomla Admin → Extensions → Install → Upload ZIP.
 
 ## Test lista (staging/produkcija)
 
-1. Diag:
-   - `/offseo-diag` → text/plain, `active_match=1` na ispravnom domenu.
-   - `/index.php?offseo_diag=1` → takođe radi (ako query ne seče WAF/CDN).
-2. Robots:
-   - `/robots.txt` → text/plain, sadrži „Sitemap: https://…/sitemap_index.xml“.
-3. Sitemape:
-   - `/sitemap_index.xml` i `/sitemap.xml` → `application/xml` bez HTML‑a,
-   - `/sitemap-pages.xml`, `/sitemap-articles.xml` → `application/xml`.
-   - Fallback: `/index.php?offseo_sitemap=index` mora raditi čak i bez SEF.
+1. Diag/Health:
+
+- `/index.php?jb_diag=1` → text/plain, `active_match=1` na ispravnom domenu.
+- `/index.php?jb_health=1` → brzi health check (ako je implementiran u verziji koju koristite).
+
+1. Robots:
+
+- `/robots.txt` → text/plain, sadrži „Sitemap: <https://example.com/sitemap_index.xml>“ (na produkciji) ili „<https://staging.example.com/...>“ (na stagingu).
+
+1. Sitemape:
+
+- `/sitemap_index.xml` i `/sitemap.xml` → `application/xml` bez HTML‑a,
+- `/sitemap-pages.xml`, `/sitemap-articles.xml` → `application/xml`.
+- Fallback: `/index.php?jb_sitemap=index` mora raditi čak i bez SEF.
 
 Ako bilo šta od ovoga vraća HTML/404, pogledaj `docs/TROUBLESHOOTING.md`.
 
 ## Tipični problemi i rešenja
 
 - Vraća se HTML/404 za robots/sitemap/diag:
-  - Nisu prošli kroz Joomlu: u `.htaccess` dodati top‑of‑file rewrite pravila za `robots.txt` i `sitemap*.xml`,
-  - Ukloniti fizički `robots.txt` iz docroot‑a (ako postoji),
-  - Dodati izuzetke na WAF/CDN (bez cache filtriranja),
-  - Testiraj non‑SEF query fallback (`offseo_sitemap` i `offseo_diag`).
+  - Nisu prošli kroz Joomlu: u `.htaccess` dodati top‑of‑file rewrite pravila za `robots.txt` i `sitemap*.xml`.
+  - Ukloniti fizički `robots.txt` iz docroot‑a (ako postoji).
+  - Dodati izuzetke na WAF/CDN (bez cache filtriranja).
+  - Testiraj non‑SEF query fallback (`jb_sitemap`, `jb_diag`).
 - `active_match=0` u diag:
   - Dodeli ispravan `active_domain` u podešavanjima plugina.
 

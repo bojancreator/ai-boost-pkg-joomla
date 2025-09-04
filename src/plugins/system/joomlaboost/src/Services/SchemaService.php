@@ -64,7 +64,7 @@ class SchemaService extends AbstractService
         // Debug: Log schema generation with version
         if ($this->params->get('debug_mode', 0)) {
             Factory::getApplication()->enqueueMessage(
-                '[DEBUG] JoomlaBoost v0.1.17-meta-pixel: Generating Schema.org markup',
+                '[DEBUG] JoomlaBoost v0.1.17: Generating Schema.org markup',
                 'info'
             );
         }
@@ -147,8 +147,6 @@ class SchemaService extends AbstractService
     private function generateOrganizationSchema(): array
     {
         $config = Factory::getApplication()->getConfig();
-        $domain = $this->getCurrentDomain();
-
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
@@ -161,26 +159,6 @@ class SchemaService extends AbstractService
                 'availableLanguage' => $this->getLanguageCode()
             ]
         ];
-
-        // Add specific data for OffRoad Serbia
-        if (str_contains($domain, 'offroadserbia')) {
-            $schema['@type'] = 'Organization';
-            $schema['name'] = 'OffRoad Serbia';
-            $schema['alternateName'] = 'Off Road Serbia';
-            $schema['description'] = 'Off-road voznja, avantura i ekstremni sport u Srbiji';
-            $schema['knowsAbout'] = [
-                'Off-road voznja',
-                'ATV ture',
-                'Ekstremni sportovi',
-                'Avantura u prirodi',
-                'Off-road vozila',
-                'Terenska voznja'
-            ];
-
-            if (!empty($config->get('MetaAuthor'))) {
-                $schema['email'] = $config->get('MetaAuthor');
-            }
-        }
 
         return $schema;
     }
@@ -225,7 +203,7 @@ class SchemaService extends AbstractService
                 'inLanguage' => $this->getLanguageCode(),
                 'author' => [
                     '@type' => 'Person',
-                    'name' => $article->created_by_alias ?: 'OffRoad Serbia'
+                    'name' => $article->created_by_alias ?: 'Author'
                 ],
                 'publisher' => [
                     '@type' => 'Organization',
@@ -306,7 +284,7 @@ class SchemaService extends AbstractService
             '@context' => 'https://schema.org',
             '@type' => 'Blog',
             'name' => $config->get('sitename') . ' - Blog',
-            'description' => 'Najnoviji članci o off-road vožnji i avanturi',
+            'description' => $config->get('MetaDesc') ?: 'Najnoviji članci',
             'url' => Uri::getInstance()->toString(),
             'inLanguage' => $this->getLanguageCode(),
             'publisher' => [
