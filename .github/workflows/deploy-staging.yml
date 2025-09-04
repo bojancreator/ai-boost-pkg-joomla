@@ -1,17 +1,12 @@
 name: Deploy to Staging (FTP/FTPS)
 
+# Auto-deploy disabled: manual runs only. We install plugin ZIP via Joomla backend.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - src/templates/yootheme_offroad/**
-      - .github/workflows/deploy-staging.yml
 
 jobs:
   deploy:
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip deploy]') }}
+  if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip deploy]') }}
     runs-on: ubuntu-latest
     concurrency:
       group: staging-deploy

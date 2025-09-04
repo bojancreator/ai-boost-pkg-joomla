@@ -40,18 +40,4 @@ jobs:
       - name: PHPStan
         run: composer stan
 
-  build-packages:
-    runs-on: ubuntu-latest
-    needs: phpqa
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: Build Joomla packages
-        run: tools/build.sh
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: joomla-packages
-          path: build/*.zip
-          retention-days: 30
+  # Note: Build artifacts moved to a separate manual workflow.
