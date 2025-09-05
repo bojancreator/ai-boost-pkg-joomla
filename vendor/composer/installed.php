@@ -3,7 +3,7 @@
         'name' => 'joomlaboost/joomlaboost',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'bb76dd01b4dd6f7f66c2e6426d60d6b77b4daf2c',
+        'reference' => 'cfbae1e21a32b63e61308240c4e46d03db28ee80',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'joomlaboost/joomlaboost' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'bb76dd01b4dd6f7f66c2e6426d60d6b77b4daf2c',
+            'reference' => 'cfbae1e21a32b63e61308240c4e46d03db28ee80',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
