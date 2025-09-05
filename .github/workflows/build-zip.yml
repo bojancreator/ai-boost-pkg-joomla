@@ -21,7 +21,9 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Build Joomla packages
-        run: tools/build.sh
+        run: |
+          chmod +x tools/build.sh
+          bash tools/build.sh
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
