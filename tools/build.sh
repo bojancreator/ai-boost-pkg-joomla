@@ -1,8 +1,9 @@
 #!/bin/bash
 
 #
-# Build skripta za OffRoad Serbia Joomla komponente
-# Kreira ZIP fajlove za plugin-e, module i template override-e
+# JoomlaBoost build skripta
+# Kreira ZIP pakete za plugin-e, module i template override-e
+# i dodaje verziju u naziv fajla.
 #
 
 set -e
@@ -12,9 +13,23 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_ROOT/build"
 JOOMLA_DIR="$PROJECT_ROOT/joomla"
 
-echo "🚀 OffRoad Serbia Build Script"
-echo "==============================="
+echo "🚀 JoomlaBoost Build Script"
+echo "==========================="
 echo ""
+
+# Detekcija verzije iz PHP klase Version (autoload), sa fallback-om na grep
+VERSION=""
+if command -v php >/dev/null 2>&1; then
+    VERSION=$(php -r 'error_reporting(E_ERROR); @require __DIR__."/../vendor/autoload.php"; if (class_exists("JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Version")) { echo JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Version::PLUGIN_VERSION; }' 2>/dev/null || true)
+fi
+
+if [ -z "$VERSION" ] && [ -f "$PROJECT_ROOT/src/plugins/system/joomlaboost/src/Version.php" ]; then
+    VERSION=$(grep -oE "PLUGIN_VERSION\s*=\s*'[^']+'" "$PROJECT_ROOT/src/plugins/system/joomlaboost/src/Version.php" | sed -E "s/.*'([^']+)'.*/\1/" | head -n1)
+fi
+
+if [ -z "$VERSION" ]; then
+    VERSION="0.0.0"
+fi
 
 # Obriši postojeći build folder
 if [ -d "$BUILD_DIR" ]; then
@@ -37,7 +52,7 @@ if [ -d "$JOOMLA_DIR/plugins" ]; then
             for plugin_dir in "$plugin_group"/*; do
                 if [ -d "$plugin_dir" ]; then
                     plugin_name=$(basename "$plugin_dir")
-                    zip_name="plg_${group_name}_${plugin_name}.zip"
+                    zip_name="plg_${group_name}_${plugin_name}-v${VERSION}.zip"
                     
                     echo "  📦 Kreiram $zip_name..."
                     
@@ -55,7 +70,7 @@ if [ -d "$JOOMLA_DIR/modules" ]; then
     for module_dir in "$JOOMLA_DIR/modules"/*; do
         if [ -d "$module_dir" ]; then
             module_name=$(basename "$module_dir")
-            zip_name="mod_${module_name}.zip"
+            zip_name="mod_${module_name}-v${VERSION}.zip"
             
             echo "  📦 Kreiram $zip_name..."
             
@@ -71,7 +86,7 @@ if [ -d "$JOOMLA_DIR/templates" ]; then
     for template_dir in "$JOOMLA_DIR/templates"/*; do
         if [ -d "$template_dir" ]; then
             template_name=$(basename "$template_dir")
-            zip_name="tpl_${template_name}_overrides.zip"
+            zip_name="tpl_${template_name}_overrides-v${VERSION}.zip"
             
             echo "  📦 Kreiram $zip_name..."
             
