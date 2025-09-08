@@ -22,8 +22,10 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Build Joomla packages
-        run: tools/build.sh
+      - name: Build Joomla packages (modernized structure)
+        run: |
+          # Use new optimized build script for modern plugin/ structure  
+          pwsh -NoProfile -ExecutionPolicy Bypass -File tools/build-optimizer.ps1 -Production -Version "${GITHUB_REF#refs/tags/v}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3efdd8f6f8f6f

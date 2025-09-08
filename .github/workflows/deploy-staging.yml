@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-  if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip deploy]') }}
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip deploy]') }}
     runs-on: ubuntu-latest
     concurrency:
       group: staging-deploy
@@ -16,19 +16,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      # FTP/FTPS deploy – ciljna putanja za template child
-      # offroadstage deploy korak uklonjen (plugin obrisan)
+      # FTP/FTPS deploy – no longer relevant since templates were moved
+      # from src/templates/ to organized plugin/ structure
 
-      - name: Upload YOOtheme child via FTP
-        uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65
-        with:
-          server: ${{ secrets.STAGING_FTP_HOST }}
-          username: ${{ secrets.STAGING_FTP_USER }}
-          password: ${{ secrets.STAGING_FTP_PASS }}
-          protocol: ftp
-          security: loose
-          local-dir: src/templates/yootheme_offroad/
-          server-dir: ${{ secrets.STAGING_DOCROOT_RELATIVE }}/templates/yootheme_offroad/
-          dangerous-clean-slate: true
-          log-level: verbose
-          timeout: 120000
+      - name: Deploy notice
+        run: |
+          echo "🚀 Repository modernized - template deployment no longer needed"
+          echo "📦 Use manual ZIP install through Joomla admin instead"
+          echo "🏗️ New structure: plugin/ directory contains all plugin files"

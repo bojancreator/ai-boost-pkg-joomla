@@ -20,10 +20,10 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Build Joomla packages
+      - name: Build Joomla packages (modernized structure)
         run: |
-          chmod +x tools/build.sh
-          bash tools/build.sh
+          # Use new optimized build script for modern plugin/ structure
+          pwsh -NoProfile -ExecutionPolicy Bypass -File tools/build-optimizer.ps1 -Production -Version "1.0.0"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

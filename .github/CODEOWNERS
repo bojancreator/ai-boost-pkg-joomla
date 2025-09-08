@@ -1,3 +1,17 @@
-- @bojancreator
-  /src/** @bojancreator
-  /docs/** @bojancreator
+# Global ownership
+* @bojancreator
+
+# Core plugin code
+/plugin/** @bojancreator
+
+# Configuration files
+/config/** @bojancreator
+
+# Documentation
+/docs/** @bojancreator
+
+# Build tools  
+/tools/** @bojancreator
+
+# GitHub workflows
+/.github/** @bojancreator
