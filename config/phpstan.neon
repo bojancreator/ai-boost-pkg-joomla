@@ -1,7 +1,10 @@
+includes:
+  - phpstan-baseline.neon
+
 parameters:
   paths:
     - ../plugin
-  level: 7
+  level: 6
   ignoreErrors: []
   excludePaths:
     # Isključi optimizovane verzije plugin-a

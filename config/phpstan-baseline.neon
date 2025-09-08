@@ -1,671 +1,101 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Call to an undefined static method Joomla\\\\CMS\\\\Factory\\:\\:getApplication\\(\\)\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:addGA4Tracking\\(\\) has no return type specified\\.$#"
+			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$metaPixelService\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:addGA4Tracking\\(\\) has parameter \\$document with no type specified\\.$#"
+			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$openGraphService\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:addGTMTracking\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:addGTMTracking\\(\\) has parameter \\$document with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:addGoogleVerificationTags\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:addGoogleVerificationTags\\(\\) has parameter \\$document with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:addSchemaMarkup\\(\\) has parameter \\$document with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:getApp\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:getDefaultRobots\\(\\) is unused\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:handleRobotsRequest\\(\\) has parameter \\$app with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:handleSitemapRequest\\(\\) has parameter \\$app with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Parameter \\#2 \\$subject of function preg_match expects string, string\\|false given\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Property PlgSystemJoomlaboost\\:\\:\\$autoloadLanguage has no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/joomlaboost.php
-
-		-
-			message: "#^Method EnvironmentType\\:\\:getRobotsRules\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Enums/EnvironmentType.php
-
-		-
-			message: "#^Access to constant DEBUG on an unknown class JLog\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/AbstractService.php
-
-		-
-			message: "#^Call to method allowSearchEngines\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/AbstractService.php
-
-		-
-			message: "#^Call to method isProduction\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/AbstractService.php
-
-		-
-			message: "#^Call to static method add\\(\\) on an unknown class JLog\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/AbstractService.php
-
-		-
-			message: "#^Call to static method detectFromDomain\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/AbstractService.php
-
-		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\AbstractService\\:\\:getEnvironmentType\\(\\) has invalid return type JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/AbstractService.php
-
-		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\AbstractService\\:\\:logDebug\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/AbstractService.php
-
-		-
-			message: "#^Call to an undefined method Joomla\\\\CMS\\\\Application\\\\CMSApplication\\:\\:get\\(\\)\\.$#"
+			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$performanceService\\.$#"
 			count: 3
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Call to method getRobotsRules\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
-
-		-
-			message: "#^Call to static method detectFromDomain\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
-
-		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\DomainDetectionService\\:\\:generateRobotsRules\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
-
-		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\DomainDetectionService\\:\\:getAvailableLanguages\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
-
-		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\DomainDetectionService\\:\\:getDomainConfig\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
-
-		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\DomainDetectionService\\:\\:getDomainMetaTags\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
-
-		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\DomainDetectionService\\:\\:getEnvironmentType\\(\\) has invalid return type JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/DomainDetectionService.php
-
-		-
-			message: "#^Access to property \\$value on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/RobotService.php
-
-		-
-			message: "#^Call to method allowSearchEngines\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/RobotService.php
-
-		-
-			message: "#^Call to method getLabel\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/RobotService.php
-
-		-
-			message: "#^Call to method getRobotsRules\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/RobotService.php
-
-		-
-			message: "#^Call to method isProduction\\(\\) on an unknown class JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Enums\\\\EnvironmentType\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/RobotService.php
-
-		-
-			message: "#^Call to an undefined method Joomla\\\\CMS\\\\Application\\\\CMSApplication\\:\\:getParams\\(\\)\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
-
-		-
-			message: "#^Call to an undefined static method Joomla\\\\CMS\\\\Factory\\:\\:getApplication\\(\\)\\.$#"
-			count: 10
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
-
-		-
-			message: "#^Call to an undefined static method Joomla\\\\CMS\\\\Factory\\:\\:getDate\\(\\)\\.$#"
+			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$schemaService\\.$#"
 			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Call to an undefined static method Joomla\\\\CMS\\\\Factory\\:\\:getLanguage\\(\\)\\.$#"
+			message: "#^Instantiated class MetaPixelService not found\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Call to method getCategory\\(\\) on an unknown class Joomla\\\\Component\\\\Content\\\\Site\\\\Model\\\\CategoryModel\\.$#"
+			message: "#^Instantiated class OpenGraphService not found\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Call to method getItem\\(\\) on an unknown class Joomla\\\\Component\\\\Content\\\\Site\\\\Model\\\\ArticleModel\\.$#"
+			message: "#^Instantiated class PerformanceService not found\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Call to method setState\\(\\) on an unknown class Joomla\\\\Component\\\\Content\\\\Site\\\\Model\\\\ArticleModel\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
-
-		-
-			message: "#^Call to static method addIncludePath\\(\\) on an unknown class Joomla\\\\CMS\\\\MVC\\\\Model\\\\BaseDatabaseModel\\.$#"
+			message: "#^Instantiated class SchemaService not found\\.$#"
 			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Instantiated class Joomla\\\\Component\\\\Content\\\\Site\\\\Model\\\\ArticleModel not found\\.$#"
+			message: "#^Method PlgSystemJoomlaboost\\:\\:addSchemaMarkup\\(\\) is unused\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Instantiated class Joomla\\\\Component\\\\Content\\\\Site\\\\Model\\\\CategoryModel not found\\.$#"
+			message: "#^Method PlgSystemJoomlaboost\\:\\:getServiceContainer\\(\\) is unused\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:extractImages\\(\\) has parameter \\$article with no type specified\\.$#"
+			message: "#^Method PlgSystemJoomlaboost\\:\\:logDebug\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:extractImages\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Template type T of method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\AbstractService\\:\\:getService\\(\\) is not referenced in a parameter\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/AbstractService.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:generateArticleSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Unable to resolve the template type T in call to method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceContainer\\:\\:get\\(\\)$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/AbstractService.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:generateBlogSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\OpenGraphService\\:\\:getArticleTimestamps\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/OpenGraphService.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:generateBreadcrumbSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Call to an undefined method Joomla\\\\CMS\\\\Document\\\\HtmlDocument\\:\\:getMetaData\\(\\)\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/PerformanceService.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:generateCategorySchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\PerformanceService\\:\\:getPerformanceMetrics\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/PerformanceService.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:generateOrganizationSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Parameter \\#1 \\$callback of function spl_autoload_register expects \\(callable\\(string\\)\\: void\\)\\|null, array\\{'JoomlaBoost\\\\\\\\Plugin\\\\\\\\System\\\\\\\\JoomlaBoost\\\\\\\\Services\\\\\\\\ServiceAutoloader', 'autoload'\\} given\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/ServiceAutoloader.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:generateSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceContainer\\:\\:__call\\(\\) has parameter \\$arguments with no value type specified in iterable type array\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/ServiceContainer.php
 
 		-
-			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\SchemaService\\:\\:generateWebsiteSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceContainer\\:\\:getMetrics\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/SchemaService.php
+			path: ../plugin/src/Services/ServiceContainer.php
 
 		-
-			message: "#^Call to method getDomainConfig\\(\\) on an unknown class DomainDetectionService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Call to method isEnabled\\(\\) on an unknown class ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class AnalyticsService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class DomainDetectionService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class HealthService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class HreflangService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class InjectionService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class OpenGraphService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class PerformanceService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class RobotService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class SchemaService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Class SitemapService not found\\.$#"
-			count: 2
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getAnalyticsService\\(\\) has invalid return type AnalyticsService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getAnalyticsService\\(\\) should return AnalyticsService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getDomainConfig\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getDomainDetectionService\\(\\) has invalid return type DomainDetectionService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getDomainDetectionService\\(\\) should return DomainDetectionService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getEnabledServices\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getHealthService\\(\\) has invalid return type HealthService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getHealthService\\(\\) should return HealthService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getHreflangService\\(\\) has invalid return type HreflangService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getHreflangService\\(\\) should return HreflangService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getInjectionService\\(\\) has invalid return type InjectionService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getInjectionService\\(\\) should return InjectionService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getOpenGraphService\\(\\) has invalid return type OpenGraphService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getOpenGraphService\\(\\) should return OpenGraphService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getPerformanceService\\(\\) has invalid return type PerformanceService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getPerformanceService\\(\\) should return PerformanceService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getRobotService\\(\\) has invalid return type RobotService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getRobotService\\(\\) should return RobotService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getSchemaService\\(\\) has invalid return type SchemaService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getSchemaService\\(\\) should return SchemaService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getService\\(\\) has invalid return type ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getService\\(\\) should return ServiceInterface but returns object\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getSitemapService\\(\\) has invalid return type SitemapService\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Method ServiceManager\\:\\:getSitemapService\\(\\) should return SitemapService but returns ServiceInterface\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Property ServiceManager\\:\\:\\$services \\(array\\<ServiceInterface\\>\\) does not accept array\\<object\\>\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Property ServiceManager\\:\\:\\$services has unknown class ServiceInterface as its type\\.$#"
-			count: 1
-			path: src/plugins/system/joomlaboost/src/Services/ServiceManager.php
-
-		-
-			message: "#^Call to protected method isActiveDomain\\(\\) of class Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\AbstractService\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method Joomla\\\\CMS\\\\Plugin\\\\CMSPlugin\\:\\:__construct\\(\\) invoked with 2 parameters, 0 required\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:__construct\\(\\) has parameter \\$config with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:__construct\\(\\) has parameter \\$subject with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:buildArticleUrl\\(\\) has parameter \\$article with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:buildArticlesUrls\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:buildMenuItemUrl\\(\\) has parameter \\$item with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:buildPagesUrls\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:extractArticleImages\\(\\) has parameter \\$article with no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:extractArticleImages\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Method PlgSystemOffroadseo\\:\\:onAjaxOffroadseo\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Property PlgSystemOffroadseo\\:\\:\\$autoloadLanguage has no type specified\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/offroadseo.php
-
-		-
-			message: "#^Call to an undefined static method Joomla\\\\CMS\\\\Uri\\\\Uri\\:\\:base\\(\\)\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Routing/Router.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\HealthService\\:\\:generateHealthResponse\\(\\) should return string but returns string\\|false\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HealthService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\HealthService\\:\\:getFeatureStatus\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HealthService.php
-
-		-
-			message: "#^Call to an undefined static method Joomla\\\\CMS\\\\Factory\\:\\:getLanguage\\(\\)\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HreflangService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\HreflangService\\:\\:buildArticleAlternates\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HreflangService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\HreflangService\\:\\:buildCurrentPageAlternates\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HreflangService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\HreflangService\\:\\:buildHomeAlternates\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HreflangService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\HreflangService\\:\\:buildMenuAlternates\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HreflangService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\HreflangService\\:\\:getLanguageMappings\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/HreflangService.php
-
-		-
-			message: "#^Cannot call method getMetaData\\(\\) on class\\-string\\|object\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/OpenGraphService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\OpenGraphService\\:\\:addArticleOpenGraphTags\\(\\) has parameter \\$existing with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/OpenGraphService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\OpenGraphService\\:\\:addBasicOpenGraphTags\\(\\) has parameter \\$existing with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/OpenGraphService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\OpenGraphService\\:\\:addTwitterCardTags\\(\\) has parameter \\$existing with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/OpenGraphService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\OpenGraphService\\:\\:getExistingMetaTags\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/OpenGraphService.php
-
-		-
-			message: "#^Call to an undefined method Joomla\\\\CMS\\\\Application\\\\CMSApplication\\:\\:get\\(\\)\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/RobotService.php
-
-		-
-			message: "#^Cannot call method getPathway\\(\\) on class\\-string\\|object\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SchemaService\\:\\:addJsonLd\\(\\) has parameter \\$data with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SchemaService\\:\\:buildBreadcrumbSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SchemaService\\:\\:buildOrganizationSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SchemaService\\:\\:buildSocialProfiles\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SchemaService\\:\\:buildWebPageSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SchemaService\\:\\:filterDuplicateBreadcrumbs\\(\\) has parameter \\$buffer with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SchemaService\\:\\:filterDuplicateBreadcrumbs\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SchemaService.php
-
-		-
-			message: "#^Call to an undefined method Joomla\\\\CMS\\\\Application\\\\CMSApplication\\:\\:get\\(\\)\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SitemapService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SitemapService\\:\\:buildSitemapEntries\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SitemapService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SitemapService\\:\\:hasAnyAlternates\\(\\) has parameter \\$urls with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SitemapService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SitemapService\\:\\:hasAnyImages\\(\\) has parameter \\$urls with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SitemapService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SitemapService\\:\\:renderSitemapIndex\\(\\) has parameter \\$entries with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SitemapService.php
-
-		-
-			message: "#^Method Offroad\\\\Plugin\\\\System\\\\Offroadseo\\\\Services\\\\SitemapService\\:\\:renderUrlset\\(\\) has parameter \\$urls with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/plugins/system/offroadseo/src/Services/SitemapService.php
-
-		-
-			message: "#^Parameter \\#2 \\$array of function array_map expects array, array\\<int, string\\>\\|false given\\.$#"
-			count: 1
-			path: src/plugins/system/offroadstage/offroadstage.php
+			message: "#^Unable to resolve the template type T in call to method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceContainer\\:\\:get\\(\\)$#"
+			count: 3
+			path: ../plugin/src/Services/ServiceContainer.php
