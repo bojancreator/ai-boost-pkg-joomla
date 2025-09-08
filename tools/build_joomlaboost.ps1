@@ -8,8 +8,8 @@ Write-Host "============================" -ForegroundColor Green
 Write-Host ""
 
 $baseDir = Split-Path -Parent $PSScriptRoot
-$sourceDir = Join-Path $baseDir "src\plugins\system\joomlaboost"
-$buildDir = Join-Path $baseDir "tools\__build"
+$sourceDir = Join-Path $baseDir "plugin"
+$buildDir = Join-Path $baseDir "build"
 
 # Read version from XML file
 $xmlPath = Join-Path $sourceDir "joomlaboost.xml"
