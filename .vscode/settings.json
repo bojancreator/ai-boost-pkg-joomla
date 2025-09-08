@@ -27,5 +27,33 @@
   },
 
   // PHP validator
-  "php.validate.run": "onSave"
+  "php.validate.run": "onSave",
+
+  // BMAD Method / GitHub Copilot integration
+  "chat.agent.enabled": true,
+  "chat.agent.maxRequests": 15,
+  "github.copilot.chat.agent.runTasks": true,
+  "chat.mcp.discovery.enabled": true,
+  "github.copilot.chat.agent.autoFix": true,
+  "chat.tools.autoApprove": false,
+
+  // BMAD Agent shortcuts (use @joomla-dev, @qa-tester, etc. in Copilot Chat)
+  "github.copilot.chat.customAgents": {
+    "joomla-dev": {
+      "prompt": "You are a Joomla plugin developer expert. Focus on PHP 8.1+, Joomla 4/5/6 API, plugin architecture, event handling, and performance optimization. Always follow PSR-12 standards and Joomla security best practices.",
+      "description": "Expert Joomla plugin developer"
+    },
+    "qa-tester": {
+      "prompt": "You are a QA specialist for PHP/Joomla projects. Focus on PHPStan level 7 analysis, PHPCS PSR-12 validation, testing strategies, CI/CD optimization, and code quality enforcement.",
+      "description": "Quality assurance and testing expert"
+    },
+    "php-architect": {
+      "prompt": "You are a PHP architecture specialist. Focus on OOP design patterns, performance optimization, code structure, refactoring strategies, and modern PHP 8.1+ features.",
+      "description": "PHP architecture and design expert"
+    },
+    "seo-specialist": {
+      "prompt": "You are an SEO and web performance expert. Focus on Schema.org implementation, OpenGraph optimization, Core Web Vitals, page speed, and search engine optimization strategies.",
+      "description": "SEO and performance optimization expert"
+    }
+  }
 }

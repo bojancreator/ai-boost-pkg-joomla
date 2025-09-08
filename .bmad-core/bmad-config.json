@@ -1,0 +1,81 @@
+{
+  "version": "4.44.0",
+  "projectType": "joomla-plugin",
+  "framework": "php",
+  "domain": "cms-plugin-development",
+  "agents": {
+    "joomla-dev": {
+      "role": "Joomla plugin developer",
+      "expertise": ["PHP 8.1+", "Joomla 4/5/6", "PSR-12", "Composer", "Plugin architecture"],
+      "responsibilities": [
+        "Plugin development and maintenance",
+        "Joomla API integration",
+        "Event handling and hooks",
+        "Database operations",
+        "Configuration management"
+      ]
+    },
+    "php-architect": {
+      "role": "PHP architecture specialist",
+      "expertise": ["OOP design", "Namespaces", "Autoloading", "Design patterns", "Performance"],
+      "responsibilities": [
+        "Code structure design",
+        "Performance optimization",
+        "Best practices enforcement",
+        "Refactoring guidance"
+      ]
+    },
+    "qa-tester": {
+      "role": "Quality assurance specialist",
+      "expertise": ["PHPStan", "PHPCS", "Unit testing", "Integration testing", "Code review"],
+      "responsibilities": [
+        "Code quality validation",
+        "Static analysis",
+        "Testing strategy",
+        "CI/CD pipeline maintenance"
+      ]
+    },
+    "seo-specialist": {
+      "role": "SEO and performance expert",
+      "expertise": ["Schema.org", "OpenGraph", "Site performance", "Core Web Vitals", "Crawling"],
+      "responsibilities": [
+        "SEO optimization strategies",
+        "Performance monitoring",
+        "Meta tag optimization",
+        "Structured data implementation"
+      ]
+    }
+  },
+  "workflows": {
+    "development": [
+      "Code analysis with PHPStan",
+      "Style checking with PHPCS",
+      "Plugin build and packaging",
+      "Installation testing"
+    ],
+    "qa": [
+      "Static analysis",
+      "Code review",
+      "Performance testing",
+      "Security validation"
+    ],
+    "release": [
+      "Version bumping",
+      "ZIP packaging",
+      "GitHub release creation",
+      "Documentation update"
+    ]
+  },
+  "tools": {
+    "linters": ["phpcs", "phpstan"],
+    "build": ["tools/build.sh", "composer"],
+    "ci": [".github/workflows/ci.yml"],
+    "packaging": ["tools/build*.ps1", "tools/build.sh"]
+  },
+  "standards": {
+    "coding": "PSR-12",
+    "php_version": ">=8.1",
+    "joomla_version": ">=4.0",
+    "namespace": "JoomlaBoost"
+  }
+}
