@@ -55,45 +55,55 @@ class SchemaService extends AbstractService
     }
 
     /**
-     * Main schema generation method
+     * Main schema generation method with performance optimizations
      *
      * @return array<int, array<string, mixed>>
      */
     public function generateSchema(): array
     {
-        // Debug: Log schema generation with version
-        if ($this->params->get('debug_mode', 0)) {
-            Factory::getApplication()->enqueueMessage(
-                '[DEBUG] JoomlaBoost v0.1.17: Generating Schema.org markup',
-                'info'
-            );
+        if (!$this->isEnabled()) {
+            return [];
+        }
+
+        // Get performance service for caching
+        $perfService = new PerformanceService($this->app, $this->params);
+        $cacheKey = 'schema_' . $perfService->getPageCacheKey();
+
+        // Check request-level cache first
+        if ($perfService->cacheHas($cacheKey)) {
+            $this->logDebug('Schema loaded from request cache');
+            return $perfService->cacheGet($cacheKey);
         }
 
         $schema = [];
+        $input = $this->app->getInput();
+        $option = $input->getCmd('option');
+        $view = $input->getCmd('view');
 
-        // Always add Website schema
+        // Always add lightweight schemas (no DB queries)
         $schema[] = $this->generateWebsiteSchema();
-
-        // Always add Organization schema
         $schema[] = $this->generateOrganizationSchema();
 
-        // Context-specific schemas
-        $option = Factory::getApplication()->getInput()->get('option');
-        $view = Factory::getApplication()->getInput()->get('view');
-
+        // Add context-specific schemas only if needed (heavy operations)
         if ($option === 'com_content') {
             switch ($view) {
                 case 'article':
-                    $articleSchema = $this->generateArticleSchema();
-                    if ($articleSchema) {
-                        $schema[] = $articleSchema;
+                    if ($perfService->needsHeavyOperations()) {
+                        $perfService->initializeHeavyOperations();
+                        $articleSchema = $this->generateArticleSchema($perfService);
+                        if ($articleSchema) {
+                            $schema[] = $articleSchema;
+                        }
                     }
                     break;
 
                 case 'category':
-                    $categorySchema = $this->generateCategorySchema();
-                    if ($categorySchema) {
-                        $schema[] = $categorySchema;
+                    if ($perfService->needsHeavyOperations()) {
+                        $perfService->initializeHeavyOperations();
+                        $categorySchema = $this->generateCategorySchema($perfService);
+                        if ($categorySchema) {
+                            $schema[] = $categorySchema;
+                        }
                     }
                     break;
 
@@ -103,13 +113,24 @@ class SchemaService extends AbstractService
             }
         }
 
-        // Add BreadcrumbList if applicable
+        // Add BreadcrumbList (lightweight - from existing pathway)
         $breadcrumbSchema = $this->generateBreadcrumbSchema();
         if ($breadcrumbSchema) {
             $schema[] = $breadcrumbSchema;
         }
 
-        return array_filter($schema);
+        $filteredSchema = array_filter($schema);
+        
+        // Cache the result for this request
+        $perfService->cacheSet($cacheKey, $filteredSchema);
+        
+        $this->logDebug('Schema generation completed', [
+            'schemas_count' => count($filteredSchema),
+            'page_type' => $option . '/' . $view,
+            'heavy_ops_used' => $perfService->needsHeavyOperations() && $option === 'com_content'
+        ]);
+
+        return $filteredSchema;
     }
 
     /**
@@ -164,30 +185,42 @@ class SchemaService extends AbstractService
     }
 
     /**
-     * Generate Article schema for content articles
+     * Generate Article schema for content articles (optimized with caching)
      *
      * @return array<string, mixed>|null
      */
-    private function generateArticleSchema(): ?array
+    private function generateArticleSchema(?PerformanceService $perfService = null): ?array
     {
-        $id = Factory::getApplication()->getInput()->getInt('id');
-
+        $id = $this->app->getInput()->getInt('id');
         if (!$id) {
             return null;
         }
 
-        try {
-            $modelsPath = JPATH_ROOT . '/components/com_content/models';
-            BaseDatabaseModel::addIncludePath($modelsPath);
-            $model = new ArticleModel(['ignore_request' => true]);
-            $model->setState('params', $this->app->getParams());
-            $article = $model->getItem($id);
+        // Use caching if performance service is available
+        if ($perfService) {
+            $articleCacheKey = 'article_schema_' . $id;
+            if ($perfService->cacheHas($articleCacheKey)) {
+                return $perfService->cacheGet($articleCacheKey);
+            }
+        }
 
-            if (!$article || !$article->id) {
+        try {
+            // More efficient DB query - only get needed fields
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('id, title, introtext, fulltext, metadesc, metakey, created, modified, created_by_alias, images')
+                ->from('#__content')
+                ->where('id = ' . (int) $id)
+                ->where('published = 1');
+
+            $db->setQuery($query);
+            $article = $db->loadObject();
+
+            if (!$article) {
                 return null;
             }
 
-            $config = Factory::getApplication()->getConfig();
+            $config = $this->app->getConfig();
             $dateCreated = Factory::getDate($article->created)->toISO8601();
             $dateModified = Factory::getDate($article->modified ?: $article->created)->toISO8601();
 
@@ -212,8 +245,8 @@ class SchemaService extends AbstractService
                 ]
             ];
 
-            // Add images if available
-            $images = $this->extractImages($article);
+            // Add images if available (optimized extraction)
+            $images = $this->extractImagesOptimized($article);
             if (!empty($images)) {
                 $schema['image'] = $images;
             }
@@ -221,52 +254,79 @@ class SchemaService extends AbstractService
             // Add keywords from meta_keywords
             if (!empty($article->metakey)) {
                 $keywords = array_map('trim', explode(',', $article->metakey));
-                $schema['keywords'] = $keywords;
+                $schema['keywords'] = array_filter($keywords);
+            }
+
+            // Cache the result if performance service is available
+            if ($perfService) {
+                $perfService->cacheSet($articleCacheKey, $schema);
             }
 
             return $schema;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            $this->logDebug('Article schema generation failed: ' . $e->getMessage());
             return null;
         }
     }
 
     /**
-     * Generate Category schema for content categories
+     * Generate Category schema for content categories (optimized with caching)
      *
      * @return array<string, mixed>|null
      */
-    private function generateCategorySchema(): ?array
+    private function generateCategorySchema(?PerformanceService $perfService = null): ?array
     {
-        $input = Factory::getApplication()->getInput();
-        $id = $input->getInt('id');
-
+        $id = $this->app->getInput()->getInt('id');
         if (!$id) {
             return null;
         }
 
-        try {
-            BaseDatabaseModel::addIncludePath(JPATH_SITE . '/components/com_content/models');
-            $model = new CategoryModel(['ignore_request' => true]);
-            $category = $model->getCategory($id);
+        // Use caching if performance service is available
+        if ($perfService) {
+            $categoryCacheKey = 'category_schema_' . $id;
+            if ($perfService->cacheHas($categoryCacheKey)) {
+                return $perfService->cacheGet($categoryCacheKey);
+            }
+        }
 
-            if (!$category || !$category->id) {
+        try {
+            // Direct DB query instead of model for better performance
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('id, title, description, metadesc')
+                ->from('#__categories')
+                ->where('id = ' . (int) $id)
+                ->where('published = 1');
+
+            $db->setQuery($query);
+            $category = $db->loadObject();
+
+            if (!$category) {
                 return null;
             }
 
-            return [
+            $schema = [
                 '@context' => 'https://schema.org',
                 '@type' => 'CollectionPage',
                 'name' => $category->title,
-                'description' => $category->metadesc ?: $category->description,
+                'description' => $category->metadesc ?: strip_tags($category->description),
                 'url' => Uri::getInstance()->toString(),
                 'inLanguage' => $this->getLanguageCode(),
                 'isPartOf' => [
                     '@type' => 'WebSite',
-                    'name' => Factory::getApplication()->getConfig()->get('sitename'),
+                    'name' => $this->app->getConfig()->get('sitename'),
                     'url' => $this->getSchemaUrl()
                 ]
             ];
-        } catch (\Exception $e) {
+
+            // Cache the result if performance service is available
+            if ($perfService) {
+                $perfService->cacheSet($categoryCacheKey, $schema);
+            }
+
+            return $schema;
+        } catch (\Throwable $e) {
+            $this->logDebug('Category schema generation failed: ' . $e->getMessage());
             return null;
         }
     }
@@ -368,45 +428,81 @@ class SchemaService extends AbstractService
     }
 
     /**
-     * Extract images from article
+     * Optimized image extraction from article (performance improvements)
      *
      * @param object $article Article object with introtext/fulltext/images properties
      * @return array<int, string>
      */
-    private function extractImages(object $article): array
+    private function extractImagesOptimized(object $article): array
     {
         $images = [];
 
-        // Try to get intro image
+        // First try JSON images (fastest)
         if (!empty($article->images)) {
             $articleImages = json_decode($article->images, true);
-            if (!empty($articleImages['image_intro'])) {
-                $images[] = $this->getSchemaUrl() . ltrim($articleImages['image_intro'], '/');
-            }
-            if (!empty($articleImages['image_fulltext'])) {
-                $fullImage = $this->getSchemaUrl() . ltrim($articleImages['image_fulltext'], '/');
-                if (!in_array($fullImage, $images)) {
-                    $images[] = $fullImage;
+            if (is_array($articleImages)) {
+                if (!empty($articleImages['image_intro'])) {
+                    $images[] = $this->normalizeImageUrl($articleImages['image_intro']);
+                }
+                if (!empty($articleImages['image_fulltext'])) {
+                    $fullImage = $this->normalizeImageUrl($articleImages['image_fulltext']);
+                    if (!in_array($fullImage, $images, true)) {
+                        $images[] = $fullImage;
+                    }
                 }
             }
         }
 
-        // Extract images from content
-        $content = (string)($article->introtext ?? '') . (string)($article->fulltext ?? '');
-        preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches);
-
-        if (!empty($matches[1])) {
-            foreach ($matches[1] as $src) {
-                if (!str_starts_with($src, 'http')) {
-                    $src = $this->getSchemaUrl() . ltrim($src, '/');
-                }
-                if (!in_array($src, $images)) {
+        // If we have images from JSON, limit content parsing for performance
+        if (!empty($images)) {
+            // Only extract first 2 images from content to avoid over-processing
+            $content = substr((string)($article->introtext ?? ''), 0, 2000); // Limit content parsing
+            if (preg_match('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches)) {
+                $src = $this->normalizeImageUrl($matches[1]);
+                if (!in_array($src, $images, true)) {
                     $images[] = $src;
                 }
             }
+        } else {
+            // No JSON images, do full content extraction
+            $content = (string)($article->introtext ?? '') . (string)($article->fulltext ?? '');
+            preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches);
+
+            if (!empty($matches[1])) {
+                foreach (array_slice($matches[1], 0, 5) as $src) { // Limit to 5 images max
+                    $normalizedSrc = $this->normalizeImageUrl($src);
+                    if (!in_array($normalizedSrc, $images, true)) {
+                        $images[] = $normalizedSrc;
+                    }
+                }
+            }
         }
 
-        return $images;
+        return array_slice($images, 0, 3); // Maximum 3 images for performance
+    }
+
+    /**
+     * Normalize image URL to absolute URL (optimized)
+     */
+    private function normalizeImageUrl(string $imageUrl): string
+    {
+        if (empty($imageUrl)) {
+            return '';
+        }
+
+        // Already absolute URL
+        if (str_starts_with($imageUrl, 'http://') || str_starts_with($imageUrl, 'https://')) {
+            return $imageUrl;
+        }
+
+        // Relative URL - make absolute
+        $baseUrl = rtrim($this->getSchemaUrl(), '/');
+        
+        if (str_starts_with($imageUrl, '/')) {
+            return $baseUrl . $imageUrl;
+        } else {
+            return $baseUrl . '/' . $imageUrl;
+        }
     }
 
     /**

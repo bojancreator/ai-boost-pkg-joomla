@@ -15,9 +15,13 @@ use Joomla\CMS\Application\CMSApplication;
 // Load services used by this plugin
 require_once __DIR__ . '/src/Services/ServiceInterface.php';
 require_once __DIR__ . '/src/Services/AbstractService.php';
+require_once __DIR__ . '/src/Services/PerformanceService.php';
+require_once __DIR__ . '/src/Services/OpenGraphService.php';
 require_once __DIR__ . '/src/Services/SchemaService.php';
 require_once __DIR__ . '/src/Services/MetaPixelService.php';
 
+use JoomlaBoost\Plugin\System\JoomlaBoost\Services\PerformanceService;
+use JoomlaBoost\Plugin\System\JoomlaBoost\Services\OpenGraphService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\SchemaService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\MetaPixelService;
 
@@ -31,6 +35,12 @@ class PlgSystemJoomlaboost extends CMSPlugin
    * @var bool
    */
     protected bool $autoloadLanguage = true;
+
+  /** @var PerformanceService|null */
+    private ?PerformanceService $performanceService = null;
+
+  /** @var OpenGraphService|null */
+    private ?OpenGraphService $openGraphService = null;
 
   /** @var SchemaService|null */
     private ?SchemaService $schemaService = null;
@@ -82,7 +92,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     }
 
   /**
-   * Modify head (schema, verification, analytics)
+   * Modify head (schema, verification, analytics, OpenGraph) - OPTIMIZED VERSION
    */
     public function onBeforeCompileHead(): void
     {
@@ -96,10 +106,41 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-      // Verification tags and trackers
-        $this->addGoogleVerificationTags($document);
-        $this->addMetaPixel($document);
-        $this->addSchemaMarkup($document);
+        // Initialize performance service for request-level optimizations
+        if ($this->performanceService === null) {
+            $this->performanceService = new PerformanceService($app, $this->params);
+        }
+
+        // Start performance measurement if debug mode is enabled
+        $startTime = $this->params->get('debug_mode', 0) ? microtime(true) : 0;
+
+        try {
+            // Lightweight operations first (no DB queries)
+            $this->addGoogleVerificationTags($document);
+            $this->addMetaPixel($document);
+
+            // Add OpenGraph tags with performance optimizations
+            $this->addOptimizedOpenGraphTags($document);
+
+            // Add Schema markup with performance optimizations  
+            $this->addOptimizedSchemaMarkup($document);
+
+            // Process all batched meta tags in single DOM operation
+            $processed = $this->performanceService->processBatchedMeta($document);
+
+            // Log performance metrics if debug enabled
+            if ($this->params->get('debug_mode', 0) && $startTime > 0) {
+                $duration = round((microtime(true) - $startTime) * 1000, 2);
+                $metrics = $this->performanceService->getPerformanceMetrics();
+                $this->logDebug("Head compilation completed in {$duration}ms", [
+                    'processed_meta_tags' => $processed,
+                    'performance_metrics' => $metrics
+                ]);
+            }
+
+        } catch (\Throwable $e) {
+            $this->logDebug('Head compilation failed: ' . $e->getMessage());
+        }
     }
 
     private function isSitemapRequest(): bool
@@ -267,14 +308,68 @@ class PlgSystemJoomlaboost extends CMSPlugin
         . "# Generated: " . date('Y-m-d H:i:s T') . "\n";
     }
 
-    private function logDebug(string $message): void
+    private function addOptimizedOpenGraphTags(HtmlDocument $document): void
+    {
+        if (!$this->params->get('enable_opengraph', 1)) {
+            $this->logDebug('OpenGraph: Disabled in plugin settings');
+            return;
+        }
+
+        try {
+            if ($this->openGraphService === null) {
+                $this->openGraphService = new OpenGraphService($this->getApp(), $this->params);
+            }
+
+            $this->openGraphService->generateOpenGraphTags();
+            $this->logDebug('OpenGraph tags generated with performance optimizations');
+
+        } catch (\Throwable $e) {
+            $this->logDebug('OpenGraph generation failed: ' . $e->getMessage());
+        }
+    }
+
+    private function addOptimizedSchemaMarkup(HtmlDocument $document): void
+    {
+        try {
+            if ($this->schemaService === null) {
+                $this->schemaService = new SchemaService($this->getApp(), $this->params);
+            }
+
+            if (!$this->params->get('enable_schema', 1)) {
+                $this->logDebug('Schema: Disabled in plugin settings');
+                return;
+            }
+
+            $schema = $this->schemaService->generateSchema();
+            if (!empty($schema)) {
+                $jsonLd = '<script type="application/ld+json">' . "\n";
+                $jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                $jsonLd .= "\n</script>";
+                $document->addCustomTag($jsonLd);
+                
+                $this->logDebug('Schema.org JSON-LD generated with performance optimizations', [
+                    'schemas_count' => count($schema)
+                ]);
+            } else {
+                $this->logDebug('Schema: No schema data generated');
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('Schema.org generation failed: ' . $e->getMessage());
+        }
+    }
+
+    private function logDebug(string $message, array $context = []): void
     {
         try {
             if ($this->params && $this->params->get('debug_mode', 0)) {
-                Factory::getApplication()->enqueueMessage('[DEBUG] ' . $message, 'info');
+                $logMessage = '[JoomlaBoost] ' . $message;
+                if (!empty($context)) {
+                    $logMessage .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                }
+                Factory::getApplication()->enqueueMessage($logMessage, 'info');
             }
         } catch (\Throwable $e) {
-          // ignore
+            // ignore
         }
     }
 

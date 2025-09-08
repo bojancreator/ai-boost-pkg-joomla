@@ -2,25 +2,45 @@
   "name": "joomlaboost",
   "private": true,
   "eslintIgnore": [
-  "vendor/**",
-  "/vendor/**",
-  "**/vendor/**",
-  "node_modules/**",
-  "/node_modules/**",
-  "**/node_modules/**",
-  "build/**",
-  "/build/**",
-  "**/build/**",
-  "archive/**",
-  "/archive/**",
-  "tools/**",
-  "/tools/**",
-  "tools/__inspect_external_plugin/**",
-  "tools/__inspect_offroadseo_zip/**",
-  "tools/__inspect_offroadseo_zip2/**",
-  "**/*.min.js",
-  "/**/*.min.js",
-  "**/dist/**",
-  "/**/dist/**"
-  ]
+    "vendor/**",
+    "/vendor/**",
+    "**/vendor/**",
+    "node_modules/**",
+    "/node_modules/**",
+    "**/node_modules/**",
+    "build/**",
+    "/build/**",
+    "**/build/**",
+    "archive/**",
+    "/archive/**",
+    "tools/**",
+    "/tools/**",
+    "tools/__inspect_external_plugin/**",
+    "tools/__inspect_offroadseo_zip/**",
+    "tools/__inspect_offroadseo_zip2/**",
+    "**/*.min.js",
+    "/**/*.min.js",
+    "**/dist/**",
+    "/**/dist/**"
+  ],
+  "version": "1.0.0",
+  "description": "🚀 **Universal SEO & Performance Plugin for Joomla 4/5/6**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bojancreator/JoomlaBoost.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bojancreator/JoomlaBoost/issues"
+  },
+  "homepage": "https://github.com/bojancreator/JoomlaBoost#readme"
 }

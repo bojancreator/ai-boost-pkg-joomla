@@ -29,6 +29,53 @@ mkdir -p "$BUILD_DIR"
 echo "📦 Kreiranje ZIP paketa..."
 echo ""
 
+# Helper funkcija za kreiranje ZIP arhive sa fallback-ovima:
+# 1) zip -r (ako postoji)
+# 2) tar -a -cf (bsdtar, kreira .zip po ekstenziji)
+# 3) PowerShell Compress-Archive (sa cygpath konverzijom na Windows-u)
+do_zip_dir() {
+    local src_dir="$1"
+    local dest_zip="$2"
+
+    # Preferiraj zip ako postoji
+    if command -v zip >/dev/null 2>&1; then
+        (cd "$src_dir" && zip -r "$dest_zip" . -x "*.git*" "*.DS_Store*" "Thumbs.db*")
+        return
+    fi
+
+    # Zatim pokušaj sa tar (bsdtar na Windows-u može da kreira .zip sa -a)
+    if command -v tar >/dev/null 2>&1; then
+        (cd "$src_dir" && tar -a -cf "$dest_zip" --exclude=".git" --exclude="*.DS_Store*" --exclude="Thumbs.db*" .)
+        return
+    fi
+
+    # PowerShell fallback (Compress-Archive)
+    local pwsh_cmd=""
+    if command -v pwsh >/dev/null 2>&1; then
+        pwsh_cmd="pwsh -NoProfile -Command"
+    elif command -v powershell >/dev/null 2>&1; then
+        pwsh_cmd="powershell -NoProfile -Command"
+    fi
+
+    if [ -n "$pwsh_cmd" ]; then
+        local src_win="$src_dir"
+        local dest_win="$dest_zip"
+        if command -v cygpath >/dev/null 2>&1; then
+            src_win=$(cygpath -w "$src_dir")
+            dest_win=$(cygpath -w "$dest_zip")
+        fi
+        # Napomena: Compress-Archive nema jednostavan exclude; u praksi u plugin dir-ovima nema .git/DS_Store
+        eval $pwsh_cmd "Compress-Archive -Path '"$src_win"\*' -DestinationPath '"$dest_win"' -Force" || {
+            echo "❌ PowerShell Compress-Archive nije uspeo za: $src_dir"
+            exit 1
+        }
+        return
+    fi
+
+    echo "❌ Nije pronađen nijedan alat za pravljenje ZIP-a (zip/tar/pwsh)." >&2
+    exit 1
+}
+
 # Procitaj verziju iz Version.php
 VERSION_FILE="$PROJECT_ROOT/src/plugins/system/joomlaboost/src/Version.php"
 PLUGIN_VERSION=""
@@ -61,10 +108,7 @@ if [ -d "$JOOMLA_DIR/plugins" ]; then
                     fi
                     
                     echo "  📦 Kreiram $zip_name..."
-                    
-                    cd "$plugin_dir"
-                    zip -r "$BUILD_DIR/$zip_name" . -x "*.git*" "*.DS_Store*" "Thumbs.db*"
-                    cd "$PROJECT_ROOT"
+                    do_zip_dir "$plugin_dir" "$BUILD_DIR/$zip_name"
                 fi
             done
         fi
@@ -79,10 +123,7 @@ if [ -d "$JOOMLA_DIR/modules" ]; then
             zip_name="mod_${module_name}.zip"
             
             echo "  📦 Kreiram $zip_name..."
-            
-            cd "$module_dir"
-            zip -r "$BUILD_DIR/$zip_name" . -x "*.git*" "*.DS_Store*" "Thumbs.db*"
-            cd "$PROJECT_ROOT"
+            do_zip_dir "$module_dir" "$BUILD_DIR/$zip_name"
         fi
     done
 fi
@@ -95,10 +136,7 @@ if [ -d "$JOOMLA_DIR/templates" ]; then
             zip_name="tpl_${template_name}_overrides.zip"
             
             echo "  📦 Kreiram $zip_name..."
-            
-            cd "$template_dir"
-            zip -r "$BUILD_DIR/$zip_name" . -x "*.git*" "*.DS_Store*" "Thumbs.db*"
-            cd "$PROJECT_ROOT"
+            do_zip_dir "$template_dir" "$BUILD_DIR/$zip_name"
         fi
     done
 fi

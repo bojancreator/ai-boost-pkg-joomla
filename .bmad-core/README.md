@@ -1,12 +1,15 @@
 # BMAD Method - JoomlaBoost Project
 
 ## Project Overview
+
 Universal Joomla plugin za SEO i performance optimizaciju sa AI-driven development workflow.
 
 ## Agents & Roles
 
 ### 🔧 Joomla Developer (`/joomla-dev`)
+
 **Fokus**: Plugin development, Joomla API, event handling
+
 - PHP 8.1+ development
 - Joomla 4/5/6 compatibility
 - Plugin architecture design
@@ -14,6 +17,7 @@ Universal Joomla plugin za SEO i performance optimizaciju sa AI-driven developme
 - Configuration management
 
 **Tipični zadaci**:
+
 ```
 /joomla-dev Dodaj novi endpoint za sitemap generisanje
 /joomla-dev Optimizuj performance meta tag generisanja
@@ -21,13 +25,16 @@ Universal Joomla plugin za SEO i performance optimizaciju sa AI-driven developme
 ```
 
 ### 🏗️ PHP Architect (`/php-architect`)
+
 **Fokus**: Code structure, performance, best practices
+
 - OOP design patterns
 - Namespace organizacija
 - Performance optimizacija
 - Refactoring strategije
 
 **Tipični zadaci**:
+
 ```
 /php-architect Refaktorišu strukturu plugin-a za bolje performance
 /php-architect Predloži design pattern za service management
@@ -35,13 +42,16 @@ Universal Joomla plugin za SEO i performance optimizaciju sa AI-driven developme
 ```
 
 ### 🧪 QA Tester (`/qa-tester`)
+
 **Fokus**: Code quality, testing, CI/CD
+
 - PHPStan static analysis
 - PHPCS style checking
 - Testing strategije
 - CI pipeline maintenance
 
 **Tipični zadaci**:
+
 ```
 /qa-tester Analiziraj kod sa PHPStan level 7
 /qa-tester Postavi unit testove za novi service
@@ -49,13 +59,16 @@ Universal Joomla plugin za SEO i performance optimizaciju sa AI-driven developme
 ```
 
 ### 🎯 SEO Specialist (`/seo-specialist`)
+
 **Fokus**: SEO optimization, performance monitoring
+
 - Schema.org implementation
 - OpenGraph meta tags
 - Core Web Vitals
 - Crawling optimization
 
 **Tipični zadaci**:
+
 ```
 /seo-specialist Implementiraj Event schema za Joomla članke
 /seo-specialist Optimizuj OpenGraph image handling
@@ -65,6 +78,7 @@ Universal Joomla plugin za SEO i performance optimizaciju sa AI-driven developme
 ## Workflow Commands
 
 ### Development
+
 ```bash
 # Analiza koda
 /qa-tester Pokreni full code analysis (PHPStan + PHPCS)
@@ -77,6 +91,7 @@ Universal Joomla plugin za SEO i performance optimizaciju sa AI-driven developme
 ```
 
 ### Quality Assurance
+
 ```bash
 # Pre-commit checks
 composer run lint && composer run stan
@@ -89,6 +104,7 @@ bash tools/build.sh
 ```
 
 ### Release
+
 ```bash
 # Version bump
 /php-architect Ažuriraj verziju u Version.php
@@ -101,6 +117,7 @@ bash tools/build.sh
 ```
 
 ## Project Structure
+
 ```
 src/plugins/system/joomlaboost/     # Main plugin kod
 ├── src/                            # Namespace classes
@@ -120,12 +137,14 @@ tools/                              # Build scripts
 ```
 
 ## Standards
+
 - **PHP**: >=8.1, PSR-12, PHPStan level 7
 - **Joomla**: 4.0+ compatibility
 - **Namespace**: JoomlaBoost\\Plugin\\System\\JoomlaBoost
 - **Versioning**: Semantic (0.1.17 trenutno)
 
 ## Quick Start
+
 1. `composer install` - Dependencies
 2. `composer run lint` - Style check
 3. `composer run stan` - Static analysis
@@ -133,6 +152,7 @@ tools/                              # Build scripts
 5. Upload `build/*.zip` u Joomla admin
 
 ## AI Development Tips
+
 - Koristi agent prefixe za jasne uloge
 - Kombinu različite agente za complex tasks
 - QA agent uvek pre commit-a

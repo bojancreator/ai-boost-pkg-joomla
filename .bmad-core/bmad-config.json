@@ -6,7 +6,13 @@
   "agents": {
     "joomla-dev": {
       "role": "Joomla plugin developer",
-      "expertise": ["PHP 8.1+", "Joomla 4/5/6", "PSR-12", "Composer", "Plugin architecture"],
+      "expertise": [
+        "PHP 8.1+",
+        "Joomla 4/5/6",
+        "PSR-12",
+        "Composer",
+        "Plugin architecture"
+      ],
       "responsibilities": [
         "Plugin development and maintenance",
         "Joomla API integration",
@@ -17,7 +23,13 @@
     },
     "php-architect": {
       "role": "PHP architecture specialist",
-      "expertise": ["OOP design", "Namespaces", "Autoloading", "Design patterns", "Performance"],
+      "expertise": [
+        "OOP design",
+        "Namespaces",
+        "Autoloading",
+        "Design patterns",
+        "Performance"
+      ],
       "responsibilities": [
         "Code structure design",
         "Performance optimization",
@@ -27,7 +39,13 @@
     },
     "qa-tester": {
       "role": "Quality assurance specialist",
-      "expertise": ["PHPStan", "PHPCS", "Unit testing", "Integration testing", "Code review"],
+      "expertise": [
+        "PHPStan",
+        "PHPCS",
+        "Unit testing",
+        "Integration testing",
+        "Code review"
+      ],
       "responsibilities": [
         "Code quality validation",
         "Static analysis",
@@ -37,7 +55,13 @@
     },
     "seo-specialist": {
       "role": "SEO and performance expert",
-      "expertise": ["Schema.org", "OpenGraph", "Site performance", "Core Web Vitals", "Crawling"],
+      "expertise": [
+        "Schema.org",
+        "OpenGraph",
+        "Site performance",
+        "Core Web Vitals",
+        "Crawling"
+      ],
       "responsibilities": [
         "SEO optimization strategies",
         "Performance monitoring",

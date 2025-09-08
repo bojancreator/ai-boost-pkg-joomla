@@ -26,6 +26,7 @@ Plugin za automatsko dodavanje meta tagova, OpenGraph i Schema.org markup-a na O
 Plugin se aktivira kada se prikazuje pojedinačni članak (`onContentAfterDisplay`):
 
 1. **OpenGraph tagovi**:
+
    - `og:title` - naslov članka
    - `og:description` - meta opis ili početak teksta
    - `og:image` - prva slika iz članka
@@ -39,6 +40,7 @@ Plugin se aktivira kada se prikazuje pojedinačni članak (`onContentAfterDispla
 ## 🔧 Development
 
 Plugin koristi Joomla 4+ Event sistem:
+
 - `SubscriberInterface` za moderne event handlers
 - PSR-12 coding standard
 - Namespaced klase
@@ -46,6 +48,7 @@ Plugin koristi Joomla 4+ Event sistem:
 ## 📝 Changelog
 
 ### 1.0.0
+
 - Početna verzija
 - OpenGraph meta tagovi
 - Schema.org JSON-LD
