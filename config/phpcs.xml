@@ -2,9 +2,7 @@
 <ruleset name="JoomlaBoost QA">
   <description>PSR-12 and core rules for Joomla/PHP first-party code.</description>
   
-  <!-- Skeniranje glavnih plugin fajlova -->
-  <file>src/plugins/system/joomlaboost/joomlaboost.php</file>
-  <file>src/plugins/system/joomlaboost/src</file>
+  <!-- Fajlovi će biti prosleđeni kao argumenti iz composer skripte -->
   
   <rule ref="PSR12">
     <!-- Joomla pluginovi često nemaju namespace; isključi ovo pravilo -->
@@ -19,10 +17,7 @@
   
   <!-- Isključi fajlove koji nisu produkcijski -->
   <exclude-pattern>vendor/*</exclude-pattern>
-  <exclude-pattern>src/plugins/system/offroadstage/*</exclude-pattern>
-  <exclude-pattern>src\\plugins\\system\\offroadstage\\*</exclude-pattern>
-  <exclude-pattern>**/offroadstage/**</exclude-pattern>
-  <exclude-pattern>*/joomlaboost-*.php</exclude-pattern>
+  <exclude-pattern>plugin/joomlaboost-*.php</exclude-pattern>
   <exclude-pattern>*_refactored.php</exclude-pattern>
   <exclude-pattern>*/test/*</exclude-pattern>
   <exclude-pattern>*/tests/*</exclude-pattern>

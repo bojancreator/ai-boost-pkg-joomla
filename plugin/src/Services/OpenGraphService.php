@@ -19,7 +19,7 @@ use Joomla\CMS\Document\HtmlDocument;
 
 /**
  * OpenGraph Service with Performance Optimizations
- * 
+ *
  * Performance Features:
  * - Request-level caching of meta generation
  * - Batch processing via PerformanceService

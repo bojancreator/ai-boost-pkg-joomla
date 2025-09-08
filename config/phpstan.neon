@@ -1,16 +1,13 @@
 parameters:
   paths:
-    - src
+    - ../plugin
   level: 7
   ignoreErrors: []
   excludePaths:
-    - archive/*
-    - src/templates/*
-    # Isključi test i development fajlove
-    - src/plugins/system/joomlaboost/joomlaboost-*.php
-    - src/plugins/system/offroadstage/**
+    # Isključi optimizovane verzije plugin-a
+    - ../plugin/joomlaboost-*.php
   bootstrapFiles:
-    - stubs/autoload.php
-    - stubs/bootstrap.php
+    - ../stubs/autoload.php
+    - ../stubs/bootstrap.php
 
 # Baseline is temporarily disabled; regenerate after we clean real issues

@@ -58,7 +58,7 @@ abstract class AbstractService implements ServiceInterface
 
     /**
      * Get dependent service
-     * 
+     *
      * @template T of ServiceInterface
      * @param string $serviceKey
      * @return T|null

@@ -139,7 +139,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
                 $this->addOptimizedOpenGraphTags($document, $enabledServices['openGraph']);
             }
 
-            // 6. Schema markup with optimizations  
+            // 6. Schema markup with optimizations
             if (isset($enabledServices['schema'])) {
                 $this->addOptimizedSchemaMarkup($document, $enabledServices['schema']);
             }
@@ -153,7 +153,6 @@ class PlgSystemJoomlaboost extends CMSPlugin
             if ($this->params->get('debug_mode', 0) && $startTime > 0) {
                 $this->logPerformanceMetrics($startTime, $container);
             }
-
         } catch (\Throwable $e) {
             $this->logDebug('Head compilation failed: ' . $e->getMessage());
         }
@@ -170,7 +169,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
         }
 
         $container = $this->getServiceContainer();
-        
+
         if ($container->isServiceEnabled('injection')) {
             $injectionService = $container->get('injection');
             $body = $app->getBody();
@@ -225,7 +224,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
         $cleanUri = strtok($requestUri, '?') ?: '';
-        return preg_match('#/robots\.txt$#i', $cleanUri) || 
+        return preg_match('#/robots\.txt$#i', $cleanUri) ||
                (isset($_GET['format']) && (string) $_GET['format'] === 'robots');
     }
 
@@ -233,7 +232,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
         $cleanUri = strtok($requestUri, '?') ?: '';
-        return preg_match('#/sitemap\.xml$#i', $cleanUri) || 
+        return preg_match('#/sitemap\.xml$#i', $cleanUri) ||
                (isset($_GET['format']) && (string) $_GET['format'] === 'sitemap');
     }
 
@@ -337,7 +336,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         $duration = round((microtime(true) - $startTime) * 1000, 2);
         $metrics = $container->getMetrics();
-        
+
         $this->logDebug("Head compilation completed in {$duration}ms", $metrics);
     }
 

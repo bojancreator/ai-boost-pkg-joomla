@@ -15,7 +15,7 @@ namespace JoomlaBoost\Plugin\System\JoomlaBoost\Services;
 
 /**
  * Performance Service for Meta Tag optimization
- * 
+ *
  * Optimizations:
  * - Memory-efficient caching of meta tag generation
  * - Batch processing of DOM modifications

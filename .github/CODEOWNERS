@@ -1,17 +1,23 @@
 # Global ownership
-* @bojancreator
+
+- @bojancreator
 
 # Core plugin code
-/plugin/** @bojancreator
+
+/plugin/\*\* @bojancreator
 
 # Configuration files
-/config/** @bojancreator
+
+/config/\*\* @bojancreator
 
 # Documentation
-/docs/** @bojancreator
 
-# Build tools  
-/tools/** @bojancreator
+/docs/\*\* @bojancreator
+
+# Build tools
+
+/tools/\*\* @bojancreator
 
 # GitHub workflows
-/.github/** @bojancreator
+
+/.github/\*\* @bojancreator

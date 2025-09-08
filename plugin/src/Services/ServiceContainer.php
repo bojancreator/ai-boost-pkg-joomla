@@ -20,7 +20,7 @@ use Joomla\Registry\Registry;
 
 /**
  * Advanced Service Container with Dependency Injection
- * 
+ *
  * Features:
  * - Lazy loading with caching
  * - Service dependency resolution
@@ -70,7 +70,7 @@ class ServiceContainer
 
     /**
      * Get service instance with dependency injection
-     * 
+     *
      * @template T of ServiceInterface
      * @param class-string<T> $serviceKey
      * @return T
@@ -105,7 +105,7 @@ class ServiceContainer
         // Create service instance
         /** @var ServiceInterface $service */
         $service = new $className($this->app, $this->params);
-        
+
         // Inject dependencies if service supports it
         if (method_exists($service, 'setServiceContainer')) {
             $service->setServiceContainer($this);
@@ -154,7 +154,7 @@ class ServiceContainer
     {
         $keyMap = [
             'schema' => 'enable_schema',
-            'openGraph' => 'enable_opengraph', 
+            'openGraph' => 'enable_opengraph',
             'analytics' => 'enable_analytics',
             'robot' => 'enable_robots',
             'sitemap' => 'enable_sitemap',

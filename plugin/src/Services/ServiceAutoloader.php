@@ -17,7 +17,7 @@ namespace JoomlaBoost\Plugin\System\JoomlaBoost\Services;
 
 /**
  * Optimized Service Autoloader
- * 
+ *
  * Features:
  * - PSR-4 autoloading
  * - Performance optimized file loading
@@ -103,7 +103,7 @@ class ServiceAutoloader
     {
         $coreServices = [
             'ServiceInterface',
-            'AbstractService', 
+            'AbstractService',
             'ServiceContainer',
             'PerformanceService',
             'DomainDetectionService'

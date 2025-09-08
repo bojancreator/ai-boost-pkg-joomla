@@ -17,7 +17,7 @@
     }
   },
   "scripts": {
-    "lint": "@php vendor/bin/phpcs -n --no-colors -p -s --standard=config/phpcs.xml --extensions=php,inc,php3,php4",
+    "lint": "@php vendor/bin/phpcs -n --no-colors -p -s --standard=config/phpcs.xml --extensions=php,inc,php3,php4 plugin/",
     "stan": "@php vendor/bin/phpstan analyse --memory-limit=1G --configuration=config/phpstan.neon"
   }
 }
