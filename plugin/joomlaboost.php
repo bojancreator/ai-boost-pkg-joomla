@@ -57,7 +57,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
         if (!isset($config['autoloadLanguage'])) {
             $config['autoloadLanguage'] = true;
         }
-        
+
         parent::__construct($subject, $config);
     }
 

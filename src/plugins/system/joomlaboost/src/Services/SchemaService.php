@@ -176,14 +176,14 @@ class SchemaService extends AbstractService
         $config = Factory::getApplication()->getConfig();
         $siteName = $config->get('sitename');
         $baseUrl = $this->getSchemaUrl();
-
+        
         // Check if this is OffRoad Serbia site to add LocalBusiness schema
         $isOffRoadSite = (
-            str_contains($baseUrl, 'offroadserbia') ||
-            str_contains((string)$siteName, 'OffRoad') ||
+            str_contains($baseUrl, 'offroadserbia') || 
+            str_contains((string)$siteName, 'OffRoad') || 
             str_contains((string)$siteName, '4X4')
         );
-
+        
         if ($isOffRoadSite) {
             // Enhanced LocalBusiness schema for OffRoad Serbia
             $schema = [
@@ -239,7 +239,7 @@ class SchemaService extends AbstractService
 
         return $schema;
     }
-
+    
     /**
      * Get social media profiles for the organization
      *
@@ -249,7 +249,7 @@ class SchemaService extends AbstractService
     private function getSocialMediaProfiles(string $baseUrl): array
     {
         $profiles = [];
-
+        
         // Try to detect social media links from common patterns
         if (str_contains($baseUrl, 'offroadserbia')) {
             // Add known OffRoad Serbia social profiles if available
@@ -257,7 +257,7 @@ class SchemaService extends AbstractService
             $profiles[] = 'https://www.instagram.com/offroadserbia';
             $profiles[] = 'https://www.youtube.com/c/offroadserbia';
         }
-
+        
         return array_filter($profiles);
     }
 
@@ -545,7 +545,7 @@ class SchemaService extends AbstractService
 
         try {
             $db = Factory::getDbo();
-
+            
             if ($view === 'article') {
                 $query = $db->getQuery(true)
                     ->select('introtext, fulltext, title')
@@ -597,7 +597,7 @@ class SchemaService extends AbstractService
             foreach ($matches as $match) {
                 $question = strip_tags($match[1]);
                 $answer = strip_tags($match[2]);
-
+                
                 if (strlen($question) > 5 && strlen($answer) > 10) {
                     $faqItems[] = [
                         '@type' => 'Question',
@@ -617,11 +617,11 @@ class SchemaService extends AbstractService
             foreach ($matches as $match) {
                 $question = strip_tags($match[1]);
                 $answer = strip_tags($match[2]);
-
+                
                 // Clean up answer text
                 $answer = preg_replace('/\s+/', ' ', $answer);
                 $answer = trim($answer);
-
+                
                 if (strlen($question) > 5 && strlen($answer) > 20) {
                     $faqItems[] = [
                         '@type' => 'Question',
@@ -641,11 +641,11 @@ class SchemaService extends AbstractService
             foreach ($matches as $match) {
                 $questionText = strip_tags($match[1]);
                 $answerText = strip_tags($match[2]);
-
+                
                 // Clean up
                 $answerText = preg_replace('/\s+/', ' ', $answerText);
                 $answerText = trim($answerText);
-
+                
                 if (strlen($questionText) > 5 && strlen($answerText) > 15) {
                     $faqItems[] = [
                         '@type' => 'Question',
@@ -662,7 +662,7 @@ class SchemaService extends AbstractService
         // Remove duplicates based on question text
         $uniqueFAQs = [];
         $seenQuestions = [];
-
+        
         foreach ($faqItems as $item) {
             $questionKey = strtolower(trim($item['name']));
             if (!in_array($questionKey, $seenQuestions, true)) {

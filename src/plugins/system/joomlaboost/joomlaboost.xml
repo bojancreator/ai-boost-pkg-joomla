@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later</license>
     <authorEmail>info@joomlaboost.com</authorEmail>
     <authorUrl>https://joomlaboost.com</authorUrl>
-    <version>0.1.21</version>
+    <version>0.1.23</version>
     <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
     
     <!-- System Requirements -->
@@ -17,10 +17,6 @@
     
     <files>
         <filename plugin="joomlaboost">joomlaboost.php</filename>
-        <filename>joomlaboost-simple.php</filename>
-        <filename>joomlaboost-complex.php</filename>
-        <filename>joomlaboost-minimal.php</filename>
-        <filename>joomlaboost-working.php</filename>
         <folder>language</folder>
         <folder>src</folder>
         <folder>media</folder>
@@ -80,6 +76,17 @@
                        description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_DESC"
                        default="1"
                        class="btn-group btn-group-yesno">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <field name="faq_schema_enabled" 
+                       type="radio" 
+                       label="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_DESC"
+                       default="1"
+                       class="btn-group btn-group-yesno"
+                       showon="enable_schema:1">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
