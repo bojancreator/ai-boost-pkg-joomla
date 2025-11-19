@@ -91,6 +91,40 @@
                     <option value="0">JNO</option>
                 </field>
 
+                <!-- OpenGraph Site Name -->
+                <field name="og_site_name"
+                       type="text"
+                       label="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_DESC"
+                       default=""
+                       hint="OffRoad Serbia"
+                       showon="enable_opengraph:1"/>
+
+                <!-- OpenGraph Default Image -->
+                <field name="og_image"
+                       type="media"
+                       label="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_DESC"
+                       default=""
+                       directory="images"
+                       showon="enable_opengraph:1"/>
+
+                <!-- Organization Name (Fallback for og:site_name) -->
+                <field name="org_name"
+                       type="text"
+                       label="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_DESC"
+                       default=""
+                       hint="Organization Name"/>
+
+                <!-- Organization Logo (Fallback for og:image) -->
+                <field name="org_logo"
+                       type="media"
+                       label="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_DESC"
+                       default=""
+                       directory="images"/>
+
                 <field name="enable_hreflang"
                        type="radio"
                        label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL"
