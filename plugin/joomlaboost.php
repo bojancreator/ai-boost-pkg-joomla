@@ -106,6 +106,12 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
+        // Diagnostic endpoint handling
+        if ($this->isDiagnosticRequest()) {
+            $this->handleDiagnosticRequest($app);
+            return;
+        }
+
         // robots.txt handling
         if ($this->isRobotsRequest()) {
             $this->handleRobotsRequest($app);
@@ -175,11 +181,86 @@ class PlgSystemJoomlaboost extends CMSPlugin
         $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
         $cleanUri   = strtok($requestUri, '?') ?: '';
 
-        if (preg_match('#/sitemap\.xml$#i', $cleanUri)) {
+        // Match various sitemap formats: sitemap.xml, sitemap_index.xml, sitemap-pages.xml, sitemap-articles.xml
+        if (preg_match('#/sitemap([_-](index|pages|articles|categories))?\.xml$#i', $cleanUri)) {
             return true;
         }
 
         return isset($_GET['format']) && (string) $_GET['format'] === 'sitemap';
+    }
+
+    private function isDiagnosticRequest(): bool
+    {
+        // Check for ?jb_diag=1 query parameter
+        return isset($_GET['jb_diag']) && $_GET['jb_diag'] === '1';
+    }
+
+    private function handleDiagnosticRequest(CMSApplication $app): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        
+        echo json_encode($this->generateDiagnosticData(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $app->close();
+    }
+
+    private function generateDiagnosticData(): array
+    {
+        $domain = $this->getCurrentDomain();
+        $isStaging = $this->isStaging($domain);
+        
+        return [
+            'plugin' => [
+                'name' => 'JoomlaBoost',
+                'version' => '0.1.24',
+                'status' => 'active'
+            ],
+            'environment' => [
+                'type' => $isStaging ? 'staging' : 'production',
+                'domain' => $domain,
+                'host' => $_SERVER['HTTP_HOST'] ?? 'unknown',
+                'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+                'php_version' => PHP_VERSION,
+                'joomla_version' => defined('JVERSION') ? JVERSION : 'unknown'
+            ],
+            'features' => [
+                'robots_txt' => (bool) $this->params->get('enable_robots', 1),
+                'sitemap' => (bool) $this->params->get('enable_sitemap', 1),
+                'schema' => (bool) $this->params->get('enable_schema', 1),
+                'opengraph' => (bool) $this->params->get('enable_opengraph', 1),
+                'hreflang' => (bool) $this->params->get('enable_hreflang', 1),
+                'faq_schema' => (bool) $this->params->get('faq_schema_enabled', 1),
+                'ga4' => (bool) $this->params->get('enable_ga4', 0),
+                'gtm' => (bool) $this->params->get('enable_gtm', 0),
+                'meta_pixel' => (bool) $this->params->get('enable_meta_pixel', 0)
+            ],
+            'services' => [
+                'available' => [
+                    'DomainDetectionService',
+                    'RobotService',
+                    'SitemapService',
+                    'SchemaService',
+                    'OpenGraphService',
+                    'AnalyticsService',
+                    'MetaPixelService',
+                    'HreflangService',
+                    'PerformanceService',
+                    'HealthService',
+                    'InjectionService'
+                ],
+                'loaded' => class_exists('JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer')
+            ],
+            'endpoints' => [
+                'robots' => rtrim($domain, '/') . '/robots.txt',
+                'sitemap' => rtrim($domain, '/') . '/sitemap.xml',
+                'diagnostic' => rtrim($domain, '/') . '/index.php?jb_diag=1'
+            ],
+            'debug' => [
+                'mode' => (bool) $this->params->get('debug_mode', 0),
+                'request_uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+                'timestamp' => date('Y-m-d H:i:s T')
+            ]
+        ];
     }
 
     private function handleSitemapRequest(CMSApplication $app): void
@@ -187,7 +268,16 @@ class PlgSystemJoomlaboost extends CMSPlugin
         header('Content-Type: application/xml; charset=utf-8');
         header('Cache-Control: public, max-age=3600');
 
-        echo $this->generateSitemapContent();
+        // Use SitemapService for sitemap generation
+        $sitemapService = $this->getServiceContainer()->get('sitemap');
+        
+        if ($sitemapService && method_exists($sitemapService, 'generateSitemapIndex')) {
+            echo $sitemapService->generateSitemapIndex();
+        } else {
+            // Fallback to basic sitemap if service unavailable
+            echo $this->generateSitemapContent();
+        }
+        
         $app->close();
     }
 
