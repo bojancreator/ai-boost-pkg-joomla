@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
     <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
     <author>JoomlaBoost Team</author>
-    <creationDate>September 2025</creationDate>
+    <creationDate>November 2025</creationDate>
     <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
     <license>GNU General Public License version 2 or later</license>
     <authorEmail>info@joomlaboost.com</authorEmail>
     <authorUrl>https://joomlaboost.com</authorUrl>
-    <version>0.1.24</version>
+    <version>0.1.28</version>
     <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
 
     <!-- System Requirements -->
@@ -81,16 +81,6 @@
                     <option value="0">JNO</option>
                 </field>
 
-                <field name="enable_opengraph"
-                       type="radio"
-                       label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL"
-                       description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC"
-                       default="1"
-                       class="btn-group btn-group-yesno">
-                    <option value="1">JYES</option>
-                    <option value="0">JNO</option>
-                </field>
-
                 <field name="enable_hreflang"
                        type="radio"
                        label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL"
@@ -111,6 +101,43 @@
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
+
+            </fieldset>
+
+            <!-- OpenGraph & Social Media Tab -->
+            <fieldset name="opengraph" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_OPENGRAPH">
+
+                <!-- OpenGraph Site Name -->
+                <field name="og_site_name"
+                       type="text"
+                       label="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_DESC"
+                       default=""
+                       hint="OffRoad Serbia"/>
+
+                <!-- OpenGraph Default Image -->
+                <field name="og_image"
+                       type="media"
+                       label="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_DESC"
+                       default=""
+                       directory="images"/>
+
+                <!-- Organization Name (Fallback for og:site_name) -->
+                <field name="org_name"
+                       type="text"
+                       label="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_DESC"
+                       default=""
+                       hint="Organization Name"/>
+
+                <!-- Organization Logo (Fallback for og:image) -->
+                <field name="org_logo"
+                       type="media"
+                       label="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_DESC"
+                       default=""
+                       directory="images"/>
 
             </fieldset>
 

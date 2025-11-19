@@ -1,6 +1,6 @@
 # JoomlaBoost Plugin
 
-🚀 **Modern SEO & Performance Plugin for Joomla 4.0+**
+🚀 **Modern SEO & Performance Plugin for Joomla 5.0+**
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/bojancreator/JoomlaBoost)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4.svg)](https://php.net)
@@ -67,7 +67,7 @@ JoomlaBoost uses a **service-oriented architecture** with:
 
 - **ServiceContainer**: Dependency injection with lazy loading
 - **Performance optimizations**: Request-level caching, batch processing
-- **Type safety**: PHP 8.1+ with strict typing and enums
+- **Type safety**: PHP 8.2+ with strict typing and enums
 - **Modern PSR-4**: Autoloading with performance optimizations
 
 ### Core Services
@@ -112,8 +112,8 @@ The plugin automatically detects:
 
 ### Requirements
 
-- PHP 8.1+
-- Joomla 4.0+
+- PHP 8.2+
+- Joomla 5.0+
 - Composer (for dependencies)
 
 ### Setup
