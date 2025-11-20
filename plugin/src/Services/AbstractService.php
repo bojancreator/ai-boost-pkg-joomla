@@ -215,11 +215,10 @@ abstract class AbstractService implements ServiceInterface
 
                 // Frontend browser console logging
                 if (!$app->isClient('administrator')) {
-                    // Properly encode for JavaScript
-                    $jsMessage = json_encode($message, JSON_UNESCAPED_UNICODE | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP);
+                    // Direct output to avoid Joomla's escaping in addCustomTag()
+                    $jsMessage = json_encode($message, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                     $jsContextObj = $contextJson ?: '{}';
-                    $script = "<script>console.log('[JoomlaBoost] ' + {$jsMessage}, {$jsContextObj});</script>";
-                    $app->getDocument()->addCustomTag($script);
+                    echo "<script>console.log('[JoomlaBoost] ' + {$jsMessage}, {$jsContextObj});</script>\n";
                 }
             } catch (\Throwable $e) {
                 // Ignore logging errors
