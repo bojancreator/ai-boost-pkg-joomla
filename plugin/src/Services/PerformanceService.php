@@ -94,7 +94,7 @@ class PerformanceService extends AbstractService
 
         foreach ($this->metaBatch as $key => $content) {
             [$type, $name] = explode(':', $key, 2);
-            
+
             if ($type === 'property') {
                 $ogTags[] = ['name' => $name, 'content' => $content];
             } else {
