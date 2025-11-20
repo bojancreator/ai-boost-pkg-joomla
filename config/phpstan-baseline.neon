@@ -1,43 +1,13 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$metaPixelService\\.$#"
+			message: "#^Left side of && is always true\\.$#"
 			count: 1
 			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$openGraphService\\.$#"
+			message: "#^Method Joomla\\\\CMS\\\\Plugin\\\\CMSPlugin\\:\\:__construct\\(\\) invoked with 2 parameters, 0 required\\.$#"
 			count: 1
-			path: ../plugin/joomlaboost.php
-
-		-
-			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$performanceService\\.$#"
-			count: 3
-			path: ../plugin/joomlaboost.php
-
-		-
-			message: "#^Access to an undefined property PlgSystemJoomlaboost\\:\\:\\$schemaService\\.$#"
-			count: 2
-			path: ../plugin/joomlaboost.php
-
-		-
-			message: "#^Instantiated class MetaPixelService not found\\.$#"
-			count: 1
-			path: ../plugin/joomlaboost.php
-
-		-
-			message: "#^Instantiated class OpenGraphService not found\\.$#"
-			count: 1
-			path: ../plugin/joomlaboost.php
-
-		-
-			message: "#^Instantiated class PerformanceService not found\\.$#"
-			count: 1
-			path: ../plugin/joomlaboost.php
-
-		-
-			message: "#^Instantiated class SchemaService not found\\.$#"
-			count: 2
 			path: ../plugin/joomlaboost.php
 
 		-
@@ -46,12 +16,22 @@ parameters:
 			path: ../plugin/joomlaboost.php
 
 		-
-			message: "#^Method PlgSystemJoomlaboost\\:\\:getServiceContainer\\(\\) is unused\\.$#"
+			message: "#^Method PlgSystemJoomlaboost\\:\\:generateDiagnosticData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: ../plugin/joomlaboost.php
 
 		-
 			message: "#^Method PlgSystemJoomlaboost\\:\\:logDebug\\(\\) has parameter \\$context with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: ../plugin/joomlaboost.php
+
+		-
+			message: "#^Parameter \\#1 \\$serviceKey of method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceContainer\\:\\:get\\(\\) expects class\\-string\\<JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceInterface\\>, string given\\.$#"
+			count: 1
+			path: ../plugin/joomlaboost.php
+
+		-
+			message: "#^Unable to resolve the template type T in call to method JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceContainer\\:\\:get\\(\\)$#"
 			count: 1
 			path: ../plugin/joomlaboost.php
 
