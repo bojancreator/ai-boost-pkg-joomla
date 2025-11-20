@@ -124,17 +124,53 @@ class OpenGraphService extends AbstractService
             $perfService->addMetaToBatch('og:site_name', $siteName, 'property');
         }
 
-        // og:title - from document (already loaded)
+        // og:title - Priority: 1. Custom Field (articles only) → 2. Document title
         if ($override || !$perfService->isMetaTagPresent('og:title', 'property')) {
-            $title = method_exists($document, 'getTitle') ? trim($document->getTitle()) : '';
+            $title = '';
+            
+            // Check custom field for articles
+            if ($option === 'com_content' && $view === 'article') {
+                $articleId = $this->app->getInput()->getInt('id', 0);
+                if ($articleId > 0) {
+                    $customTitle = $this->getArticleCustomField($articleId, 'custom_og_title');
+                    if (!empty($customTitle)) {
+                        $title = trim($customTitle);
+                        $this->logDebug("Using custom_og_title from Custom Field for article $articleId");
+                    }
+                }
+            }
+            
+            // Fallback to document title
+            if (empty($title)) {
+                $title = method_exists($document, 'getTitle') ? trim($document->getTitle()) : '';
+            }
+            
             if (!empty($title)) {
                 $perfService->addMetaToBatch('og:title', $title, 'property');
             }
         }
 
-        // og:description - from document (already loaded)
+        // og:description - Priority: 1. Custom Field (articles only) → 2. Document description
         if ($override || !$perfService->isMetaTagPresent('og:description', 'property')) {
-            $description = method_exists($document, 'getDescription') ? trim($document->getDescription()) : '';
+            $description = '';
+            
+            // Check custom field for articles
+            if ($option === 'com_content' && $view === 'article') {
+                $articleId = $this->app->getInput()->getInt('id', 0);
+                if ($articleId > 0) {
+                    $customDesc = $this->getArticleCustomField($articleId, 'custom_og_description');
+                    if (!empty($customDesc)) {
+                        $description = trim($customDesc);
+                        $this->logDebug("Using custom_og_description from Custom Field for article $articleId");
+                    }
+                }
+            }
+            
+            // Fallback to document description
+            if (empty($description)) {
+                $description = method_exists($document, 'getDescription') ? trim($document->getDescription()) : '';
+            }
+            
             if (!empty($description)) {
                 $perfService->addMetaToBatch('og:description', $description, 'property');
             }
@@ -241,6 +277,8 @@ class OpenGraphService extends AbstractService
 
     /**
      * Get article image URL (heavy operation - DB query)
+     *
+     * Priority: 1. Custom Field (custom_og_image) → 2. Featured Image (intro/fulltext) → 3. Extracted from content
      */
     private function getArticleImage(): string
     {
@@ -250,6 +288,14 @@ class OpenGraphService extends AbstractService
                 return '';
             }
 
+            // Priority 1: Custom OG Image (per-article override)
+            $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
+            if (!empty($customImage)) {
+                $this->logDebug("Using custom_og_image from Custom Field for article $articleId");
+                return $this->normalizeImageUrl($customImage);
+            }
+
+            // Priority 2 & 3: Featured images from article or extracted from content
             $db = Factory::getDbo();
             $query = $db->getQuery(true)
                 ->select('images, introtext, fulltext')
@@ -264,7 +310,7 @@ class OpenGraphService extends AbstractService
                 return '';
             }
 
-            // Try to extract from images JSON
+            // Try to extract from images JSON (Priority 2)
             if (!empty($article->images)) {
                 $images = json_decode($article->images, true);
                 if (is_array($images)) {
@@ -278,7 +324,7 @@ class OpenGraphService extends AbstractService
                 }
             }
 
-            // Extract from article text as fallback
+            // Extract from article text as fallback (Priority 3)
             return $this->extractImageFromContent($article->introtext . ' ' . $article->fulltext);
         } catch (\Throwable $e) {
             $this->logDebug('Article image extraction failed: ' . $e->getMessage());
@@ -361,6 +407,55 @@ class OpenGraphService extends AbstractService
             return $baseUrl . $imageUrl;
         } else {
             return $baseUrl . '/' . $imageUrl;
+        }
+    }
+
+    /**
+     * Get article custom field value (Joomla com_fields integration)
+     *
+     * @param int $articleId Article ID
+     * @param string $fieldName Custom field name (custom_og_image, custom_og_title, custom_og_description)
+     * @return string|null Custom field value or null if not set
+     */
+    private function getArticleCustomField(int $articleId, string $fieldName): ?string
+    {
+        if ($articleId <= 0) {
+            return null;
+        }
+
+        try {
+            $db = Factory::getDbo();
+            
+            // Query #__fields for field ID by name
+            $fieldQuery = $db->getQuery(true)
+                ->select('id')
+                ->from('#__fields')
+                ->where('name = ' . $db->quote($fieldName))
+                ->where('context = ' . $db->quote('com_content.article'))
+                ->where('state = 1');
+            
+            $db->setQuery($fieldQuery);
+            $fieldId = $db->loadResult();
+            
+            if (!$fieldId) {
+                return null; // Field not found or disabled
+            }
+            
+            // Query #__fields_values for article-specific value
+            $valueQuery = $db->getQuery(true)
+                ->select('value')
+                ->from('#__fields_values')
+                ->where('field_id = ' . (int) $fieldId)
+                ->where('item_id = ' . (int) $articleId);
+            
+            $db->setQuery($valueQuery);
+            $value = $db->loadResult();
+            
+            // Return value if not empty
+            return !empty($value) ? (string) $value : null;
+        } catch (\Throwable $e) {
+            $this->logDebug("Custom field '$fieldName' read failed: " . $e->getMessage());
+            return null;
         }
     }
 }
