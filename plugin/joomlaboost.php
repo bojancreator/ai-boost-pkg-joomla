@@ -219,6 +219,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getPluginInfo(): array
     {
         return [
@@ -228,6 +231,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getEnvironmentInfo(): array
     {
         $domain = $this->getCurrentDomain();
@@ -241,6 +247,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
         ];
     }
 
+    /**
+     * @return array<string, bool>
+     */
     private function getFeatureFlags(): array
     {
         return [
@@ -256,6 +265,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getServiceInfo(): array
     {
         return [
@@ -269,6 +281,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
     private function getEndpointUrls(): array
     {
         $domain = $this->getCurrentDomain();
@@ -279,6 +294,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getDebugInfo(): array
     {
         return [

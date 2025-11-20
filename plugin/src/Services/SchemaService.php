@@ -223,6 +223,8 @@ class SchemaService extends AbstractService
 
     /**
      * Build LocalBusiness schema
+     *
+     * @return array<string, mixed>
      */
     private function buildLocalBusinessSchema(string $siteName, string $baseUrl, object $config, string $orgLogo): array
     {
@@ -255,6 +257,8 @@ class SchemaService extends AbstractService
 
     /**
      * Build Organization schema
+     *
+     * @return array<string, mixed>
      */
     private function buildOrganizationSchema(string $siteName, string $baseUrl, object $config, string $orgLogo): array
     {
@@ -278,6 +282,8 @@ class SchemaService extends AbstractService
 
     /**
      * Add geo coordinates to schema
+     *
+     * @param array<string, mixed> $schema
      */
     private function addGeoDataToSchema(array &$schema): void
     {
@@ -313,6 +319,8 @@ class SchemaService extends AbstractService
 
     /**
      * Add logo to schema
+     *
+     * @param array<string, mixed> $schema
      */
     private function addLogoToSchema(array &$schema, string $orgLogo): void
     {
@@ -711,6 +719,9 @@ class SchemaService extends AbstractService
 
     /**
      * Parse FAQ pattern and return items
+     *
+     * @param array<string, mixed> $config
+     * @return array<int, array<string, mixed>>
      */
     private function parseFAQPattern(string $content, array $config): array
     {
@@ -750,6 +761,8 @@ class SchemaService extends AbstractService
 
     /**
      * Build FAQ schema item
+     *
+     * @return array<string, mixed>
      */
     private function buildFAQItem(string $question, string $answer): array
     {
@@ -765,6 +778,9 @@ class SchemaService extends AbstractService
 
     /**
      * Remove duplicate FAQs
+     *
+     * @param array<int, array<string, mixed>> $faqItems
+     * @return array<int, array<string, mixed>>
      */
     private function deduplicateFAQs(array $faqItems): array
     {
@@ -835,6 +851,9 @@ class SchemaService extends AbstractService
 
     /**
      * Extract images from JSON metadata
+     *
+     * @param array<int, string> $images
+     * @return array<int, string>
      */
     private function extractJSONImages(object $article, array $images): array
     {
@@ -863,6 +882,9 @@ class SchemaService extends AbstractService
 
     /**
      * Extract limited images from content (when JSON exists)
+     *
+     * @param array<int, string> $images
+     * @return array<int, string>
      */
     private function extractLimitedContentImages(object $article, array $images): array
     {
@@ -878,6 +900,9 @@ class SchemaService extends AbstractService
 
     /**
      * Extract full images from content (when no JSON)
+     *
+     * @param array<int, string> $images
+     * @return array<int, string>
      */
     private function extractFullContentImages(object $article, array $images): array
     {
