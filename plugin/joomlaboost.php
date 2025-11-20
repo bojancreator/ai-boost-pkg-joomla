@@ -47,7 +47,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
     /**
      * Constructor
-     * 
+     *
      * @param mixed $subject The object to observe
      * @param array<string, mixed> $config Configuration array
      */
@@ -199,7 +199,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, no-store, must-revalidate');
-        
+
         echo json_encode($this->generateDiagnosticData(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $app->close();
     }
@@ -208,7 +208,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         $domain = $this->getCurrentDomain();
         $isStaging = $this->isStaging($domain);
-        
+
         return [
             'plugin' => [
                 'name' => 'JoomlaBoost',
@@ -270,14 +270,14 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
         // Use SitemapService for sitemap generation
         $sitemapService = $this->getServiceContainer()->get('sitemap');
-        
+
         if ($sitemapService && method_exists($sitemapService, 'generateSitemapIndex')) {
             echo $sitemapService->generateSitemapIndex();
         } else {
             // Fallback to basic sitemap if service unavailable
             echo $this->generateSitemapContent();
         }
-        
+
         $app->close();
     }
 

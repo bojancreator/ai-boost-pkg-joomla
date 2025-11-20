@@ -483,11 +483,15 @@ class SchemaService extends AbstractService
         $listItems = [];
         $position = 1;
 
+        // Get home label (multilingual)
+        $lang = Factory::getLanguage();
+        $homeLabel = $lang->getTag() === 'sr-RS' ? 'Početna' : 'Home';
+
         // Add home
         $listItems[] = [
             '@type' => 'ListItem',
             'position' => $position++,
-            'name' => 'Početna',
+            'name' => $homeLabel,
             'item' => $this->getSchemaUrl()
         ];
 
