@@ -565,19 +565,16 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-        $ga4Script = "\n
-<!-- Google Analytics 4 -->\n<script async src=\"https://www.googletagmanager.com/gtag/js?id={$measurementId}\">
-</script>\n<script>
-\
-nwindow.dataLayer = window.dataLayer || [];\
-n\ nfunction gtag() {
-  \
-  n dataLayer.push(arguments);\
-  n
-}\
-ngtag('js', new Date());\
-ngtag('config', '{$measurementId}');\
-n
+        $ga4Script = "
+<!-- Google Analytics 4 -->
+<script async src=\"https://www.googletagmanager.com/gtag/js?id={$measurementId}\"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag() {
+  dataLayer.push(arguments);
+}
+gtag('js', new Date());
+gtag('config', '{$measurementId}');
 </script>";
         $document->addCustomTag($ga4Script);
         $this->logDebug('Added Google Analytics 4 tracking for: ' . $measurementId);
@@ -591,29 +588,23 @@ n
             return;
         }
 
-        $gtmHead = "\n
-<!-- Google Tag Manager -->\n<script>
-\
-n(function(w, d, s, l, i) {
-  \
-  n w[l] = w[l] || [];\
-  n w[l].push({
-    \
-    n 'gtm.start': new Date().getTime(),
-    \n event: 'gtm.js'\
-    n
-  });\
-  n
+        $gtmHead = "
+<!-- Google Tag Manager -->
+<script>
+(function(w, d, s, l, i) {
+  w[l] = w[l] || [];
+  w[l].push({
+    'gtm.start': new Date().getTime(),
+    event: 'gtm.js'
+  });
   var f = d.getElementsByTagName(s)[0],
-    \n j = d.createElement(s),
-    \n dl = l != 'dataLayer' ? '&l=' + l : '';\
-  n j.async = true;\
-  n j.src = \n 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;\
-  n f.parentNode.insertBefore(j, f);\
-  n
-})(window, document, 'script', 'dataLayer', '{$containerId}');\
-n
-</script>\n
+    j = d.createElement(s),
+    dl = l != 'dataLayer' ? '&l=' + l : '';
+  j.async = true;
+  j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+  f.parentNode.insertBefore(j, f);
+})(window, document, 'script', 'dataLayer', '{$containerId}');
+</script>
 <!-- End Google Tag Manager -->";
         $document->addCustomTag($gtmHead);
         $this->logDebug('Added Google Tag Manager tracking for: ' . $containerId);
