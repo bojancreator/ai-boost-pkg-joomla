@@ -201,13 +201,24 @@ abstract class AbstractService implements ServiceInterface
         if ($this->isDebugMode()) {
             try {
                 $logMessage = '[JoomlaBoost] ' . $message;
-                if (!empty($context)) {
-                    $logMessage .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $contextJson = !empty($context) ? json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
+                
+                if ($contextJson) {
+                    $logMessage .= ' | ' . $contextJson;
                 }
-                // Unified logging: Use enqueueMessage for immediate visibility in admin
+                
+                // Admin panel messages
                 $app = Factory::getApplication();
                 if (method_exists($app, 'enqueueMessage')) {
                     $app->enqueueMessage($logMessage, 'info');
+                }
+                
+                // Frontend browser console logging
+                if (!$app->isClient('administrator')) {
+                    $jsMessage = addslashes($message);
+                    $jsContext = $contextJson ? addslashes($contextJson) : '{}';
+                    $script = "<script>console.log('[JoomlaBoost] {$jsMessage}', {$jsContext});</script>";
+                    $app->getDocument()->addCustomTag($script);
                 }
             } catch (\Throwable $e) {
               // Ignore logging errors
