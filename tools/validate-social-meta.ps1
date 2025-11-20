@@ -36,9 +36,9 @@ $passedTests = 0
 
 function Test-MetaTag {
     param($Html, $Property, $Name, $Required = $true)
-    
+
     $global:totalTests++
-    
+
     # Try property first (OpenGraph)
     $pattern = "<meta\s+property=`"$Property`"\s+content=`"([^`"]*)`""
     if ($Html -match $pattern) {
@@ -46,16 +46,16 @@ function Test-MetaTag {
         if ($content) {
             $global:passedTests++
             Write-Host "  ✅ $Name" -ForegroundColor Green -NoNewline
-            $displayContent = if ($content.Length -gt 60) { 
-                $content.Substring(0, 57) + "..." 
-            } else { 
-                $content 
+            $displayContent = if ($content.Length -gt 60) {
+                $content.Substring(0, 57) + "..."
+            } else {
+                $content
             }
             Write-Host " = `"$displayContent`"" -ForegroundColor Gray
             return $content
         }
     }
-    
+
     # Try name attribute (Twitter)
     $pattern = "<meta\s+name=`"$Property`"\s+content=`"([^`"]*)`""
     if ($Html -match $pattern) {
@@ -63,50 +63,50 @@ function Test-MetaTag {
         if ($content) {
             $global:passedTests++
             Write-Host "  ✅ $Name" -ForegroundColor Green -NoNewline
-            $displayContent = if ($content.Length -gt 60) { 
-                $content.Substring(0, 57) + "..." 
-            } else { 
-                $content 
+            $displayContent = if ($content.Length -gt 60) {
+                $content.Substring(0, 57) + "..."
+            } else {
+                $content
             }
             Write-Host " = `"$displayContent`"" -ForegroundColor Gray
             return $content
         }
     }
-    
+
     if ($Required) {
         $global:allPassed = $false
         Write-Host "  ❌ $Name - MISSING" -ForegroundColor Red
     } else {
         Write-Host "  ⚠️  $Name - Optional (not found)" -ForegroundColor Yellow
     }
-    
+
     return $null
 }
 
 function Test-ImageUrl {
     param($ImageUrl)
-    
+
     if (-not $ImageUrl) {
         return $false
     }
-    
+
     # Check if absolute URL
     if (-not ($ImageUrl -match "^https?://")) {
         Write-Host "    ❌ Image URL is relative (should be absolute)" -ForegroundColor Red
         return $false
     }
-    
+
     # Check for Joomla fragments
     if ($ImageUrl -match "#joomlaImage://") {
         Write-Host "    ❌ Contains Joomla fragments (#joomlaImage://)" -ForegroundColor Red
         return $false
     }
-    
+
     # Check for unnecessary query params
     if ($ImageUrl -match "\?width=|\?height=") {
         Write-Host "    ⚠️  Contains query parameters (may confuse validators)" -ForegroundColor Yellow
     }
-    
+
     Write-Host "    ✅ Image URL format valid (absolute, no fragments)" -ForegroundColor Green
     return $true
 }
@@ -114,15 +114,15 @@ function Test-ImageUrl {
 # Test each page
 foreach ($page in $testPages) {
     $fullUrl = "$Url$($page.Path)"
-    
+
     Write-Host "`n📄 Testing: $($page.Name)" -ForegroundColor Cyan
     Write-Host "   URL: $fullUrl" -ForegroundColor Gray
     Write-Host "-" * 60 -ForegroundColor DarkGray
-    
+
     try {
         $response = Invoke-WebRequest -Uri $fullUrl -UseBasicParsing -TimeoutSec 30
         $html = $response.Content
-        
+
         # OpenGraph Required Tags
         Write-Host "`n  📘 OpenGraph Tags (Facebook/LinkedIn):" -ForegroundColor Yellow
         $ogTitle = Test-MetaTag -Html $html -Property "og:title" -Name "og:title" -Required $true
@@ -131,7 +131,7 @@ foreach ($page in $testPages) {
         $ogImage = Test-MetaTag -Html $html -Property "og:image" -Name "og:image" -Required $true
         $ogDescription = Test-MetaTag -Html $html -Property "og:description" -Name "og:description" -Required $true
         $ogSiteName = Test-MetaTag -Html $html -Property "og:site_name" -Name "og:site_name" -Required $false
-        
+
         # Validate og:image
         if ($ogImage) {
             $imageValid = Test-ImageUrl -ImageUrl $ogImage
@@ -139,7 +139,7 @@ foreach ($page in $testPages) {
                 $global:allPassed = $false
             }
         }
-        
+
         # Twitter Card Tags
         Write-Host "`n  🐦 Twitter Card Tags:" -ForegroundColor Yellow
         $twitterCard = Test-MetaTag -Html $html -Property "twitter:card" -Name "twitter:card" -Required $true
@@ -147,14 +147,14 @@ foreach ($page in $testPages) {
         $twitterTitle = Test-MetaTag -Html $html -Property "twitter:title" -Name "twitter:title" -Required $false
         $twitterDescription = Test-MetaTag -Html $html -Property "twitter:description" -Name "twitter:description" -Required $false
         $twitterImage = Test-MetaTag -Html $html -Property "twitter:image" -Name "twitter:image" -Required $false
-        
+
         # Article-specific tags (if og:type is article)
         if ($ogType -eq "article") {
             Write-Host "`n  📰 Article-Specific Tags:" -ForegroundColor Yellow
             Test-MetaTag -Html $html -Property "article:published_time" -Name "article:published_time" -Required $false
             Test-MetaTag -Html $html -Property "article:modified_time" -Name "article:modified_time" -Required $false
         }
-        
+
     } catch {
         Write-Host "  ❌ ERROR: Failed to fetch page - $($_.Exception.Message)" -ForegroundColor Red
         $global:allPassed = $false
@@ -166,10 +166,10 @@ Write-Host "`n" + ("=" * 60) -ForegroundColor Cyan
 Write-Host "📊 VALIDATION SUMMARY" -ForegroundColor Cyan
 Write-Host ("=" * 60) -ForegroundColor Cyan
 
-$passRate = if ($totalTests -gt 0) { 
-    [math]::Round(($passedTests / $totalTests) * 100, 1) 
-} else { 
-    0 
+$passRate = if ($totalTests -gt 0) {
+    [math]::Round(($passedTests / $totalTests) * 100, 1)
+} else {
+    0
 }
 
 Write-Host "`nTests: $passedTests / $totalTests passed ($passRate%)" -ForegroundColor $(if ($passRate -ge 90) { "Green" } elseif ($passRate -ge 70) { "Yellow" } else { "Red" })

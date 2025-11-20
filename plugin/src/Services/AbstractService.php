@@ -69,18 +69,18 @@ abstract class AbstractService implements ServiceInterface
         return $this->serviceContainer?->get($serviceKey);
     }
 
-  /**
-   * Check if this service is enabled
-   */
+    /**
+     * Check if this service is enabled
+     */
     public function isEnabled(): bool
     {
         $serviceKey = $this->getServiceKey();
         return (bool) $this->params->get($serviceKey, true);
     }
 
-  /**
-   * Get the current domain (auto-detected or manual)
-   */
+    /**
+     * Get the current domain (auto-detected or manual)
+     */
     public function getCurrentDomain(): string
     {
         if ($this->currentDomain === null) {
@@ -90,9 +90,9 @@ abstract class AbstractService implements ServiceInterface
         return $this->currentDomain;
     }
 
-  /**
-   * Get the base URL with protocol
-   */
+    /**
+     * Get the base URL with protocol
+     */
     public function getBaseUrl(): string
     {
         if ($this->baseUrl === null) {
@@ -102,38 +102,38 @@ abstract class AbstractService implements ServiceInterface
         return $this->baseUrl;
     }
 
-  /**
-   * Get environment type based on current domain
-   */
+    /**
+     * Get environment type based on current domain
+     */
     public function getEnvironmentType(): EnvironmentType
     {
         $domain = $this->getCurrentDomain();
         return EnvironmentType::detectFromDomain($domain);
     }
 
-  /**
-   * Check if current environment is production
-   */
+    /**
+     * Check if current environment is production
+     */
     public function isProduction(): bool
     {
         return $this->getEnvironmentType()->isProduction();
     }
 
-  /**
-   * Check if search engines should be allowed in current environment
-   */
+    /**
+     * Check if search engines should be allowed in current environment
+     */
     public function allowSearchEngines(): bool
     {
         return $this->getEnvironmentType()->allowSearchEngines();
     }
 
-  /**
-   * Detect current domain and base URL
-   */
+    /**
+     * Detect current domain and base URL
+     */
     private function detectDomain(): void
     {
         try {
-          // Check if auto-detection is enabled
+            // Check if auto-detection is enabled
             $autoDetect = (bool) $this->params->get('auto_domain_detection', true);
 
             if (!$autoDetect) {
@@ -147,17 +147,17 @@ abstract class AbstractService implements ServiceInterface
                 }
             }
 
-          // Auto-detect from current request
+            // Auto-detect from current request
             $uri = Uri::getInstance();
             $this->currentDomain = $uri->getHost();
 
-          // Build base URL
+            // Build base URL
             $scheme = $uri->getScheme();
             $port = $uri->getPort();
 
             $this->baseUrl = $scheme . '://' . $this->currentDomain;
 
-          // Add port if not standard and port is actually specified
+            // Add port if not standard and port is actually specified
             if (
                 $port &&
                 (($scheme === 'http' && $port !== 80) || ($scheme === 'https' && $port !== 443))
@@ -165,71 +165,72 @@ abstract class AbstractService implements ServiceInterface
                 $this->baseUrl .= ':' . $port;
             }
         } catch (\Throwable $e) {
-          // Fallback to localhost if detection fails
+            // Fallback to localhost if detection fails
             $this->currentDomain = 'localhost';
             $this->baseUrl = 'http://localhost';
         }
     }
 
-  /**
-   * Check if we're on staging environment
-   */
+    /**
+     * Check if we're on staging environment
+     */
     protected function isStaging(): bool
     {
         $domain = $this->getCurrentDomain();
         return str_contains(strtolower($domain), 'staging')
-        || str_contains(strtolower($domain), 'stage')
-        || str_contains(strtolower($domain), 'test')
-        || str_contains(strtolower($domain), 'dev');
+            || str_contains(strtolower($domain), 'stage')
+            || str_contains(strtolower($domain), 'test')
+            || str_contains(strtolower($domain), 'dev');
     }
 
-  /**
-   * Get debug mode status
-   */
+    /**
+     * Get debug mode status
+     */
     protected function isDebugMode(): bool
     {
         return (bool) $this->params->get('debug_mode', false);
     }
 
-  /**
-   * Log debug message if debug mode is enabled
-   *
-   * @param array<string, mixed> $context
-   */
+    /**
+     * Log debug message if debug mode is enabled
+     *
+     * @param array<string, mixed> $context
+     */
     protected function logDebug(string $message, array $context = []): void
     {
         if ($this->isDebugMode()) {
             try {
                 $logMessage = '[JoomlaBoost] ' . $message;
                 $contextJson = !empty($context) ? json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
-                
+
                 if ($contextJson) {
                     $logMessage .= ' | ' . $contextJson;
                 }
-                
+
                 // Admin panel messages
                 $app = Factory::getApplication();
                 if (method_exists($app, 'enqueueMessage')) {
                     $app->enqueueMessage($logMessage, 'info');
                 }
-                
+
                 // Frontend browser console logging
                 if (!$app->isClient('administrator')) {
-                    $jsMessage = addslashes($message);
-                    $jsContext = $contextJson ? addslashes($contextJson) : '{}';
-                    $script = "<script>console.log('[JoomlaBoost] {$jsMessage}', {$jsContext});</script>";
+                    // Properly encode for JavaScript
+                    $jsMessage = json_encode($message, JSON_UNESCAPED_UNICODE | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP);
+                    $jsContextObj = $contextJson ?: '{}';
+                    $script = "<script>console.log('[JoomlaBoost] ' + {$jsMessage}, {$jsContextObj});</script>";
                     $app->getDocument()->addCustomTag($script);
                 }
             } catch (\Throwable $e) {
-              // Ignore logging errors
+                // Ignore logging errors
             }
         }
     }
 
-  /**
-   * Get the service key for configuration lookup
-   *
-   * @return string The parameter key for this service
-   */
+    /**
+     * Get the service key for configuration lookup
+     *
+     * @return string The parameter key for this service
+     */
     abstract protected function getServiceKey(): string;
 }
