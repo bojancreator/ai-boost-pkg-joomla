@@ -45,6 +45,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
     /** @var MetaPixelService|null */
     private ?MetaPixelService $metaPixelService = null;
 
+    /** @var string Accumulated analytics scripts for injection */
+    private string $analyticsScripts = '';
+
     /**
      * Constructor
      *
@@ -565,9 +568,11 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-        $ga4Script = "
+        // Use heredoc to avoid escaping issues, store for onAfterRender injection
+        $this->analyticsScripts .= <<<HTML
+
 <!-- Google Analytics 4 -->
-<script async src=\"https://www.googletagmanager.com/gtag/js?id={$measurementId}\"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id={$measurementId}"></script>
 <script>
 window.dataLayer = window.dataLayer || [];
 function gtag() {
@@ -575,8 +580,8 @@ function gtag() {
 }
 gtag('js', new Date());
 gtag('config', '{$measurementId}');
-</script>";
-        $document->addCustomTag($ga4Script);
+</script>
+HTML;
         $this->logDebug('Added Google Analytics 4 tracking for: ' . $measurementId);
     }
 
@@ -588,7 +593,8 @@ gtag('config', '{$measurementId}');
             return;
         }
 
-        $gtmHead = "
+        $this->analyticsScripts .= <<<HTML
+
 <!-- Google Tag Manager -->
 <script>
 (function(w, d, s, l, i) {
@@ -605,8 +611,8 @@ gtag('config', '{$measurementId}');
   f.parentNode.insertBefore(j, f);
 })(window, document, 'script', 'dataLayer', '{$containerId}');
 </script>
-<!-- End Google Tag Manager -->";
-        $document->addCustomTag($gtmHead);
+<!-- End Google Tag Manager -->
+HTML;
         $this->logDebug('Added Google Tag Manager tracking for: ' . $containerId);
     }
 
@@ -623,5 +629,30 @@ gtag('config', '{$measurementId}');
         $this->metaPixelService->injectPixelCode($document);
         $this->metaPixelService->injectCustomEvents($document);
         $this->logDebug('Added Meta Pixel tracking');
+    }
+
+    /**
+     * onAfterRender - Inject analytics scripts directly into HTML body
+     * This avoids Joomla's addCustomTag() escaping issues
+     */
+    public function onAfterRender(): void
+    {
+        if (empty($this->analyticsScripts)) {
+            return;
+        }
+
+        $app = Factory::getApplication();
+        if ($app->isClient('administrator')) {
+            return;
+        }
+
+        $body = $app->getBody();
+        if (empty($body)) {
+            return;
+        }
+
+        // Inject before </head> tag
+        $body = str_replace('</head>', $this->analyticsScripts . "\n</head>", $body);
+        $app->setBody($body);
     }
 }
