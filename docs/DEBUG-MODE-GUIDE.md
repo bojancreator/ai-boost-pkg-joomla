@@ -266,7 +266,7 @@ Svaka poruka ima **Context JSON** sa detaljima:
 Kombinuj debug sa diagnostics endpoint-om:
 
 ```
-https://staging.offroadserbia.com/index.php?jb_diag=1
+<https://staging.offroadserbia.com/index.php?jb_diag=1>
 ```
 
 Pokazuje:

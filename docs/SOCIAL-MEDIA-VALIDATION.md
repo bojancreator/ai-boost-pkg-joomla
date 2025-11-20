@@ -6,7 +6,7 @@ After deploying v0.1.38+, validate OpenGraph implementation using official socia
 
 ### 📘 Facebook Sharing Debugger
 
-**URL**: https://developers.facebook.com/tools/debug/
+**URL**: <https://developers.facebook.com/tools/debug/>
 
 **How to Use**:
 
@@ -34,7 +34,7 @@ After deploying v0.1.38+, validate OpenGraph implementation using official socia
 
 ### 🐦 Twitter Card Validator
 
-**URL**: https://cards-dev.twitter.com/validator
+**URL**: <https://cards-dev.twitter.com/validator>
 
 **How to Use**:
 
@@ -61,7 +61,7 @@ After deploying v0.1.38+, validate OpenGraph implementation using official socia
 
 ### 💼 LinkedIn Post Inspector
 
-**URL**: https://www.linkedin.com/post-inspector/
+**URL**: <https://www.linkedin.com/post-inspector/>
 
 **How to Use**:
 
