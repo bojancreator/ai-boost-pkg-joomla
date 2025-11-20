@@ -84,25 +84,64 @@ class PerformanceService extends AbstractService
             return 0;
         }
 
-        $processed = 0;
+        $wrapMarkers = $this->params->get('debug_wrap_markers', 0);
+        $ogTagsCount = 0;
+        $standardTagsCount = 0;
+
+        // Separate OpenGraph tags from standard tags for organized debug output
+        $ogTags = [];
+        $standardTags = [];
+
         foreach ($this->metaBatch as $key => $content) {
             [$type, $name] = explode(':', $key, 2);
-
+            
             if ($type === 'property') {
-                // OpenGraph/Facebook meta - use proper property attribute
-                $document->addCustomTag('<meta property="' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '" content="' . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . '">');
+                $ogTags[] = ['name' => $name, 'content' => $content];
             } else {
-                // Standard meta tags
-                $document->setMetaData($name, $content);
+                $standardTags[] = ['name' => $name, 'content' => $content];
+            }
+        }
+
+        // Process OpenGraph tags with debug markers
+        if (!empty($ogTags)) {
+            if ($wrapMarkers) {
+                $document->addCustomTag("\n<!-- [JoomlaBoost DEBUG: OpenGraph Meta Tags - " . count($ogTags) . " tag(s)] -->");
             }
 
-            $processed++;
+            foreach ($ogTags as $tag) {
+                $document->addCustomTag('<meta property="' . htmlspecialchars($tag['name'], ENT_QUOTES, 'UTF-8') . '" content="' . htmlspecialchars($tag['content'], ENT_QUOTES, 'UTF-8') . '">');
+                $ogTagsCount++;
+            }
+
+            if ($wrapMarkers) {
+                $document->addCustomTag("<!-- [JoomlaBoost DEBUG END: OpenGraph Meta Tags] -->\n");
+            }
+        }
+
+        // Process standard meta tags with debug markers
+        if (!empty($standardTags)) {
+            if ($wrapMarkers) {
+                $document->addCustomTag("\n<!-- [JoomlaBoost DEBUG: Standard Meta Tags - " . count($standardTags) . " tag(s)] -->");
+            }
+
+            foreach ($standardTags as $tag) {
+                $document->setMetaData($tag['name'], $tag['content']);
+                $standardTagsCount++;
+            }
+
+            if ($wrapMarkers) {
+                $document->addCustomTag("<!-- [JoomlaBoost DEBUG END: Standard Meta Tags] -->\n");
+            }
         }
 
         // Clear the batch after processing
         $this->metaBatch = [];
 
-        $this->logDebug("Processed {$processed} meta tags in batch operation");
+        $processed = $ogTagsCount + $standardTagsCount;
+        $this->logDebug("Processed {$processed} meta tags in batch operation", [
+            'opengraph' => $ogTagsCount,
+            'standard' => $standardTagsCount
+        ]);
         return $processed;
     }
 

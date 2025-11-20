@@ -272,10 +272,17 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         return [
             'available' => [
-                'DomainDetectionService', 'RobotService', 'SitemapService',
-                'SchemaService', 'OpenGraphService', 'AnalyticsService',
-                'MetaPixelService', 'HreflangService', 'PerformanceService',
-                'HealthService', 'InjectionService'
+                'DomainDetectionService',
+                'RobotService',
+                'SitemapService',
+                'SchemaService',
+                'OpenGraphService',
+                'AnalyticsService',
+                'MetaPixelService',
+                'HreflangService',
+                'PerformanceService',
+                'HealthService',
+                'InjectionService'
             ],
             'loaded' => class_exists('JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer')
         ];
@@ -488,20 +495,39 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
+        $startTime = microtime(true);
+        $wrapMarkers = $this->params->get('debug_wrap_markers', 0);
+
         try {
+            if ($wrapMarkers) {
+                $document->addCustomTag("\n<!-- [JoomlaBoost DEBUG START: OpenGraph Service] -->");
+            }
+
             if ($this->openGraphService === null) {
                 $this->openGraphService = new OpenGraphService($this->getApp(), $this->params);
             }
 
             $this->openGraphService->generateOpenGraphTags();
+
+            if ($wrapMarkers) {
+                $duration = round((microtime(true) - $startTime) * 1000, 2);
+                $document->addCustomTag("<!-- [JoomlaBoost DEBUG END: OpenGraph Service | {$duration}ms] -->\n");
+            }
+
             $this->logDebug('OpenGraph tags generated with performance optimizations');
         } catch (\Throwable $e) {
+            if ($wrapMarkers) {
+                $document->addCustomTag("<!-- [JoomlaBoost DEBUG ERROR: OpenGraph - {$e->getMessage()}] -->\n");
+            }
             $this->logDebug('OpenGraph generation failed: ' . $e->getMessage());
         }
     }
 
     private function addOptimizedSchemaMarkup(HtmlDocument $document): void
     {
+        $startTime = microtime(true);
+        $wrapMarkers = $this->params->get('debug_wrap_markers', 0);
+
         try {
             if ($this->schemaService === null) {
                 $this->schemaService = new SchemaService($this->getApp(), $this->params);
@@ -512,19 +538,36 @@ class PlgSystemJoomlaboost extends CMSPlugin
                 return;
             }
 
+            if ($wrapMarkers) {
+                $document->addCustomTag("\n<!-- [JoomlaBoost DEBUG START: Schema.org Service] -->");
+            }
+
             $schema = $this->schemaService->generateSchema();
             if (!empty($schema)) {
                 $jsonLd = '<script type="application/ld+json">' . "\n";
                 $jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
                 $jsonLd .= "\n" . '</script>';
                 $document->addCustomTag($jsonLd);
+
+                if ($wrapMarkers) {
+                    $duration = round((microtime(true) - $startTime) * 1000, 2);
+                    $schemasCount = count($schema);
+                    $document->addCustomTag("<!-- [JoomlaBoost DEBUG END: Schema.org Service | {$schemasCount} schema(s) | {$duration}ms] -->\n");
+                }
+
                 $this->logDebug('Schema.org JSON-LD generated with performance optimizations', [
                     'schemas_count' => count($schema)
                 ]);
             } else {
+                if ($wrapMarkers) {
+                    $document->addCustomTag("<!-- [JoomlaBoost DEBUG: No schema data generated] -->\n");
+                }
                 $this->logDebug('Schema: No schema data generated');
             }
         } catch (\Throwable $e) {
+            if ($wrapMarkers) {
+                $document->addCustomTag("<!-- [JoomlaBoost DEBUG ERROR: Schema - {$e->getMessage()}] -->\n");
+            }
             $this->logDebug('Schema.org generation failed: ' . $e->getMessage());
         }
     }
