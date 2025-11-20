@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later</license>
     <authorEmail>info@joomlaboost.com</authorEmail>
     <authorUrl>https://joomlaboost.com</authorUrl>
-    <version>0.1.32</version>
+    <version>0.1.34</version>
     <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
 
     <!-- System Requirements -->
@@ -141,6 +141,72 @@
                        description="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_DESC"
                        default=""
                        directory="images"/>
+
+                <!-- Schema.org Type Selection -->
+                <field name="schema_type"
+                       type="list"
+                       label="Schema.org Organization Type"
+                       description="Choose the type of schema for your organization. Auto-detect uses site characteristics, LocalBusiness includes geo/address data, Organization is generic."
+                       default="auto">
+                    <option value="auto">Auto-detect (recommended)</option>
+                    <option value="localbusiness">LocalBusiness (for physical locations)</option>
+                    <option value="organization">Organization (generic)</option>
+                </field>
+
+                <!-- LocalBusiness Geo Coordinates -->
+                <field name="schema_latitude"
+                       type="text"
+                       label="Latitude"
+                       description="Geographic latitude for LocalBusiness schema (e.g., 44.0165)"
+                       default=""
+                       showon="schema_type:localbusiness"
+                       hint="44.0165"/>
+
+                <field name="schema_longitude"
+                       type="text"
+                       label="Longitude"
+                       description="Geographic longitude for LocalBusiness schema (e.g., 21.0059)"
+                       default=""
+                       showon="schema_type:localbusiness"
+                       hint="21.0059"/>
+
+                <!-- LocalBusiness Address -->
+                <field name="schema_address_country"
+                       type="text"
+                       label="Country Code"
+                       description="ISO 3166-1 alpha-2 country code (e.g., RS, US, GB)"
+                       default=""
+                       showon="schema_type:localbusiness"
+                       hint="RS"/>
+
+                <field name="schema_address_locality"
+                       type="text"
+                       label="City/Locality"
+                       description="City or locality for LocalBusiness address"
+                       default=""
+                       showon="schema_type:localbusiness"
+                       hint="Belgrade"/>
+
+                <!-- LocalBusiness Service Details -->
+                <field name="schema_price_range"
+                       type="list"
+                       label="Price Range"
+                       description="Price range indicator for services"
+                       default="$$"
+                       showon="schema_type:localbusiness">
+                    <option value="$">$ (Budget)</option>
+                    <option value="$$">$$ (Moderate)</option>
+                    <option value="$$$">$$$ (Expensive)</option>
+                    <option value="$$$$">$$$$ (Very Expensive)</option>
+                </field>
+
+                <field name="schema_opening_hours"
+                       type="text"
+                       label="Opening Hours"
+                       description="Business opening hours (e.g., Mo-Su 09:00-18:00)"
+                       default="Mo-Su 09:00-18:00"
+                       showon="schema_type:localbusiness"
+                       hint="Mo-Su 09:00-18:00"/>
 
             </fieldset>
 

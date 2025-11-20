@@ -180,8 +180,8 @@ class SchemaService extends AbstractService
         $orgName = $this->params->get('org_name', '');
         $siteName = !empty($orgName) ? $orgName : $config->get('sitename');
 
-        // Get organization logo from plugin config
-        $orgLogo = $this->params->get('org_logo', '');
+        // Get organization logo from plugin config (fallback to og_image)
+        $orgLogo = $this->params->get('og_image', $this->params->get('org_logo', ''));
         if (!empty($orgLogo)) {
             // Convert relative path to absolute URL
             if (!str_starts_with($orgLogo, 'http')) {
@@ -189,50 +189,60 @@ class SchemaService extends AbstractService
             }
         }
 
-        // Check if this is OffRoad Serbia site to add LocalBusiness schema
-        $isOffRoadSite = (
-            str_contains($baseUrl, 'offroadserbia') ||
-            str_contains((string)$siteName, 'OffRoad') ||
-            str_contains((string)$siteName, '4X4')
-        );
+        // Determine schema type from config (auto-detect by default)
+        $schemaType = $this->params->get('schema_type', 'auto');
+        
+        if ($schemaType === 'auto') {
+            // Auto-detect based on presence of geo/business fields
+            $hasGeo = !empty($this->params->get('schema_latitude')) || !empty($this->params->get('schema_longitude'));
+            $hasAddress = !empty($this->params->get('schema_address_country'));
+            $schemaType = ($hasGeo || $hasAddress) ? 'localbusiness' : 'organization';
+        }
 
-        if ($isOffRoadSite) {
-            // Enhanced LocalBusiness schema for OffRoad Serbia
+        if ($schemaType === 'localbusiness') {
+            // LocalBusiness schema with geo and address data
             $schema = [
                 '@context' => 'https://schema.org',
                 '@type' => 'LocalBusiness',
                 'name' => $siteName,
                 'url' => $baseUrl,
-                'description' => $config->get('MetaDesc') ?: 'Off Road Serbia - Dedicated to nature and 4x4 off road adventures in Serbia and region',
+                'description' => $config->get('MetaDesc') ?: ($siteName . ' - Professional services'),
                 'address' => [
                     '@type' => 'PostalAddress',
-                    'addressCountry' => 'RS',
-                    'addressLocality' => 'Serbia'
-                ],
-                'geo' => [
-                    '@type' => 'GeoCoordinates',
-                    'latitude' => 44.0165,  // Serbia center
-                    'longitude' => 21.0059
-                ],
-                'areaServed' => [
-                    '@type' => 'Country',
-                    'name' => 'Serbia'
+                    'addressCountry' => $this->params->get('schema_address_country', 'RS'),
+                    'addressLocality' => $this->params->get('schema_address_locality', 'Belgrade')
                 ],
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'contactType' => 'customer service',
                     'availableLanguage' => [$this->getLanguageCode(), 'en']
                 ],
-                'serviceType' => [
-                    'Off-road tours',
-                    '4x4 adventures',
-                    'Nature experiences',
-                    'Outdoor activities'
-                ],
-                'priceRange' => '$$',
-                'openingHours' => 'Mo-Su 09:00-18:00',
+                'priceRange' => $this->params->get('schema_price_range', '$$'),
+                'openingHours' => $this->params->get('schema_opening_hours', 'Mo-Su 09:00-18:00'),
                 'sameAs' => $this->getSocialMediaProfiles($baseUrl)
             ];
+
+            // Add geo coordinates if configured
+            $latitude = $this->params->get('schema_latitude', '');
+            $longitude = $this->params->get('schema_longitude', '');
+            if (!empty($latitude) && !empty($longitude)) {
+                $schema['geo'] = [
+                    '@type' => 'GeoCoordinates',
+                    'latitude' => (float)$latitude,
+                    'longitude' => (float)$longitude
+                ];
+                
+                // Add areaServed based on country
+                $countryCode = $this->params->get('schema_address_country', 'RS');
+                $countryNames = [
+                    'RS' => 'Serbia', 'US' => 'United States', 'GB' => 'United Kingdom',
+                    'DE' => 'Germany', 'FR' => 'France', 'IT' => 'Italy'
+                ];
+                $schema['areaServed'] = [
+                    '@type' => 'Country',
+                    'name' => $countryNames[$countryCode] ?? $countryCode
+                ];
+            }
 
             // Add logo if configured
             if (!empty($orgLogo)) {
