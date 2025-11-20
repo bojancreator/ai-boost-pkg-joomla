@@ -174,109 +174,152 @@ class SchemaService extends AbstractService
     private function generateOrganizationSchema(): array
     {
         $config = Factory::getApplication()->getConfig();
-        $siteName = $config->get('sitename');
         $baseUrl = $this->getSchemaUrl();
+        $siteName = $this->getOrganizationName($config);
+        $schemaType = $this->determineSchemaType();
+        $orgLogo = $this->getOrganizationLogo($baseUrl);
 
-        // Get organization name: plugin config → Joomla site name
+        return $schemaType === 'localbusiness'
+            ? $this->buildLocalBusinessSchema($siteName, $baseUrl, $config, $orgLogo)
+            : $this->buildOrganizationSchema($siteName, $baseUrl, $config, $orgLogo);
+    }
+
+    /**
+     * Get organization name from config
+     */
+    private function getOrganizationName(object $config): string
+    {
         $orgName = $this->params->get('org_name', '');
-        $siteName = !empty($orgName) ? $orgName : $config->get('sitename');
+        return !empty($orgName) ? $orgName : $config->get('sitename');
+    }
 
-        // Get organization logo: og_image first, then org_logo as fallback (same as OpenGraph)
+    /**
+     * Get organization logo URL
+     */
+    private function getOrganizationLogo(string $baseUrl): string
+    {
         $orgLogo = $this->params->get('og_image', $this->params->get('org_logo', ''));
-        if (!empty($orgLogo)) {
-            // Convert relative path to absolute URL
-            if (!str_starts_with($orgLogo, 'http')) {
-                $orgLogo = rtrim($baseUrl, '/') . '/' . ltrim($orgLogo, '/');
-            }
+        if (!empty($orgLogo) && !str_starts_with($orgLogo, 'http')) {
+            return rtrim($baseUrl, '/') . '/' . ltrim($orgLogo, '/');
         }
+        return $orgLogo;
+    }
 
-        // Determine schema type from config (auto-detect by default)
+    /**
+     * Determine schema type (Organization vs LocalBusiness)
+     */
+    private function determineSchemaType(): string
+    {
         $schemaType = $this->params->get('schema_type', 'auto');
 
         if ($schemaType === 'auto') {
-            // Auto-detect based on presence of geo/business fields
             $hasGeo = !empty($this->params->get('schema_latitude')) || !empty($this->params->get('schema_longitude'));
             $hasAddress = !empty($this->params->get('schema_address_country'));
-            $schemaType = ($hasGeo || $hasAddress) ? 'localbusiness' : 'organization';
+            return ($hasGeo || $hasAddress) ? 'localbusiness' : 'organization';
         }
 
-        if ($schemaType === 'localbusiness') {
-            // LocalBusiness schema with geo and address data
-            $schema = [
-                '@context' => 'https://schema.org',
-                '@type' => 'LocalBusiness',
-                'name' => $siteName,
-                'url' => $baseUrl,
-                'description' => $config->get('MetaDesc') ?: ($siteName . ' - Professional services'),
-                'address' => [
-                    '@type' => 'PostalAddress',
-                    'addressCountry' => $this->params->get('schema_address_country', 'RS'),
-                    'addressLocality' => $this->params->get('schema_address_locality', 'Belgrade')
-                ],
-                'contactPoint' => [
-                    '@type' => 'ContactPoint',
-                    'contactType' => 'customer service',
-                    'availableLanguage' => [$this->getLanguageCode(), 'en']
-                ],
-                'priceRange' => $this->params->get('schema_price_range', '$$'),
-                'openingHours' => $this->params->get('schema_opening_hours', 'Mo-Su 09:00-18:00'),
-                'sameAs' => $this->getSocialMediaProfiles($baseUrl)
-            ];
+        return $schemaType;
+    }
 
-            // Add geo coordinates if configured
-            $latitude = $this->params->get('schema_latitude', '');
-            $longitude = $this->params->get('schema_longitude', '');
-            if (!empty($latitude) && !empty($longitude)) {
-                $schema['geo'] = [
-                    '@type' => 'GeoCoordinates',
-                    'latitude' => (float)$latitude,
-                    'longitude' => (float)$longitude
-                ];
+    /**
+     * Build LocalBusiness schema
+     */
+    private function buildLocalBusinessSchema(string $siteName, string $baseUrl, object $config, string $orgLogo): array
+    {
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'LocalBusiness',
+            'name' => $siteName,
+            'url' => $baseUrl,
+            'description' => $config->get('MetaDesc') ?: ($siteName . ' - Professional services'),
+            'address' => [
+                '@type' => 'PostalAddress',
+                'addressCountry' => $this->params->get('schema_address_country', 'RS'),
+                'addressLocality' => $this->params->get('schema_address_locality', 'Belgrade')
+            ],
+            'contactPoint' => [
+                '@type' => 'ContactPoint',
+                'contactType' => 'customer service',
+                'availableLanguage' => [$this->getLanguageCode(), 'en']
+            ],
+            'priceRange' => $this->params->get('schema_price_range', '$$'),
+            'openingHours' => $this->params->get('schema_opening_hours', 'Mo-Su 09:00-18:00'),
+            'sameAs' => $this->getSocialMediaProfiles($baseUrl)
+        ];
 
-                // Add areaServed based on country
-                $countryCode = $this->params->get('schema_address_country', 'RS');
-                $countryNames = [
-                    'RS' => 'Serbia',
-                    'US' => 'United States',
-                    'GB' => 'United Kingdom',
-                    'DE' => 'Germany',
-                    'FR' => 'France',
-                    'IT' => 'Italy'
-                ];
-                $schema['areaServed'] = [
-                    '@type' => 'Country',
-                    'name' => $countryNames[$countryCode] ?? $countryCode
-                ];
-            }
-
-            // Add logo and image if configured
-            if (!empty($orgLogo)) {
-                $schema['logo'] = $orgLogo;
-                $schema['image'] = $orgLogo;
-            }
-        } else {
-            // Standard Organization schema for other sites
-            $schema = [
-                '@context' => 'https://schema.org',
-                '@type' => 'Organization',
-                'name' => $siteName,
-                'url' => $baseUrl,
-                'description' => $config->get('MetaDesc'),
-                'contactPoint' => [
-                    '@type' => 'ContactPoint',
-                    'contactType' => 'customer service',
-                    'availableLanguage' => $this->getLanguageCode()
-                ]
-            ];
-
-            // Add logo and image if configured
-            if (!empty($orgLogo)) {
-                $schema['logo'] = $orgLogo;
-                $schema['image'] = $orgLogo;
-            }
-        }
+        $this->addGeoDataToSchema($schema);
+        $this->addLogoToSchema($schema, $orgLogo);
 
         return $schema;
+    }
+
+    /**
+     * Build Organization schema
+     */
+    private function buildOrganizationSchema(string $siteName, string $baseUrl, object $config, string $orgLogo): array
+    {
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => $siteName,
+            'url' => $baseUrl,
+            'description' => $config->get('MetaDesc'),
+            'contactPoint' => [
+                '@type' => 'ContactPoint',
+                'contactType' => 'customer service',
+                'availableLanguage' => $this->getLanguageCode()
+            ]
+        ];
+
+        $this->addLogoToSchema($schema, $orgLogo);
+
+        return $schema;
+    }
+
+    /**
+     * Add geo coordinates to schema
+     */
+    private function addGeoDataToSchema(array &$schema): void
+    {
+        $latitude = $this->params->get('schema_latitude', '');
+        $longitude = $this->params->get('schema_longitude', '');
+
+        if (empty($latitude) || empty($longitude)) {
+            return;
+        }
+
+        $schema['geo'] = [
+            '@type' => 'GeoCoordinates',
+            'latitude' => (float)$latitude,
+            'longitude' => (float)$longitude
+        ];
+
+        // Add areaServed
+        $countryCode = $this->params->get('schema_address_country', 'RS');
+        $countryNames = [
+            'RS' => 'Serbia',
+            'US' => 'United States',
+            'GB' => 'United Kingdom',
+            'DE' => 'Germany',
+            'FR' => 'France',
+            'IT' => 'Italy'
+        ];
+
+        $schema['areaServed'] = [
+            '@type' => 'Country',
+            'name' => $countryNames[$countryCode] ?? $countryCode
+        ];
+    }
+
+    /**
+     * Add logo to schema
+     */
+    private function addLogoToSchema(array &$schema, string $orgLogo): void
+    {
+        if (!empty($orgLogo)) {
+            $schema['logo'] = $orgLogo;
+            $schema['image'] = $orgLogo;
+        }
     }
 
     /**
@@ -634,122 +677,97 @@ class SchemaService extends AbstractService
     {
         $faqItems = [];
 
-        // Method 1: YooTheme Accordion (uk-accordion)
-        $yooAccordionPattern = '/<li[^>]*class="[^"]*uk-(?:open|close)[^"]*"[^>]*>.*?<a[^>]*class="[^"]*uk-accordion-title[^"]*"[^>]*>(.*?)<\/a>.*?<div[^>]*class="[^"]*uk-accordion-content[^"]*"[^>]*>(.*?)<\/div>/is';
-        if (preg_match_all($yooAccordionPattern, $content, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $question = strip_tags($match[1]);
-                $answer = strip_tags($match[2]);
+        // Pattern definitions with validation rules
+        $patterns = [
+            'yootheme' => [
+                'regex' => '/<li[^>]*class="[^"]*uk-(?:open|close)[^"]*"[^>]*>.*?<a[^>]*class="[^"]*uk-accordion-title[^"]*"[^>]*>(.*?)<\/a>.*?<div[^>]*class="[^"]*uk-accordion-content[^"]*"[^>]*>(.*?)<\/div>/is',
+                'minAnswer' => 10
+            ],
+            'bootstrap' => [
+                'regex' => '/<button[^>]*data-(?:bs-)?target="[^"]*"[^>]*>(.*?)<\/button>.*?<div[^>]*id="[^"]*"[^>]*class="[^"]*collapse[^"]*"[^>]*>(.*?)<\/div>/is',
+                'minAnswer' => 10
+            ],
+            'definition' => [
+                'regex' => '/<dt[^>]*>(.*?)<\/dt>\s*<dd[^>]*>(.*?)<\/dd>/is',
+                'minAnswer' => 10
+            ],
+            'heading' => [
+                'regex' => '/<h[2-4][^>]*>(.*?(?:pitanje|question|Q:|kako|why|zašto|šta|what|when|where|kada|gde).*?)<\/h[2-4]>\s*(?:<[^>]+>)*(.*?)(?=<h[1-6]|<\/div>|<\/article>|$)/is',
+                'minAnswer' => 20
+            ],
+            'bold' => [
+                'regex' => '/<(?:strong|b)[^>]*>(.*?(?:pitanje|question|Q:|kako|odgovor|answer|A:).*?)<\/(?:strong|b)>\s*[:\-\s]*([^<]*(?:<(?!(?:strong|b|h[1-6]))[^>]*>[^<]*<\/[^>]+>[^<]*)*)/is',
+                'minAnswer' => 15
+            ]
+        ];
 
-                // Clean up answer text
-                $answer = preg_replace('/\s+/', ' ', $answer);
-                $answer = trim($answer);
+        // Extract FAQ items using all patterns
+        foreach ($patterns as $config) {
+            $faqItems = array_merge($faqItems, $this->parseFAQPattern($content, $config));
+        }
 
-                if (strlen($question) > 5 && strlen($answer) > 10) {
-                    $faqItems[] = [
-                        '@type' => 'Question',
-                        'name' => trim($question),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => $answer
-                        ]
-                    ];
-                }
+        return $this->deduplicateFAQs($faqItems);
+    }
+
+    /**
+     * Parse FAQ pattern and return items
+     */
+    private function parseFAQPattern(string $content, array $config): array
+    {
+        $items = [];
+
+        if (!preg_match_all($config['regex'], $content, $matches, PREG_SET_ORDER)) {
+            return $items;
+        }
+
+        foreach ($matches as $match) {
+            $question = strip_tags($match[1]);
+            $answer = $this->cleanAnswerText(strip_tags($match[2]));
+
+            if ($this->isValidFAQ($question, $answer, $config['minAnswer'])) {
+                $items[] = $this->buildFAQItem($question, $answer);
             }
         }
 
-        // Method 2: Bootstrap Accordion/Collapse
-        $bootstrapPattern = '/<button[^>]*data-(?:bs-)?target="[^"]*"[^>]*>(.*?)<\/button>.*?<div[^>]*id="[^"]*"[^>]*class="[^"]*collapse[^"]*"[^>]*>(.*?)<\/div>/is';
-        if (preg_match_all($bootstrapPattern, $content, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $question = strip_tags($match[1]);
-                $answer = strip_tags($match[2]);
+        return $items;
+    }
 
-                $answer = preg_replace('/\s+/', ' ', $answer);
-                $answer = trim($answer);
+    /**
+     * Clean answer text
+     */
+    private function cleanAnswerText(string $text): string
+    {
+        return trim(preg_replace('/\s+/', ' ', $text));
+    }
 
-                if (strlen($question) > 5 && strlen($answer) > 10) {
-                    $faqItems[] = [
-                        '@type' => 'Question',
-                        'name' => trim($question),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => $answer
-                        ]
-                    ];
-                }
-            }
-        }
+    /**
+     * Validate FAQ item
+     */
+    private function isValidFAQ(string $question, string $answer, int $minAnswer): bool
+    {
+        return strlen($question) > 5 && strlen($answer) >= $minAnswer;
+    }
 
-        // Method 3: Definition lists (dt/dd) - classic HTML
-        $dlPattern = '/<dt[^>]*>(.*?)<\/dt>\s*<dd[^>]*>(.*?)<\/dd>/is';
-        if (preg_match_all($dlPattern, $content, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $question = strip_tags($match[1]);
-                $answer = strip_tags($match[2]);
+    /**
+     * Build FAQ schema item
+     */
+    private function buildFAQItem(string $question, string $answer): array
+    {
+        return [
+            '@type' => 'Question',
+            'name' => trim($question),
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text' => $answer
+            ]
+        ];
+    }
 
-                if (strlen($question) > 5 && strlen($answer) > 10) {
-                    $faqItems[] = [
-                        '@type' => 'Question',
-                        'name' => trim($question),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => trim($answer)
-                        ]
-                    ];
-                }
-            }
-        }
-
-        // Method 4: Headings with question keywords (multilingual)
-        $qaPattern = '/<h[2-4][^>]*>(.*?(?:pitanje|question|Q:|kako|why|zašto|šta|what|when|where|kada|gde).*?)<\/h[2-4]>\s*(?:<[^>]+>)*(.*?)(?=<h[1-6]|<\/div>|<\/article>|$)/is';
-        if (preg_match_all($qaPattern, $content, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $question = strip_tags($match[1]);
-                $answer = strip_tags($match[2]);
-
-                // Clean up answer text
-                $answer = preg_replace('/\s+/', ' ', $answer);
-                $answer = trim($answer);
-
-                if (strlen($question) > 5 && strlen($answer) > 20) {
-                    $faqItems[] = [
-                        '@type' => 'Question',
-                        'name' => trim($question),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => $answer
-                        ]
-                    ];
-                }
-            }
-        }
-
-        // Method 5: Strong/bold Q&A patterns
-        $boldQAPattern = '/<(?:strong|b)[^>]*>(.*?(?:pitanje|question|Q:|kako|odgovor|answer|A:).*?)<\/(?:strong|b)>\s*[:\-\s]*([^<]*(?:<(?!(?:strong|b|h[1-6]))[^>]*>[^<]*<\/[^>]+>[^<]*)*)/is';
-        if (preg_match_all($boldQAPattern, $content, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $questionText = strip_tags($match[1]);
-                $answerText = strip_tags($match[2]);
-
-                // Clean up
-                $answerText = preg_replace('/\s+/', ' ', $answerText);
-                $answerText = trim($answerText);
-
-                if (strlen($questionText) > 5 && strlen($answerText) > 15) {
-                    $faqItems[] = [
-                        '@type' => 'Question',
-                        'name' => trim($questionText),
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => $answerText
-                        ]
-                    ];
-                }
-            }
-        }
-
-        // Remove duplicates based on question text
+    /**
+     * Remove duplicate FAQs
+     */
+    private function deduplicateFAQs(array $faqItems): array
+    {
         $uniqueFAQs = [];
         $seenQuestions = [];
 
@@ -761,7 +779,6 @@ class SchemaService extends AbstractService
             }
         }
 
-        // Limit to reasonable number for performance
         return array_slice($uniqueFAQs, 0, 20);
     }
 
@@ -806,47 +823,79 @@ class SchemaService extends AbstractService
         $images = [];
 
         // First try JSON images (fastest)
-        if (!empty($article->images)) {
-            $articleImages = json_decode($article->images, true);
-            if (is_array($articleImages)) {
-                if (!empty($articleImages['image_intro'])) {
-                    $images[] = $this->normalizeImageUrl($articleImages['image_intro']);
-                }
-                if (!empty($articleImages['image_fulltext'])) {
-                    $fullImage = $this->normalizeImageUrl($articleImages['image_fulltext']);
-                    if (!in_array($fullImage, $images, true)) {
-                        $images[] = $fullImage;
-                    }
-                }
-            }
-        }
+        $images = $this->extractJSONImages($article, $images);
 
-        // If we have images from JSON, limit content parsing for performance
-        if (!empty($images)) {
-            // Only extract first 2 images from content to avoid over-processing
-            $content = substr((string)($article->introtext ?? ''), 0, 2000); // Limit content parsing
-            if (preg_match('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches)) {
-                $src = $this->normalizeImageUrl($matches[1]);
-                if (!in_array($src, $images, true)) {
-                    $images[] = $src;
-                }
-            }
-        } else {
-            // No JSON images, do full content extraction
-            $content = (string)($article->introtext ?? '') . (string)($article->fulltext ?? '');
-            preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches);
-
-            if (!empty($matches[1])) {
-                foreach (array_slice($matches[1], 0, 5) as $src) { // Limit to 5 images max
-                    $normalizedSrc = $this->normalizeImageUrl($src);
-                    if (!in_array($normalizedSrc, $images, true)) {
-                        $images[] = $normalizedSrc;
-                    }
-                }
-            }
-        }
+        // Parse content images based on JSON results
+        $images = !empty($images)
+            ? $this->extractLimitedContentImages($article, $images)
+            : $this->extractFullContentImages($article, $images);
 
         return array_slice($images, 0, 3); // Maximum 3 images for performance
+    }
+
+    /**
+     * Extract images from JSON metadata
+     */
+    private function extractJSONImages(object $article, array $images): array
+    {
+        if (empty($article->images)) {
+            return $images;
+        }
+
+        $articleImages = json_decode($article->images, true);
+        if (!is_array($articleImages)) {
+            return $images;
+        }
+
+        if (!empty($articleImages['image_intro'])) {
+            $images[] = $this->normalizeImageUrl($articleImages['image_intro']);
+        }
+
+        if (!empty($articleImages['image_fulltext'])) {
+            $fullImage = $this->normalizeImageUrl($articleImages['image_fulltext']);
+            if (!in_array($fullImage, $images, true)) {
+                $images[] = $fullImage;
+            }
+        }
+
+        return $images;
+    }
+
+    /**
+     * Extract limited images from content (when JSON exists)
+     */
+    private function extractLimitedContentImages(object $article, array $images): array
+    {
+        $content = substr((string)($article->introtext ?? ''), 0, 2000);
+        if (preg_match('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches)) {
+            $src = $this->normalizeImageUrl($matches[1]);
+            if (!in_array($src, $images, true)) {
+                $images[] = $src;
+            }
+        }
+        return $images;
+    }
+
+    /**
+     * Extract full images from content (when no JSON)
+     */
+    private function extractFullContentImages(object $article, array $images): array
+    {
+        $content = (string)($article->introtext ?? '') . (string)($article->fulltext ?? '');
+        preg_match_all('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', $content, $matches);
+
+        if (empty($matches[1])) {
+            return $images;
+        }
+
+        foreach (array_slice($matches[1], 0, 5) as $src) {
+            $normalizedSrc = $this->normalizeImageUrl($src);
+            if (!in_array($normalizedSrc, $images, true)) {
+                $images[] = $normalizedSrc;
+            }
+        }
+
+        return $images;
     }
 
     /**
