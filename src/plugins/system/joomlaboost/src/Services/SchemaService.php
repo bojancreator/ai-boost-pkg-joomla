@@ -625,7 +625,54 @@ class SchemaService extends AbstractService
     {
         $faqItems = [];
 
-        // Method 1: Extract from definition lists (dt/dd)
+        // Method 1: YooTheme Accordion (uk-accordion)
+        $yooAccordionPattern = '/<li[^>]*class="[^"]*uk-(?:open|close)[^"]*"[^>]*>.*?<a[^>]*class="[^"]*uk-accordion-title[^"]*"[^>]*>(.*?)<\/a>.*?<div[^>]*class="[^"]*uk-accordion-content[^"]*"[^>]*>(.*?)<\/div>/is';
+        if (preg_match_all($yooAccordionPattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $question = strip_tags($match[1]);
+                $answer = strip_tags($match[2]);
+                
+                // Clean up answer text
+                $answer = preg_replace('/\s+/', ' ', $answer);
+                $answer = trim($answer);
+
+                if (strlen($question) > 5 && strlen($answer) > 10) {
+                    $faqItems[] = [
+                        '@type' => 'Question',
+                        'name' => trim($question),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $answer
+                        ]
+                    ];
+                }
+            }
+        }
+
+        // Method 2: Bootstrap Accordion/Collapse
+        $bootstrapPattern = '/<button[^>]*data-(?:bs-)?target="[^"]*"[^>]*>(.*?)<\/button>.*?<div[^>]*id="[^"]*"[^>]*class="[^"]*collapse[^"]*"[^>]*>(.*?)<\/div>/is';
+        if (preg_match_all($bootstrapPattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $question = strip_tags($match[1]);
+                $answer = strip_tags($match[2]);
+                
+                $answer = preg_replace('/\s+/', ' ', $answer);
+                $answer = trim($answer);
+
+                if (strlen($question) > 5 && strlen($answer) > 10) {
+                    $faqItems[] = [
+                        '@type' => 'Question',
+                        'name' => trim($question),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $answer
+                        ]
+                    ];
+                }
+            }
+        }
+
+        // Method 3: Definition lists (dt/dd) - classic HTML
         $dlPattern = '/<dt[^>]*>(.*?)<\/dt>\s*<dd[^>]*>(.*?)<\/dd>/is';
         if (preg_match_all($dlPattern, $content, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
@@ -645,8 +692,8 @@ class SchemaService extends AbstractService
             }
         }
 
-        // Method 2: Extract from headings followed by paragraphs/divs
-        $qaPattern = '/<h[1-6][^>]*>(.*?(?:pitanje|question|Q:|kako|why|zašto|šta).*?)<\/h[1-6]>\s*(?:<[^>]+>)*(.*?)(?=<h[1-6]|<\/div>|<\/article>|$)/is';
+        // Method 4: Headings with question keywords (multilingual)
+        $qaPattern = '/<h[2-4][^>]*>(.*?(?:pitanje|question|Q:|kako|why|zašto|šta|what|when|where|kada|gde).*?)<\/h[2-4]>\s*(?:<[^>]+>)*(.*?)(?=<h[1-6]|<\/div>|<\/article>|$)/is';
         if (preg_match_all($qaPattern, $content, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
                 $question = strip_tags($match[1]);
@@ -669,7 +716,7 @@ class SchemaService extends AbstractService
             }
         }
 
-        // Method 3: Extract from strong/bold Q&A patterns
+        // Method 5: Strong/bold Q&A patterns
         $boldQAPattern = '/<(?:strong|b)[^>]*>(.*?(?:pitanje|question|Q:|kako|odgovor|answer|A:).*?)<\/(?:strong|b)>\s*[:\-\s]*([^<]*(?:<(?!(?:strong|b|h[1-6]))[^>]*>[^<]*<\/[^>]+>[^<]*)*)/is';
         if (preg_match_all($boldQAPattern, $content, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
