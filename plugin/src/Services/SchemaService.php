@@ -177,6 +177,19 @@ class SchemaService extends AbstractService
         $siteName = $config->get('sitename');
         $baseUrl = $this->getSchemaUrl();
 
+        // Get organization name: plugin config → Joomla site name
+        $orgName = $this->params->get('org_name', '');
+        $siteName = !empty($orgName) ? $orgName : $config->get('sitename');
+
+        // Get organization logo: og_image first, then org_logo as fallback (same as OpenGraph)
+        $orgLogo = $this->params->get('og_image', $this->params->get('org_logo', ''));
+        if (!empty($orgLogo)) {
+            // Convert relative path to absolute URL
+            if (!str_starts_with($orgLogo, 'http')) {
+                $orgLogo = rtrim($baseUrl, '/') . '/' . ltrim($orgLogo, '/');
+            }
+        }
+
         // Check if this is OffRoad Serbia site to add LocalBusiness schema
         $isOffRoadSite = (
             str_contains($baseUrl, 'offroadserbia') ||
@@ -221,6 +234,12 @@ class SchemaService extends AbstractService
                 'openingHours' => 'Mo-Su 09:00-18:00',
                 'sameAs' => $this->getSocialMediaProfiles($baseUrl)
             ];
+
+            // Add logo and image if configured
+            if (!empty($orgLogo)) {
+                $schema['logo'] = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
         } else {
             // Standard Organization schema for other sites
             $schema = [
@@ -235,6 +254,12 @@ class SchemaService extends AbstractService
                     'availableLanguage' => $this->getLanguageCode()
                 ]
             ];
+
+            // Add logo and image if configured
+            if (!empty($orgLogo)) {
+                $schema['logo'] = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
         }
 
         return $schema;

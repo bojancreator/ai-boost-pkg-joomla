@@ -174,8 +174,20 @@ class SchemaService extends AbstractService
     private function generateOrganizationSchema(): array
     {
         $config = Factory::getApplication()->getConfig();
-        $siteName = $config->get('sitename');
         $baseUrl = $this->getSchemaUrl();
+
+        // Get organization name: plugin config → Joomla site name
+        $orgName = $this->params->get('org_name', '');
+        $siteName = !empty($orgName) ? $orgName : $config->get('sitename');
+
+        // Get organization logo from plugin config
+        $orgLogo = $this->params->get('org_logo', '');
+        if (!empty($orgLogo)) {
+            // Convert relative path to absolute URL
+            if (!str_starts_with($orgLogo, 'http')) {
+                $orgLogo = rtrim($baseUrl, '/') . '/' . ltrim($orgLogo, '/');
+            }
+        }
 
         // Check if this is OffRoad Serbia site to add LocalBusiness schema
         $isOffRoadSite = (
@@ -221,6 +233,12 @@ class SchemaService extends AbstractService
                 'openingHours' => 'Mo-Su 09:00-18:00',
                 'sameAs' => $this->getSocialMediaProfiles($baseUrl)
             ];
+
+            // Add logo if configured
+            if (!empty($orgLogo)) {
+                $schema['logo'] = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
         } else {
             // Standard Organization schema for other sites
             $schema = [
@@ -235,6 +253,12 @@ class SchemaService extends AbstractService
                     'availableLanguage' => $this->getLanguageCode()
                 ]
             ];
+
+            // Add logo if configured
+            if (!empty($orgLogo)) {
+                $schema['logo'] = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
         }
 
         return $schema;
