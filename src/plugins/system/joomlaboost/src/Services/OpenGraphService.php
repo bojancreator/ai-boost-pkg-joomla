@@ -127,7 +127,7 @@ class OpenGraphService extends AbstractService
         // og:title - Priority: 1. Custom Field (articles only) → 2. Document title
         if ($override || !$perfService->isMetaTagPresent('og:title', 'property')) {
             $title = '';
-            
+
             // Check custom field for articles
             if ($option === 'com_content' && $view === 'article') {
                 $articleId = $this->app->getInput()->getInt('id', 0);
@@ -139,12 +139,12 @@ class OpenGraphService extends AbstractService
                     }
                 }
             }
-            
+
             // Fallback to document title
             if (empty($title)) {
                 $title = method_exists($document, 'getTitle') ? trim($document->getTitle()) : '';
             }
-            
+
             if (!empty($title)) {
                 $perfService->addMetaToBatch('og:title', $title, 'property');
             }
@@ -153,7 +153,7 @@ class OpenGraphService extends AbstractService
         // og:description - Priority: 1. Custom Field (articles only) → 2. Document description
         if ($override || !$perfService->isMetaTagPresent('og:description', 'property')) {
             $description = '';
-            
+
             // Check custom field for articles
             if ($option === 'com_content' && $view === 'article') {
                 $articleId = $this->app->getInput()->getInt('id', 0);
@@ -165,12 +165,12 @@ class OpenGraphService extends AbstractService
                     }
                 }
             }
-            
+
             // Fallback to document description
             if (empty($description)) {
                 $description = method_exists($document, 'getDescription') ? trim($document->getDescription()) : '';
             }
-            
+
             if (!empty($description)) {
                 $perfService->addMetaToBatch('og:description', $description, 'property');
             }
@@ -455,7 +455,7 @@ class OpenGraphService extends AbstractService
 
         try {
             $db = Factory::getDbo();
-            
+
             // Query #__fields for field ID by name
             $fieldQuery = $db->getQuery(true)
                 ->select('id')
@@ -463,24 +463,24 @@ class OpenGraphService extends AbstractService
                 ->where('name = ' . $db->quote($fieldName))
                 ->where('context = ' . $db->quote('com_content.article'))
                 ->where('state = 1');
-            
+
             $db->setQuery($fieldQuery);
             $fieldId = $db->loadResult();
-            
+
             if (!$fieldId) {
                 return null; // Field not found or disabled
             }
-            
+
             // Query #__fields_values for article-specific value
             $valueQuery = $db->getQuery(true)
                 ->select('value')
                 ->from('#__fields_values')
                 ->where('field_id = ' . (int) $fieldId)
                 ->where('item_id = ' . (int) $articleId);
-            
+
             $db->setQuery($valueQuery);
             $value = $db->loadResult();
-            
+
             // Return value if not empty
             return !empty($value) ? (string) $value : null;
         } catch (\Throwable $e) {

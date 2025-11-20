@@ -5,11 +5,12 @@
 ### ✅ ŠTA JE USPEŠNO IMPLEMENTIRANO
 
 #### **1. Core SEO Infrastruktura** (90% Complete)
+
 - ✅ **robots.txt** - Dinamička generacija, environment-aware
 - ✅ **XML Sitemap** - Basic struktura (ali trenutno 404 na staging)
 - ✅ **Schema.org Markup**:
   - ✅ WebSite schema
-  - ✅ Organization schema  
+  - ✅ Organization schema
   - ✅ LocalBusiness schema (za OffRoad Serbia)
   - ✅ Article schema
   - ✅ Breadcrumb schema (4/5 stranica)
@@ -18,12 +19,14 @@
 - ✅ **Hreflang** - Service implementiran, potrebno testiranje
 
 #### **2. Analytics & Tracking** (80% Complete)
+
 - ✅ Google Analytics 4 (GA4)
 - ✅ Meta Pixel (Facebook)
 - ✅ Google Tag Manager (GTM)
 - ⚠️ Svi postoje kao servisi, potrebno je testiranje na staging
 
 #### **3. Arhitektura & Performance** (95% Complete)
+
 - ✅ Service-Oriented Architecture (17 servisa)
 - ✅ Lazy loading servisa
 - ✅ Request-level caching
@@ -33,6 +36,7 @@
 - ✅ PHPStan level 6 + PHPCS PSR-12
 
 #### **4. Developer Experience** (85% Complete)
+
 - ✅ Automated build system (`build-optimizer.ps1`)
 - ✅ Testing scripts (`quick-test-joomlaboost.ps1`)
 - ✅ CI/CD pipeline (GitHub Actions)
@@ -57,12 +61,14 @@
    - Hreflang testiranje
 
 ### **Šta je Urađeno Dobro:**
+
 - 🏆 **FAQ Schema** - Ovo je ZLATO za AI search! (ChatGPT, Perplexity, Google AI)
 - 🏆 **Service Architecture** - Moderna, održiva, proširiva
 - 🏆 **Performance** - 42% manji build, lazy loading, caching
 - 🏆 **Universal Domain Detection** - Domain-agnostic dizajn
 
 ### **Šta je Zaostalo:**
+
 - ❌ **Sitemap** vraća 404 (kritično)
 - ❌ **OpenGraph** ne radi na staging (kritično za social)
 - ❌ **Diagnostika** ne radi (otežava debugging)
@@ -95,6 +101,7 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
 ✅ **Citations & References** (linkovi sa kontekstom)
 
 ❌ **NE razumeju dobro**:
+
 - Dekorativne slike bez alt teksta
 - JavaScript-generisan sadržaj bez SSR
 - Kompleksne CSS layoute
@@ -108,6 +115,7 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
 ### **PRIORITET 1: Strukturirani Podaci (Već 80% Gotovo!)**
 
 ✅ **Što Imamo (Dobro!):**
+
 - FAQ Schema - ChatGPT/Perplexly OBOŽAVAJU Q&A format
 - Article Schema - Za blog postove i članke
 - Organization Schema - Trust signal za AI
@@ -116,6 +124,7 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
 🔥 **Što Treba Dodati:**
 
 #### **1. HowTo Schema** (Visok Prioritet!)
+
 ```json
 {
   "@type": "HowTo",
@@ -129,9 +138,11 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
   ]
 }
 ```
+
 **Zašto?** AI sistemi obožavaju step-by-step instrukcije.
 
 #### **2. Product Schema** (Za VirtueMart/HikaShop integraciju)
+
 ```json
 {
   "@type": "Product",
@@ -148,9 +159,11 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
   }
 }
 ```
+
 **Zašto?** AI će prikazivati cene i ocene direktno.
 
 #### **3. Review/Rating Schema**
+
 ```json
 {
   "@type": "Review",
@@ -165,9 +178,11 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
   "reviewBody": "Nezaboravna tura!"
 }
 ```
+
 **Zašto?** Social proof za AI sisteme.
 
 #### **4. Event Schema** (Za off-road događaje)
+
 ```json
 {
   "@type": "Event",
@@ -179,9 +194,11 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
   }
 }
 ```
+
 **Zašto?** AI prepoznaje događaje i preporučuje ih.
 
 #### **5. VideoObject Schema** (Za YouTube videa)
+
 ```json
 {
   "@type": "VideoObject",
@@ -191,6 +208,7 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
   "duration": "PT10M30S"
 }
 ```
+
 **Zašto?** AI će embedovati video reference.
 
 ---
@@ -198,6 +216,7 @@ AI sistemi **NE VIDE** kao ljudi. Oni **PARSIRAJU**:
 ### **PRIORITET 2: Enhanced OpenGraph (Critical!)**
 
 OpenGraph je **KLJUČAN** za:
+
 - AI social media scraping
 - Link previews u ChatGPT/Perplexity
 - Citation formatting
@@ -206,26 +225,26 @@ OpenGraph je **KLJUČAN** za:
 
 ```html
 <!-- TRENUTNO (Basic) -->
-<meta property="og:title" content="Naslov">
-<meta property="og:description" content="Opis">
-<meta property="og:url" content="https://...">
+<meta property="og:title" content="Naslov" />
+<meta property="og:description" content="Opis" />
+<meta property="og:url" content="https://..." />
 
 <!-- TREBA DODATI: -->
-<meta property="og:image" content="https://.../image.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Off-road tura Tara">
-<meta property="og:type" content="article">
-<meta property="article:published_time" content="2025-06-01T10:00:00Z">
-<meta property="article:author" content="Admin">
-<meta property="article:section" content="Ekspedicije">
-<meta property="article:tag" content="off-road, Tara, 4x4">
+<meta property="og:image" content="https://.../image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Off-road tura Tara" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-06-01T10:00:00Z" />
+<meta property="article:author" content="Admin" />
+<meta property="article:section" content="Ekspedicije" />
+<meta property="article:tag" content="off-road, Tara, 4x4" />
 
 <!-- Twitter Cards -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:site" content="@offroadserbia">
-<meta name="twitter:creator" content="@offroadserbia">
-<meta name="twitter:image" content="https://.../image.jpg">
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@offroadserbia" />
+<meta name="twitter:creator" content="@offroadserbia" />
+<meta name="twitter:image" content="https://.../image.jpg" />
 ```
 
 ---
@@ -261,6 +280,7 @@ AI sistemi bolje razumeju sadržaj sa semantic tags:
 ```
 
 **Plugin može da:**
+
 - Automatski wrappuje content u semantic tagove
 - Dodaje ARIA labels
 - Injektuje `<time>` tagove za datume
@@ -272,21 +292,24 @@ AI sistemi bolje razumeju sadržaj sa semantic tags:
 
 ```html
 <!-- AI-Specific Meta Tags -->
-<meta name="robots" content="max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-<meta name="description" content="Detaljn opis sa ključnim rečima">
-<meta name="keywords" content="off-road, Srbija, 4x4, avantura, tura">
+<meta
+  name="robots"
+  content="max-snippet:-1, max-image-preview:large, max-video-preview:-1"
+/>
+<meta name="description" content="Detaljn opis sa ključnim rečima" />
+<meta name="keywords" content="off-road, Srbija, 4x4, avantura, tura" />
 
 <!-- Citation Metadata -->
-<meta name="author" content="OffRoad Serbia Team">
-<meta name="copyright" content="© 2025 OffRoad Serbia">
-<meta name="date" content="2025-06-01">
+<meta name="author" content="OffRoad Serbia Team" />
+<meta name="copyright" content="© 2025 OffRoad Serbia" />
+<meta name="date" content="2025-06-01" />
 
 <!-- Language & Region -->
-<link rel="alternate" hreflang="sr" href="https://offroadserbia.com/sr/">
-<link rel="alternate" hreflang="en" href="https://offroadserbia.com/en/">
+<link rel="alternate" hreflang="sr" href="https://offroadserbia.com/sr/" />
+<link rel="alternate" hreflang="en" href="https://offroadserbia.com/en/" />
 
 <!-- Canonical -->
-<link rel="canonical" href="https://offroadserbia.com/article/exact-url">
+<link rel="canonical" href="https://offroadserbia.com/article/exact-url" />
 ```
 
 ---
@@ -296,6 +319,7 @@ AI sistemi bolje razumeju sadržaj sa semantic tags:
 #### **A) Structured Content Patterns**
 
 AI obožava:
+
 1. **Numbered lists** (lako parsira)
 2. **Bullet points** (jasna struktura)
 3. **Headings hierarchy** (H1 > H2 > H3 > H4)
@@ -303,6 +327,7 @@ AI obožava:
 5. **Definitions** (`<dl>`, `<dt>`, `<dd>`)
 
 Plugin može da:
+
 - Automatski detektuje i označi liste
 - Dodaje Schema.org markup na tabele
 - Kreira Definition lists za FAQ
@@ -311,16 +336,19 @@ Plugin može da:
 
 ```html
 <!-- LOŠE -->
-<img src="tara.jpg">
+<img src="tara.jpg" />
 
 <!-- DOBRO -->
-<img src="tara-offroad-adventure-4x4-2025.jpg" 
-     alt="Off-road vozilo na planini Tara, Srbija - 4x4 avantura"
-     title="Tara Off-Road Adventure"
-     loading="lazy">
+<img
+  src="tara-offroad-adventure-4x4-2025.jpg"
+  alt="Off-road vozilo na planini Tara, Srbija - 4x4 avantura"
+  title="Tara Off-Road Adventure"
+  loading="lazy"
+/>
 ```
 
 Plugin može:
+
 - Automatski generisati alt text iz imena fajla
 - Koristiti AI (GPT-4 Vision) za opisivanje slika
 - Dodavati structured data za slike
@@ -332,10 +360,12 @@ Plugin može:
 <a href="/tours">Ovde</a>
 
 <!-- DOBRO -->
-<a href="/tours/tara-adventure" 
-   title="Detaljne informacije o off-road turi na Tari"
-   aria-label="Pročitaj više o Tara Adventure turi">
-   Tara Adventure Tura - Potpuni Vodič
+<a
+  href="/tours/tara-adventure"
+  title="Detaljne informacije o off-road turi na Tari"
+  aria-label="Pročitaj više o Tara Adventure turi"
+>
+  Tara Adventure Tura - Potpuni Vodič
 </a>
 ```
 
@@ -524,18 +554,18 @@ AI sistemi koriste anchor text za context!
 
 ## 🔥 TOP 10 PRIORITETA ZA SLEDEĆE 2 NEDELJE
 
-| # | Task | Impact | Effort | Priority |
-|---|------|--------|--------|----------|
-| 1 | Fix Sitemap 404 | 🔥 Critical | 2h | P0 |
-| 2 | Fix OpenGraph | 🔥 Critical | 3h | P0 |
-| 3 | Fix Diagnostics | ⚠️ High | 1h | P1 |
-| 4 | HowTo Schema | 🤖 AI High | 4h | P1 |
-| 5 | Enhanced OpenGraph (images) | 🤖 AI High | 3h | P1 |
-| 6 | Review/Rating Schema | 🤖 AI Medium | 3h | P2 |
-| 7 | VideoObject Schema | 🤖 AI Medium | 2h | P2 |
-| 8 | Event Schema | 🤖 AI Medium | 3h | P2 |
-| 9 | Image Alt Text Enhancement | 🤖 AI Medium | 4h | P2 |
-| 10 | Semantic HTML Injection | ♿ Medium | 5h | P3 |
+| #   | Task                        | Impact       | Effort | Priority |
+| --- | --------------------------- | ------------ | ------ | -------- |
+| 1   | Fix Sitemap 404             | 🔥 Critical  | 2h     | P0       |
+| 2   | Fix OpenGraph               | 🔥 Critical  | 3h     | P0       |
+| 3   | Fix Diagnostics             | ⚠️ High      | 1h     | P1       |
+| 4   | HowTo Schema                | 🤖 AI High   | 4h     | P1       |
+| 5   | Enhanced OpenGraph (images) | 🤖 AI High   | 3h     | P1       |
+| 6   | Review/Rating Schema        | 🤖 AI Medium | 3h     | P2       |
+| 7   | VideoObject Schema          | 🤖 AI Medium | 2h     | P2       |
+| 8   | Event Schema                | 🤖 AI Medium | 3h     | P2       |
+| 9   | Image Alt Text Enhancement  | 🤖 AI Medium | 4h     | P2       |
+| 10  | Semantic HTML Injection     | ♿ Medium    | 5h     | P3       |
 
 **Total Estimated Time: ~30 sati = 4 radna dana**
 
@@ -546,6 +576,7 @@ AI sistemi koriste anchor text za context!
 ### **1. AI Content Assistant** (Budućnost!)
 
 Plugin može dodati:
+
 - AI-powered alt text generation (GPT-4 Vision API)
 - Automatic FAQ extraction iz običnog teksta
 - Schema markup suggestions
@@ -561,6 +592,7 @@ Plugin može dodati:
 ### **3. Dynamic Schema Generation**
 
 Umesto statickih schema templejta:
+
 - Machine learning za content classification
 - Automatic schema type selection
 - Context-aware markup
@@ -578,18 +610,21 @@ Umesto statickih schema templejta:
 ## 🎯 ZAKLJUČAK I PREPORUKA
 
 ### **Što je Odlično:**
+
 1. 🏆 **FAQ Schema** - Već implementiran, zlato za AI!
 2. 🏆 **Service Architecture** - Čista, održiva, proširiva
 3. 🏆 **Universal Design** - Domain-agnostic, multi-site ready
 4. 🏆 **Performance** - Optimized build, lazy loading
 
 ### **Što Hitno Treba:**
+
 1. ⚠️ **Sitemap fix** - Critical za SEO
 2. ⚠️ **OpenGraph fix** - Critical za social sharing
 3. 🤖 **HowTo Schema** - Veliki win za AI visibility
 4. 🤖 **Enhanced meta tags** - OpenGraph slike, article tags
 
 ### **Što Dugoročno Treba:**
+
 1. 🚀 **Product Schema** - Za e-commerce
 2. 🚀 **Review System** - Social proof
 3. 🚀 **Event Schema** - Za organizacije događaja
@@ -600,21 +635,25 @@ Umesto statickih schema templejta:
 ## 🚀 PREDLOG ZA SLEDEĆU NEDELJU
 
 **Dan 1-2:**
+
 - Popravi sitemap (P0)
 - Popravi OpenGraph (P0)
 - Testiranje na staging
 
 **Dan 3-4:**
+
 - HowTo Schema implementacija (P1)
 - Enhanced OpenGraph sa slikama (P1)
 - Testing & validation
 
 **Dan 5:**
+
 - Review/Rating Schema (P2)
 - VideoObject Schema (P2)
 - Documentation update
 
 **Dan 6-7:**
+
 - Event Schema (P2)
 - Image optimization (P2)
 - Staging deployment & QA
@@ -624,6 +663,7 @@ Umesto statickih schema templejta:
 **🎯 GLAVNI CILJ: Učiniti Joomla sajtove PRVI IZBOR za AI search engines!**
 
 ChatGPT, Perplexity, i Google AI Overview trebaju da OBOŽAVAJU Joomla sajtove sa JoomlaBoost pluginom jer će imati:
+
 - ✅ Perfektno strukturirane podatke
 - ✅ Semantički čist markup
 - ✅ Rich media metadata

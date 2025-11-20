@@ -191,7 +191,7 @@ class SchemaService extends AbstractService
 
         // Determine schema type from config (auto-detect by default)
         $schemaType = $this->params->get('schema_type', 'auto');
-        
+
         if ($schemaType === 'auto') {
             // Auto-detect based on presence of geo/business fields
             $hasGeo = !empty($this->params->get('schema_latitude')) || !empty($this->params->get('schema_longitude'));
@@ -231,12 +231,16 @@ class SchemaService extends AbstractService
                     'latitude' => (float)$latitude,
                     'longitude' => (float)$longitude
                 ];
-                
+
                 // Add areaServed based on country
                 $countryCode = $this->params->get('schema_address_country', 'RS');
                 $countryNames = [
-                    'RS' => 'Serbia', 'US' => 'United States', 'GB' => 'United Kingdom',
-                    'DE' => 'Germany', 'FR' => 'France', 'IT' => 'Italy'
+                    'RS' => 'Serbia',
+                    'US' => 'United States',
+                    'GB' => 'United Kingdom',
+                    'DE' => 'Germany',
+                    'FR' => 'France',
+                    'IT' => 'Italy'
                 ];
                 $schema['areaServed'] = [
                     '@type' => 'Country',
@@ -635,7 +639,7 @@ class SchemaService extends AbstractService
             foreach ($matches as $match) {
                 $question = strip_tags($match[1]);
                 $answer = strip_tags($match[2]);
-                
+
                 // Clean up answer text
                 $answer = preg_replace('/\s+/', ' ', $answer);
                 $answer = trim($answer);
@@ -659,7 +663,7 @@ class SchemaService extends AbstractService
             foreach ($matches as $match) {
                 $question = strip_tags($match[1]);
                 $answer = strip_tags($match[2]);
-                
+
                 $answer = preg_replace('/\s+/', ' ', $answer);
                 $answer = trim($answer);
 

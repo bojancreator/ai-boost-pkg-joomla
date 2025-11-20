@@ -17,6 +17,7 @@ namespace JoomlaBoost\Plugin\System\JoomlaBoost\Services;
 
 use JoomlaBoost\Plugin\System\JoomlaBoost\Enums\EnvironmentType;
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 
@@ -201,9 +202,13 @@ abstract class AbstractService implements ServiceInterface
             try {
                 $logMessage = '[JoomlaBoost] ' . $message;
                 if (!empty($context)) {
-                    $logMessage .= ' | Context: ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                    $logMessage .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 }
-                \JLog::add($logMessage, \JLog::DEBUG, 'joomlaboost');
+                // Unified logging: Use enqueueMessage for immediate visibility in admin
+                $app = Factory::getApplication();
+                if (method_exists($app, 'enqueueMessage')) {
+                    $app->enqueueMessage($logMessage, 'info');
+                }
             } catch (\Throwable $e) {
               // Ignore logging errors
             }
