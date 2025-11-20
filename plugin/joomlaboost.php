@@ -209,60 +209,82 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
     private function generateDiagnosticData(): array
     {
-        $domain = $this->getCurrentDomain();
-        $isStaging = $this->isStaging($domain);
-
         return [
-            'plugin' => [
-                'name' => 'JoomlaBoost',
-                'version' => '0.1.24',
-                'status' => 'active'
+            'plugin' => $this->getPluginInfo(),
+            'environment' => $this->getEnvironmentInfo(),
+            'features' => $this->getFeatureFlags(),
+            'services' => $this->getServiceInfo(),
+            'endpoints' => $this->getEndpointUrls(),
+            'debug' => $this->getDebugInfo()
+        ];
+    }
+
+    private function getPluginInfo(): array
+    {
+        return [
+            'name' => 'JoomlaBoost',
+            'version' => '0.1.44',
+            'status' => 'active'
+        ];
+    }
+
+    private function getEnvironmentInfo(): array
+    {
+        $domain = $this->getCurrentDomain();
+        return [
+            'type' => $this->isStaging($domain) ? 'staging' : 'production',
+            'domain' => $domain,
+            'host' => $_SERVER['HTTP_HOST'] ?? 'unknown',
+            'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+            'php_version' => PHP_VERSION,
+            'joomla_version' => defined('JVERSION') ? JVERSION : 'unknown'
+        ];
+    }
+
+    private function getFeatureFlags(): array
+    {
+        return [
+            'robots_txt' => (bool) $this->params->get('enable_robots', 1),
+            'sitemap' => (bool) $this->params->get('enable_sitemap', 1),
+            'schema' => (bool) $this->params->get('enable_schema', 1),
+            'opengraph' => (bool) $this->params->get('enable_opengraph', 1),
+            'hreflang' => (bool) $this->params->get('enable_hreflang', 1),
+            'faq_schema' => (bool) $this->params->get('faq_schema_enabled', 1),
+            'ga4' => (bool) $this->params->get('enable_ga4', 0),
+            'gtm' => (bool) $this->params->get('enable_gtm', 0),
+            'meta_pixel' => (bool) $this->params->get('enable_meta_pixel', 0)
+        ];
+    }
+
+    private function getServiceInfo(): array
+    {
+        return [
+            'available' => [
+                'DomainDetectionService', 'RobotService', 'SitemapService',
+                'SchemaService', 'OpenGraphService', 'AnalyticsService',
+                'MetaPixelService', 'HreflangService', 'PerformanceService',
+                'HealthService', 'InjectionService'
             ],
-            'environment' => [
-                'type' => $isStaging ? 'staging' : 'production',
-                'domain' => $domain,
-                'host' => $_SERVER['HTTP_HOST'] ?? 'unknown',
-                'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
-                'php_version' => PHP_VERSION,
-                'joomla_version' => defined('JVERSION') ? JVERSION : 'unknown'
-            ],
-            'features' => [
-                'robots_txt' => (bool) $this->params->get('enable_robots', 1),
-                'sitemap' => (bool) $this->params->get('enable_sitemap', 1),
-                'schema' => (bool) $this->params->get('enable_schema', 1),
-                'opengraph' => (bool) $this->params->get('enable_opengraph', 1),
-                'hreflang' => (bool) $this->params->get('enable_hreflang', 1),
-                'faq_schema' => (bool) $this->params->get('faq_schema_enabled', 1),
-                'ga4' => (bool) $this->params->get('enable_ga4', 0),
-                'gtm' => (bool) $this->params->get('enable_gtm', 0),
-                'meta_pixel' => (bool) $this->params->get('enable_meta_pixel', 0)
-            ],
-            'services' => [
-                'available' => [
-                    'DomainDetectionService',
-                    'RobotService',
-                    'SitemapService',
-                    'SchemaService',
-                    'OpenGraphService',
-                    'AnalyticsService',
-                    'MetaPixelService',
-                    'HreflangService',
-                    'PerformanceService',
-                    'HealthService',
-                    'InjectionService'
-                ],
-                'loaded' => class_exists('JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer')
-            ],
-            'endpoints' => [
-                'robots' => rtrim($domain, '/') . '/robots.txt',
-                'sitemap' => rtrim($domain, '/') . '/sitemap.xml',
-                'diagnostic' => rtrim($domain, '/') . '/index.php?jb_diag=1'
-            ],
-            'debug' => [
-                'mode' => (bool) $this->params->get('debug_mode', 0),
-                'request_uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
-                'timestamp' => date('Y-m-d H:i:s T')
-            ]
+            'loaded' => class_exists('JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer')
+        ];
+    }
+
+    private function getEndpointUrls(): array
+    {
+        $domain = $this->getCurrentDomain();
+        return [
+            'robots' => rtrim($domain, '/') . '/robots.txt',
+            'sitemap' => rtrim($domain, '/') . '/sitemap.xml',
+            'diagnostic' => rtrim($domain, '/') . '/index.php?jb_diag=1'
+        ];
+    }
+
+    private function getDebugInfo(): array
+    {
+        return [
+            'mode' => (bool) $this->params->get('debug_mode', 0),
+            'request_uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+            'timestamp' => date('Y-m-d H:i:s T')
         ];
     }
 
