@@ -185,7 +185,11 @@ class OpenGraphService extends AbstractService
         // og:image - from config only (no file system checks here)
         $fallbackImage = $this->params->get('og_image', $this->params->get('org_logo', ''));
         if (!empty($fallbackImage) && ($override || !$perfService->isMetaTagPresent('og:image', 'property'))) {
-            $perfService->addMetaToBatch('og:image', $fallbackImage, 'property');
+            // Normalize and clean image URL for social media validators
+            $normalizedImage = $this->normalizeAndCleanImageUrl($fallbackImage);
+            if (!empty($normalizedImage)) {
+                $perfService->addMetaToBatch('og:image', $normalizedImage, 'property');
+            }
         }
     }
 
@@ -292,7 +296,7 @@ class OpenGraphService extends AbstractService
             $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
             if (!empty($customImage)) {
                 $this->logDebug("Using custom_og_image from Custom Field for article $articleId");
-                return $this->normalizeImageUrl($customImage);
+                return $this->normalizeAndCleanImageUrl($customImage);
             }
 
             // Priority 2 & 3: Featured images from article or extracted from content
@@ -318,7 +322,7 @@ class OpenGraphService extends AbstractService
                     $imageFields = ['image_intro', 'image_fulltext'];
                     foreach ($imageFields as $field) {
                         if (!empty($images[$field])) {
-                            return $this->normalizeImageUrl($images[$field]);
+                            return $this->normalizeAndCleanImageUrl($images[$field]);
                         }
                     }
                 }
@@ -408,6 +412,32 @@ class OpenGraphService extends AbstractService
         } else {
             return $baseUrl . '/' . $imageUrl;
         }
+    }
+
+    /**
+     * Normalize and clean image URL for social media validators
+     * Removes Joomla fragments (#joomlaImage://...) and query parameters that confuse Facebook/Twitter
+     */
+    private function normalizeAndCleanImageUrl(string $imageUrl): string
+    {
+        if (empty($imageUrl)) {
+            return '';
+        }
+
+        // Remove Joomla image fragments (e.g., #joomlaImage://local-images/...?width=807&height=835)
+        if (str_contains($imageUrl, '#joomlaImage://')) {
+            // Extract the actual image path before the fragment
+            $parts = explode('#joomlaImage://', $imageUrl);
+            $imageUrl = $parts[0];
+        }
+
+        // Remove query parameters that social validators don't need
+        if (str_contains($imageUrl, '?')) {
+            $imageUrl = explode('?', $imageUrl)[0];
+        }
+
+        // Normalize to absolute URL
+        return $this->normalizeImageUrl(trim($imageUrl));
     }
 
     /**
