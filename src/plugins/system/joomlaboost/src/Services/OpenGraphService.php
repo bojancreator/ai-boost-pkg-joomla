@@ -85,6 +85,9 @@ class OpenGraphService extends AbstractService
                 $this->addArticleOpenGraphTags($perfService);
             }
 
+            // Add fallback image if no article image was set
+            $this->addFallbackOpenGraphImage($perfService);
+
             // Add Twitter Card tags (fast operations)
             $this->addTwitterCardTags($perfService);
 
@@ -182,13 +185,26 @@ class OpenGraphService extends AbstractService
             $perfService->addMetaToBatch('og:url', $currentUrl, 'property');
         }
 
-        // og:image - from config only (no file system checks here)
-        $fallbackImage = $this->params->get('og_image', $this->params->get('org_logo', ''));
-        if (!empty($fallbackImage) && ($override || !$perfService->isMetaTagPresent('og:image', 'property'))) {
-            // Normalize and clean image URL for social media validators
-            $normalizedImage = $this->normalizeAndCleanImageUrl($fallbackImage);
-            if (!empty($normalizedImage)) {
-                $perfService->addMetaToBatch('og:image', $normalizedImage, 'property');
+        // og:image will be added in addArticleOpenGraphTags or addFallbackOpenGraphImage
+        // to ensure proper priority: article image > fallback image
+    }
+
+    /**
+     * Add fallback OpenGraph image if no article image was set
+     */
+    private function addFallbackOpenGraphImage(PerformanceService $perfService): void
+    {
+        $override = (bool) $this->params->get('og_override', 0);
+
+        // Only add fallback if no og:image is already set
+        if ($override || !$perfService->isMetaTagPresent('og:image', 'property')) {
+            $fallbackImage = $this->params->get('og_image', $this->params->get('org_logo', ''));
+            if (!empty($fallbackImage)) {
+                $normalizedImage = $this->normalizeAndCleanImageUrl($fallbackImage);
+                if (!empty($normalizedImage)) {
+                    $this->logDebug("Using fallback og:image: $normalizedImage");
+                    $perfService->addMetaToBatch('og:image', $normalizedImage, 'property');
+                }
             }
         }
     }
@@ -286,46 +302,85 @@ class OpenGraphService extends AbstractService
      */
     private function getArticleImage(): string
     {
+        echo "<!-- DEBUG: getArticleImage() START -->\n";
         try {
             $articleId = $this->app->getInput()->getInt('id', 0);
+            echo "<!-- DEBUG: articleId = $articleId -->\n";
+            
             if ($articleId <= 0) {
+                echo "<!-- DEBUG: articleId invalid, returning empty -->\n";
                 return '';
             }
 
             // Priority 1: Custom OG Image (per-article override)
             $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
             if (!empty($customImage)) {
+                echo "<!-- DEBUG: Found custom OG image: $customImage -->\n";
                 $this->logDebug("Using custom_og_image from Custom Field for article $articleId");
                 return $this->normalizeAndCleanImageUrl($customImage);
             }
+            echo "<!-- DEBUG: No custom OG image, checking article images field... -->\n";
 
             // Priority 2 & 3: Featured images from article or extracted from content
             $db = Factory::getDbo();
             $query = $db->getQuery(true)
-                ->select('images, introtext, fulltext')
-                ->from('#__content')
-                ->where('id = ' . (int) $articleId)
-                ->where('published = 1');
+                ->select($db->quoteName(['images', 'introtext', 'fulltext']))
+                ->from($db->quoteName('#__content'))
+                ->where($db->quoteName('id') . ' = ' . (int) $articleId);
 
             $db->setQuery($query);
+            echo "<!-- DEBUG: SQL query built and set -->\n";
             $article = $db->loadObject();
+            echo "<!-- DEBUG: Article loaded: " . ($article ? 'YES' : 'NULL') . " -->\n";
 
             if (!$article) {
+                echo "<!-- DEBUG: Article not found, returning empty -->\n";
                 return '';
             }
+            
+            echo "<!-- DEBUG: article->images value: " . htmlspecialchars($article->images ?? 'NULL') . " -->\n";
 
             // Try to extract from images JSON (Priority 2)
+            error_log("JB DEBUG - Article $articleId images raw: " . var_export($article->images, true));
+            $this->logDebug("Article images raw: " . ($article->images ?? 'NULL'));
+
             if (!empty($article->images)) {
                 $images = json_decode($article->images, true);
+                error_log("JB DEBUG - Article $articleId JSON decode result: " . var_export($images, true));
+                $this->logDebug("Article images decoded: " . json_encode($images));
+
                 if (is_array($images)) {
-                    // Try intro image first, then fulltext image
-                    $imageFields = ['image_intro', 'image_fulltext'];
+                    // Try all possible Joomla image field variations
+                    $imageFields = [
+                        'image_intro',      // Joomla 3.x/4.x standard
+                        'image_fulltext',   // Joomla 3.x/4.x standard
+                        'intro_image',      // Alternative naming
+                        'full_image',       // Alternative naming
+                        'introimage',       // No underscore variant
+                        'fullimage'         // No underscore variant
+                    ];
+
                     foreach ($imageFields as $field) {
-                        if (!empty($images[$field])) {
-                            return $this->normalizeAndCleanImageUrl($images[$field]);
+                        if (isset($images[$field])) {
+                            $imageValue = trim($images[$field]);
+                            error_log("JB DEBUG - Field '$field' exists with value: '$imageValue'");
+                            $this->logDebug("Checking field '$field': $imageValue");
+
+                            if (!empty($imageValue)) {
+                                error_log("JB DEBUG - ✓ Using image from '$field': $imageValue");
+                                $this->logDebug("✓ Found image in '$field': $imageValue");
+                                return $this->normalizeAndCleanImageUrl($imageValue);
+                            }
                         }
                     }
+
+                    // Dump all available keys if nothing found
+                    error_log("JB DEBUG - Available JSON keys: " . implode(', ', array_keys($images)));
+                    $this->logDebug("✗ No valid image found. Available keys: " . implode(', ', array_keys($images)));
                 }
+            } else {
+                error_log("JB DEBUG - ✗ Article $articleId images field is empty or NULL");
+                $this->logDebug("✗ Article images field is empty");
             }
 
             // Extract from article text as fallback (Priority 3)
