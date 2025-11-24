@@ -184,37 +184,45 @@ class PerformanceService extends AbstractService
      */
     public function isMetaTagPresent(string $name, string $type = 'name'): bool
     {
+        // ALWAYS check batch first - this is the critical fix!
+        if ($type === 'property') {
+            $batchKey = 'property:' . $name;
+
+            if (isset($this->metaBatch[$batchKey])) {
+                return true;
+            }
+        } else {
+            $batchKey = 'name:' . $name;
+            if (isset($this->metaBatch[$batchKey])) {
+                return true;
+            }
+        }
+
+        // Then check document (for tags added by other plugins/Joomla core)
         try {
             $document = $this->app->getDocument();
             if (!($document instanceof \Joomla\CMS\Document\HtmlDocument)) {
                 return false;
             }
 
-            $metaData = $document->getMetaData();
-
             if ($type === 'property') {
-                // Check for OpenGraph/property meta tags
-                return isset($metaData[$name]) || $this->isPropertyMetaPresent($name);
+                // For property meta tags, check custom head data
+                return $this->isPropertyMetaInDocument($name);
             }
 
-            return isset($metaData[$name]);
+            // For name-type meta, use getMetaData with the specific name
+            $value = $document->getMetaData($name);
+            return !empty($value);
         } catch (\Throwable $e) {
             return false;
         }
     }
 
     /**
-     * Check for property-type meta tags (og:, twitter:, etc.)
+     * Check if property meta tag exists in document (not in batch)
      */
-    private function isPropertyMetaPresent(string $property): bool
+    private function isPropertyMetaInDocument(string $property): bool
     {
-        // Check if already in our batch
-        $batchKey = 'property:' . $property;
-        if (isset($this->metaBatch[$batchKey])) {
-            return true;
-        }
-
-        // For property-type meta, we need to check custom head data
         try {
             $document = $this->app->getDocument();
             $headData = $document->getHeadData();
@@ -226,11 +234,11 @@ class PerformanceService extends AbstractService
                     }
                 }
             }
-        } catch (\Throwable $e) {
-            // Ignore errors
-        }
 
-        return false;
+            return false;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**

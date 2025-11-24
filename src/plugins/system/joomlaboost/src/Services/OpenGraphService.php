@@ -208,7 +208,6 @@ class OpenGraphService extends AbstractService
             }
         }
     }
-
     /**
      * Add article-specific OpenGraph tags (heavy operations - DB queries)
      */
@@ -302,24 +301,19 @@ class OpenGraphService extends AbstractService
      */
     private function getArticleImage(): string
     {
-        echo "<!-- DEBUG: getArticleImage() START -->\n";
         try {
             $articleId = $this->app->getInput()->getInt('id', 0);
-            echo "<!-- DEBUG: articleId = $articleId -->\n";
-            
+
             if ($articleId <= 0) {
-                echo "<!-- DEBUG: articleId invalid, returning empty -->\n";
                 return '';
             }
 
             // Priority 1: Custom OG Image (per-article override)
             $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
             if (!empty($customImage)) {
-                echo "<!-- DEBUG: Found custom OG image: $customImage -->\n";
                 $this->logDebug("Using custom_og_image from Custom Field for article $articleId");
                 return $this->normalizeAndCleanImageUrl($customImage);
             }
-            echo "<!-- DEBUG: No custom OG image, checking article images field... -->\n";
 
             // Priority 2 & 3: Featured images from article or extracted from content
             $db = Factory::getDbo();
@@ -329,18 +323,11 @@ class OpenGraphService extends AbstractService
                 ->where($db->quoteName('id') . ' = ' . (int) $articleId);
 
             $db->setQuery($query);
-            echo "<!-- DEBUG: SQL query built and set -->\n";
             $article = $db->loadObject();
-            echo "<!-- DEBUG: Article loaded: " . ($article ? 'YES' : 'NULL') . " -->\n";
 
             if (!$article) {
-                echo "<!-- DEBUG: Article not found, returning empty -->\n";
                 return '';
-            }
-            
-            echo "<!-- DEBUG: article->images value: " . htmlspecialchars($article->images ?? 'NULL') . " -->\n";
-
-            // Try to extract from images JSON (Priority 2)
+            }            // Try to extract from images JSON (Priority 2)
             error_log("JB DEBUG - Article $articleId images raw: " . var_export($article->images, true));
             $this->logDebug("Article images raw: " . ($article->images ?? 'NULL'));
 
@@ -363,12 +350,8 @@ class OpenGraphService extends AbstractService
                     foreach ($imageFields as $field) {
                         if (isset($images[$field])) {
                             $imageValue = trim($images[$field]);
-                            error_log("JB DEBUG - Field '$field' exists with value: '$imageValue'");
-                            $this->logDebug("Checking field '$field': $imageValue");
 
                             if (!empty($imageValue)) {
-                                error_log("JB DEBUG - ✓ Using image from '$field': $imageValue");
-                                $this->logDebug("✓ Found image in '$field': $imageValue");
                                 return $this->normalizeAndCleanImageUrl($imageValue);
                             }
                         }
@@ -468,7 +451,6 @@ class OpenGraphService extends AbstractService
             return $baseUrl . '/' . $imageUrl;
         }
     }
-
     /**
      * Normalize and clean image URL for social media validators
      * Removes Joomla fragments (#joomlaImage://...) and query parameters that confuse Facebook/Twitter

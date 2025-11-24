@@ -1,7 +1,7 @@
 # OpenGraph Intro Image Fix - Complete Journey
 
-**Datum**: 21-24. novembar 2025  
-**Problem**: OpenGraph ne prikazuje intro slike članaka, nego default logo  
+**Datum**: 21-24. novembar 2025
+**Problem**: OpenGraph ne prikazuje intro slike članaka, nego default logo
 **Status**: ✅ **KOMPLETNO REŠENO** u v0.1.63, production release v0.1.64
 
 ---
@@ -25,18 +25,21 @@
 ### Faza 1: SQL Syntax Error (v0.1.45-0.1.58)
 
 #### v0.1.45-0.1.55: Početna istraživanja
+
 - Dodavano `error_log()` debug
 - Uklonjen `WHERE published = 1` uslov
 - Testirane varijante imena `images` polja
 - **Rezultat**: Nisu pronađeni očigledni problemi
 
 #### v0.1.56-0.1.57: Exception Discovery
+
 **Dodati eksplicitni try-catch** oko SQL query-a
 
 **Debug output v0.1.57**:
+
 ```html
-<!-- JB DEBUG: SQL EXCEPTION: You have an error in your SQL syntax; 
-     check the manual that corresponds to your MariaDB server version 
+<!-- JB DEBUG: SQL EXCEPTION: You have an error in your SQL syntax;
+     check the manual that corresponds to your MariaDB server version
      for the right syntax to use near 'fulltext FROM d2nrb_content WHERE id = 67' -->
 ```
 
@@ -79,6 +82,7 @@ $query = $db->getQuery(true)
 #### v0.1.59-0.1.60: Flow Analysis
 
 **Debug output v0.1.60**:
+
 ```html
 <!-- DEBUG: getArticleImage() returns: https://staging.offroadserbia.com/images/intro-images/deliblato-mart2020-mala.jpg -->
 <!-- DEBUG: FALLBACK - normalizing logo URL -->
@@ -89,6 +93,7 @@ $query = $db->getQuery(true)
 #### v0.1.61: Batch Check Investigation
 
 **Debug output**:
+
 ```html
 <!-- DEBUG FALLBACK: Checking if og:image already present... -->
 <!-- DEBUG FALLBACK: isMetaTagPresent returned: FALSE -->
@@ -120,14 +125,14 @@ public function isMetaTagPresent(string $name, string $type = 'name'): bool
     if (!($document instanceof \Joomla\CMS\Document\HtmlDocument)) {
         return false;
     }
-    
+
     $metaData = $document->getMetaData();  // ❌ EXCEPTION HERE!
-    
+
     if ($type === 'property') {
         return isset($metaData[$name]) || $this->isPropertyMetaPresent($name);
         // ☝️ Batch check NIKAD NE DOSPE DO OVDE zbog exception-a
     }
-    
+
     return isset($metaData[$name]);
 }
 ```
@@ -135,6 +140,7 @@ public function isMetaTagPresent(string $name, string $type = 'name'): bool
 **Joomla 4/5 API razlika**: `getMetaData()` **ZAHTEVA PARAMETAR** (ime meta taga)
 
 **Execution flow**:
+
 1. `getMetaData()` baca exception (no argument provided)
 2. Exception caught, metoda vraća `FALSE`
 3. `isPropertyMetaPresent()` sa batch check **SE NIKAD NE IZVRŠAVA**
@@ -166,18 +172,18 @@ public function isMetaTagPresent(string $name, string $type = 'name'): bool
             return true;
         }
     }
-    
+
     // TEK ONDA proveri document (za tagove koje dodaju drugi plugini)
     try {
         $document = $this->app->getDocument();
         if (!($document instanceof \Joomla\CMS\Document\HtmlDocument)) {
             return false;
         }
-        
+
         if ($type === 'property') {
             return $this->isPropertyMetaInDocument($name);
         }
-        
+
         // Za name-type tagove, koristi getMetaData() SA PARAMETROM
         $value = $document->getMetaData($name);
         return !empty($value);
@@ -192,11 +198,11 @@ private function isPropertyMetaInDocument(string $property): bool
     try {
         $document = $this->app->getDocument();
         $headData = $document->getHeadData();
-        
+
         if (isset($headData['metaTags']['property'][$property])) {
             return true;
         }
-        
+
         return false;
     } catch (\Throwable $e) {
         return false;
@@ -205,6 +211,7 @@ private function isPropertyMetaInDocument(string $property): bool
 ```
 
 **Debug output v0.1.63**:
+
 ```html
 <!-- DEBUG FALLBACK: Checking if og:image already present... -->
 <!-- DEBUG isMetaTagPresent: Checking batch for property:og:image -->
@@ -214,8 +221,12 @@ private function isPropertyMetaInDocument(string $property): bool
 ```
 
 **Verifikacija curl-om**:
+
 ```html
-<meta property="og:image" content="https://staging.offroadserbia.com/images/intro-images/deliblato-mart2020-mala.jpg">
+<meta
+  property="og:image"
+  content="https://staging.offroadserbia.com/images/intro-images/deliblato-mart2020-mala.jpg"
+/>
 ```
 
 ### ✅ **PROBLEM REŠEN!**
@@ -225,6 +236,7 @@ private function isPropertyMetaInDocument(string $property): bool
 ### v0.1.64: Production Clean-up
 
 **Akcije**:
+
 1. Uklonjeni **SVI** debug echo komentari iz `OpenGraphService.php`
 2. Uklonjeni **SVI** debug echo komentari iz `PerformanceService.php`
 3. Uklonjeni nepotrebni `error_log()` pozivi
@@ -237,19 +249,26 @@ private function isPropertyMetaInDocument(string $property): bool
 ## 🎉 Final Verification (24. novembar 2025)
 
 ### Test URL
+
 https://staging.offroadserbia.com/clanstvo (Article ID 67)
 
 ### ✅ OpenGraph Meta Tags
 
 ```html
-<meta property="og:type" content="article">
-<meta property="og:site_name" content="4X4 Serbia Crew - OFF ROAD SERBIA">
-<meta property="og:title" content="4X4 Serbia Crew - Članstvo u udruženju">
-<meta property="og:description" content="Off Road Serbia - Dedicated to nature and 4x4 off road addictives in Serbia and beyond">
-<meta property="og:url" content="https://staging.offroadserbia.com/clanstvo">
-<meta property="og:image" content="https://staging.offroadserbia.com/images/intro-images/deliblato-mart2020-mala.jpg">
-<meta property="article:published_time" content="2020-03-23T12:35:56+00:00">
-<meta property="article:modified_time" content="2025-10-20T07:48:19+00:00">
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="4X4 Serbia Crew - OFF ROAD SERBIA" />
+<meta property="og:title" content="4X4 Serbia Crew - Članstvo u udruženju" />
+<meta
+  property="og:description"
+  content="Off Road Serbia - Dedicated to nature and 4x4 off road addictives in Serbia and beyond"
+/>
+<meta property="og:url" content="https://staging.offroadserbia.com/clanstvo" />
+<meta
+  property="og:image"
+  content="https://staging.offroadserbia.com/images/intro-images/deliblato-mart2020-mala.jpg"
+/>
+<meta property="article:published_time" content="2020-03-23T12:35:56+00:00" />
+<meta property="article:modified_time" content="2025-10-20T07:48:19+00:00" />
 ```
 
 **Rezultat**: Intro slika (`deliblato-mart2020-mala.jpg`) ✅ umesto logo fajla!
@@ -269,18 +288,20 @@ https://staging.offroadserbia.com/clanstvo (Article ID 67)
 ### ✅ Twitter Card
 
 ```html
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary_large_image" />
 ```
 
 ### ✅ Staging Badge
 
 ```html
 <!-- JoomlaBoost Staging Badge -->
-<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);...">
-    🚧 <span>STAGING ENVIRONMENT</span>
-    <div><strong>Plugin:</strong> JoomlaBoost v0.1.64</div>
-    <div><strong>Domen:</strong> https://staging.offroadserbia.com/</div>
-    <div><strong>Generisano:</strong> 09:19:34</div>
+<div
+  style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);..."
+>
+  🚧 <span>STAGING ENVIRONMENT</span>
+  <div><strong>Plugin:</strong> JoomlaBoost v0.1.64</div>
+  <div><strong>Domen:</strong> https://staging.offroadserbia.com/</div>
+  <div><strong>Generisano:</strong> 09:19:34</div>
 </div>
 ```
 
@@ -291,12 +312,14 @@ https://staging.offroadserbia.com/clanstvo (Article ID 67)
 ### Dva Nezavisna Buga
 
 #### Bug #1: SQL Syntax Error (v0.1.45-0.1.57)
+
 - **Problem**: `fulltext` je rezervisana reč u MariaDB/MySQL
 - **Simptom**: SQL query failed sa syntax error
 - **Fix v0.1.58**: `$db->quoteName(['images', 'introtext', 'fulltext'])`
 - **Rezultat**: SQL uspešno izvršava, podaci se učitavaju ✅
 
 #### Bug #2: Batch Check Exception (v0.1.45-0.1.62)
+
 - **Problem**: `getMetaData()` pozvan bez argumenta → exception
 - **Simptom**: `isMetaTagPresent()` vraća FALSE iako je tag u batchu
 - **Posledica**: Fallback dodaje logo koji pregazi article image
@@ -313,15 +336,18 @@ https://staging.offroadserbia.com/clanstvo (Article ID 67)
 ### Izmenjeni Fajlovi
 
 #### v0.1.58: SQL Fix
+
 - `src/plugins/system/joomlaboost/src/Services/OpenGraphService.php`
   - Linija 327-333: Korišćenje `quoteName()` za sve kolone i tabele
 
-#### v0.1.63: Batch Check Fix  
+#### v0.1.63: Batch Check Fix
+
 - `src/plugins/system/joomlaboost/src/Services/PerformanceService.php`
   - Linija 185-220: `isMetaTagPresent()` - **KOMPLETNO PREPISANA**
   - Linija 231-256: `isPropertyMetaInDocument()` - **NOVA METODA**
 
 #### v0.1.64: Production Clean-up
+
 - `src/plugins/system/joomlaboost/src/Services/OpenGraphService.php` - očišćen debug
 - `src/plugins/system/joomlaboost/src/Services/PerformanceService.php` - očišćen debug
 - `src/plugins/system/joomlaboost/joomlaboost.xml` - version 0.1.64
@@ -341,6 +367,7 @@ https://staging.offroadserbia.com/clanstvo (Article ID 67)
 ## 📚 Reference & Lessons Learned
 
 ### Reference
+
 - **Test Article**: https://staging.offroadserbia.com/clanstvo (Article ID 67)
 - **Expected Intro Image**: `images/intro-images/deliblato-mart2020-mala.jpg`
 - **MariaDB Reserved Words**: https://mariadb.com/kb/en/reserved-words/

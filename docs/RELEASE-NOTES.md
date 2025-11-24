@@ -1,5 +1,70 @@
 # JoomlaBoost – Release Notes
 
+## v0.1.56 — 2025-12-XX 🤖 AI Crawler Optimization
+
+### ✨ Major Features
+
+#### **Canonical URL Support**
+
+- Added automatic canonical URL generation for all pages
+- Removes tracking parameters (utm\_\*, fbclid, gclid, \_ga) from canonical URLs
+- Handles article URLs with proper `?id=X` parameter inclusion
+- Prevents duplicate content indexing by AI crawlers and search engines
+- New methods: `addCanonicalUrl()`, `cleanUrl()` in main plugin file
+
+#### **Enhanced Article Schema for AI**
+
+- Added `wordCount` calculation to Article Schema (helps AI estimate reading time)
+- Added `mainEntityOfPage` structure (explicit page identification)
+- Enhanced `author` with real user names from #\_\_users table (via `created_by` lookup)
+- Added `publisher` with organization logo as ImageObject
+- New methods: `getAuthorSchema()`, `getPublisherSchema()` in SchemaService
+- SQL updated for Joomla 4+ compatibility (uses `state` column, LEFT JOIN #\_\_users)
+
+#### **Author Metadata in OpenGraph**
+
+- Added `article:author` OpenGraph meta tag for proper attribution
+- Queries #\_\_users table for real author names
+- Priority: `created_by_alias` → real user name → 'Author' fallback
+- Combined with timestamps in unified `addArticleMetadata()` method
+- Improves content credibility for social sharing and AI indexing
+
+### 🎯 AI Crawler Benefits
+
+These changes ensure AI assistants (ChatGPT, Claude, Perplexity) can properly:
+
+- Identify canonical URLs (no duplicate content confusion)
+- Understand article structure (word count, main entity, author details)
+- Attribute content correctly (author names, publisher info)
+- Index content efficiently (structured data + OpenGraph metadata)
+
+### 🔧 Technical Changes
+
+- **Main Plugin** (joomlaboost.php):
+
+  - Lines 624-670: New `addCanonicalUrl()` method
+  - Lines 672-699: New `cleanUrl()` helper for tracking parameter removal
+  - Line 156: Canonical URL added as first operation in `onBeforeCompileHead`
+
+- **SchemaService.php**:
+
+  - Lines 377-433: Enhanced `generateArticleSchema()` with AI-friendly fields
+  - Lines 999-1027: New `getAuthorSchema()` method (queries #\_\_users)
+  - Lines 1029-1062: New `getPublisherSchema()` method (adds logo)
+
+- **OpenGraphService.php**:
+  - Lines 288-320: Renamed `addArticleTimestamps()` → `addArticleMetadata()`
+  - Lines 403-443: New `getArticleMetadata()` method (timestamps + author)
+  - Line 254: Updated call to pass `$articleId` parameter
+
+### 📦 Build Info
+
+- Build size: 297.33 KB
+- Services: 17
+- Files: 27
+
+---
+
 ## v0.1.24 — 2025-11-19 🎯 Complete Service Architecture
 
 ### ✨ Major Features

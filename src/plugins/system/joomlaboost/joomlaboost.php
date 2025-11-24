@@ -47,7 +47,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
     /**
      * Constructor
-     * 
+     *
      * @param mixed $subject The object to observe
      * @param array<string, mixed> $config Configuration array
      */
@@ -176,6 +176,88 @@ class PlgSystemJoomlaboost extends CMSPlugin
         }
     }
 
+    /**
+     * Add staging badge with version to frontend if enabled
+     */
+    public function onAfterRender(): void
+    {
+        $app = $this->getApp();
+        if (!$app || !$app->isClient('site')) {
+            return;
+        }
+
+        // Check if staging badge is enabled
+        if (!(bool) $this->params->get('show_staging_badge', 0)) {
+            return;
+        }
+
+        // Check if this is staging environment
+        $domain = $this->getCurrentDomain();
+        if (!$this->isStaging($domain)) {
+            return;
+        }
+
+        try {
+            $body = $app->getBody();
+
+            // Only inject if </body> tag exists
+            if (stripos($body, '</body>') === false) {
+                return;
+            }
+
+            // Get plugin version and current domain
+            $pluginVersion = $this->getPluginVersion();
+            $currentTime = date('H:i:s');
+
+            // Staging badge HTML with inline styles and more info
+            $badge = <<<HTML
+<!-- JoomlaBoost Staging Badge -->
+<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="Klikni da sakriješ">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">Staging Environment</span>
+    </div>
+    <div style="font-size: 11px; font-weight: normal; opacity: 0.95; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
+        <div><strong>Plugin:</strong> JoomlaBoost v{$pluginVersion}</div>
+        <div><strong>Domen:</strong> {$domain}</div>
+        <div><strong>Generisano:</strong> {$currentTime}</div>
+    </div>
+</div>
+<!-- /JoomlaBoost Staging Badge -->
+
+HTML;
+
+            // Inject before </body>
+            $body = str_ireplace('</body>', $badge . '</body>', $body);
+            $app->setBody($body);
+        } catch (\Throwable $e) {
+            $this->logDebug('Staging badge injection failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get plugin version from XML manifest
+     */
+    private function getPluginVersion(): string
+    {
+        static $version = null;
+
+        if ($version === null) {
+            $xmlPath = __DIR__ . '/joomlaboost.xml';
+            if (file_exists($xmlPath)) {
+                $xmlContent = file_get_contents($xmlPath);
+                if (preg_match('/<version>([^<]+)<\/version>/', $xmlContent, $matches)) {
+                    $version = $matches[1];
+                } else {
+                    $version = 'unknown';
+                }
+            } else {
+                $version = 'unknown';
+            }
+        }
+
+        return $version;
+    }
+
     private function isSitemapRequest(): bool
     {
         $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
@@ -199,7 +281,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-cache, no-store, must-revalidate');
-        
+
         echo json_encode($this->generateDiagnosticData(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         $app->close();
     }
@@ -208,7 +290,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     {
         $domain = $this->getCurrentDomain();
         $isStaging = $this->isStaging($domain);
-        
+
         return [
             'plugin' => [
                 'name' => 'JoomlaBoost',
@@ -270,14 +352,14 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
         // Use SitemapService for sitemap generation
         $sitemapService = $this->getServiceContainer()->get('sitemap');
-        
+
         if ($sitemapService && method_exists($sitemapService, 'generateSitemapIndex')) {
             echo $sitemapService->generateSitemapIndex();
         } else {
             // Fallback to basic sitemap if service unavailable
             echo $this->generateSitemapContent();
         }
-        
+
         $app->close();
     }
 
