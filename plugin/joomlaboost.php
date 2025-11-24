@@ -572,8 +572,8 @@ $schema = $this->schemaService->generateSchema();
 if (!empty($schema)) {
 $jsonLd = '<script type="application/ld+json">
 ' . "\n";
-$jsonLd. = json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd. = "\n".
+$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+$jsonLd .= "\n".
 '
 </script>';
 $document->addCustomTag($jsonLd);
@@ -631,12 +631,12 @@ $this->logDebug('Schema: Disabled in plugin settings');
 return;
 }
 
-$schema = $this->schemaService->generateSchema();
+$schema = $this->schemaService->generateArticleSchema($article);
 if (!empty($schema)) {
 $jsonLd = '<script type="application/ld+json">
 ' . "\n";
-$jsonLd. = json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd. = "\n
+$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+$jsonLd .= "\n
 </script>";
 $document->addCustomTag($jsonLd);
 if ($this->params->get('debug_mode', 0)) {
@@ -683,8 +683,10 @@ $this->logDebug('GA4: No measurement ID provided');
 return;
 }
 
-// Use heredoc to avoid escaping issues, store for onAfterRender injection
-$this->analyticsScripts .= <<<HTML <!-- Google Analytics 4 -->
+    // Use heredoc to avoid escaping issues, store for onAfterRender injection
+    $this->analyticsScripts .= <<<HTML
+
+<!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id={$measurementId}"></script>
   <script>
   window.dataLayer = window.dataLayer || [];
@@ -695,7 +697,8 @@ $this->analyticsScripts .= <<<HTML <!-- Google Analytics 4 -->
   gtag('js', new Date());
   gtag('config', '{$measurementId}');
   </script>
-  HTML;
+
+HTML;
   $this->logDebug('Added Google Analytics 4 tracking for: ' . $measurementId);
   }
 
@@ -707,7 +710,9 @@ $this->analyticsScripts .= <<<HTML <!-- Google Analytics 4 -->
   return;
   }
 
-  $this->analyticsScripts .= <<<HTML <!-- Google Tag Manager -->
+  $this->analyticsScripts .= <<<HTML
+
+<!-- Google Tag Manager -->
     <script>
     (function(w, d, s, l, i) {
       w[l] = w[l] || [];
@@ -723,8 +728,9 @@ $this->analyticsScripts .= <<<HTML <!-- Google Analytics 4 -->
       f.parentNode.insertBefore(j, f);
     })(window, document, 'script', 'dataLayer', '{$containerId}');
     </script>
-    <!-- End Google Tag Manager -->
-    HTML;
+<!-- End Google Tag Manager -->
+
+HTML;
     $this->logDebug('Added Google Tag Manager tracking for: ' . $containerId);
     }
 
