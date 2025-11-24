@@ -93,7 +93,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
     }
 
     /**
-     * Early request hook (check robots/sitemap)
+     * Early request hook (check robots/sitemap/custom fields setup)
      */
     public function onAfterInitialise(): void
     {
@@ -102,11 +102,32 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-        if (!$app->isClient('site')) {
-            // Optional: debug in backend
-            if ($app->isClient('administrator')) {
-                $this->logDebug('JoomlaBoost initialised (admin)');
+        // Admin panel: Show custom fields setup notice
+        if ($app->isClient('administrator')) {
+            $this->logDebug('JoomlaBoost initialised (admin)');
+            
+            // Check if custom fields need setup
+            $customFieldsService = new CustomFieldsService();
+            if (!$customFieldsService->checkCustomFieldsExist()) {
+                // Show notice with inline JavaScript for one-click setup
+                $setupUrl = 'index.php?option=com_ajax&plugin=joomlaboost&group=system&format=json';
+                $notice = '<strong>JoomlaBoost:</strong> Enable per-article OpenGraph overrides? '
+                    . '<a href="#" id="jb-setup-fields" onclick="'
+                    . "fetch('{$setupUrl}').then(r=>r.json()).then(d=>{"
+                    . "if(d.success){alert(d.message);location.reload();}"
+                    . "else{alert(\'Error: \'+d.message);}"
+                    . "}); return false;"
+                    . '">Create Custom Fields Now</a> '
+                    . '<small>(one-click setup)</small>';
+                
+                $app->enqueueMessage($notice, 'info');
             }
+            
+            return;
+        }
+
+        // Site frontend: Handle special endpoints
+        if (!$app->isClient('site')) {
             return;
         }
 
@@ -785,40 +806,4 @@ $this->analyticsScripts .= <<<HTML <!-- Google Analytics 4 -->
             ];
         }
     }
-
-    /**
-     * Show admin notice if custom fields are missing
-     * Runs on every admin page load (lightweight check)
-     *
-     * @return void
-     * @since 0.1.65
-     */
-    public function onAfterInitialise(): void
-    {
-        $app = Factory::getApplication();
-
-        // Only show in admin panel
-        if (!$app->isClient('administrator')) {
-            return;
-        }
-
-        // Check if fields already exist (fast DB check)
-        $customFieldsService = new CustomFieldsService();
-        if ($customFieldsService->checkCustomFieldsExist()) {
-            return; // Fields exist, no need for notice
-        }
-
-        // Show notice with inline JavaScript for one-click setup
-        $setupUrl = 'index.php?option=com_ajax&plugin=joomlaboost&group=system&format=json';
-        $notice = '<strong>JoomlaBoost:</strong> Enable per-article OpenGraph overrides? '
-            . '<a href="#" id="jb-setup-fields" onclick="'
-            . "fetch('{$setupUrl}').then(r=>r.json()).then(d=>{"
-            . "if(d.success){alert(d.message);location.reload();}"
-            . "else{alert('Error: '+d.message);}"
-            . "}); return false;"
-            . '">Create Custom Fields Now</a> '
-            . '<small>(one-click setup)</small>';
-
-        $app->enqueueMessage($notice, 'info');
-    }
-    }
+}
