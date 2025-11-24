@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" client="site" method="upgrade">
+  <name>PLG_PWEBOPENGRAPH</name>
+  <author>Joomlashack</author>
+  <authorEmail>help@joomlashack.com</authorEmail>
+  <authorUrl>https://www.joomlashack.com/</authorUrl>
+
+  <copyright>Copyright 2019-2024 Joomlashack. All rights reserved.</copyright>
+  <license>GNU GPL; see LICENSE file</license>
+  <description>PLG_PWEBOPENGRAPH_DESCRIPTION</description>
+  <version>3.0.2</version>
+  <creationDate>February 12 2024</creationDate>
+  <variant>PRO</variant>
+
+  <files>
+    <folder>form</folder>
+    <folder>language</folder>
+    <folder>library</folder>
+    <folder>tmpl</folder>
+    <folder>views</folder>
+
+    <filename plugin="pwebopengraph">pwebopengraph.php</filename>
+  </files>
+
+  <media folder="media" destination="plg_system_pwebopengraph">
+    <folder>css</folder>
+    <folder>images</folder>
+    <folder>js</folder>
+  </media>
+
+  <scriptfile>installer.script.php</scriptfile>
+
+  <config addfieldpath="plugins/system/pwebopengraph/form/fields">
+    <fields name="params">
+      <fieldset name="basic">
+        <field name="images_limit"
+               type="radio"
+               class="btn-group"
+               default="2"
+               label="PLG_PWEBOPENGRAPH_LIMIT_IMAGES"
+               description="PLG_PWEBOPENGRAPH_LIMIT_IMAGES_DESC">
+          <option value="1">PLG_PWEBOPENGRAPH_OPTION_FIRST_IMAGE</option>
+          <option value="2">PLG_PWEBOPENGRAPH_OPTION_ALL_IMAGES</option>
+        </field>
+
+        <field name="image_default"
+               type="media"
+               label="PLG_PWEBOPENGRAPH_DEFAULT_IMAGE"
+               description="PLG_PWEBOPENGRAPH_DEFAULT_IMAGE_DESC"/>
+
+        <field name="image_home"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               default="1"
+               label="PLG_PWEBOPENGRAPH_DEFAULT_HOME_PAGE_IMAGE" description="PLG_PWEBOPENGRAPH_DEFAULT_HOME_PAGE_IMAGE_DESC">
+          <option value="0">JNo</option>
+          <option value="1">JYes</option>
+        </field>
+
+        <field name="image_component"
+               type="radio"
+               default="1"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               label="PLG_PWEBOPENGRAPH_COMPONENT_IMAGES"
+               description="PLG_PWEBOPENGRAPH_COMPONENT_IMAGES_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="image_ext"
+               type="radio"
+               default="1"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               label="PLG_PWEBOPENGRAPH_IMAGES_WITH_EXT"
+               description="PLG_PWEBOPENGRAPH_IMAGES_WITH_EXT_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="image_link"
+               type="radio"
+               default="0"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               label="PLG_PWEBOPENGRAPH_IMAGES_INSIDE_LINKS"
+               description="PLG_PWEBOPENGRAPH_IMAGES_INSIDE_LINKS_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="min_score"
+               type="list"
+               layout="joomla.form.field.list-fancy-select"
+               default="2"
+               label="PLG_PWEBOPENGRAPH_CHECK_IMAGES"
+               description="PLG_PWEBOPENGRAPH_CHECK_IMAGES_DESC">
+          <option value="-1">PLG_PWEBOPENGRAPH_NOT_SKIP_IMAGES</option>
+          <option value="1">PLG_PWEBOPENGRAPH_SKIP_IMAGES_1</option>
+          <option value="2">PLG_PWEBOPENGRAPH_SKIP_IMAGES_2</option>
+          <option value="3">PLG_PWEBOPENGRAPH_SKIP_IMAGES_3</option>
+          <option value="4">PLG_PWEBOPENGRAPH_SKIP_IMAGES_4</option>
+        </field>
+      </fieldset>
+
+      <fieldset name="content" label="PLG_PWEBOPENGRAPH_CONTENT_HEADER">
+        <field name="content_facebook_field"
+               type="list"
+               layout="joomla.form.field.list-fancy-select"
+               label="PLG_PWEBOPENGRAPH_CONTENT_FACEBOOK_GRAPH_FIELD">
+          <option value="">PLG_PWEBOPENGRAPH_OPTION_DEFAULT</option>
+          <option value="image_intro">PLG_PWEBOPENGRAPH_OPTION_INTRO_IMAGE</option>
+          <option value="image_fulltext">PLG_PWEBOPENGRAPH_OPTION_FULLTEXT_IMAGE</option>
+          <option value="facebook_image">PLG_PWEBOPENGRAPH_OPTION_FACEBOOK_IMAGE</option>
+        </field>
+
+        <field name="content_twitter_field"
+               type="list"
+               layout="joomla.form.field.list-fancy-select"
+               label="PLG_PWEBOPENGRAPH_CONTENT_TWITTER_GRAPH_FIELD">
+          <option value="">PLG_PWEBOPENGRAPH_OPTION_DEFAULT</option>
+          <option value="image_intro">PLG_PWEBOPENGRAPH_OPTION_INTRO_IMAGE</option>
+          <option value="image_fulltext">PLG_PWEBOPENGRAPH_OPTION_FULLTEXT_IMAGE</option>
+          <option value="twitter_image">PLG_PWEBOPENGRAPH_OPTION_TWITTER_IMAGE</option>
+        </field>
+      </fieldset>
+
+      <fieldset name="facebook" label="PLG_PWEBOPENGRAPH_HEADER">
+        <field type="sog.assets"/>
+
+        <field name="website_details"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               default="1"
+               label="PLG_PWEBOPENGRAPH_WEBSITE_DETAILS"
+               description="PLG_PWEBOPENGRAPH_WEBSITE_DETAILS_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="fb_admins"
+               type="text"
+               label="PLG_PWEBOPENGRAPH_FB_ADMINS"
+               description="PLG_PWEBOPENGRAPH_FB_ADMINS_DESC"/>
+
+        <field name="fb_appid"
+               type="text"
+               label="PLG_PWEBOPENGRAPH_FB_APP_ID"
+               description="PLG_PWEBOPENGRAPH_FB_APP_ID_DESC"/>
+
+        <field name="xmlns"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               default="1"
+               label="PLG_PWEBOPENGRAPH_FB_XMLNS"
+               description="PLG_PWEBOPENGRAPH_FB_XMLNS_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="fb_locale_enable"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               label="PLG_PWEBOPENGRAPH_FB_LOCALE_ENABLE"
+               description="PLG_PWEBOPENGRAPH_FB_LOCALE_ENABLE_DESC"
+               default="0">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="fb_locale_primary"
+               type="sog.language"
+               label="PLG_PWEBOPENGRAPH_FB_LOCALE_PRIMARY"
+               description="PLG_PWEBOPENGRAPH_FB_LOCALE_PRIMARY_DESC"
+               showon="fb_locale_enable:1">
+        </field>
+
+        <field name="fb_locale_alternate_select"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               label="PLG_PWEBOPENGRAPH_FB_LOCALE_ALTERNATE_SELECT"
+               description="PLG_PWEBOPENGRAPH_FB_LOCALE_ALTERNATE_SELECT_DESC"
+               default="1"
+               showon="fb_locale_enable:1">
+          <option value="0">PLG_PWEBOPENGRAPH_OPTION_ALL</option>
+          <option value="1">PLG_PWEBOPENGRAPH_OPTION_SELECTED</option>
+        </field>
+
+        <field name="fb_locale_alternate"
+               type="sog.language"
+               label="PLG_PWEBOPENGRAPH_FB_LOCALE_ALTERNATE"
+               description="PLG_PWEBOPENGRAPH_FB_LOCALE_ALTERNATE_DESC"
+               multiple="multiple"
+               showon="fb_locale_enable:1[AND]fb_locale_alternate_select:1"/>
+
+        <field type="spacer" name="PLG_PWEBOPENGRAPH_FACEBOOK_REQUIREMENTS"/>
+      </fieldset>
+
+      <fieldset name="twitter" label="PLG_PWEBOPENGRAPH_TWITTER_CARD_TAGS_HEADER">
+        <field name="twitter_cardtags"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               default="1"
+               label="PLG_PWEBOPENGRAPH_TWITTER_CARD_TAGS"
+               description="PLG_PWEBOPENGRAPH_TWITTER_CARD_TAGS_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="twitter_website_details"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               default="1"
+               label="PLG_PWEBOPENGRAPH_TWITTER_WEBSITE_DETAILS"
+               description="PLG_PWEBOPENGRAPH_TWITTER_WEBSITE_DETAILS_DESC"
+               showon="twitter_cardtags:1">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="twitter_username"
+               type="text"
+               class="validate-twitterusername"
+               label="PLG_PWEBOPENGRAPH_TWITTER_USERNAME"
+               description="PLG_PWEBOPENGRAPH_TWITTER_USERNAME_DESC"
+               showon="twitter_cardtags:1"/>
+
+        <field name="twitter_creator"
+               type="text"
+               class="validate-twitterusername"
+               label="PLG_PWEBOPENGRAPH_TWITTER_CREATOR_USERNAME"
+               description="PLG_PWEBOPENGRAPH_TWITTER_CREATOR_USERNAME_DESC"
+               showon="twitter_cardtags:1"/>
+
+        <field name="twitter_card_type_single_image"
+               type="list"
+               layout="joomla.form.field.list-fancy-select"
+               default="summary"
+               label="PLG_PWEBOPENGRAPH_TWITTER_CARD_TYPE_SINGLE_IMAGE"
+               description="PLG_PWEBOPENGRAPH_TWITTER_CARD_TYPE_SINGLE_IMAGE_DESC"
+               showon="twitter_cardtags:1">
+          <option value="summary">PLG_PWEBOPENGRAPH_OPTION_SUMMARY</option>
+          <option value="summary_large_image">PLG_PWEBOPENGRAPH_OPTION_SUMMARY_LARGE_IMAGE</option>
+        </field>
+
+        <field type="spacer"
+               name="PLG_PWEBOPENGRAPH_TWITTER_REQUIREMENTS_SUMMARY"
+               showon="twitter_cardtags:1[AND]twitter_card_type_single_image:summary"/>
+
+        <field type="spacer"
+               name="PLG_PWEBOPENGRAPH_TWITTER_REQUIREMENTS_SUMMARY_LARGE_IMAGE"
+               showon="twitter_cardtags:1[AND]twitter_card_type_single_image:summary_large_image"/>
+
+      </fieldset>
+
+      <fieldset name="components" label="PLG_PWEBOPENGRAPH_COMPONENTS_HEADER">
+        <field name="filter_type"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               label="PLG_PWEBOPENGRAPH_FILTER_TYPE"
+               description="PLG_PWEBOPENGRAPH_FILTER_TYPE_DESC"
+               default="exclude">
+          <option value="exclude">PLG_PWEBOPENGRAPH_OPTION_EXCLUDE</option>
+          <option value="include">PLG_PWEBOPENGRAPH_OPTION_INCLUDE</option>
+        </field>
+
+        <field name="filter_components"
+               type="sog.components"
+               label="PLG_PWEBOPENGRAPH_FILTER_COMPONENTS"
+               description="PLG_PWEBOPENGRAPH_FILTER_COMPONENTS_DESC"/>
+      </fieldset>
+
+      <fieldset name="advanced">
+        <field type="sog.button"
+               link="https://developers.facebook.com/tools/debug"
+               label="PLG_PWEBOPENGRAPH_FACEBOOK_DEBUGGER"/>
+
+        <field type="sog.button"
+               link="https://cards-dev.twitter.com/validator"
+               label="PLG_PWEBOPENGRAPH_TWITTER_CARD_VALIDATOR"/>
+
+        <field name="debug"
+               type="radio"
+               class="btn-group btn-group-yesno"
+               layout="joomla.form.field.radio.switcher"
+               default="0"
+               label="PLG_PWEBOPENGRAPH_DEBUG"
+               description="PLG_PWEBOPENGRAPH_DEBUG_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field type="spacer" class="alert alert-error" name="PLG_PWEBOPENGRAPH_SITEMAP_ERROR"/>
+
+        <field name="sitemap_link"
+               type="text"
+               label="PLG_PWEBOPENGRAPH_SITEMAP_LINK"
+               description="PLG_PWEBOPENGRAPH_SITEMAP_LINK_DESC"/>
+
+        <field type="spacer" class="span12" name="PLG_PWEBOPENGRAPH_SITEMAP_URLS"/>
+
+        <field type="customfooter"
+               name="customfooter"
+               media="plg_system_pwebopengraph"
+               jedurl="https://extensions.joomla.org/extension/shack-open-graph/"/>
+      </fieldset>
+    </fields>
+  </config>
+
+  <alledia>
+    <element>pwebopengraph</element>
+    <namespace>pwebopengraph</namespace>
+    <name>Shack Open Graph</name>
+    <license>pro</license>
+    <targetplatform>3.9</targetplatform>
+    <phpminimum>7.2.5</phpminimum>
+
+    <include>ShackDefaultFiles</include>
+
+    <relatedExtensions publish="true">
+      <extension type="library"
+                 element="allediaframework">ShackFramework</extension>
+
+      <extension type="plugin"
+                 group="system"
+                 element="osmylicensesmanager"
+                 ordering="last">ShackExtensionSupport</extension>
+    </relatedExtensions>
+
+    <obsolete>
+      <folder>plugins/system/pwebopengraph/css</folder>
+      <folder>plugins/system/pwebopengraph/form/rules</folder>
+      <folder>plugins/system/pwebopengraph/js</folder>
+
+      <file>plugins/system/pwebopengraph/form/fields/pweb.php</file>
+      <file>plugins/system/pwebopengraph/form/fields/pwebcomponents.php</file>
+      <file>plugins/system/pwebopengraph/form/fields/pwebdlid.php</file>
+    </obsolete>
+  </alledia>
+
+  <updateservers>
+    <server type="extension" priority="1" name="Joomlashack - Shack Open Graph Pro"><![CDATA[https://deploy.ostraining.com/client/update/pro/stable/plg_system_pwebopengraph/]]></server>
+  </updateservers>
+</extension>

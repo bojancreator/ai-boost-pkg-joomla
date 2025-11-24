@@ -33,9 +33,9 @@ return new class () implements InstallerScriptInterface {
      * Custom field names we manage
      */
     private const FIELD_NAMES = [
-        'custom_og_image',
-        'custom_og_title',
-        'custom_og_description',
+        'custom-og-image',
+        'custom-og-title',
+        'custom-og-description',
     ];
 
     /**
