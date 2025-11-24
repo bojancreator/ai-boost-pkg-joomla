@@ -81,11 +81,23 @@ return new class () implements InstallerScriptInterface {
                 'success'
             );
 
-            // Check if custom fields exist
+            // Auto-create custom fields if they don't exist
             if (!$this->checkCustomFieldsExist()) {
                 $app->enqueueMessage(
-                    '💡 JoomlaBoost can auto-create Custom Fields for per-article OpenGraph overrides. ' .
-                    'Enable the plugin and look for the setup notice in the admin area.',
+                    '🔧 Creating custom fields for per-article OpenGraph overrides...',
+                    'info'
+                );
+                
+                $result = $this->createCustomFields();
+                
+                if ($result['success']) {
+                    $app->enqueueMessage($result['message'], 'success');
+                } else {
+                    $app->enqueueMessage($result['message'], 'warning');
+                }
+            } else {
+                $app->enqueueMessage(
+                    '✅ Custom fields already exist - ready to use!',
                     'info'
                 );
             }
@@ -95,6 +107,22 @@ return new class () implements InstallerScriptInterface {
                 '✅ JoomlaBoost plugin successfully updated to version ' . $adapter->getManifest()->version . '!',
                 'success'
             );
+            
+            // Also check/create fields on update
+            if (!$this->checkCustomFieldsExist()) {
+                $app->enqueueMessage(
+                    '🔧 Creating custom fields for per-article OpenGraph overrides...',
+                    'info'
+                );
+                
+                $result = $this->createCustomFields();
+                
+                if ($result['success']) {
+                    $app->enqueueMessage($result['message'], 'success');
+                } else {
+                    $app->enqueueMessage($result['message'], 'warning');
+                }
+            }
         }
 
         return true;
@@ -174,6 +202,27 @@ return new class () implements InstallerScriptInterface {
             return $count === \count(self::FIELD_NAMES);
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    /**
+     * Create custom fields using CustomFieldsService
+     *
+     * @return array Result array with 'success' and 'message' keys
+     */
+    private function createCustomFields(): array
+    {
+        try {
+            // Load CustomFieldsService
+            require_once __DIR__ . '/src/Services/CustomFieldsService.php';
+            
+            $customFieldsService = new \CustomFieldsService();
+            return $customFieldsService->setupCustomFields();
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to create custom fields: ' . $e->getMessage()
+            ];
         }
     }
 };

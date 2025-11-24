@@ -102,41 +102,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-        // Admin panel: Show custom fields setup notice
+        // Admin panel: Custom fields auto-created during install/update (see script.php)
         if ($app->isClient('administrator')) {
             $this->logDebug('JoomlaBoost initialised (admin)');
-            
-            // Check if custom fields need setup
-            try {
-                $customFieldsService = new CustomFieldsService();
-                $fieldsExist = $customFieldsService->checkCustomFieldsExist();
-                
-                $this->logDebug('Custom fields check: ' . ($fieldsExist ? 'exist' : 'missing'));
-                
-                if (!$fieldsExist) {
-                    // Show notice with inline JavaScript for one-click setup
-                    $setupUrl = 'index.php?option=com_ajax&plugin=joomlaboost&group=system&format=json';
-                    $notice = '<strong>JoomlaBoost:</strong> Enable per-article OpenGraph overrides? '
-                        . '<a href="#" id="jb-setup-fields" onclick="'
-                        . "fetch('{$setupUrl}').then(r=>r.json()).then(d=>{"
-                        . "if(d.success){alert(d.message);location.reload();}"
-                        . "else{alert(\'Error: \'+d.message);}"
-                        . "}); return false;"
-                        . '">Create Custom Fields Now</a> '
-                        . '<small>(one-click setup)</small>';
-                    
-                    $app->enqueueMessage($notice, 'info');
-                    $this->logDebug('Custom fields setup notice displayed');
-                }
-            } catch (\Exception $e) {
-                $this->logDebug('Custom fields check failed: ' . $e->getMessage());
-                // Show fallback notice
-                $app->enqueueMessage(
-                    '<strong>JoomlaBoost:</strong> Custom fields auto-setup is available but initialization failed. Error: ' . $e->getMessage(),
-                    'warning'
-                );
-            }
-            
             return;
         }
 
