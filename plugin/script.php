@@ -73,8 +73,18 @@ return new class () implements InstallerScriptInterface {
     public function postflight(string $type, InstallerAdapter $adapter): bool
     {
         $app = Factory::getApplication();
+        
+        // Create log file for debugging
+        $logFile = JPATH_ROOT . '/joomlaboost_install.log';
+        $log = function($message) use ($logFile) {
+            file_put_contents($logFile, date('Y-m-d H:i:s') . ' - ' . $message . "\n", FILE_APPEND);
+        };
+        
+        $log("=== POSTFLIGHT START (type: $type) ===");
 
         if ($type === 'install') {
+            $log("Processing fresh installation...");
+            
             // Fresh installation
             $app->enqueueMessage(
                 '✅ JoomlaBoost plugin successfully installed!',
@@ -83,37 +93,49 @@ return new class () implements InstallerScriptInterface {
 
             // Auto-create custom fields if they don't exist
             try {
+                $log("Checking if custom fields exist...");
                 $fieldsExist = $this->checkCustomFieldsExist();
+                $log("Fields exist check result: " . ($fieldsExist ? 'YES' : 'NO'));
+                
                 $app->enqueueMessage(
                     '🔍 Custom fields check: ' . ($fieldsExist ? 'EXIST' : 'MISSING'),
                     'info'
                 );
                 
                 if (!$fieldsExist) {
+                    $log("Fields are missing, attempting to create...");
+                    
                     $app->enqueueMessage(
                         '🔧 Creating custom fields for per-article OpenGraph overrides...',
                         'info'
                     );
                     
                     $result = $this->createCustomFields();
+                    $log("Create fields result: " . json_encode($result));
                     
                     $app->enqueueMessage(
                         '📋 Result: ' . ($result['success'] ? 'SUCCESS' : 'FAILED') . ' - ' . $result['message'],
                         $result['success'] ? 'success' : 'error'
                     );
                 } else {
+                    $log("Fields already exist, skipping creation.");
                     $app->enqueueMessage(
                         '✅ Custom fields already exist - ready to use!',
                         'success'
                     );
                 }
             } catch (\Exception $e) {
+                $errorMsg = 'Exception: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine();
+                $log("ERROR: " . $errorMsg);
+                
                 $app->enqueueMessage(
-                    '❌ Custom fields setup exception: ' . $e->getMessage() . ' | File: ' . $e->getFile() . ' | Line: ' . $e->getLine(),
+                    '❌ Custom fields setup exception: ' . $errorMsg,
                     'error'
                 );
             }
         } elseif ($type === 'update') {
+            $log("Processing update...");
+            
             // Update from previous version
             $app->enqueueMessage(
                 '✅ JoomlaBoost plugin successfully updated to version ' . $adapter->getManifest()->version . '!',
@@ -121,22 +143,29 @@ return new class () implements InstallerScriptInterface {
             );
             
             // Also check/create fields on update
+            $log("Checking fields on update...");
             if (!$this->checkCustomFieldsExist()) {
+                $log("Fields missing on update, creating...");
+                
                 $app->enqueueMessage(
                     '🔧 Creating custom fields for per-article OpenGraph overrides...',
                     'info'
                 );
                 
                 $result = $this->createCustomFields();
+                $log("Update create result: " . json_encode($result));
                 
                 if ($result['success']) {
                     $app->enqueueMessage($result['message'], 'success');
                 } else {
                     $app->enqueueMessage($result['message'], 'warning');
                 }
+            } else {
+                $log("Fields already exist on update.");
             }
         }
-
+        
+        $log("=== POSTFLIGHT END ===\n");
         return true;
     }
 
