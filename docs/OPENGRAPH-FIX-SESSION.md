@@ -1,19 +1,21 @@
-# OpenGraph Intro Image Fix - Debug Session
+# OpenGraph Intro Image Fix - Complete Session
 
-**Datum**: 21. novembar 2025  
-**Problem**: OpenGraph ne prikazuje intro slike članaka, nego default logo  
-**Status**: U toku debugging - v0.1.59 spremna za test
+**Datum**: 21-24. novembar 2025
+**Problem**: OpenGraph ne prikazuje intro slike članaka, nego default logo
+**Status**: ✅ **REŠENO** u v0.1.63, production release v0.1.64
 
 ---
 
 ## 🐛 Problem
 
 ### Simptomi
+
 - **OpenGraph meta tag**: `<meta property="og:image" content="https://staging.offroadserbia.com/images/LOGO-SERBIA-CREW.png">` ❌ (prikazuje logo)
 - **Schema.org JSON-LD**: `"thumbnailUrl":"images/intro-images/deliblato-mart2020-mala.jpg"` ✅ (prikazuje intro sliku)
 - **Test URL**: https://staging.offroadserbia.com/clanstvo (Article ID 67)
 
 ### Dijagnoza
+
 `SchemaService` **USPEŠNO** izvlači intro sliku iz baze, ali `OpenGraphService` **NE USPEVA**.
 
 ---
@@ -21,10 +23,12 @@
 ## 🔍 Debugging Hronologija
 
 ### v0.1.45-0.1.52: Početna istraživanja
-**Hipoteza**: SQL query ne vraća podatke  
+
+**Hipoteza**: SQL query ne vraća podatke
 **Akcije**:
-- Dodavano `error_log()` debug  
-- Uklonjen `WHERE published = 1` uslov  
+
+- Dodavano `error_log()` debug
+- Uklonjen `WHERE published = 1` uslov
 - Dodato 6 varijanti imena `images` polja
 
 **Rezultat**: Nisu pronađeni problemi u SQL query strukturi
@@ -32,12 +36,15 @@
 ---
 
 ### v0.1.53-0.1.55: Flow tracking
-**Hipoteza**: Metoda `getArticleImage()` se ne izvršava  
+
+**Hipoteza**: Metoda `getArticleImage()` se ne izvršava
 **Akcije**:
+
 - Dodati HTML echo debug komentari kroz ceo execution flow
 - Potvrđeno da se `onBeforeCompileHead` → `addOpenGraphTags` → `addArticleOpenGraphTags` → `getArticleImage()` pozivaju
 
 **Debug output**:
+
 ```html
 <!-- JB DEBUG OG: option=com_content, view=article, needsHeavy=YES -->
 <!-- JB DEBUG: Entering addArticleOpenGraphTags -->
@@ -52,21 +59,25 @@
 ---
 
 ### v0.1.56-0.1.57: SQL Execution Debugging
-**Hipoteza**: SQL query baca exception koji try-catch guta  
+
+**Hipoteza**: SQL query baca exception koji try-catch guta
 **Akcije v0.1.56**:
+
 - Dodati debug POSLE `$db->setQuery()` i `$db->loadObject()`
 - Debug output: **ISTI** - zaustavlja se na istom mestu
 
 **Akcije v0.1.57**:
+
 - **STAVLJEN EKSPLICITNI TRY-CATCH** oko SQL query-a sa exception logging
 - Dodati debug na svakom koraku:
-  * "About to get DBO instance..."
-  * "DBO instance obtained"
-  * "Query built"
-  * "SQL query: [tekst query-a]"
-  * "loadObject() executed"
+  - "About to get DBO instance..."
+  - "DBO instance obtained"
+  - "Query built"
+  - "SQL query: [tekst query-a]"
+  - "loadObject() executed"
 
 **Debug output v0.1.57**:
+
 ```html
 <!-- JB DEBUG: No custom_og_image, proceeding to SQL query -->
 <!-- JB DEBUG: About to get DBO instance... -->
@@ -82,14 +93,16 @@
 ## ✅ Rešenje v0.1.58
 
 ### Problem
+
 ```sql
 SELECT images, introtext, fulltext FROM d2nrb_content WHERE id = 67
 ```
 
-**`fulltext` je rezervisana reč u MariaDB/MySQL!**  
+**`fulltext` je rezervisana reč u MariaDB/MySQL!**
 SQL parser interpretira `fulltext` kao SQL keyword umesto imena kolone.
 
 ### Fix
+
 ```php
 // ❌ STARI KOD (v0.1.45-0.1.57)
 $query = $db->getQuery(true)
@@ -105,11 +118,13 @@ $query = $db->getQuery(true)
 ```
 
 **Generisani SQL sa backticks**:
+
 ```sql
 SELECT `images`, `introtext`, `fulltext` FROM `d2nrb_content` WHERE `id` = 67
 ```
 
 ### Izmene u v0.1.58
+
 1. **OpenGraphService.php (linija 327-333)**: Korišćenje `$db->quoteName()` za sve kolone i tabele
 2. Uklonjeni svi debug HTML echo komentari (očišćen kod)
 3. Ostavljeni samo `error_log()` debug pozivi (ne ometaju production)
@@ -123,16 +138,19 @@ SELECT `images`, `introtext`, `fulltext` FROM `d2nrb_content` WHERE `id` = 67
 **Status**: **NE TESTIRAN JOŠ**
 
 ### Zašto v0.1.59?
-Nakon instalacije v0.1.58, OpenGraph **I DALJE prikazuje logo** umesto intro slike.  
+
+Nakon instalacije v0.1.58, OpenGraph **I DALJE prikazuje logo** umesto intro slike.
 Schema.org thumbnailUrl **JE ISPRAVAN** (pokazuje intro sliku).
 
 ### Hipoteze
+
 1. **Cache**: Joomla/plugin keširaju staru vrednost OG image meta taga
 2. **Priority logic**: `addFallbackOpenGraphImage()` dodaje logo POSLE što `getArticleImage()` vrati prazan string
 3. **JSON decode fail**: `$article->images` polje možda nije pravilno dekodirano
 4. **Execution path**: `getArticleImage()` možda UOPŠTE NE VRAĆA vrednost do `addArticleOpenGraphTags()`
 
 ### Dodati debug u v0.1.59
+
 ```php
 echo "<!-- DEBUG: getArticleImage() START -->\n";
 echo "<!-- DEBUG: articleId = $articleId -->\n";
@@ -148,6 +166,7 @@ echo "<!-- DEBUG: article->images value: " . htmlspecialchars($article->images ?
 ## 📊 Comparison: SchemaService vs OpenGraphService
 
 ### SchemaService (RADI) - extractImagesOptimized()
+
 ```php
 if (!empty($article->images)) {
     $articleImages = json_decode($article->images, true);
@@ -158,9 +177,11 @@ if (!empty($article->images)) {
     }
 }
 ```
+
 **Rezultat**: `"thumbnailUrl":"images/intro-images/deliblato-mart2020-mala.jpg"` ✅
 
 ### OpenGraphService (NE RADI) - getArticleImage()
+
 ```php
 $db = Factory::getDbo();
 $query = $db->getQuery(true)
@@ -183,6 +204,7 @@ if (!empty($article->images)) {
     // ... field checking logic ...
 }
 ```
+
 **Rezultat**: `<meta property="og:image" content=".../LOGO-SERBIA-CREW.png">` ❌
 
 ---
@@ -190,6 +212,7 @@ if (!empty($article->images)) {
 ## 🔧 Next Steps
 
 ### Testiranje v0.1.59
+
 1. Instaliraj `joomlaboost-0.1.59.zip` na staging
 2. **OBAVEZNO**: System → Clear Cache
 3. **OBAVEZNO**: Hard refresh u browseru (Ctrl+Shift+R)
@@ -200,6 +223,7 @@ if (!empty($article->images)) {
 8. Kopiraj SVE debug linije i OG image meta tag
 
 ### Očekivani debug output
+
 ```html
 <!-- DEBUG: getArticleImage() START -->
 <!-- DEBUG: articleId = 67 -->
@@ -208,8 +232,8 @@ if (!empty($article->images)) {
 <!-- DEBUG: article->images value: {"image_intro":"images/intro-images/deliblato-mart2020-mala.jpg",...} -->
 ```
 
-**Ako nema debug-a**: Cache problem ili stara verzija instalirana  
-**Ako debug pokazuje prazan images**: Treba proveriti drugi article  
+**Ako nema debug-a**: Cache problem ili stara verzija instalirana
+**Ako debug pokazuje prazan images**: Treba proveriti drugi article
 **Ako debug pokazuje podatke**: Problem je u JSON decode ili field extraction logici
 
 ---
@@ -217,15 +241,17 @@ if (!empty($article->images)) {
 ## 📝 Files Modified
 
 ### v0.1.45 → v0.1.58
+
 - `src/plugins/system/joomlaboost/src/Services/OpenGraphService.php`
-  * Linija 327-333: SQL query sa `quoteName()`
-  * Uklonjen debug (sve echo linije)
-  
+  - Linija 327-333: SQL query sa `quoteName()`
+  - Uklonjen debug (sve echo linije)
+
 ### v0.1.59 (current)
+
 - `src/plugins/system/joomlaboost/src/Services/OpenGraphService.php`
-  * Linija 307-342: Debug echo linije dodane ponovo
+  - Linija 307-342: Debug echo linije dodane ponovo
 - `src/plugins/system/joomlaboost/joomlaboost.xml`
-  * Linija 10: Version 0.1.59
+  - Linija 10: Version 0.1.59
 
 ---
 
