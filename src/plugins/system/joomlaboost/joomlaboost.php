@@ -235,6 +235,183 @@ HTML;
     }
 
     /**
+     * Fix NULL custom field values BEFORE form is loaded (PHP 8.1+ compatibility)
+     * Prevents json_decode(null) deprecation when opening article editor
+     */
+    public function onContentPrepareForm($form, $data): void
+    {
+        // Only process com_content.article forms
+        if (!($form instanceof \Joomla\CMS\Form\Form)) {
+            return;
+        }
+
+        $formName = $form->getName();
+        if ($formName !== 'com_content.article') {
+            return;
+        }
+
+        // Get article ID from data
+        $articleId = null;
+        if (is_array($data) && isset($data['id'])) {
+            $articleId = (int) $data['id'];
+        } elseif (is_object($data) && isset($data->id)) {
+            $articleId = (int) $data->id;
+        }
+
+        if (!$articleId) {
+            return; // New article, no fields to fix yet
+        }
+
+        $this->fixArticleFieldValues($articleId);
+    }
+
+    /**
+     * Fix NULL custom field values after article save (PHP 8.1+ compatibility)
+     * Ensures media fields always have valid JSON, preventing json_decode(null) deprecation
+     */
+    public function onContentAfterSave($context, $article, $isNew): void
+    {
+        // Only process com_content.article context
+        if ($context !== 'com_content.article') {
+            return;
+        }
+
+        // Skip if article doesn't have an ID
+        if (empty($article->id)) {
+            return;
+        }
+
+        $this->fixArticleFieldValues($article->id);
+    }
+
+    /**
+     * Fix NULL/empty values for ALL custom OG fields for a specific article
+     * Prevents DOMCdataSection(null) and json_decode(null) deprecation errors
+     *
+     * @param int $articleId Article ID
+     * @return void
+     */
+    private function fixArticleFieldValues(int $articleId): void
+    {
+        try {
+            $db = Factory::getDbo();
+
+            // Define all custom OG fields with their default values
+            $fieldsToFix = [
+                'custom_og_image' => '{"imagefile":""}',  // JSON for media field
+                'custom_og_title' => '',                   // Empty string for text
+                'custom_og_description' => ''              // Empty string for textarea
+            ];
+
+            foreach ($fieldsToFix as $fieldName => $defaultValue) {
+                // Get field ID
+                $query = $db->getQuery(true)
+                    ->select('id')
+                    ->from($db->quoteName('#__fields'))
+                    ->where($db->quoteName('name') . ' = ' . $db->quote($fieldName));
+
+                $db->setQuery($query);
+                $fieldId = $db->loadResult();
+
+                if (!$fieldId) {
+                    continue; // Field doesn't exist, skip to next
+                }
+
+                // Check if value exists for this article
+                $query = $db->getQuery(true)
+                    ->select('value')
+                    ->from($db->quoteName('#__fields_values'))
+                    ->where($db->quoteName('field_id') . ' = ' . (int) $fieldId)
+                    ->where($db->quoteName('item_id') . ' = ' . (int) $articleId);
+
+                $db->setQuery($query);
+                $currentValue = $db->loadResult();
+
+                if ($currentValue === false) {
+                    // Record doesn't exist - INSERT
+                    $query = $db->getQuery(true)
+                        ->insert($db->quoteName('#__fields_values'))
+                        ->columns($db->quoteName(['field_id', 'item_id', 'value']))
+                        ->values((int) $fieldId . ',' . (int) $articleId . ',' . $db->quote($defaultValue));
+
+                    $db->setQuery($query);
+                    $db->execute();
+                } elseif ($currentValue === null || $currentValue === '') {
+                    // Record exists but value is NULL/empty - UPDATE
+                    $query = $db->getQuery(true)
+                        ->update($db->quoteName('#__fields_values'))
+                        ->set($db->quoteName('value') . ' = ' . $db->quote($defaultValue))
+                        ->where($db->quoteName('field_id') . ' = ' . (int) $fieldId)
+                        ->where($db->quoteName('item_id') . ' = ' . (int) $articleId);
+
+                    $db->setQuery($query);
+                    $db->execute();
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silently fail - don't break article save or form load
+            $this->logDebug('Custom field NULL fix failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Intercept custom fields BEFORE type-specific plugins (Media, Text, etc.)
+     *
+     * This event fires during field preparation and allows us to sanitize NULL values
+     * BEFORE plg_fields_media attempts json_decode() or BEFORE FieldsPlugin creates CDATA.
+     *
+     * Prevents TWO deprecation errors:
+     * 1. json_decode(): Passing null to parameter #1 (Media plugin line 104)
+     * 2. DOMCdataSection::__construct(): Passing null to parameter #1 (FieldsPlugin line 277)
+     *
+     * @param   string  $context  The context of the content being passed to the fields.
+     * @param   object  $item     The item object containing the fields.
+     * @param   object  $field    The field object being prepared (passed by reference).
+     *
+     * @return  void
+     * @since   0.1.105
+     */
+    public function onCustomFieldsPrepareField($context, $item, $field): void
+    {
+        // 1. Target only Article Custom Fields
+        if ($context !== 'com_content.article') {
+            return;
+        }
+
+        // 2. Target only our specific OG fields
+        $targetFields = [
+            'custom_og_image',
+            'custom_og_title',
+            'custom_og_description',
+        ];
+
+        if (!in_array($field->name, $targetFields, true)) {
+            return;
+        }
+
+        // 3. Determine default value based on field type
+        $defaultValue = '';
+        if ($field->type === 'media') {
+            $defaultValue = '{"imagefile":""}'; // Valid JSON for Media field json_decode()
+        } else {
+            $defaultValue = ''; // Empty string for text/textarea CDATA sections
+        }
+
+        // 4. THE FIX: Check for NULL or empty string and inject defaults
+        // This prevents BOTH json_decode(null) AND DOMCdataSection(null) errors
+        if (($field->value ?? null) === null || $field->value === '') {
+            $field->value = $defaultValue;
+        }
+
+        // Also ensure rawvalue is sanitized (used in backend form population)
+        if (property_exists($field, 'rawvalue')) {
+            if (($field->rawvalue ?? null) === null || $field->rawvalue === '') {
+                $field->rawvalue = $defaultValue;
+            }
+        }
+    }
+
+    /**
      * Get plugin version from XML manifest
      */
     private function getPluginVersion(): string

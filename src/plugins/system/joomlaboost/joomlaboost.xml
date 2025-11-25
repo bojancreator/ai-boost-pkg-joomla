@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later</license>
     <authorEmail>info@joomlaboost.com</authorEmail>
     <authorUrl>https://joomlaboost.com</authorUrl>
-    <version>0.1.69</version>
+    <version>0.2.0</version>
     <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
 
     <!-- System Requirements -->
@@ -15,16 +15,15 @@
     <joomla_minimum>4.0.0</joomla_minimum>
     <joomla_maximum>6.9999.9999</joomla_maximum>
 
+    <scriptfile>script.php</scriptfile>
+
     <files>
         <filename plugin="joomlaboost">joomlaboost.php</filename>
         <filename>joomlaboost-minimal.php</filename>
-        <filename>script.php</filename>
         <folder>language</folder>
         <folder>src</folder>
         <folder>media</folder>
     </files>
-
-    <scriptfile>script.php</scriptfile>
 
     <languages>
         <language tag="en-GB">language/en-GB/plg_system_joomlaboost.ini</language>
@@ -84,31 +83,15 @@
                     <option value="0">JNO</option>
                 </field>
 
-                <field name="enable_hreflang"
+                <field name="enable_opengraph"
                        type="radio"
-                       label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL"
-                       description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC"
+                       label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC"
                        default="1"
                        class="btn-group btn-group-yesno">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
-
-                <!-- FAQ Schema -->
-                <field name="faq_schema_enabled"
-                       type="radio"
-                       label="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_LABEL"
-                       description="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_DESC"
-                       default="1"
-                       class="btn-group btn-group-yesno">
-                    <option value="1">JYES</option>
-                    <option value="0">JNO</option>
-                </field>
-
-            </fieldset>
-
-            <!-- OpenGraph & Social Media Tab -->
-            <fieldset name="opengraph" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_OPENGRAPH">
 
                 <!-- OpenGraph Site Name -->
                 <field name="og_site_name"
@@ -116,7 +99,8 @@
                        label="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_DESC"
                        default=""
-                       hint="OffRoad Serbia"/>
+                       hint="OffRoad Serbia"
+                       showon="enable_opengraph:1"/>
 
                 <!-- OpenGraph Default Image -->
                 <field name="og_image"
@@ -124,14 +108,16 @@
                        label="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_DESC"
                        default=""
-                       directory="images"/>
+                       directory="images"
+                       showon="enable_opengraph:1"/>
 
                 <!-- Per-Article OpenGraph Override Notice -->
                 <field name="og_override_note"
                        type="note"
                        label="📝 Per-Article OpenGraph Overrides"
                        description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields → Featured Image → Global Config."
-                       class="alert alert-info"/>
+                       class="alert alert-info"
+                       showon="enable_opengraph:1"/>
 
                 <!-- Organization Name (Fallback for og:site_name) -->
                 <field name="org_name"
@@ -214,6 +200,27 @@
                        default="Mo-Su 09:00-18:00"
                        showon="schema_type:localbusiness"
                        hint="Mo-Su 09:00-18:00"/>
+
+                <field name="enable_hreflang"
+                       type="radio"
+                       label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC"
+                       default="1"
+                       class="btn-group btn-group-yesno">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <!-- FAQ Schema -->
+                <field name="faq_schema_enabled"
+                       type="radio"
+                       label="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_DESC"
+                       default="1"
+                       class="btn-group btn-group-yesno">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
 
             </fieldset>
 

@@ -1,5 +1,109 @@
 # JoomlaBoost – Release Notes
 
+## v0.2.0 (2025-11-25) 🎯 CRITICAL FIX - PHP 8.1+ Custom Fields
+
+### 🔥 Major Fix - NULL Deprecation Errors Resolved
+
+**Problem:** PHP 8.1+ deprecation warnings when opening articles without custom field values:
+- `json_decode(): Passing null to parameter #1` (Media fields)
+- `DOMCdataSection::__construct(): Passing null to parameter #1` (All field types)
+- Errors appeared in admin panel with Error Reporting = Maximum
+
+**Root Cause:** Custom fields created WITHOUT `default_value` in `#__fields` table.
+
+**Solution:** Use Joomla's native `default_value` column mechanism - the proper Joomla way!
+
+### ✅ What Changed
+
+**script.php - createField():**
+```php
+$columns = [
+    // ... existing columns ...
+    'default_value',  // ✅ ADDED - was missing!
+    // ...
+];
+
+$defaultValue = ($type === 'media') 
+    ? '{"imagefile":""}' 
+    : '';
+
+$values = [
+    // ...
+    $db->quote($defaultValue),  // 🎯 Sets default in Joomla
+    // ...
+];
+```
+
+**script.php - updateFieldsDisplayParam():**
+```php
+// Only update if currently empty - preserves user customization!
+if (empty($field->default_value)) {
+    $updateQuery->set('default_value = ' . $db->quote($defaultValue));
+}
+```
+
+### 🎯 Why This is THE Solution
+
+✅ **Joomla Native** - Uses built-in field defaults (no hacks!)  
+✅ **Zero Runtime Cost** - No database triggers, no event hooks  
+✅ **Admin Visible** - Editable in Content → Fields → Edit  
+✅ **Automatic** - New articles inherit defaults  
+✅ **Safe Upgrades** - Preserves manual customizations  
+✅ **Simple** - 3 lines of code vs 100+ lines of triggers  
+
+### 📦 Installation & Upgrade
+
+**From ANY v0.1.x:**
+1. Upload `joomlaboost-0.2.0.zip`
+2. Extensions → Manage → Install
+3. Auto-upgrades existing plugin
+4. No configuration needed!
+
+**Verification:**
+```sql
+SELECT name, type, default_value 
+FROM #__fields 
+WHERE name LIKE 'custom_og_%';
+```
+
+Expected:
+- `custom_og_image` → `{"imagefile":""}`
+- `custom_og_title` → `` (empty string)
+- `custom_og_description` → `` (empty string)
+
+**Test:**
+1. Content → New Article
+2. Leave custom fields empty
+3. Save & Close → Reopen
+4. Expected: NO errors! ✅
+
+### 🧠 Lessons Learned (17 Iterations!)
+
+- v0.1.91-97: Tried `fieldparams` workarounds ❌
+- v0.1.98: Access Level = 3 (frontend only) ⚠️
+- v0.1.100-103: SQL normalization + Fields plugin ⚠️
+- v0.1.104-107: Database triggers (overkill!) ❌
+- **v0.2.0: Joomla `default_value` column** ✅
+
+**The Problem:** We were looking at `fieldparams.imagefile` but ignoring the obvious `default_value` field in admin UI! 🤦
+
+### 📖 Full Documentation
+
+See `docs/CUSTOM-FIELDS-PHP81-ISSUE.md` for:
+- Complete debugging timeline
+- All 17 attempts documented
+- Root cause analysis
+- Implementation details
+
+### 🏗️ Architecture (Final Stack)
+
+**Layer 1:** Joomla Default Value (v0.2.0) ⚡ **PRIMARY**  
+**Layer 2:** Access Level = 3 (v0.1.98) - Guest protection  
+**Layer 3:** SQL Normalization (v0.1.100) - Historical cleanup  
+**Layer 4:** Fields Plugin (v0.1.103) - Optional fallback  
+
+---
+
 ## v0.1.56 — 2025-12-XX 🤖 AI Crawler Optimization
 
 ### ✨ Major Features

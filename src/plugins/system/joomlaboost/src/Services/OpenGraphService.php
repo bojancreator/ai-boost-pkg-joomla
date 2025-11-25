@@ -499,7 +499,7 @@ class OpenGraphService extends AbstractService
                 ->from('#__fields')
                 ->where('name = ' . $db->quote($fieldName))
                 ->where('context = ' . $db->quote('com_content.article'))
-                ->where('state = 1');
+                ->where('state = 1');  // Back to checking published state
 
             $db->setQuery($fieldQuery);
             $fieldId = $db->loadResult();
@@ -519,7 +519,20 @@ class OpenGraphService extends AbstractService
             $value = $db->loadResult();
 
             // Return value if not empty
-            return !empty($value) ? (string) $value : null;
+            if (empty($value)) {
+                return null;
+            }
+
+            // Special handling for custom_og_image: Joomla media field stores JSON
+            if ($fieldName === 'custom_og_image') {
+                $decoded = json_decode($value, true);
+                if (is_array($decoded) && isset($decoded['imagefile'])) {
+                    $this->logDebug("Parsed JSON from custom_og_image: " . $decoded['imagefile']);
+                    return $decoded['imagefile'];
+                }
+            }
+
+            return (string) $value;
         } catch (\Throwable $e) {
             $this->logDebug("Custom field '$fieldName' read failed: " . $e->getMessage());
             return null;

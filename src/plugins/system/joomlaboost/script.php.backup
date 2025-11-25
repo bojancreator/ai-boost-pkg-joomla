@@ -1,0 +1,270 @@
+<?php
+defined('_JEXEC') or die;
+
+use Joomla\CMS\Factory;
+
+class plgSystemJoomlaboostInstallerScript
+{
+    public function postflight($type, $adapter)
+    {
+        $log = JPATH_ROOT . '/joomlaboost_install.log';
+        
+        file_put_contents($log, "\n" . str_repeat('=', 60) . "\n", FILE_APPEND);
+        file_put_contents($log, date('Y-m-d H:i:s') . " - v0.1.87 POSTFLIGHT START\n", FILE_APPEND);
+        
+        // Check if custom fields exist
+        try {
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('COUNT(*)')
+                ->from($db->quoteName('#__fields'))
+                ->where($db->quoteName('name') . ' IN (' . 
+                    $db->quote('custom_og_image') . ',' . 
+                    $db->quote('custom_og_title') . ',' . 
+                    $db->quote('custom_og_description') . ')');                
+            
+            $db->setQuery($query);
+            $count = (int) $db->loadResult();
+            
+            file_put_contents($log, date('Y-m-d H:i:s') . " - Found $count/3 custom fields\n", FILE_APPEND);
+            
+            if ($count === 3) {
+                file_put_contents($log, date('Y-m-d H:i:s') . " - ✅ All fields exist!\n", FILE_APPEND);
+            } else {
+                file_put_contents($log, date('Y-m-d H:i:s') . " - ⚠️ Fields missing - creating...\n", FILE_APPEND);
+                
+                // Create field group using direct SQL
+                $groupId = $this->createFieldGroup($db, $log);
+                
+                if ($groupId) {
+                    file_put_contents($log, date('Y-m-d H:i:s') . " - ✅ Field group created (ID: $groupId)\n", FILE_APPEND);
+                    
+                    // Create custom_og_image field
+                    $fieldId1 = $this->createField($db, $log, $groupId, 'custom_og_image', 'media', 'Custom OG Image');
+                    if ($fieldId1) {
+                        file_put_contents($log, date('Y-m-d H:i:s') . " - ✅ Field 'custom_og_image' created (ID: $fieldId1)\n", FILE_APPEND);
+                    } else {
+                        file_put_contents($log, date('Y-m-d H:i:s') . " - ❌ Failed to create 'custom_og_image'\n", FILE_APPEND);
+                    }
+                    
+                    // Create custom_og_title field
+                    $fieldId2 = $this->createField($db, $log, $groupId, 'custom_og_title', 'text', 'Custom OG Title');
+                    if ($fieldId2) {
+                        file_put_contents($log, date('Y-m-d H:i:s') . " - ✅ Field 'custom_og_title' created (ID: $fieldId2)\n", FILE_APPEND);
+                    } else {
+                        file_put_contents($log, date('Y-m-d H:i:s') . " - ❌ Failed to create 'custom_og_title'\n", FILE_APPEND);
+                    }
+                    
+                    // Create custom_og_description field
+                    $fieldId3 = $this->createField($db, $log, $groupId, 'custom_og_description', 'textarea', 'Custom OG Description');
+                    if ($fieldId3) {
+                        file_put_contents($log, date('Y-m-d H:i:s') . " - ✅ Field 'custom_og_description' created (ID: $fieldId3)\n", FILE_APPEND);
+                    } else {
+                        file_put_contents($log, date('Y-m-d H:i:s') . " - ❌ Failed to create 'custom_og_description'\n", FILE_APPEND);
+                    }
+                } else {
+                    file_put_contents($log, date('Y-m-d H:i:s') . " - ❌ Failed to create field group\n", FILE_APPEND);
+                }
+            }
+            
+            // Update existing fields to prevent frontend rendering (PHP 8.1+ deprecation fix)
+            $this->updateFieldsDisplayParam($db, $log);
+            
+        } catch (\Exception $e) {
+            file_put_contents($log, date('Y-m-d H:i:s') . " - ❌ ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
+            file_put_contents($log, date('Y-m-d H:i:s') . " - File: " . $e->getFile() . ":" . $e->getLine() . "\n", FILE_APPEND);
+        }
+        
+        file_put_contents($log, date('Y-m-d H:i:s') . " - v0.1.87 POSTFLIGHT END\n", FILE_APPEND);
+        file_put_contents($log, str_repeat('=', 60) . "\n", FILE_APPEND);
+        
+        return true;
+    }
+    
+    private function createFieldGroup($db, $log)
+    {
+        try {
+            // Check if group already exists
+            $query = $db->getQuery(true)
+                ->select('id')
+                ->from($db->quoteName('#__fields_groups'))
+                ->where($db->quoteName('title') . ' = ' . $db->quote('JoomlaBoost SEO'));
+            
+            $db->setQuery($query);
+            $existingId = $db->loadResult();
+            
+            if ($existingId) {
+                file_put_contents($log, date('Y-m-d H:i:s') . " - Field group already exists (ID: $existingId)\n", FILE_APPEND);
+                return $existingId;
+            }
+            
+            file_put_contents($log, date('Y-m-d H:i:s') . " - Creating new field group...\n", FILE_APPEND);
+            
+            // Direct INSERT instead of JTable
+            $now = date('Y-m-d H:i:s');
+            
+            $columns = [
+                'title',
+                'context',
+                'state',
+                'access',
+                'language',
+                'description',
+                'params',
+                'created',
+                'created_by',
+                'modified',
+                'modified_by'
+            ];
+            
+            $values = [
+                $db->quote('JoomlaBoost SEO'),
+                $db->quote('com_content.article'),
+                1,
+                1,
+                $db->quote('*'),
+                $db->quote('Custom OpenGraph fields for per-article overrides'),
+                $db->quote('{}'),
+                $db->quote($now),
+                0,
+                $db->quote($now),
+                0
+            ];
+            
+            $query = $db->getQuery(true)
+                ->insert($db->quoteName('#__fields_groups'))
+                ->columns($db->quoteName($columns))
+                ->values(implode(',', $values));
+            
+            $db->setQuery($query);
+            $db->execute();
+            
+            $groupId = $db->insertid();
+            file_put_contents($log, date('Y-m-d H:i:s') . " - INSERT successful, ID: $groupId\n", FILE_APPEND);
+            
+            return $groupId;
+            
+        } catch (\Exception $e) {
+            file_put_contents($log, date('Y-m-d H:i:s') . " - createFieldGroup ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
+            return false;
+        }
+    }
+    
+    private function createField($db, $log, $groupId, $name, $type, $label)
+    {
+        try {
+            // Check if field already exists
+            $query = $db->getQuery(true)
+                ->select('id')
+                ->from($db->quoteName('#__fields'))
+                ->where($db->quoteName('name') . ' = ' . $db->quote($name));
+            
+            $db->setQuery($query);
+            $existingId = $db->loadResult();
+            
+            if ($existingId) {
+                file_put_contents($log, date('Y-m-d H:i:s') . " - Field '$name' already exists (ID: $existingId)\n", FILE_APPEND);
+                return $existingId;
+            }
+            
+            file_put_contents($log, date('Y-m-d H:i:s') . " - Creating field '$name'...\n", FILE_APPEND);
+            
+            $columns = [
+                'context',
+                'group_id',
+                'title',
+                'name',
+                'label',
+                'type',
+                'state',
+                'access',
+                'language',
+                'description',
+                'created_time',
+                'modified_time',
+                'params',
+                'fieldparams'
+            ];
+            
+            $now = date('Y-m-d H:i:s');
+            
+            // Params: display=0 prevents automatic rendering in article layout (PHP 8.1+ deprecation fix)
+            $params = json_encode(['display' => '0']);
+            
+            $values = [
+                $db->quote('com_content.article'),
+                (int) $groupId,
+                $db->quote($label),
+                $db->quote($name),
+                $db->quote($label),
+                $db->quote($type),
+                1,
+                1,
+                $db->quote('*'),
+                $db->quote(''),
+                $db->quote($now),
+                $db->quote($now),
+                $db->quote($params),
+                $db->quote('{}')
+            ];
+            
+            $query = $db->getQuery(true)
+                ->insert($db->quoteName('#__fields'))
+                ->columns($db->quoteName($columns))
+                ->values(implode(',', $values));
+            
+            $db->setQuery($query);
+            $db->execute();
+            
+            return $db->insertid();
+            
+        } catch (\Exception $e) {
+            file_put_contents($log, date('Y-m-d H:i:s') . " - createField ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
+            return false;
+        }
+    }
+    
+    /**
+     * Update existing custom fields to hide from frontend rendering
+     * Fixes PHP 8.1+ deprecation: json_decode(null) in media field plugin
+     */
+    private function updateFieldsDisplayParam(`$db, `$log)
+    {
+        try {
+            file_put_contents(`$log, date('Y-m-d H:i:s') . " - Updating fields display params...\n", FILE_APPEND);
+            
+            `$fieldNames = ['custom_og_image', 'custom_og_title', 'custom_og_description'];
+            `$updated = 0;
+            
+            foreach (`$fieldNames as `$fieldName) {
+                `$query = `$db->getQuery(true)
+                    ->select('id, params')
+                    ->from(`$db->quoteName('#__fields'))
+                    ->where(`$db->quoteName('name') . ' = ' . `$db->quote(`$fieldName));
+                
+                `$db->setQuery(`$query);
+                `$field = `$db->loadObject();
+                
+                if (`$field) {
+                    `$params = json_decode(`$field->params, true) ?: [];
+                    `$params['display'] = '0';
+                    
+                    `$updateQuery = `$db->getQuery(true)
+                        ->update(`$db->quoteName('#__fields'))
+                        ->set(`$db->quoteName('params') . ' = ' . `$db->quote(json_encode(`$params)))
+                        ->where(`$db->quoteName('id') . ' = ' . (int) `$field->id);
+                    
+                    `$db->setQuery(`$updateQuery);
+                    `$db->execute();
+                    `$updated++;
+                    
+                    file_put_contents(`$log, date('Y-m-d H:i:s') . " - ✅ Updated '`$fieldName' (ID: {`$field->id})\n", FILE_APPEND);
+                }
+            }
+            
+            file_put_contents(`$log, date('Y-m-d H:i:s') . " - Updated `$updated fields\n", FILE_APPEND);
+            
+        } catch (\Exception `$e) {
+            file_put_contents(`$log, date('Y-m-d H:i:s') . " - updateFieldsDisplayParam ERROR: " . `$e->getMessage() . "\n", FILE_APPEND);
+        }
+    }
