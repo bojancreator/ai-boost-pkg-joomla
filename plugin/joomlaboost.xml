@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later</license>
     <authorEmail>info@joomlaboost.com</authorEmail>
     <authorUrl>https://joomlaboost.com</authorUrl>
-    <version>0.2.0</version>
+    <version>0.2.2.1</version>
     <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
 
     <!-- System Requirements -->
@@ -73,15 +73,20 @@
                     <option value="0">JNO</option>
                 </field>
 
-                <field name="enable_schema"
+                <field name="enable_hreflang"
                        type="radio"
-                       label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_LABEL"
-                       description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_DESC"
+                       label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC"
                        default="1"
                        class="btn-group btn-group-yesno">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
+
+            </fieldset>
+
+            <!-- OpenGraph Configuration -->
+            <fieldset name="opengraph" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_OPENGRAPH">
 
                 <field name="enable_opengraph"
                        type="radio"
@@ -119,74 +124,126 @@
                        class="alert alert-info"
                        showon="enable_opengraph:1"/>
 
-                <!-- Organization Name (Fallback for og:site_name) -->
+            </fieldset>
+
+            <!-- Schema.org Configuration -->
+            <fieldset name="schema" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_SCHEMA">
+
+                <field name="enable_schema"
+                       type="radio"
+                       label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_LABEL"
+                       description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_DESC"
+                       default="1"
+                       class="btn-group btn-group-yesno">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <!-- Organization Name -->
                 <field name="org_name"
                        type="text"
                        label="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_DESC"
                        default=""
-                       hint="Organization Name"/>
+                       hint="Organization Name"
+                       showon="enable_schema:1"/>
 
-                <!-- Organization Logo (Fallback for og:image) -->
+                <!-- Organization Logo -->
                 <field name="org_logo"
                        type="media"
                        label="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_DESC"
                        default=""
-                       directory="images"/>
+                       directory="images"
+                       showon="enable_schema:1"/>
 
                 <!-- Schema.org Type Selection -->
                 <field name="schema_type"
                        type="list"
                        label="Schema.org Organization Type"
-                       description="Choose the type of schema for your organization. Auto-detect uses site characteristics, LocalBusiness includes geo/address data, Organization is generic."
-                       default="auto">
+                       description="Choose the type of schema for your organization. Auto-detect uses site characteristics, LocalBusiness includes geo/address data, Hotel includes accommodation-specific fields, Organization is generic."
+                       default="auto"
+                       showon="enable_schema:1">
                     <option value="auto">Auto-detect (recommended)</option>
-                    <option value="localbusiness">LocalBusiness (for physical locations)</option>
                     <option value="organization">Organization (generic)</option>
+                    <option value="localbusiness">LocalBusiness (physical location)</option>
+                    <option value="hotel">Hotel (accommodation)</option>
                 </field>
 
-                <!-- LocalBusiness Geo Coordinates -->
+                <!-- Organization Contact Information (All Types) -->
+                <field name="schema_url"
+                       type="url"
+                       label="Organization URL"
+                       description="Official website URL (auto-detected if empty)"
+                       default=""
+                       showon="enable_schema:1"
+                       hint="https://example.com"/>
+
+                <field name="schema_description"
+                       type="textarea"
+                       label="Organization Description"
+                       description="Brief description of the organization"
+                       rows="3"
+                       default=""
+                       showon="enable_schema:1"/>
+
+                <field name="schema_telephone"
+                       type="tel"
+                       label="Telephone"
+                       description="Organization contact telephone number"
+                       default=""
+                       showon="enable_schema:1"
+                       hint="+381 11 1234567"/>
+
+                <field name="schema_email"
+                       type="email"
+                       label="Email"
+                       description="Organization contact email"
+                       default=""
+                       showon="enable_schema:1"
+                       hint="info@example.com"/>
+
+                <!-- LocalBusiness/Hotel Geo Coordinates -->
                 <field name="schema_latitude"
                        type="text"
                        label="Latitude"
-                       description="Geographic latitude for LocalBusiness schema (e.g., 44.0165)"
+                       description="Geographic latitude (e.g., 44.0165)"
                        default=""
-                       showon="schema_type:localbusiness"
+                       showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
                        hint="44.0165"/>
 
                 <field name="schema_longitude"
                        type="text"
                        label="Longitude"
-                       description="Geographic longitude for LocalBusiness schema (e.g., 21.0059)"
+                       description="Geographic longitude (e.g., 21.0059)"
                        default=""
-                       showon="schema_type:localbusiness"
+                       showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
                        hint="21.0059"/>
 
-                <!-- LocalBusiness Address -->
+                <!-- LocalBusiness/Hotel Address -->
                 <field name="schema_address_country"
                        type="text"
                        label="Country Code"
                        description="ISO 3166-1 alpha-2 country code (e.g., RS, US, GB)"
                        default=""
-                       showon="schema_type:localbusiness"
+                       showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
                        hint="RS"/>
 
                 <field name="schema_address_locality"
                        type="text"
                        label="City/Locality"
-                       description="City or locality for LocalBusiness address"
+                       description="City or locality name"
                        default=""
-                       showon="schema_type:localbusiness"
+                       showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
                        hint="Belgrade"/>
 
-                <!-- LocalBusiness Service Details -->
+                <!-- LocalBusiness/Hotel Service Details -->
                 <field name="schema_price_range"
                        type="list"
                        label="Price Range"
                        description="Price range indicator for services"
                        default="$$"
-                       showon="schema_type:localbusiness">
+                       showon="enable_schema:1[AND]schema_type:localbusiness,hotel">
                     <option value="$">$ (Budget)</option>
                     <option value="$$">$$ (Moderate)</option>
                     <option value="$$$">$$$ (Expensive)</option>
@@ -198,18 +255,55 @@
                        label="Opening Hours"
                        description="Business opening hours (e.g., Mo-Su 09:00-18:00)"
                        default="Mo-Su 09:00-18:00"
-                       showon="schema_type:localbusiness"
+                       showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
                        hint="Mo-Su 09:00-18:00"/>
 
-                <field name="enable_hreflang"
+                <!-- Hotel-Specific Fields -->
+                <field name="schema_hotel_star_rating"
+                       type="list"
+                       label="Star Rating"
+                       description="Hotel star rating (1-5 stars)"
+                       default="3"
+                       showon="enable_schema:1[AND]schema_type:hotel">
+                    <option value="1">1 Star</option>
+                    <option value="2">2 Stars</option>
+                    <option value="3">3 Stars</option>
+                    <option value="4">4 Stars</option>
+                    <option value="5">5 Stars</option>
+                </field>
+
+                <field name="schema_hotel_checkin_time"
+                       type="text"
+                       label="Check-in Time"
+                       description="Standard check-in time (24h format)"
+                       default="14:00"
+                       showon="enable_schema:1[AND]schema_type:hotel"
+                       hint="14:00"/>
+
+                <field name="schema_hotel_checkout_time"
+                       type="text"
+                       label="Check-out Time"
+                       description="Standard check-out time (24h format)"
+                       default="12:00"
+                       showon="enable_schema:1[AND]schema_type:hotel"
+                       hint="12:00"/>
+
+                <field name="schema_hotel_pets_allowed"
                        type="radio"
-                       label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL"
-                       description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC"
-                       default="1"
-                       class="btn-group btn-group-yesno">
+                       label="Pets Allowed"
+                       description="Are pets allowed in the hotel?"
+                       default="0"
+                       class="btn-group btn-group-yesno"
+                       showon="enable_schema:1[AND]schema_type:hotel">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
+
+                <!-- Separator -->
+                <field name="separator_faq"
+                       type="spacer"
+                       label="FAQ Schema Support"
+                       class="text"/>
 
                 <!-- FAQ Schema -->
                 <field name="faq_schema_enabled"
@@ -217,7 +311,8 @@
                        label="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_DESC"
                        default="1"
-                       class="btn-group btn-group-yesno">
+                       class="btn-group btn-group-yesno"
+                       showon="enable_schema:1">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>

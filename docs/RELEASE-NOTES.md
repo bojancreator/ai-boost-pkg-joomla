@@ -5,6 +5,7 @@
 ### 🔥 Major Fix - NULL Deprecation Errors Resolved
 
 **Problem:** PHP 8.1+ deprecation warnings when opening articles without custom field values:
+
 - `json_decode(): Passing null to parameter #1` (Media fields)
 - `DOMCdataSection::__construct(): Passing null to parameter #1` (All field types)
 - Errors appeared in admin panel with Error Reporting = Maximum
@@ -16,6 +17,7 @@
 ### ✅ What Changed
 
 **script.php - createField():**
+
 ```php
 $columns = [
     // ... existing columns ...
@@ -23,8 +25,8 @@ $columns = [
     // ...
 ];
 
-$defaultValue = ($type === 'media') 
-    ? '{"imagefile":""}' 
+$defaultValue = ($type === 'media')
+    ? '{"imagefile":""}'
     : '';
 
 $values = [
@@ -35,6 +37,7 @@ $values = [
 ```
 
 **script.php - updateFieldsDisplayParam():**
+
 ```php
 // Only update if currently empty - preserves user customization!
 if (empty($field->default_value)) {
@@ -44,34 +47,38 @@ if (empty($field->default_value)) {
 
 ### 🎯 Why This is THE Solution
 
-✅ **Joomla Native** - Uses built-in field defaults (no hacks!)  
-✅ **Zero Runtime Cost** - No database triggers, no event hooks  
-✅ **Admin Visible** - Editable in Content → Fields → Edit  
-✅ **Automatic** - New articles inherit defaults  
-✅ **Safe Upgrades** - Preserves manual customizations  
-✅ **Simple** - 3 lines of code vs 100+ lines of triggers  
+✅ **Joomla Native** - Uses built-in field defaults (no hacks!)
+✅ **Zero Runtime Cost** - No database triggers, no event hooks
+✅ **Admin Visible** - Editable in Content → Fields → Edit
+✅ **Automatic** - New articles inherit defaults
+✅ **Safe Upgrades** - Preserves manual customizations
+✅ **Simple** - 3 lines of code vs 100+ lines of triggers
 
 ### 📦 Installation & Upgrade
 
 **From ANY v0.1.x:**
+
 1. Upload `joomlaboost-0.2.0.zip`
 2. Extensions → Manage → Install
 3. Auto-upgrades existing plugin
 4. No configuration needed!
 
 **Verification:**
+
 ```sql
-SELECT name, type, default_value 
-FROM #__fields 
+SELECT name, type, default_value
+FROM #__fields
 WHERE name LIKE 'custom_og_%';
 ```
 
 Expected:
+
 - `custom_og_image` → `{"imagefile":""}`
 - `custom_og_title` → `` (empty string)
 - `custom_og_description` → `` (empty string)
 
 **Test:**
+
 1. Content → New Article
 2. Leave custom fields empty
 3. Save & Close → Reopen
@@ -90,6 +97,7 @@ Expected:
 ### 📖 Full Documentation
 
 See `docs/CUSTOM-FIELDS-PHP81-ISSUE.md` for:
+
 - Complete debugging timeline
 - All 17 attempts documented
 - Root cause analysis
@@ -97,10 +105,10 @@ See `docs/CUSTOM-FIELDS-PHP81-ISSUE.md` for:
 
 ### 🏗️ Architecture (Final Stack)
 
-**Layer 1:** Joomla Default Value (v0.2.0) ⚡ **PRIMARY**  
-**Layer 2:** Access Level = 3 (v0.1.98) - Guest protection  
-**Layer 3:** SQL Normalization (v0.1.100) - Historical cleanup  
-**Layer 4:** Fields Plugin (v0.1.103) - Optional fallback  
+**Layer 1:** Joomla Default Value (v0.2.0) ⚡ **PRIMARY**
+**Layer 2:** Access Level = 3 (v0.1.98) - Guest protection
+**Layer 3:** SQL Normalization (v0.1.100) - Historical cleanup
+**Layer 4:** Fields Plugin (v0.1.103) - Optional fallback
 
 ---
 
