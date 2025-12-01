@@ -206,6 +206,20 @@ foreach ($file in $allFiles) {
     Write-Host "   📄 $relativePath"
 }
 
+# Update XML creationDate with exact build timestamp
+Write-Host "${Blue}📅 Updating creationDate in XML manifest...${Reset}"
+$buildDate = Get-Date -Format "MMMM d, yyyy HH:mm"
+$xmlPath = Join-Path $sourceDir "joomlaboost.xml"
+
+if (Test-Path $xmlPath) {
+    $xmlContent = Get-Content $xmlPath -Raw -Encoding UTF8
+    $xmlContent = $xmlContent -replace '<creationDate>[^<]+</creationDate>', "<creationDate>$buildDate</creationDate>"
+    Set-Content $xmlPath $xmlContent -Encoding UTF8 -NoNewline
+    Write-Host "${Green}✅ Updated creationDate to: $buildDate${Reset}"
+} else {
+    Write-Host "${Red}⚠️ Warning: joomlaboost.xml not found in source directory${Reset}"
+}
+
 # Create ZIP file
 $zipFileName = "joomlaboost-$Version.zip"
 $zipPath = Join-Path $buildDir $zipFileName

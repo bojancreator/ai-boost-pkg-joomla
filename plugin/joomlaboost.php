@@ -755,8 +755,8 @@ $schema = $this->schemaService->generateSchema();
 if (!empty($schema)) {
 $jsonLd = '<script type="application/ld+json">
 ' . "\n";
-$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd .= "\n".
+$jsonLd. = json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+$jsonLd. = "\n".
 '
 </script>';
 $document->addCustomTag($jsonLd);
@@ -802,8 +802,8 @@ $schema = $this->schemaService->generateSchema();
 if (!empty($schema)) {
 $jsonLd = '<script type="application/ld+json">
 ' . "\n";
-$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd .= "\n
+$jsonLd. = json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+$jsonLd. = "\n
 </script>";
 $document->addCustomTag($jsonLd);
 if ($this->params->get('debug_mode', 0)) {

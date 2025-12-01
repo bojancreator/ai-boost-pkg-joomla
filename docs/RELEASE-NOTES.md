@@ -1,10 +1,55 @@
 # JoomlaBoost – Release Notes
 
+## v0.2.12 (2025-12-01) 🕒 Build Timestamp Feature
+
+### ✨ Features Added
+
+**Automatic Build Timestamp Injection**
+
+- Build script now automatically updates `creationDate` in XML manifest with exact build date and time
+- Staging badge displays precise build timestamp (e.g., "December 1, 2025 13:47")
+- Improved build tracking and version verification
+- Format: Human-readable "Month Day, Year HH:MM" for better visibility
+
+### 🔧 Technical Changes
+
+- Modified `build_joomlaboost_smart.ps1` to inject timestamp before ZIP packaging
+- Updated `getPluginBuildDate()` method to read from XML manifest
+- Enhanced staging badge to show both plugin version and build date
+
+### 📦 Build Details
+
+- Version: 0.2.12
+- Build Date: December 1, 2025 13:47
+- Package Size: 74.4 KB
+
+---
+
+## v0.2.11 (2025-12-01) 🔄 Version Management Improvements
+
+### 🔧 Fixes
+
+**Dynamic Version Reading**
+
+- Fixed hardcoded version v0.1.17 in MetaPixelService HTML comments
+- Implemented dynamic version reading from XML manifest
+- Added `getPluginVersion()` method for automatic version tracking
+- All HTML comments now show current plugin version automatically
+
+### 📝 Code Quality
+
+- Added `getPluginBuildDate()` method for staging badge
+- Fixed syntax errors: `$jsonLd. =` → `$jsonLd .=`
+- Improved version consistency across all services
+
+---
+
 ## v0.2.10 (2025-12-01) 🚀 Combined Release - Hotel Schema + Analytics Fixes
 
 ### 📦 What's New
 
 **This release combines:**
+
 - v0.2.2.1 - Hotel Schema.org type support + Organization contact fields
 - v0.2.4 - Analytics code syntax error fixes
 - Multiple code cleanup improvements
@@ -12,11 +57,13 @@
 ### ✨ Features Added
 
 **1. Hotel Schema.org Support** (from v0.2.2.1)
+
 - New "Hotel" option in Schema Type dropdown
 - Hotel-specific fields: star rating, check-in/check-out times
 - Automatic Hotel schema generation for hospitality websites
 
 **2. Enhanced Organization Schema** (from v0.2.2.1)
+
 - Contact fields: Email, Telephone, Contact Type
 - Address fields: Street, City, Region, Postal Code, Country
 - Better local business representation in search results
@@ -24,6 +71,7 @@
 ### 🔧 Fixes
 
 **Analytics Code Cleanup** (from v0.2.4)
+
 - Fixed duplicate `addGoogleVerificationTags` code
 - Fixed incomplete `if (empt` statement syntax error
 - Removed duplicate `addGTMTracking` method declarations
@@ -32,6 +80,7 @@
 ### 📋 Technical Details
 
 **Modified Files:**
+
 - `plugin/joomlaboost.xml` - Updated to v0.2.10 with Hotel fields
 - `plugin/joomlaboost.php` - Analytics methods cleaned up
 - `plugin/script.php` - PSR-12 compliance fix
@@ -40,12 +89,14 @@
 ### 🔄 Upgrade Path
 
 **From v0.2.9 or earlier:**
+
 1. Upload `joomlaboost-0.2.10.zip` via Extensions → Install
 2. Auto-upgrades existing installation
 3. All settings preserved
 4. New Hotel and Organization fields available in plugin config
 
 **Verification:**
+
 - Check plugin version shows 0.2.10
 - Test analytics tracking (GA4, GTM, Meta Pixel)
 - Configure Hotel schema if running hospitality site
