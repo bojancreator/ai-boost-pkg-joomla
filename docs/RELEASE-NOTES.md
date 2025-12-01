@@ -1,5 +1,41 @@
 # JoomlaBoost – Release Notes
 
+## v0.2.14 (2025-12-01) 🔍 Dynamic Versioning & Path Fixes
+
+### 🔧 Fixes
+
+**Dynamic Versioning in Installation Script**
+
+- Replaced hardcoded versions (v0.1.87, v0.1.90) in `script.php` with dynamic version reading
+- Implemented `getPluginVersion()` method in `plgSystemJoomlaboostInstallerScript` class
+- Installation logs now automatically display current plugin version
+- Ensures consistent versioning across all plugin components
+
+**Build Date Display Fix**
+
+- Fixed `getPluginBuildDate()` path issue preventing build date from appearing in staging badge
+- Now tries multiple XML locations: build directory, staging deployment, and alternate paths
+- Staging badge now correctly displays "Build: December 1, 2025 13:57" (4th line)
+- Resolves empty build date on production/staging environments
+
+### 🛠️ Technical Changes
+
+- `script.php`: Added multi-path XML lookup for version detection
+- `joomlaboost.php`: Enhanced `getPluginBuildDate()` with fallback paths:
+  - `__DIR__ . '/joomlaboost.xml'` (build directory)
+  - `JPATH_PLUGINS . '/system/joomlaboost/joomlaboost.xml'` (staging)
+  - `dirname(JPATH_PLUGINS) . '/plugins/...'` (alternate)
+  - `dirname(__DIR__) . '/joomlaboost.xml'` (one level up)
+
+### 📦 Build Details
+
+- Version: 0.2.14
+- Build Date: December 1, 2025 13:57
+- Package Size: 74.4 KB (76,224 bytes)
+- Changes: Dynamic versioning, path resolution fixes
+
+---
+
 ## v0.2.12 (2025-12-01) 🕒 Build Timestamp Feature
 
 ### ✨ Features Added

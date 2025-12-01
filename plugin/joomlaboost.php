@@ -442,15 +442,27 @@ HTML;
         static $buildDate = null;
 
         if ($buildDate === null) {
-            $xmlPath = __DIR__ . '/joomlaboost.xml';
-            if (file_exists($xmlPath)) {
-                $xmlContent = file_get_contents($xmlPath);
-                if (preg_match('/<creationDate>([^<]+)<\/creationDate>/', $xmlContent, $matches)) {
-                    $buildDate = $matches[1];
-                } else {
-                    $buildDate = 'unknown';
+            // Try multiple paths to find joomlaboost.xml
+            // Covers: build (plugin/), staging (/plugins/system/joomlaboost/), legacy paths
+            $paths = [
+                __DIR__ . '/joomlaboost.xml',                                    // Build: plugin/
+                JPATH_PLUGINS . '/system/joomlaboost/joomlaboost.xml',          // Staging: /plugins/system/joomlaboost/
+                dirname(JPATH_PLUGINS) . '/plugins/system/joomlaboost/joomlaboost.xml', // Alternate
+                dirname(__DIR__) . '/joomlaboost.xml'                            // One level up
+            ];
+
+            foreach ($paths as $xmlPath) {
+                if (file_exists($xmlPath)) {
+                    $xmlContent = file_get_contents($xmlPath);
+                    if (preg_match('/<creationDate>([^<]+)<\/creationDate>/', $xmlContent, $matches)) {
+                        $buildDate = trim($matches[1]);
+                        break;
+                    }
                 }
-            } else {
+            }
+
+            // Fallback if not found
+            if ($buildDate === null || $buildDate === '') {
                 $buildDate = 'unknown';
             }
         }
@@ -755,8 +767,8 @@ $schema = $this->schemaService->generateSchema();
 if (!empty($schema)) {
 $jsonLd = '<script type="application/ld+json">
 ' . "\n";
-$jsonLd. = json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd. = "\n".
+$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+$jsonLd .= "\n".
 '
 </script>';
 $document->addCustomTag($jsonLd);
@@ -802,8 +814,8 @@ $schema = $this->schemaService->generateSchema();
 if (!empty($schema)) {
 $jsonLd = '<script type="application/ld+json">
 ' . "\n";
-$jsonLd. = json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd. = "\n
+$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+$jsonLd .= "\n
 </script>";
 $document->addCustomTag($jsonLd);
 if ($this->params->get('debug_mode', 0)) {

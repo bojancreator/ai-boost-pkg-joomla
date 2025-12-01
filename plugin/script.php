@@ -6,12 +6,48 @@ use Joomla\CMS\Factory;
 
 class plgSystemJoomlaboostInstallerScript
 {
+    /**
+     * Get plugin version from XML manifest (dynamic)
+     * @return string Plugin version (e.g., "0.2.14")
+     */
+    private function getPluginVersion(): string
+    {
+        static $version = null;
+
+        if ($version === null) {
+            // Try multiple paths (works in both build/ and staging deployment)
+            $paths = [
+                __DIR__ . '/joomlaboost.xml',
+                JPATH_PLUGINS . '/system/joomlaboost/joomlaboost.xml',
+                dirname(__DIR__) . '/joomlaboost.xml'
+            ];
+
+            foreach ($paths as $xmlPath) {
+                if (file_exists($xmlPath)) {
+                    $xmlContent = file_get_contents($xmlPath);
+                    if (preg_match('/<version>([^<]+)<\/version>/', $xmlContent, $matches)) {
+                        $version = $matches[1];
+                        break;
+                    }
+                }
+            }
+
+            if ($version === null) {
+                $version = 'unknown';
+            }
+        }
+
+        return $version;
+    }
+
     public function postflight($type, $adapter)
     {
         $log = JPATH_ROOT . '/joomlaboost_install.log';
 
+        $version = $this->getPluginVersion();
+
         file_put_contents($log, "\n" . str_repeat('=', 60) . "\n", FILE_APPEND);
-        file_put_contents($log, date('Y-m-d H:i:s') . " - v0.1.87 POSTFLIGHT START\n", FILE_APPEND);
+        file_put_contents($log, date('Y-m-d H:i:s') . " - JoomlaBoost v{$version} POSTFLIGHT START\n", FILE_APPEND);
 
         // Check if custom fields exist
         try {
@@ -81,7 +117,7 @@ class plgSystemJoomlaboostInstallerScript
             file_put_contents($log, date('Y-m-d H:i:s') . " - File: " . $e->getFile() . ":" . $e->getLine() . "\n", FILE_APPEND);
         }
 
-        file_put_contents($log, date('Y-m-d H:i:s') . " - v0.1.90 POSTFLIGHT END\n", FILE_APPEND);
+        file_put_contents($log, date('Y-m-d H:i:s') . " - JoomlaBoost v{$version} POSTFLIGHT END\n", FILE_APPEND);
         file_put_contents($log, str_repeat('=', 60) . "\n", FILE_APPEND);
 
         return true;
