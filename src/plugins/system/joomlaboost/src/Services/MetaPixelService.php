@@ -28,6 +28,30 @@ final class MetaPixelService
     }
 
     /**
+     * Get plugin version from XML manifest
+     */
+    private function getPluginVersion(): string
+    {
+        static $version = null;
+
+        if ($version === null) {
+            $xmlPath = dirname(__DIR__, 2) . '/joomlaboost.xml';
+            if (file_exists($xmlPath)) {
+                $xmlContent = file_get_contents($xmlPath);
+                if (preg_match('/<version>([^<]+)<\/version>/', $xmlContent, $matches)) {
+                    $version = $matches[1];
+                } else {
+                    $version = 'unknown';
+                }
+            } else {
+                $version = 'unknown';
+            }
+        }
+
+        return $version;
+    }
+
+    /**
      * Check if Meta Pixel is enabled
      */
     public function isEnabled(): bool
@@ -61,7 +85,7 @@ final class MetaPixelService
         }
 
         $pixelId = $this->getPixelId();
-        $version = 'JoomlaBoost v0.1.17';
+        $version = 'JoomlaBoost v' . $this->getPluginVersion();
 
         $pixelCode = $this->generatePixelCode($pixelId, $version);    // Add to document head
         $document->addCustomTag($pixelCode);
@@ -107,7 +131,7 @@ fbq(\'track\', \'PageView\');
         }
 
         $events = [];
-        $version = 'JoomlaBoost v0.1.17';
+        $version = 'JoomlaBoost v' . $this->getPluginVersion();
 
         // Purchase event
         if ($this->params->get('meta_pixel_track_purchase', false)) {
