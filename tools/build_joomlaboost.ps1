@@ -16,14 +16,42 @@ $xmlPath = Join-Path $sourceDir "joomlaboost.xml"
 if (Test-Path $xmlPath) {
     $xmlContent = Get-Content $xmlPath -Raw
     if ($xmlContent -match '<version>([^<]+)</version>') {
-        $version = $matches[1]
-        Write-Host "🔍 Version read from XML: $version" -ForegroundColor Green
-    } else {
-    $version = "0.1.17"
+        $currentVersion = $matches[1]
+        
+        # Auto-increment version (bump patch number)
+        if ($currentVersion -match '(\d+)\.(\d+)\.(\d+)') {
+            $major = [int]$matches[1]
+            $minor = [int]$matches[2]
+            $patch = [int]$matches[3]
+            $patch++
+            $version = "$major.$minor.$patch"
+            
+            # Update version in XML files
+            $xmlContent = $xmlContent -replace '<version>[^<]+</version>', "<version>$version</version>"
+            Set-Content -Path $xmlPath -Value $xmlContent -NoNewline
+            
+            # Also update in src directory
+            $srcXmlPath = Join-Path $baseDir "src\plugins\system\joomlaboost\joomlaboost.xml"
+            if (Test-Path $srcXmlPath) {
+                $srcXmlContent = Get-Content $srcXmlPath -Raw
+                $srcXmlContent = $srcXmlContent -replace '<version>[^<]+</version>', "<version>$version</version>"
+                Set-Content -Path $srcXmlPath -Value $srcXmlContent -NoNewline
+            }
+            
+            Write-Host "🔼 Version auto-incremented: $currentVersion → $version" -ForegroundColor Green
+        }
+        else {
+            $version = $currentVersion
+            Write-Host "🔍 Version read from XML: $version" -ForegroundColor Green
+        }
+    }
+    else {
+        $version = "0.2.5"
         Write-Host "⚠️  Could not read version from XML, using default: $version" -ForegroundColor Yellow
     }
-} else {
-    $version = "0.1.17"
+}
+else {
+    $version = "0.2.5"
     Write-Host "⚠️  XML file not found, using default version: $version" -ForegroundColor Yellow
 }
 
@@ -40,6 +68,23 @@ Write-Host "📁 Source directory: $sourceDir" -ForegroundColor Cyan
 Write-Host "📦 Building version: $version" -ForegroundColor Cyan  
 Write-Host "🕒 Timestamp: $timestamp" -ForegroundColor Cyan
 Write-Host ""
+
+# Archive old versions to build/old/
+$oldDir = Join-Path $buildDir "old"
+if (-not (Test-Path $oldDir)) {
+    New-Item -Path $oldDir -ItemType Directory -Force | Out-Null
+}
+
+# Move existing ZIP files (except current version) to old/
+$existingZips = Get-ChildItem -Path $buildDir -Filter "joomlaboost-*.zip" -File
+if ($existingZips.Count -gt 0) {
+    Write-Host "📦 Archiving old versions..." -ForegroundColor Yellow
+    foreach ($zip in $existingZips) {
+        Move-Item -Path $zip.FullName -Destination (Join-Path $oldDir $zip.Name) -Force
+        Write-Host "   ➜ Moved $($zip.Name) to old/" -ForegroundColor Gray
+    }
+    Write-Host ""
+}
 
 # List all files that will be included
 Write-Host "📋 Files to be packaged:" -ForegroundColor Yellow
@@ -115,31 +160,12 @@ try {
     $zip.Dispose()
     
     Write-Host ""
-    Write-Host "🎯 Installation Instructions:" -ForegroundColor Green
-    Write-Host "=============================" -ForegroundColor Green
-    Write-Host "1. 📥 Download: $zipName" -ForegroundColor White
-    Write-Host "2. 🌐 Go to Joomla Administrator" -ForegroundColor White
-    Write-Host "3. 🔧 Navigate to Extensions > Manage > Install" -ForegroundColor White
-    Write-Host "4. 📤 Upload the ZIP file" -ForegroundColor White
-    Write-Host "5. ✅ Enable the plugin in System Plugins" -ForegroundColor White
-    Write-Host "6. ⚙️ Configure settings as needed" -ForegroundColor White
-    
-    Write-Host ""
-    Write-Host "🧪 Testing Checklist:" -ForegroundColor Green
-    Write-Host "=====================" -ForegroundColor Green
-    Write-Host "□ Install plugin on staging site" -ForegroundColor White
-    Write-Host "□ Enable plugin and configure settings" -ForegroundColor White
-    Write-Host "□ Test robots.txt endpoint" -ForegroundColor White
-    Write-Host "□ Test sitemap.xml endpoint" -ForegroundColor White
-    Write-Host "□ Test health check endpoint" -ForegroundColor White
-    Write-Host "□ Verify domain detection works" -ForegroundColor White
-    Write-Host "□ Check SEO meta tags" -ForegroundColor White
-    Write-Host "□ Test on different environments" -ForegroundColor White
-    
-    Write-Host ""
     Write-Host "✨ Build completed successfully!" -ForegroundColor Green
+    Write-Host "📦 Package: $zipName" -ForegroundColor Cyan
+    Write-Host "📍 Location: $zipPath" -ForegroundColor Gray
     
-} catch {
+}
+catch {
     Write-Host "❌ Failed to create ZIP archive: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }

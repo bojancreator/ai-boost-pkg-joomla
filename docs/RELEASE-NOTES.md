@@ -1,5 +1,118 @@
 # JoomlaBoost – Release Notes
 
+## v0.2.10 (2025-12-01) 🚀 Combined Release - Hotel Schema + Analytics Fixes
+
+### 📦 What's New
+
+**This release combines:**
+- v0.2.2.1 - Hotel Schema.org type support + Organization contact fields
+- v0.2.4 - Analytics code syntax error fixes
+- Multiple code cleanup improvements
+
+### ✨ Features Added
+
+**1. Hotel Schema.org Support** (from v0.2.2.1)
+- New "Hotel" option in Schema Type dropdown
+- Hotel-specific fields: star rating, check-in/check-out times
+- Automatic Hotel schema generation for hospitality websites
+
+**2. Enhanced Organization Schema** (from v0.2.2.1)
+- Contact fields: Email, Telephone, Contact Type
+- Address fields: Street, City, Region, Postal Code, Country
+- Better local business representation in search results
+
+### 🔧 Fixes
+
+**Analytics Code Cleanup** (from v0.2.4)
+- Fixed duplicate `addGoogleVerificationTags` code
+- Fixed incomplete `if (empt` statement syntax error
+- Removed duplicate `addGTMTracking` method declarations
+- Plugin now loads correctly without PHP errors
+
+### 📋 Technical Details
+
+**Modified Files:**
+- `plugin/joomlaboost.xml` - Updated to v0.2.10 with Hotel fields
+- `plugin/joomlaboost.php` - Analytics methods cleaned up
+- `plugin/script.php` - PSR-12 compliance fix
+- Language files - Added Hotel and Organization field labels
+
+### 🔄 Upgrade Path
+
+**From v0.2.9 or earlier:**
+1. Upload `joomlaboost-0.2.10.zip` via Extensions → Install
+2. Auto-upgrades existing installation
+3. All settings preserved
+4. New Hotel and Organization fields available in plugin config
+
+**Verification:**
+- Check plugin version shows 0.2.10
+- Test analytics tracking (GA4, GTM, Meta Pixel)
+- Configure Hotel schema if running hospitality site
+- Add Organization contact info for better local SEO
+
+---
+
+## v0.2.4 (2025-11-26) 🔧 HOTFIX - Analytics Code Syntax Errors
+
+### 🔥 Critical Fix - Syntax Errors Resolved
+
+**Problem:** Duplicate and malformed code in analytics methods caused syntax errors:
+
+- Duplicate `addGoogleVerificationTags` code mixed into `addGA4Tracking` method
+- Incomplete `if (empt` statement on line 823
+- Duplicate `addGTMTracking` method declarations
+- Plugin failed to load correctly
+
+**Root Cause:** Copy-paste error during code editing - methods were duplicated and partially overwritten.
+
+**Solution:** Cleaned up all analytics methods - proper structure restored!
+
+### ✅ What Changed
+
+**joomlaboost.php - Fixed Methods:**
+
+- `addGoogleVerificationTags()` - Now supports multiple verification codes (one per line)
+- `addGA4Tracking()` - Cleaned up, proper empty check
+- `addGTMTracking()` - Removed duplicate, single clean implementation
+- `addMetaPixel()` - No changes, already correct
+
+**script.php - Minor Fix:**
+
+- Added blank line after `<?php` tag (PSR-12 compliance)
+
+### 📦 Installation & Upgrade
+
+**From v0.2.3 or earlier:**
+
+1. Upload `joomlaboost-0.2.4.zip`
+2. Extensions → Manage → Install
+3. Auto-upgrades existing plugin
+4. **All settings preserved!**
+
+**Verification:**
+
+- Check System → Extensions → Plugins → JoomlaBoost
+- Plugin should show version 0.2.4
+- No PHP errors in error log
+- Analytics tracking works correctly
+
+### 🎯 Impact
+
+✅ **Plugin Loads** - No more syntax errors blocking execution
+✅ **Analytics Work** - GA4, GTM, Meta Pixel integration functional
+✅ **Multiple GSC Codes** - Can now add multiple Google verification codes
+✅ **Clean Code** - No more duplicate methods or partial statements
+
+### 🛠️ Technical Details
+
+**Lines Changed:** ~50 lines in `joomlaboost.php`
+**Methods Fixed:** 3 (addGoogleVerificationTags, addGA4Tracking, addGTMTracking)
+**Build Size:** 76.2 KB
+**Compatibility:** Joomla 4.0+, PHP 8.1+
+
+---
+
 ## v0.2.0 (2025-11-25) 🎯 CRITICAL FIX - PHP 8.1+ Custom Fields
 
 ### 🔥 Major Fix - NULL Deprecation Errors Resolved

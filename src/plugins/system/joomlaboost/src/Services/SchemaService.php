@@ -323,10 +323,10 @@ class SchemaService extends AbstractService
             // More efficient DB query - only get needed fields
             $db = Factory::getDbo();
             $query = $db->getQuery(true)
-                ->select('id, title, introtext, fulltext, metadesc, metakey, created, modified, created_by_alias, images')
-                ->from('#__content')
-                ->where('id = ' . (int) $id)
-                ->where('published = 1');
+                ->select($db->quoteName(['id', 'title', 'introtext', 'fulltext', 'metadesc', 'metakey', 'created', 'modified', 'created_by_alias', 'images']))
+                ->from($db->quoteName('#__content'))
+                ->where($db->quoteName('id') . ' = ' . (int) $id)
+                ->where($db->quoteName('published') . ' = 1');
 
             $db->setQuery($query);
             $article = $db->loadObject();
@@ -590,10 +590,10 @@ class SchemaService extends AbstractService
 
             if ($view === 'article') {
                 $query = $db->getQuery(true)
-                    ->select('introtext, fulltext, title')
-                    ->from('#__content')
-                    ->where('id = ' . (int) $id)
-                    ->where('published = 1');
+                    ->select($db->quoteName(['introtext', 'fulltext', 'title']))
+                    ->from($db->quoteName('#__content'))
+                    ->where($db->quoteName('id') . ' = ' . (int) $id)
+                    ->where($db->quoteName('published') . ' = 1');
             } elseif ($view === 'category') {
                 $query = $db->getQuery(true)
                     ->select('description as introtext, title')

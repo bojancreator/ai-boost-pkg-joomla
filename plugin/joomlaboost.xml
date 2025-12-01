@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later</license>
     <authorEmail>info@joomlaboost.com</authorEmail>
     <authorUrl>https://joomlaboost.com</authorUrl>
-    <version>0.2.2.1</version>
+    <version>0.2.10</version>
     <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
 
     <!-- System Requirements -->
@@ -333,10 +333,12 @@
                 </field>
 
                 <field name="gsc_verification_meta"
-                       type="text"
+                       type="textarea"
                        label="PLG_SYSTEM_JOOMLABOOST_GSC_VERIFICATION_META_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_GSC_VERIFICATION_META_DESC"
                        default=""
+                       rows="3"
+                       hint="Enter one or more verification codes (one per line)"
                        showon="enable_google_verification:1"/>
 
                 <field name="gsc_additional_html"
@@ -360,11 +362,12 @@
                 </field>
 
                 <field name="ga4_measurement_id"
-                       type="text"
+                       type="textarea"
                        label="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_DESC"
                        default=""
-                       hint="G-XXXXXXXXXX"
+                       rows="3"
+                       hint="Enter one or more GA4 IDs (one per line). Format: G-XXXXXXXXXX"
                        showon="enable_ga4:1"/>
 
                 <!-- Google Tag Manager -->
@@ -379,11 +382,12 @@
                 </field>
 
                 <field name="gtm_container_id"
-                       type="text"
+                       type="textarea"
                        label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL"
                        description="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_DESC"
                        default=""
-                       hint="GTM-XXXXXXX"
+                       rows="3"
+                       hint="Enter one or more GTM IDs (one per line). Format: GTM-XXXXXXX"
                        showon="enable_gtm:1"/>
 
             </fieldset>

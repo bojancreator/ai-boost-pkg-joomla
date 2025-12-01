@@ -24,7 +24,6 @@ use JoomlaBoost\Plugin\System\JoomlaBoost\Services\PerformanceService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\OpenGraphService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\SchemaService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\MetaPixelService;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\AnalyticsService;
 
 /**
  * JoomlaBoost plugin - Performance Optimized Architecture
@@ -45,9 +44,6 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
     /** @var MetaPixelService|null */
     private ?MetaPixelService $metaPixelService = null;
-
-    /** @var AnalyticsService|null */
-    private ?AnalyticsService $analyticsService = null;
 
     /**
      * Constructor
@@ -153,10 +149,8 @@ class PlgSystemJoomlaboost extends CMSPlugin
         $startTime = $this->params->get('debug_mode', 0) ? microtime(true) : 0;
 
         try {
-            // IMPORTANT: Add Google verification tags FIRST so they appear at top of <head>
+            // Lightweight operations first (no DB queries)
             $this->addGoogleVerificationTags($document);
-
-            // Then add other meta tags
             $this->addMetaPixel($document);
 
             // Add OpenGraph tags with performance optimizations
@@ -803,22 +797,11 @@ HTML;
     {
         $gscMeta = $this->params->get('gsc_verification_meta', '');
         if (!empty($gscMeta)) {
-            // Support multiple verification codes (comma or newline separated)
-            $codes = preg_split('/[,\n\r]+/', $gscMeta, -1, PREG_SPLIT_NO_EMPTY);
-
-            $count = 0;
+            // Support multiple verification codes (one per line)
+            $codes = array_filter(array_map('trim', explode("\n", $gscMeta)));
             foreach ($codes as $code) {
-                $code = trim($code);
-                if (!empty($code)) {
-                    // Use setMetaData with unique name to ensure tags appear early in <head>
-                    // Joomla renders these BEFORE custom tags and right after charset/viewport
-                    $document->setMetaData('google-site-verification-' . $count, $code);
-                    $count++;
-                }
-            }
-
-            if ($count > 0) {
-                $this->logDebug('Added ' . $count . ' Google Search Console verification meta tag(s) at top of head');
+                $document->setMetaData('google-site-verification', $code);
+                $this->logDebug('Added Google Search Console verification meta tag: ' . substr($code, 0, 20) . '...');
             }
         }
 
@@ -828,13 +811,76 @@ HTML;
             $this->logDebug('Added additional Google verification HTML');
         }
 
-        // Analytics Service (GA4, GTM)
-        if ($this->analyticsService === null) {
-            $this->analyticsService = new AnalyticsService($this->getApp(), $this->params);
+        if ($this->params->get('enable_ga4', 0)) {
+            $this->addGA4Tracking($document);
         }
-        $this->analyticsService->injectAnalytics($document);
+
+        if ($this->params->get('enable_gtm', 0)) {
+            $this->addGTMTracking($document);
+        }
     }
 
+    private function addGA4Tracking(HtmlDocument $document): void
+    {
+        $measurementId = $this->params->get('ga4_measurement_id', '');
+        if (empty($measurementId)) {
+            $this->logDebug('GA4: No measurement ID provided');
+            return;
+        }
+
+        $ga4Script = "\n
+<!-- Google Analytics 4 -->\n<script async src=\"https://www.googletagmanager.com/gtag/js?id={$measurementId}\">
+</script>\n<script>
+\
+nwindow.dataLayer = window.dataLayer || [];\
+n\ nfunction gtag() {
+  \
+  n dataLayer.push(arguments);\
+  n
+}\
+ngtag('js', new Date());\
+ngtag('config', '{$measurementId}');\
+n
+</script>";
+        $document->addCustomTag($ga4Script);
+        $this->logDebug('Added Google Analytics 4 tracking for: ' . $measurementId);
+    }
+
+    private function addGTMTracking(HtmlDocument $document): void
+    {
+        $containerId = $this->params->get('gtm_container_id', '');
+        if (empty($containerId)) {
+            $this->logDebug('GTM: No container ID provided');
+            return;
+        }
+
+        $gtmHead = "\n
+<!-- Google Tag Manager -->\n<script>
+\
+n(function(w, d, s, l, i) {
+  \
+  n w[l] = w[l] || [];\
+  n w[l].push({
+    \
+    n 'gtm.start': new Date().getTime(),
+    \n event: 'gtm.js'\
+    n
+  });\
+  n
+  var f = d.getElementsByTagName(s)[0],
+    \n j = d.createElement(s),
+    \n dl = l != 'dataLayer' ? '&l=' + l : '';\
+  n j.async = true;\
+  n j.src = \n 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;\
+  n f.parentNode.insertBefore(j, f);\
+  n
+})(window, document, 'script', 'dataLayer', '{$containerId}');\
+n
+</script>\n
+<!-- End Google Tag Manager -->";
+        $document->addCustomTag($gtmHead);
+        $this->logDebug('Added Google Tag Manager tracking for: ' . $containerId);
+    }
 
     private function addMetaPixel(HtmlDocument $document): void
     {

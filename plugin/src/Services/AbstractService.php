@@ -17,7 +17,6 @@ namespace JoomlaBoost\Plugin\System\JoomlaBoost\Services;
 
 use JoomlaBoost\Plugin\System\JoomlaBoost\Enums\EnvironmentType;
 use Joomla\CMS\Application\CMSApplication;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 
@@ -201,25 +200,11 @@ abstract class AbstractService implements ServiceInterface
         if ($this->isDebugMode()) {
             try {
                 $logMessage = '[JoomlaBoost] ' . $message;
-                $contextJson = !empty($context) ? json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
-
-                if ($contextJson) {
-                    $logMessage .= ' | ' . $contextJson;
+                if (!empty($context)) {
+                    $logMessage .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 }
-
-                // Admin panel messages
-                $app = Factory::getApplication();
-                if (method_exists($app, 'enqueueMessage')) {
-                    $app->enqueueMessage($logMessage, 'info');
-                }
-
-                // Frontend browser console logging
-                if (!$app->isClient('administrator')) {
-                    // Direct output to avoid Joomla's escaping in addCustomTag()
-                    $jsMessage = json_encode($message, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                    $jsContextObj = $contextJson ?: '{}';
-                    echo "<script>console.log('[JoomlaBoost] ' + {$jsMessage}, {$jsContextObj});</script>\n";
-                }
+                // Use error_log instead of JLog to avoid console.log output in HTML
+                error_log($logMessage);
             } catch (\Throwable $e) {
                 // Ignore logging errors
             }
