@@ -2,7 +2,7 @@
 
 🚀 **Modern SEO & Performance Plugin for Joomla 5.0+**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/bojancreator/JoomlaBoost)
+[![Version](https://img.shields.io/badge/version-0.2.14-blue.svg)](https://github.com/bojancreator/JoomlaBoost)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-777BB4.svg)](https://php.net)
 [![Joomla](https://img.shields.io/badge/Joomla-4.0%2B-1F4F99.svg)](https://joomla.org)
 [![License](https://img.shields.io/badge/license-GPL--2.0-green.svg)](LICENSE)
