@@ -1,21 +1,29 @@
+# JoomlaBoost Smart Builder v2.0 with Build Automation
+# =====================================================
+# Advanced build system with validation, optimization, and automatic versioning
+#
+# Usage:
+#   .\build_joomlaboost_smart.ps1                    # Regular build (no version change)
+#   .\build_joomlaboost_smart.ps1 -BumpVersion       # Auto-bump patch version (0.2.14 → 0.2.15)
+#   .\build_joomlaboost_smart.ps1 -BumpVersion -VersionType minor  # Bump minor (0.2.14 → 0.3.0)
+#   .\build_joomlaboost_smart.ps1 -BumpVersion -VersionType major  # Bump major (0.2.14 → 1.0.0)
+
 param(
+    [switch]$BumpVersion = $false,
+    [ValidateSet('patch', 'minor', 'major')]
+    [string]$VersionType = 'patch',
+    [switch]$ValidateOnly = $false,
     [string]$Version = "",
-    [switch]$Force = $false,
-    [switch]$ValidateOnly = $false
+    [switch]$Force = $false
 )
 
-# Colors for console output
-$Red = "`e[31m"
+# Color definitions
 $Green = "`e[32m"
-$Yellow = "`e[33m"
 $Blue = "`e[34m"
-$Magenta = "`e[35m"
-$Cyan = "`e[36m"
-$White = "`e[37m"
+$Yellow = "`e[33m"
+$Red = "`e[31m"
 $Reset = "`e[0m"
 
-Write-Host "${Cyan}🔧 JoomlaBoost Smart Builder v2.0${Reset}" -ForegroundColor Cyan
-Write-Host "${Yellow}====================================${Reset}" -ForegroundColor Yellow
 
 # Set paths
 $scriptDir = $PSScriptRoot
@@ -23,6 +31,124 @@ $projectRoot = Split-Path $scriptDir -Parent
 $sourceDir = Join-Path $projectRoot "src\plugins\system\joomlaboost"
 $buildDir = Join-Path $scriptDir "__build"
 $timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+
+# ====================================================================================
+# VERSION BUMPING LOGIC
+# ====================================================================================
+if ($BumpVersion) {
+    Write-Host ""
+    Write-Host "${Blue}🔼 AUTO-BUMPING VERSION${Reset}" -ForegroundColor Cyan
+    Write-Host "${Yellow}======================${Reset}"
+    
+    $xmlPath = Join-Path $sourceDir "joomlaboost.xml"
+    
+    if (Test-Path $xmlPath) {
+        [xml]$xml = Get-Content $xmlPath -Encoding UTF8
+        $currentVersion = $xml.extension.version
+        
+        Write-Host "   📌 Current version: ${Yellow}$currentVersion${Reset}"
+        
+        # Parse version (e.g., "0.2.14")
+        if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
+            $major = [int]$matches[1]
+            $minor = [int]$matches[2]
+            $patch = [int]$matches[3]
+            
+            # Increment based on type
+            switch ($VersionType) {
+                'major' {
+                    $major++
+                    $minor = 0
+                    $patch = 0
+                    Write-Host "   🚀 Bumping MAJOR version" -ForegroundColor Magenta
+                }
+                'minor' {
+                    $minor++
+                    $patch = 0
+                    Write-Host "   📈 Bumping MINOR version" -ForegroundColor Cyan
+                }
+                'patch' {
+                    $patch++
+                    Write-Host "   🔧 Bumping PATCH version" -ForegroundColor Green
+                }
+            }
+            
+            $newVersion = "$major.$minor.$patch"
+            
+            # Update XML
+            $xml.extension.version = $newVersion
+            $xml.Save($xmlPath)
+            
+            Write-Host "   ${Green}✅ Version updated: $currentVersion → $newVersion${Reset}"
+            
+            # Update CHANGELOG.md
+            $changelogPath = Join-Path $projectRoot "CHANGELOG.md"
+            if (Test-Path $changelogPath) {
+                $changelogContent = Get-Content $changelogPath -Raw -Encoding UTF8
+                
+                # Create new entry template
+                $today = Get-Date -Format "yyyy-MM-dd"
+                $newEntry = @"
+
+## [$newVersion] - $today
+
+### Added
+- 
+
+### Changed
+- 
+
+### Fixed
+- 
+
+---
+"@
+                
+                # Insert after [Unreleased] section
+                if ($changelogContent -match '\[Unreleased\]') {
+                    # Find position after Unreleased section
+                    $unreleasedIndex = $changelogContent.IndexOf('[Unreleased]')
+                    $nextSectionIndex = $changelogContent.IndexOf('## [', $unreleasedIndex + 12)
+                    
+                    if ($nextSectionIndex -gt 0) {
+                        $changelogContent = $changelogContent.Insert($nextSectionIndex, $newEntry)
+                    }
+                    else {
+                        $changelogContent += $newEntry
+                    }
+                    
+                    Set-Content $changelogPath $changelogContent -Encoding UTF8 -NoNewline
+                    Write-Host "   ${Green}✅ CHANGELOG.md updated with template entry${Reset}"
+                }
+                else {
+                    Write-Host "   ${Yellow}⚠️  Could not auto-update CHANGELOG (no [Unreleased] section found)${Reset}"
+                }
+            }
+            
+            # Use the new version for this build
+            $Version = $newVersion
+            
+            Write-Host ""
+        }
+        else {
+            Write-Host "   ${Red}❌ Error: Invalid version format in XML${Reset}"
+            exit 1
+        }
+    }
+    else {
+        Write-Host "   ${Red}❌ Error: joomlaboost.xml not found${Reset}"
+        exit 1
+    }
+}
+
+Write-Host "${Cyan}🔧 JoomlaBoost Smart Builder v2.0${Reset}" -ForegroundColor Cyan
+Write-Host "${Yellow}====================================${Reset}" -ForegroundColor Yellow
+Write-Host "${Blue}📁 Source directory: $sourceDir${Reset}"
+if (-not [string]::IsNullOrEmpty($Version)) {
+    Write-Host "${Green}📌 Building version: $Version${Reset}"
+}
+Write-Host "${Blue}🕒 Timestamp: $timestamp${Reset}"
+Write-Host ""
 
 # Validation flags
 $validationErrors = @()

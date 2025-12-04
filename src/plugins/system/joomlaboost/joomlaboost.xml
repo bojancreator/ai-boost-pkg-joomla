@@ -72,6 +72,49 @@
                     <option value="0">JNO</option>
                 </field>
 
+                <!-- Sitemap Content Options -->
+                <field name="sitemap_include_articles"
+                       type="radio"
+                       label="Include Published Articles"
+                       description="Automatically add all published articles to sitemap.xml"
+                       default="1"
+                       class="btn-group btn-group-yesno"
+                       showon="enable_sitemap:1">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <field name="sitemap_include_categories"
+                       type="radio"
+                       label="Include Categories"
+                       description="Add category pages to sitemap.xml"
+                       default="1"
+                       class="btn-group btn-group-yesno"
+                       showon="enable_sitemap:1">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <field name="sitemap_include_menu"
+                       type="radio"
+                       label="Include Menu Items"
+                       description="Add menu items to sitemap.xml (excludes external links)"
+                       default="0"
+                       class="btn-group btn-group-yesno"
+                       showon="enable_sitemap:1">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+
+                <field name="sitemap_exclude_ids"
+                       type="textarea"
+                       label="Exclude Article IDs"
+                       description="Comma-separated list of article IDs to exclude from sitemap (e.g., 1,5,12)"
+                       default=""
+                       rows="2"
+                       cols="40"
+                       showon="enable_sitemap:1,sitemap_include_articles:1"/>
+
                 <field name="enable_hreflang"
                        type="radio"
                        label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL"
