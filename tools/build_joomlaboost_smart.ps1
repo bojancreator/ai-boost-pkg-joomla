@@ -44,7 +44,8 @@ Write-Host "${Blue}1. Checking XML manifest...${Reset}"
 $xmlPath = Join-Path $sourceDir "joomlaboost.xml"
 if (-not (Test-Path $xmlPath)) {
     $validationErrors += "❌ XML manifest not found: $xmlPath"
-} else {
+}
+else {
     $xmlContent = Get-Content $xmlPath -Raw
     
     # Extract version from XML
@@ -55,10 +56,12 @@ if (-not (Test-Path $xmlPath)) {
         # Use XML version if no version parameter provided
         if ([string]::IsNullOrEmpty($Version)) {
             $Version = $xmlVersion
-        } elseif ($Version -ne $xmlVersion) {
+        }
+        elseif ($Version -ne $xmlVersion) {
             $validationWarnings += "⚠️  Parameter version ($Version) differs from XML version ($xmlVersion)"
         }
-    } else {
+    }
+    else {
         $validationErrors += "❌ No version found in XML manifest"
     }
     
@@ -69,7 +72,8 @@ if (-not (Test-Path $xmlPath)) {
     foreach ($folder in $requiredFolders) {
         if ($xmlContent -notmatch "<folder>$folder</folder>") {
             $validationErrors += "❌ Missing required folder in XML: <folder>$folder</folder>"
-        } else {
+        }
+        else {
             Write-Host "   ✅ Found required folder: $folder" -ForegroundColor Green
         }
     }
@@ -95,7 +99,8 @@ foreach ($file in $requiredFiles) {
     $filePath = Join-Path $sourceDir $file
     if (Test-Path $filePath) {
         Write-Host "   ✅ Found: $file" -ForegroundColor Green
-    } else {
+    }
+    else {
         $validationErrors += "❌ Missing required file: $file"
     }
 }
@@ -109,10 +114,12 @@ foreach ($file in $phpFiles) {
         $syntaxCheck = php -l $file.FullName 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "   ✅ Syntax OK: $relativePath" -ForegroundColor Green
-        } else {
+        }
+        else {
             $validationErrors += "❌ Syntax error in $relativePath`: $syntaxCheck"
         }
-    } catch {
+    }
+    catch {
         $validationWarnings += "⚠️  Could not check syntax for $relativePath (php command not available)"
     }
 }
@@ -124,17 +131,18 @@ if (Test-Path $mainPluginPath) {
     $mainPluginContent = Get-Content $mainPluginPath -Raw
     
     $requiredPatterns = @(
-        @{Pattern = "require_once.*ServiceInterface\.php"; Description = "ServiceInterface require"},
-        @{Pattern = "require_once.*SchemaService\.php"; Description = "SchemaService require"},
-        @{Pattern = "use.*SchemaService"; Description = "SchemaService use statement"},
-        @{Pattern = "onBeforeCompileHead.*void"; Description = "onBeforeCompileHead method"},
-        @{Pattern = "addSchemaMarkup.*void"; Description = "addSchemaMarkup method"}
+        @{Pattern = "require_once.*ServiceInterface\.php"; Description = "ServiceInterface require" },
+        @{Pattern = "require_once.*SchemaService\.php"; Description = "SchemaService require" },
+        @{Pattern = "use.*SchemaService"; Description = "SchemaService use statement" },
+        @{Pattern = "onBeforeCompileHead.*void"; Description = "onBeforeCompileHead method" },
+        @{Pattern = "addSchemaMarkup.*void"; Description = "addSchemaMarkup method" }
     )
     
     foreach ($check in $requiredPatterns) {
         if ($mainPluginContent -match $check.Pattern) {
             Write-Host "   ✅ Found: $($check.Description)" -ForegroundColor Green
-        } else {
+        }
+        else {
             $validationWarnings += "⚠️  Missing or incorrect: $($check.Description)"
         }
     }
@@ -158,7 +166,8 @@ if ($validationErrors.Count -gt 0) {
         Write-Host ""
         Write-Host "${Yellow}Use -Force to build anyway (not recommended)${Reset}"
         exit 1
-    } else {
+    }
+    else {
         Write-Host "${Yellow}⚠️  Continuing with -Force flag...${Reset}"
     }
 }
@@ -216,7 +225,8 @@ if (Test-Path $xmlPath) {
     $xmlContent = $xmlContent -replace '<creationDate>[^<]+</creationDate>', "<creationDate>$buildDate</creationDate>"
     Set-Content $xmlPath $xmlContent -Encoding UTF8 -NoNewline
     Write-Host "${Green}✅ Updated creationDate to: $buildDate${Reset}"
-} else {
+}
+else {
     Write-Host "${Red}⚠️ Warning: joomlaboost.xml not found in source directory${Reset}"
 }
 
@@ -232,15 +242,29 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zip = [System.IO.Compression.ZipFile]::Open($zipPath, [System.IO.Compression.ZipArchiveMode]::Create)
 
 try {
-    # Add all files with joomlaboost/ prefix
-    Get-ChildItem -Path $sourceDir -Recurse -File | ForEach-Object {
+    # Add exclusion patterns for backup and legacy files
+    $excludePatterns = @('*.backup', '*_OLD.php', '*.v0.*', 'AllServices.php')
+    
+    # Add all files with joomlaboost/ prefix, excluding unwanted patterns
+    Get-ChildItem -Path $sourceDir -Recurse -File | Where-Object {
+        $exclude = $false
+        foreach ($pattern in $excludePatterns) {
+            if ($_.Name -like $pattern) {
+                Write-Host "   ${Yellow}⊗ Excluding: $($_.Name)${Reset}" -ForegroundColor Yellow
+                $exclude = $true
+                break
+            }
+        }
+        !$exclude
+    } | ForEach-Object {
         $relativePath = $_.FullName.Substring($sourceDir.Length + 1)
         $zipEntryName = "joomlaboost/" + $relativePath.Replace('\', '/')
         
         # Highlight main files
         if ($_.Name -eq "joomlaboost.php" -or $_.Name -eq "joomlaboost.xml") {
             Write-Host "   ${Green}➕ Adding (main): $zipEntryName${Reset}"
-        } else {
+        }
+        else {
             Write-Host "   ${Green}➕ Adding: $zipEntryName${Reset}"
         }
         
@@ -251,7 +275,8 @@ try {
         $fileStream.Close()
         $entryStream.Close()
     }
-} finally {
+}
+finally {
     $zip.Dispose()
 }
 
@@ -269,7 +294,8 @@ try {
     $zipToRead.Entries | ForEach-Object {
         Write-Host "   $($_.FullName)"
     }
-} finally {
+}
+finally {
     $zipToRead.Dispose()
 }
 
