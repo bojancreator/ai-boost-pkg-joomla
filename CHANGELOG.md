@@ -13,7 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.2.14] - 2025-12-04
+
+## [0.2.15] - 2025-12-04
+
+### Added
+- 
+
+### Changed
+- 
+
+### Fixed
+- 
+
+---## [0.2.14] - 2025-12-04
 
 ### Added
 - Build script optimization with automatic backup file exclusion patterns
