@@ -39,11 +39,14 @@ class SitemapService extends AbstractService
         // Articles (if enabled)
         if ($this->params->get('sitemap_include_articles', 1)) {
             $articles = $this->getPublishedArticles();
+            $priority = $this->params->get('sitemap_priority_articles', '0.8');
+            $changefreq = $this->params->get('sitemap_changefreq_articles', 'weekly');
+
             foreach ($articles as $article) {
                 $urls[] = $this->createUrlEntry(
                     $article->url,
-                    '0.8',
-                    'weekly',
+                    $priority,
+                    $changefreq,
                     $article->modified
                 );
             }
@@ -52,16 +55,22 @@ class SitemapService extends AbstractService
         // Categories (if enabled)
         if ($this->params->get('sitemap_include_categories', 1)) {
             $categories = $this->getPublishedCategories();
+            $priority = $this->params->get('sitemap_priority_categories', '0.7');
+            $changefreq = $this->params->get('sitemap_changefreq_categories', 'weekly');
+
             foreach ($categories as $category) {
-                $urls[] = $this->createUrlEntry($category->url, '0.7', 'weekly');
+                $urls[] = $this->createUrlEntry($category->url, $priority, $changefreq);
             }
         }
 
         // Menu items (if enabled)
         if ($this->params->get('sitemap_include_menu', 0)) {
             $menuItems = $this->getMenuItems();
+            $priority = $this->params->get('sitemap_priority_menu', '0.6');
+            $changefreq = $this->params->get('sitemap_changefreq_menu', 'monthly');
+
             foreach ($menuItems as $item) {
-                $urls[] = $this->createUrlEntry($item->url, '0.6', 'monthly');
+                $urls[] = $this->createUrlEntry($item->url, $priority, $changefreq);
             }
         }
 

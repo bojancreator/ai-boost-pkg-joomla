@@ -56,43 +56,6 @@
           <option value="0">JNO</option>
         </field>
         <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated list of article IDs to exclude from sitemap (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <!-- Article Options -->
-        <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <field name="sitemap_article_categories" type="category" extension="com_content" multiple="true" label="Select Categories" description="Choose categories (empty = all)" default="" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <field name="sitemap_max_articles" type="number" label="Max Articles" description="Max in sitemap (0 = unlimited)" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <!-- SEO Priority -->
-        <field name="sitemap_spacer_seo" type="spacer" label="SEO Priority" class="text-success" showon="enable_sitemap:1" />
-        <field name="sitemap_priority_articles" type="list" label="Articles Priority" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1">
-          <option value="1.0">1.0 (Highest)</option>
-          <option value="0.8">0.8 (Recommended)</option>
-          <option value="0.5">0.5 (Medium)</option>
-        </field>
-        <field name="sitemap_priority_categories" type="list" label="Categories Priority" default="0.7" showon="enable_sitemap:1,sitemap_include_categories:1">
-          <option value="1.0">1.0</option>
-          <option value="0.7">0.7 (Recommended)</option>
-          <option value="0.5">0.5</option>
-        </field>
-        <field name="sitemap_priority_menu" type="list" label="Menu Priority" default="0.6" showon="enable_sitemap:1,sitemap_include_menu:1">
-          <option value="1.0">1.0</option>
-          <option value="0.6">0.6 (Recommended)</option>
-          <option value="0.5">0.5</option>
-        </field>
-        <!-- Change Frequency -->
-        <field name="sitemap_spacer_changefreq" type="spacer" label="Update Frequency" class="text-warning" showon="enable_sitemap:1" />
-        <field name="sitemap_changefreq_articles" type="list" label="Articles Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_articles:1">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly (Recommended)</option>
-          <option value="monthly">Monthly</option>
-        </field>
-        <field name="sitemap_changefreq_categories" type="list" label="Categories Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_categories:1">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly (Recommended)</option>
-          <option value="monthly">Monthly</option>
-        </field>
-        <field name="sitemap_changefreq_menu" type="list" label="Menu Frequency" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1">
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly (Recommended)</option>
-        </field>
         <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>

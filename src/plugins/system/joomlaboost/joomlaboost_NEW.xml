@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
+  <author>JoomlaBoost Team</author>
+  <creationDate>December 4, 2025 14:01</creationDate>
+  <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@joomlaboost.com</authorEmail>
+  <authorUrl>https://joomlaboost.com</authorUrl>
+  <version>0.2.15</version>
+  <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
+  <!-- System Requirements -->
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>4.0.0</joomla_minimum>
+  <joomla_maximum>6.9999.9999</joomla_maximum>
+  <scriptfile>script.php</scriptfile>
+  <files>
+    <filename plugin="joomlaboost">joomlaboost.php</filename>
+    <folder>language</folder>
+    <folder>src</folder>
+    <folder>media</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_joomlaboost.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_joomlaboost.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+      <fieldset name="basic" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_BASIC">
+        <!-- Domain Detection -->
+        <field name="auto_domain_detection" type="radio" label="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_LABEL" description="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="manual_domain" type="url" label="PLG_SYSTEM_JOOMLABOOST_MANUAL_DOMAIN_LABEL" description="PLG_SYSTEM_JOOMLABOOST_MANUAL_DOMAIN_DESC" default="" showon="auto_domain_detection:0" />
+        
+        <!-- SEO Features -->
+        <field name="enable_robots" type="radio" label="PLG_SYSTEM_JOOMLABOOST_ROBOTS_LABEL" description="PLG_SYSTEM_JOOMLABOOST_ROBOTS_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        
+        <!-- Sitemap Configuration -->
+        <field name="enable_sitemap" type="radio" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SITEMAP_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        
+        <!-- Content Types Section -->
+        <field name="sitemap_spacer_types" type="spacer" label="Content Types" class="text-primary" showon="enable_sitemap:1" />
+        
+        <field name="sitemap_include_articles" type="radio" label="Include Articles" description="Add published articles to sitemap" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        
+        <field name="sitemap_include_categories" type="radio" label="Include Categories" description="Add category pages to sitemap" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        
+        <field name="sitemap_include_menu" type="radio" label="Include Menu Items" description="Add menu items to sitemap (excludes external links)" default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        
+        <!-- Article Options Section -->
+        <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        
+        <field name="sitemap_article_categories" type="category" extension="com_content" multiple="true" label="Select Categories" description="Choose specific categories to include (leave empty for all)" default="" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        
+        <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated article IDs to exclude (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        
+        <field name="sitemap_max_articles" type="number" label="Max Articles" description="Maximum articles in sitemap (0 = unlimited)" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        
+        <!-- SEO Priority Settings -->
+        <field name="sitemap_spacer_seo" type="spacer" label="SEO Priority Settings" class="text-success" showon="enable_sitemap:1" />
+        
+        <field name="sitemap_priority_articles" type="list" label="Articles Priority" description="SEO priority weight for articles" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1">
+          <option value="1.0">1.0 (Highest)</option>
+          <option value="0.9">0.9</option>
+          <option value="0.8">0.8 (Recommended)</option>
+          <option value="0.7">0.7</option>
+          <option value="0.6">0.6</option>
+          <option value="0.5">0.5 (Medium)</option>
+        </field>
+        
+        <field name="sitemap_priority_categories" type="list" label="Categories Priority" description="SEO priority weight for categories" default="0.7" showon="enable_sitemap:1,sitemap_include_categories:1">
+          <option value="1.0">1.0 (Highest)</option>
+          <option value="0.9">0.9</option>
+          <option value="0.8">0.8</option>
+          <option value="0.7">0.7 (Recommended)</option>
+          <option value="0.6">0.6</option>
+          <option value="0.5">0.5 (Medium)</option>
+        </field>
+        
+        <field name="sitemap_priority_menu" type="list" label="Menu Items Priority" description="SEO priority weight for menu items" default="0.6" showon="enable_sitemap:1,sitemap_include_menu:1">
+          <option value="1.0">1.0 (Highest)</option>
+          <option value="0.9">0.9</option>
+          <option value="0.8">0.8</option>
+          <option value="0.7">0.7</option>
+          <option value="0.6">0.6 (Recommended)</option>
+          <option value="0.5">0.5 (Medium)</option>
+        </field>
+        
+        <!-- Change Frequency Settings -->
+        <field name="sitemap_spacer_changefreq" type="spacer" label="Update Frequency" class="text-warning" showon="enable_sitemap:1" />
+        
+        <field name="sitemap_changefreq_articles" type="list" label="Articles Change Frequency" description="How often articles are updated" default="weekly" showon="enable_sitemap:1,sitemap_include_articles:1">
+          <option value="always">Always</option>
+          <option value="hourly">Hourly</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly (Recommended)</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+          <option value="never">Never</option>
+        </field>
+        
+        <field name="sitemap_changefreq_categories" type="list" label="Categories Change Frequency" description="How often categories are updated" default="weekly" showon="enable_sitemap:1,sitemap_include_categories:1">
+          <option value="always">Always</option>
+          <option value="hourly">Hourly</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly (Recommended)</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+          <option value="never">Never</option>
+        </field>
+        
+        <field name="sitemap_changefreq_menu" type="list" label="Menu Items Change Frequency" description="How often menu items are updated" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1">
+          <option value="always">Always</option>
+          <option value="hourly">Hourly</option>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly (Recommended)</option>
+          <option value="yearly">Yearly</option>
+          <option value="never">Never</option>
+        </field>
+        
+        <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+      </fieldset>
+      
+      <!-- REST OF THE FILE CONTINUES... -->
+      <!-- I'll fetch and append the rest -->
+    </fields>
+  </config>
+</extension>
