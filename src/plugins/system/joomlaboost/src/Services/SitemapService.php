@@ -86,13 +86,22 @@ class SitemapService extends AbstractService
             $db = Factory::getDbo();
             $excludeIds = $this->params->get('sitemap_exclude_ids', '');
             $excludeArray = array_filter(array_map('trim', explode(',', $excludeIds)));
+            $selectedCats = $this->params->get('sitemap_article_categories', []);
+            $maxArticles = (int)$this->params->get('sitemap_max_articles', 0);
 
+            
             $query = $db->getQuery(true)
                 ->select('a.id, a.alias, a.modified, a.catid, c.alias AS cat_alias')
                 ->from('#__content AS a')
                 ->leftJoin('#__categories AS c ON c.id = a.catid')
                 ->where('a.state = 1');
+            
+            // Filter by selected categories
+            if (!empty($selectedCats) && is_array($selectedCats)) {
+                $query->where('a.catid IN (' . implode(',', array_map('intval', $selectedCats)) . ')');
+            }
 
+            
             if (!empty($excludeArray)) {
                 $query->where('a.id NOT IN (' . implode(',', array_map('intval', $excludeArray)) . ')');
             }
