@@ -477,7 +477,7 @@ HTML;
         return [
             'plugin' => [
                 'name' => 'JoomlaBoost',
-                'version' => '0.1.24',
+                'version' => $this->getPluginVersion(), // Dynamic from XML
                 'status' => 'active'
             ],
             'environment' => [
