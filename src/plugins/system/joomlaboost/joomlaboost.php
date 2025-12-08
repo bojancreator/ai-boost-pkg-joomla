@@ -657,7 +657,21 @@ HTML;
 
         // Add robots noindex for staging environments
         if ($this->isStaging($domain)) {
-            $document->setMetaData('robots', 'noindex,nofollow');
+            // Get existing robots meta tag and merge with noindex,nofollow
+            $existingRobots = $document->getMetaData('robots');
+            if ($existingRobots) {
+                $directives = array_map('trim', explode(',', $existingRobots));
+                if (!in_array('noindex', $directives)) {
+                    $directives[] = 'noindex';
+                }
+                if (!in_array('nofollow', $directives)) {
+                    $directives[] = 'nofollow';
+                }
+                $robotsContent = implode(',', $directives);
+            } else {
+                $robotsContent = 'noindex,nofollow';
+            }
+            $document->setMetaData('robots', $robotsContent);
             $document->addCustomTag('<!-- Environment: STAGING -->');
             $this->logDebug('Added robots noindex meta tag for staging environment');
         } else {
