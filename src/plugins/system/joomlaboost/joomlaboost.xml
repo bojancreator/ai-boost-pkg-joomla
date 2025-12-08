@@ -38,6 +38,10 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
+        <field name="robots_auto_sync" type="radio" label="Auto-Sync robots.txt File" description="Automatically update physical robots.txt file to match plugin rules. Recommended to prevent conflicts with Joomla updates." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
         <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
