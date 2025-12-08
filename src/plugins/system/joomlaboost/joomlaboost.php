@@ -159,6 +159,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
             // IMPORTANT: Add Google verification tags FIRST so they appear at top of <head>
             $this->addGoogleVerificationTags($document);
 
+            // Add domain-specific meta tags (robots noindex for staging, etc.)
+            $this->addDomainMetaTags($document);
+
             // Then add other meta tags
             $this->addMetaPixel($document);
 
@@ -643,6 +646,35 @@ HTML;
         $domain = $this->getCurrentDomain();
         $isStaging = $this->isStaging($domain);
         return $isStaging ? $this->getStagingRobots() : $this->getProductionRobots();
+    }
+
+    /**
+     * Add domain-specific meta tags (robots noindex for staging, etc.)
+     */
+    private function addDomainMetaTags(HtmlDocument $document): void
+    {
+        try {
+            // Get domain detection service
+            $container = $this->getServiceContainer();
+            $domainService = $container->domainDetection();
+
+            // Get environment-specific meta tags
+            $metaTags = $domainService->getDomainMetaTags();
+
+            // Inject robots meta tag for non-production environments
+            if (isset($metaTags['robots'])) {
+                $document->setMetaData('robots', $metaTags['robots']);
+                $this->logDebug('Added robots meta tag: ' . $metaTags['robots']);
+            }
+
+            // Add other environment meta tags if needed
+            if (isset($metaTags['environment'])) {
+                $document->addCustomTag('<!-- Environment: ' . htmlspecialchars($metaTags['environment']) . ' -->');
+            }
+        } catch (\Exception $e) {
+            // Fail silently - don't break site if service unavailable
+            $this->logDebug('Domain meta tags injection failed: ' . $e->getMessage());
+        }
     }
 
     private function getCurrentDomain(): string
