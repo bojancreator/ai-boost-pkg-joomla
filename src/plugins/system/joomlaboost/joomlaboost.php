@@ -730,23 +730,16 @@ HTML;
                 if (file_exists($robotsPath)) {
                     $backupPath = $robotsPath . '.backup.' . date('Ymd_His');
                     copy($robotsPath, $backupPath);
-                    $this->logDebug('Backed up old robots.txt', ['backup' => $backupPath]);
                 }
 
-                // Write new content
+                // Write new content (silently)
                 file_put_contents($robotsPath, $currentContent);
-                $this->logDebug('Auto-synced robots.txt file', [
-                    'path' => $robotsPath,
-                    'environment' => $this->isStaging($this->getCurrentDomain()) ? 'staging' : 'production',
-                    'size' => strlen($currentContent)
-                ]);
             }
 
             // Update cache
             $cache->store($today, $cacheKey);
         } catch (\Throwable $e) {
-            $this->logDebug('robots.txt auto-sync failed: ' . $e->getMessage());
-            // Fail silently - don't break site
+            // Fail silently - don't break site or show messages
         }
     }
 
