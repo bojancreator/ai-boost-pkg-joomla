@@ -43,11 +43,15 @@ class SitemapService extends AbstractService
             $changefreq = $this->params->get('sitemap_changefreq_articles', 'weekly');
 
             foreach ($articles as $article) {
+                // Get featured images for this article
+                $images = $this->getArticleImages($article->id);
+
                 $urls[] = $this->createUrlEntry(
                     $article->url,
                     $priority,
                     $changefreq,
-                    $article->modified
+                    $article->modified,
+                    $images
                 );
             }
         }
@@ -89,19 +93,19 @@ class SitemapService extends AbstractService
             $selectedCats = $this->params->get('sitemap_article_categories', []);
             $maxArticles = (int)$this->params->get('sitemap_max_articles', 0);
 
-            
+
             $query = $db->getQuery(true)
                 ->select('a.id, a.alias, a.modified, a.catid, c.alias AS cat_alias')
                 ->from('#__content AS a')
                 ->leftJoin('#__categories AS c ON c.id = a.catid')
                 ->where('a.state = 1');
-            
+
             // Filter by selected categories
             if (!empty($selectedCats) && is_array($selectedCats)) {
                 $query->where('a.catid IN (' . implode(',', array_map('intval', $selectedCats)) . ')');
             }
 
-            
+
             if (!empty($excludeArray)) {
                 $query->where('a.id NOT IN (' . implode(',', array_map('intval', $excludeArray)) . ')');
             }
@@ -191,10 +195,63 @@ class SitemapService extends AbstractService
     }
 
     /**
+     * Get featured images from article
+     * 
+     * @param int $articleId Article ID
+     * @return array Array of images with 'loc' and 'caption' keys
+     */
+    private function getArticleImages(int $articleId): array
+    {
+        try {
+            $db = Factory::getDbo();
+
+            // Get images JSON from article
+            $query = $db->getQuery(true)
+                ->select('images')
+                ->from('#__content')
+                ->where('id = ' . (int)$articleId);
+
+            $db->setQuery($query);
+            $imagesJson = $db->loadResult();
+
+            $images = [];
+            if ($imagesJson) {
+                $imageData = json_decode($imagesJson);
+
+                // Add intro image
+                if (!empty($imageData->image_intro)) {
+                    $images[] = [
+                        'loc' => Uri::root() . $imageData->image_intro,
+                        'caption' => $imageData->image_intro_alt ?? '',
+                    ];
+                }
+
+                // Add fulltext image (only if different from intro)
+                if (!empty($imageData->image_fulltext) && $imageData->image_fulltext !== $imageData->image_intro) {
+                    $images[] = [
+                        'loc' => Uri::root() . $imageData->image_fulltext,
+                        'caption' => $imageData->image_fulltext_alt ?? '',
+                    ];
+                }
+            }
+
+            return $images;
+        } catch (\Exception $e) {
+            // Return empty array on error
+            return [];
+        }
+    }
+
+    /**
      * Create URL entry for sitemap
      */
-    private function createUrlEntry(string $url, string $priority = '0.5', string $changefreq = 'weekly', ?string $lastmod = null): array
-    {
+    private function createUrlEntry(
+        string $url,
+        string $priority = '0.5',
+        string $changefreq = 'weekly',
+        ?string $lastmod = null,
+        array $images = []
+    ): array {
         $entry = [
             'loc' => $url,
             'priority' => $priority,
@@ -204,10 +261,15 @@ class SitemapService extends AbstractService
         if ($lastmod) {
             try {
                 $date = Factory::getDate($lastmod);
-                $entry['lastmod'] = $date->format('Y-m-d');
+                // ISO 8601 format for AI crawlers (e.g., 2025-12-08T10:30:00+01:00)
+                $entry['lastmod'] = $date->format('c');
             } catch (\Exception $e) {
                 // Skip lastmod if date parsing fails
             }
+        }
+
+        if (!empty($images)) {
+            $entry['images'] = $images;
         }
 
         return $entry;
@@ -219,7 +281,8 @@ class SitemapService extends AbstractService
     private function buildXml(array $urls): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
+        $xml .= '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
 
         foreach ($urls as $url) {
             $xml .= '  <url>' . "\n";
@@ -229,6 +292,18 @@ class SitemapService extends AbstractService
 
             if (isset($url['lastmod'])) {
                 $xml .= '    <lastmod>' . $url['lastmod'] . '</lastmod>' . "\n";
+            }
+
+            // Render images if present
+            if (!empty($url['images'])) {
+                foreach ($url['images'] as $image) {
+                    $xml .= '    <image:image>' . "\n";
+                    $xml .= '      <image:loc>' . htmlspecialchars($image['loc'], ENT_XML1, 'UTF-8') . '</image:loc>' . "\n";
+                    if (!empty($image['caption'])) {
+                        $xml .= '      <image:caption>' . htmlspecialchars($image['caption'], ENT_XML1, 'UTF-8') . '</image:caption>' . "\n";
+                    }
+                    $xml .= '    </image:image>' . "\n";
+                }
             }
 
             $xml .= '  </url>' . "\n";
