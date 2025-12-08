@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>December 4, 2025 14:49</creationDate>
+  <creationDate>December 8, 2025 11:17</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.2.16</version>
+  <version>0.2.17</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -38,28 +38,36 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
+        <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+      </fieldset>
+      <!-- Sitemap Configuration -->
+      <fieldset name="sitemap" label="Sitemap">
         <field name="enable_sitemap" type="radio" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SITEMAP_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- Sitemap Content Options -->
-        <field name="sitemap_include_articles" type="radio" label="Include Published Articles" description="Automatically add all published articles to sitemap.xml" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+        <!-- Content Types -->
+        <field name="sitemap_spacer_types" type="spacer" label="Content Types" class="text-primary" showon="enable_sitemap:1" />
+        <field name="sitemap_include_articles" type="radio" label="Include Articles" description="Add published articles" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="sitemap_include_categories" type="radio" label="Include Categories" description="Add category pages to sitemap.xml" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+        <field name="sitemap_include_categories" type="radio" label="Include Categories" description="Add category pages" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="sitemap_include_menu" type="radio" label="Include Menu Items" description="Add menu items to sitemap.xml (excludes external links)" default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+        <field name="sitemap_include_menu" type="radio" label="Include Menu Items" description="Add menu items" default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated list of article IDs to exclude from sitemap (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1" />
         <!-- Article Options -->
         <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
         <field name="sitemap_article_categories" type="category" extension="com_content" multiple="true" label="Select Categories" description="Choose categories (empty = all)" default="" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <field name="sitemap_max_articles" type="number" label="Max Articles" description="Max in sitemap (0 = unlimited)" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated IDs (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        <field name="sitemap_max_articles" type="number" label="Max Articles" description="0 = unlimited" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1" />
         <!-- SEO Priority -->
         <field name="sitemap_spacer_seo" type="spacer" label="SEO Priority" class="text-success" showon="enable_sitemap:1" />
         <field name="sitemap_priority_articles" type="list" label="Articles Priority" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1">
@@ -92,10 +100,6 @@
         <field name="sitemap_changefreq_menu" type="list" label="Menu Frequency" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1">
           <option value="weekly">Weekly</option>
           <option value="monthly">Monthly (Recommended)</option>
-        </field>
-        <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
         </field>
       </fieldset>
       <!-- OpenGraph Configuration -->
