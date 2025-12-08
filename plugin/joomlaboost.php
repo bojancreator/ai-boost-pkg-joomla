@@ -24,6 +24,7 @@ use JoomlaBoost\Plugin\System\JoomlaBoost\Services\PerformanceService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\OpenGraphService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\SchemaService;
 use JoomlaBoost\Plugin\System\JoomlaBoost\Services\MetaPixelService;
+use JoomlaBoost\Plugin\System\JoomlaBoost\Services\AnalyticsService;
 
 /**
  * JoomlaBoost plugin - Performance Optimized Architecture
@@ -44,6 +45,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
     /** @var MetaPixelService|null */
     private ?MetaPixelService $metaPixelService = null;
+
+    /** @var AnalyticsService|null */
+    private ?AnalyticsService $analyticsService = null;
 
     /**
      * Constructor
@@ -106,6 +110,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
+        // Auto-sync robots.txt file (daily check)
+        $this->autoSyncRobotsFile();
+
         // Diagnostic endpoint handling
         if ($this->isDiagnosticRequest()) {
             $this->handleDiagnosticRequest($app);
@@ -149,8 +156,10 @@ class PlgSystemJoomlaboost extends CMSPlugin
         $startTime = $this->params->get('debug_mode', 0) ? microtime(true) : 0;
 
         try {
-            // Lightweight operations first (no DB queries)
+            // IMPORTANT: Add Google verification tags FIRST so they appear at top of <head>
             $this->addGoogleVerificationTags($document);
+
+            // Then add other meta tags
             $this->addMetaPixel($document);
 
             // Add OpenGraph tags with performance optimizations
@@ -207,7 +216,6 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
             // Get plugin version and current domain
             $pluginVersion = $this->getPluginVersion();
-            $buildDate = $this->getPluginBuildDate();
             $currentTime = date('H:i:s');
 
             // Staging badge HTML with inline styles and more info
@@ -219,7 +227,6 @@ class PlgSystemJoomlaboost extends CMSPlugin
     </div>
     <div style="font-size: 11px; font-weight: normal; opacity: 0.95; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
         <div><strong>Plugin:</strong> JoomlaBoost v{$pluginVersion}</div>
-        <div><strong>Build:</strong> {$buildDate}</div>
         <div><strong>Domen:</strong> {$domain}</div>
         <div><strong>Generisano:</strong> {$currentTime}</div>
     </div>
@@ -437,39 +444,6 @@ HTML;
         return $version;
     }
 
-    private function getPluginBuildDate(): string
-    {
-        static $buildDate = null;
-
-        if ($buildDate === null) {
-            // Try multiple paths to find joomlaboost.xml
-            // Covers: build (plugin/), staging (/plugins/system/joomlaboost/), legacy paths
-            $paths = [
-                __DIR__ . '/joomlaboost.xml',                                    // Build: plugin/
-                JPATH_PLUGINS . '/system/joomlaboost/joomlaboost.xml',          // Staging: /plugins/system/joomlaboost/
-                dirname(JPATH_PLUGINS) . '/plugins/system/joomlaboost/joomlaboost.xml', // Alternate
-                dirname(__DIR__) . '/joomlaboost.xml'                            // One level up
-            ];
-
-            foreach ($paths as $xmlPath) {
-                if (file_exists($xmlPath)) {
-                    $xmlContent = file_get_contents($xmlPath);
-                    if (preg_match('/<creationDate>([^<]+)<\/creationDate>/', $xmlContent, $matches)) {
-                        $buildDate = trim($matches[1]);
-                        break;
-                    }
-                }
-            }
-
-            // Fallback if not found
-            if ($buildDate === null || $buildDate === '') {
-                $buildDate = 'unknown';
-            }
-        }
-
-        return $buildDate;
-    }
-
     private function isSitemapRequest(): bool
     {
         $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
@@ -506,7 +480,7 @@ HTML;
         return [
             'plugin' => [
                 'name' => 'JoomlaBoost',
-                'version' => '0.1.24',
+                'version' => $this->getPluginVersion(), // Dynamic from XML
                 'status' => 'active'
             ],
             'environment' => [
@@ -588,350 +562,366 @@ HTML;
         $lastmod = date('Y-m-d\TH:i:s\Z');
 
         return '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-. '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n"
-  . "
+            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n"
+            . "
   <!-- JoomlaBoost Sitemap - STAGING ENVIRONMENT -->\n"
-  . "
+            . "
   <!-- Limited sitemap for staging -->\n"
-  . " <url>\n"
-    . ' <loc>' . htmlspecialchars($domain) . "</loc>\n"
-    . ' <lastmod>' . $lastmod . "</lastmod>\n"
-    . " <changefreq>daily</changefreq>\n"
-    . " <priority>1.0</priority>\n"
-    . " </url>\n"
-  . "
+            . " <url>\n"
+            . ' <loc>' . htmlspecialchars($domain) . "</loc>\n"
+            . ' <lastmod>' . $lastmod . "</lastmod>\n"
+            . " <changefreq>daily</changefreq>\n"
+            . " <priority>1.0</priority>\n"
+            . " </url>\n"
+            . "
   <!-- Generated by JoomlaBoost Plugin -->\n"
-  . "
+            . "
   <!-- Environment: Staging -->\n"
-  . "
+            . "
   <!-- Generated: " . date('Y-m-d H:i:s T') . " -->\n"
-  . "
+            . "
 </urlset>";
-}
+    }
 
-private function getProductionSitemap(): string
-{
-$domain = $this->getCurrentDomain();
-$lastmod = date('Y-m-d\TH:i:s\Z');
+    private function getProductionSitemap(): string
+    {
+        $domain = $this->getCurrentDomain();
+        $lastmod = date('Y-m-d\TH:i:s\Z');
 
-return '
+        return '
 <?xml version="1.0" encoding="UTF-8"?>' . "\n"
-. '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n"
-  . "
+            . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n"
+            . "
   <!-- JoomlaBoost Sitemap - PRODUCTION ENVIRONMENT -->\n"
-  . " <url>\n"
-    . ' <loc>' . htmlspecialchars($domain) . "</loc>\n"
-    . ' <lastmod>' . $lastmod . "</lastmod>\n"
-    . " <changefreq>daily</changefreq>\n"
-    . " <priority>1.0</priority>\n"
-    . " </url>\n"
-  . "
+            . " <url>\n"
+            . ' <loc>' . htmlspecialchars($domain) . "</loc>\n"
+            . ' <lastmod>' . $lastmod . "</lastmod>\n"
+            . " <changefreq>daily</changefreq>\n"
+            . " <priority>1.0</priority>\n"
+            . " </url>\n"
+            . "
   <!-- TODO: Add menu items and articles dynamically -->\n"
-  . "
+            . "
   <!-- Generated by JoomlaBoost Plugin -->\n"
-  . "
+            . "
   <!-- Environment: Production -->\n"
-  . "
+            . "
   <!-- Generated: " . date('Y-m-d H:i:s T') . " -->\n"
-  . "
+            . "
 </urlset>";
-}
+    }
 
-private function isRobotsRequest(): bool
-{
-$requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
-$cleanUri = strtok($requestUri, '?') ?: '';
+    private function isRobotsRequest(): bool
+    {
+        $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $cleanUri = strtok($requestUri, '?') ?: '';
 
-if (preg_match('#/robots\.txt$#i', $cleanUri)) {
-return true;
-}
+        if (preg_match('#/robots\.txt$#i', $cleanUri)) {
+            return true;
+        }
 
-return isset($_GET['format']) && (string) $_GET['format'] === 'robots';
-}
+        return isset($_GET['format']) && (string) $_GET['format'] === 'robots';
+    }
 
-private function handleRobotsRequest(CMSApplication $app): void
-{
-header('Content-Type: text/plain');
-header('Cache-Control: public, max-age=3600');
+    private function handleRobotsRequest(CMSApplication $app): void
+    {
+        header('Content-Type: text/plain');
+        header('Cache-Control: public, max-age=3600');
 
-echo $this->generateRobotsContent();
-$app->close();
-}
+        echo $this->generateRobotsContent();
+        $app->close();
+    }
 
-private function generateRobotsContent(): string
-{
-$domain = $this->getCurrentDomain();
-$isStaging = $this->isStaging($domain);
-return $isStaging ? $this->getStagingRobots() : $this->getProductionRobots();
-}
+    private function generateRobotsContent(): string
+    {
+        $domain = $this->getCurrentDomain();
+        $isStaging = $this->isStaging($domain);
+        return $isStaging ? $this->getStagingRobots() : $this->getProductionRobots();
+    }
 
-private function getCurrentDomain(): string
-{
-$scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
-return $scheme . '://' . $host . '/';
-}
+    private function getCurrentDomain(): string
+    {
+        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
+        return $scheme . '://' . $host . '/';
+    }
 
-private function isStaging(string $domain): bool
-{
-$stagingKeywords = ['staging', 'stage', 'dev', 'test', 'localhost'];
-foreach ($stagingKeywords as $keyword) {
-if (stripos($domain, $keyword) !== false) {
-return true;
-}
-}
-return false;
-}
+    private function isStaging(string $domain): bool
+    {
+        $stagingKeywords = ['staging', 'stage', 'dev', 'test', 'localhost'];
+        foreach ($stagingKeywords as $keyword) {
+            if (stripos($domain, $keyword) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-private function getStagingRobots(): string
-{
-return "# JoomlaBoost Robots.txt - STAGING ENVIRONMENT\n"
-. "# This site is not indexed by search engines\n\n"
-. "# Allow Google Search Console and related tools for testing\n"
-. "User-agent: Googlebot\n"
-. "User-agent: Google-InspectionTool\n"
-. "User-agent: Google-Site-Verification\n"
-. "User-agent: GoogleOther\n"
-. "Allow: /\n"
-. "Disallow: /administrator/\n"
-. "Disallow: /api/\n"
-. "Disallow: /cache/\n"
-. "Disallow: /tmp/\n\n"
-. "# Block all other crawlers\n"
-. "User-agent: *\n"
-. "Disallow: /\n\n"
-. "# This is a staging environment - not for public indexing\n\n"
-. "# Generated by JoomlaBoost Plugin\n"
-. "# Environment: Staging\n"
-. "# Generated: " . date('Y-m-d H:i:s T') . "\n";
-}
+    private function getStagingRobots(): string
+    {
+        return "# JoomlaBoost Robots.txt - STAGING ENVIRONMENT\n"
+            . "# This site is not indexed by search engines\n\n"
+            . "# Allow Google Search Console and related tools for testing\n"
+            . "User-agent: Googlebot\n"
+            . "User-agent: Google-InspectionTool\n"
+            . "User-agent: Google-Site-Verification\n"
+            . "User-agent: GoogleOther\n"
+            . "Allow: /\n"
+            . "Disallow: /administrator/\n"
+            . "Disallow: /api/\n"
+            . "Disallow: /bin/\n"
+            . "Disallow: /cache/\n"
+            . "Disallow: /cli/\n"
+            . "Disallow: /components/\n"
+            . "Disallow: /includes/\n"
+            . "Disallow: /installation/\n"
+            . "Disallow: /language/\n"
+            . "Disallow: /layouts/\n"
+            . "Disallow: /libraries/\n"
+            . "Disallow: /logs/\n"
+            . "Disallow: /modules/\n"
+            . "Disallow: /plugins/\n"
+            . "Disallow: /tmp/\n\n"
+            . "# Block all other crawlers\n"
+            . "User-agent: *\n"
+            . "Disallow: /\n\n"
+            . "# This is a staging environment - not for public indexing\n\n"
+            . "# Generated by JoomlaBoost Plugin\n"
+            . "# Environment: Staging\n"
+            . "# Generated: " . date('Y-m-d H:i:s T') . "\n";
+    }
 
-private function getProductionRobots(): string
-{
-$baseUrl = $this->getCurrentDomain();
+    /**
+     * Auto-sync robots.txt file with daily check cache
+     * Prevents conflicts with Joomla updates and Admin Tools
+     */
+    private function autoSyncRobotsFile(): void
+    {
+        // Check if auto-sync is enabled
+        if (!$this->params->get('enable_robots', 1)) {
+            return;
+        }
 
-return "# JoomlaBoost Robots.txt - PRODUCTION ENVIRONMENT\n\n"
-. "User-agent: *\n"
-. "Allow: /\n\n"
-. "# Disallow admin areas\n"
-. "Disallow: /administrator/\n"
-. "Disallow: /cache/\n"
-. "Disallow: /includes/\n"
-. "Disallow: /language/\n"
-. "Disallow: /libraries/\n"
-. "Disallow: /logs/\n"
-. "Disallow: /tmp/\n\n"
-. "# Allow specific files\n"
-. "Allow: /templates/\n"
-. "Allow: /media/\n"
-. "Allow: /images/\n\n"
-. "# Sitemap\n"
-. "Sitemap: {$baseUrl}sitemap.xml\n\n"
-. "# Generated by JoomlaBoost Plugin\n"
-. "# Environment: Production\n"
-. "# Generated: " . date('Y-m-d H:i:s T') . "\n";
-}
+        if (!$this->params->get('robots_auto_sync', 1)) {
+            return;
+        }
 
-private function addOptimizedOpenGraphTags(HtmlDocument $document): void
-{
-if (!$this->params->get('enable_opengraph', 1)) {
-$this->logDebug('OpenGraph: Disabled in plugin settings');
-return;
-}
+        try {
+            // Cache key for last sync check
+            $cacheKey = 'joomlaboost_robots_last_sync';
+            $cache = Factory::getCache('plg_system_joomlaboost', '');
+            $lastSync = $cache->get($cacheKey);
 
-try {
-if ($this->openGraphService === null) {
-$this->openGraphService = new OpenGraphService($this->getApp(), $this->params);
-}
+            // Only check once per day to avoid performance issues
+            $today = date('Y-m-d');
+            if ($lastSync === $today) {
+                return; // Already synced today
+            }
 
-$this->openGraphService->generateOpenGraphTags();
-$this->logDebug('OpenGraph tags generated with performance optimizations');
-} catch (\Throwable $e) {
-$this->logDebug('OpenGraph generation failed: ' . $e->getMessage());
-}
-}
+            $robotsPath = JPATH_ROOT . '/robots.txt';
+            $currentContent = $this->generateRobotsContent();
 
-private function addOptimizedSchemaMarkup(HtmlDocument $document): void
-{
-try {
-if ($this->schemaService === null) {
-$this->schemaService = new SchemaService($this->getApp(), $this->params);
-}
+            // Only update if file doesn't exist or content is different
+            $needsUpdate = !file_exists($robotsPath) ||
+                file_get_contents($robotsPath) !== $currentContent;
 
-if (!$this->params->get('enable_schema', 1)) {
-$this->logDebug('Schema: Disabled in plugin settings');
-return;
-}
+            if ($needsUpdate) {
+                // Backup old file if it exists
+                if (file_exists($robotsPath)) {
+                    $backupPath = $robotsPath . '.backup.' . date('Ymd_His');
+                    copy($robotsPath, $backupPath);
+                }
 
-$schema = $this->schemaService->generateSchema();
-if (!empty($schema)) {
-$jsonLd = '<script type="application/ld+json">
+                // Write new content (silently)
+                file_put_contents($robotsPath, $currentContent);
+            }
+
+            // Update cache
+            $cache->store($today, $cacheKey);
+        } catch (\Throwable $e) {
+            // Fail silently - don't break site or show messages
+        }
+    }
+
+    private function getProductionRobots(): string
+    {
+        $baseUrl = $this->getCurrentDomain();
+
+        return "# JoomlaBoost Robots.txt - PRODUCTION ENVIRONMENT\n\n"
+            . "User-agent: *\n"
+            . "Allow: /\n\n"
+            . "# Disallow admin and system folders\n"
+            . "Disallow: /administrator/\n"
+            . "Disallow: /api/\n"
+            . "Disallow: /bin/\n"
+            . "Disallow: /cache/\n"
+            . "Disallow: /cli/\n"
+            . "Disallow: /components/\n"
+            . "Disallow: /includes/\n"
+            . "Disallow: /installation/\n"
+            . "Disallow: /language/\n"
+            . "Disallow: /layouts/\n"
+            . "Disallow: /libraries/\n"
+            . "Disallow: /logs/\n"
+            . "Disallow: /modules/\n"
+            . "Disallow: /plugins/\n"
+            . "Disallow: /tmp/\n\n"
+            . "# Allow public assets\n"
+            . "Allow: /templates/\n"
+            . "Allow: /media/\n"
+            . "Allow: /images/\n\n"
+            . "# Sitemap\n"
+            . "Sitemap: {$baseUrl}sitemap.xml\n\n"
+            . "# Generated by JoomlaBoost Plugin\n"
+            . "# Environment: Production\n"
+            . "# Generated: " . date('Y-m-d H:i:s T') . "\n";
+    }
+
+    private function addOptimizedOpenGraphTags(HtmlDocument $document): void
+    {
+        if (!$this->params->get('enable_opengraph', 1)) {
+            $this->logDebug('OpenGraph: Disabled in plugin settings');
+            return;
+        }
+
+        try {
+            if ($this->openGraphService === null) {
+                $this->openGraphService = new OpenGraphService($this->getApp(), $this->params);
+            }
+
+            $this->openGraphService->generateOpenGraphTags();
+            $this->logDebug('OpenGraph tags generated with performance optimizations');
+        } catch (\Throwable $e) {
+            $this->logDebug('OpenGraph generation failed: ' . $e->getMessage());
+        }
+    }
+
+    private function addOptimizedSchemaMarkup(HtmlDocument $document): void
+    {
+        try {
+            if ($this->schemaService === null) {
+                $this->schemaService = new SchemaService($this->getApp(), $this->params);
+            }
+
+            if (!$this->params->get('enable_schema', 1)) {
+                $this->logDebug('Schema: Disabled in plugin settings');
+                return;
+            }
+
+            $schema = $this->schemaService->generateSchema();
+            if (!empty($schema)) {
+                $jsonLd = '<script type="application/ld+json">' . "\n";
+                $jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                $jsonLd .= "\n" . '</script>';
+                $document->addCustomTag($jsonLd);
+                $this->logDebug('Schema.org JSON-LD generated with performance optimizations', [
+                    'schemas_count' => count($schema)
+                ]);
+            } else {
+                $this->logDebug('Schema: No schema data generated');
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('Schema.org generation failed: ' . $e->getMessage());
+        }
+    }
+
+    private function logDebug(string $message, array $context = []): void
+    {
+        try {
+            if ($this->params && $this->params->get('debug_mode', 0)) {
+                $logMessage = '[JoomlaBoost] ' . $message;
+                if (!empty($context)) {
+                    $logMessage .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                }
+                Factory::getApplication()->enqueueMessage($logMessage, 'info');
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+    }
+
+    private function addSchemaMarkup(HtmlDocument $document): void
+    {
+        try {
+            if ($this->schemaService === null) {
+                $this->schemaService = new SchemaService($this->getApp(), $this->params);
+            }
+
+            if (!$this->params->get('enable_schema', 1)) {
+                $this->logDebug('Schema: Disabled in plugin settings');
+                return;
+            }
+
+            $schema = $this->schemaService->generateSchema();
+            if (!empty($schema)) {
+                $jsonLd = '<script type="application/ld+json">
 ' . "\n";
-$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd .= "\n".
-'
-</script>';
-$document->addCustomTag($jsonLd);
-$this->logDebug('Schema.org JSON-LD generated with performance optimizations', [
-'schemas_count' => count($schema)
-]);
-} else {
-$this->logDebug('Schema: No schema data generated');
-}
-} catch (\Throwable $e) {
-$this->logDebug('Schema.org generation failed: ' . $e->getMessage());
-}
-}
-
-private function logDebug(string $message, array $context = []): void
-{
-try {
-if ($this->params && $this->params->get('debug_mode', 0)) {
-$logMessage = '[JoomlaBoost] ' . $message;
-if (!empty($context)) {
-$logMessage .= ' | ' . json_encode($context, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-}
-Factory::getApplication()->enqueueMessage($logMessage, 'info');
-}
-} catch (\Throwable $e) {
-// ignore
-}
-}
-
-private function addSchemaMarkup(HtmlDocument $document): void
-{
-try {
-if ($this->schemaService === null) {
-$this->schemaService = new SchemaService($this->getApp(), $this->params);
-}
-
-if (!$this->params->get('enable_schema', 1)) {
-$this->logDebug('Schema: Disabled in plugin settings');
-return;
-}
-
-$schema = $this->schemaService->generateSchema();
-if (!empty($schema)) {
-$jsonLd = '<script type="application/ld+json">
-' . "\n";
-$jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-$jsonLd .= "\n
+                $jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                $jsonLd .= "\n
 </script>";
-$document->addCustomTag($jsonLd);
-if ($this->params->get('debug_mode', 0)) {
-$this->logDebug('Schema.org JSON-LD generated: ' . count($schema) . ' schema(s)');
-}
-} else {
-$this->logDebug('Schema: No schema data generated');
-}
-} catch (\Throwable $e) {
-if ($this->params->get('debug_mode', 0)) {
-$this->logDebug('Schema.org generation failed: ' . $e->getMessage());
-}
-}
-}
+                $document->addCustomTag($jsonLd);
+                if ($this->params->get('debug_mode', 0)) {
+                    $this->logDebug('Schema.org JSON-LD generated: ' . count($schema) . ' schema(s)');
+                }
+            } else {
+                $this->logDebug('Schema: No schema data generated');
+            }
+        } catch (\Throwable $e) {
+            if ($this->params->get('debug_mode', 0)) {
+                $this->logDebug('Schema.org generation failed: ' . $e->getMessage());
+            }
+        }
+    }
 
-private function addGoogleVerificationTags(HtmlDocument $document): void
-{
-$gscMeta = $this->params->get('gsc_verification_meta', '');
-if (!empty($gscMeta)) {
-// Support multiple verification codes (one per line)
-$codes = array_filter(array_map('trim', explode("\n", $gscMeta)));
-foreach ($codes as $code) {
-$document->setMetaData('google-site-verification', $code);
-$this->logDebug('Added Google Search Console verification meta tag: ' . substr($code, 0, 20) . '...');
-}
-}
+    private function addGoogleVerificationTags(HtmlDocument $document): void
+    {
+        $gscMeta = $this->params->get('gsc_verification_meta', '');
+        if (!empty($gscMeta)) {
+            // Support multiple verification codes (comma or newline separated)
+            $codes = preg_split('/[,\n\r]+/', $gscMeta, -1, PREG_SPLIT_NO_EMPTY);
 
-$additionalHtml = $this->params->get('gsc_additional_html', '');
-if (!empty($additionalHtml)) {
-$document->addCustomTag($additionalHtml);
-$this->logDebug('Added additional Google verification HTML');
-}
+            $count = 0;
+            foreach ($codes as $code) {
+                $code = trim($code);
+                if (!empty($code)) {
+                    // Use setMetaData with unique name to ensure tags appear early in <head>
+                    // Joomla renders these BEFORE custom tags and right after charset/viewport
+                    $document->setMetaData('google-site-verification-' . $count, $code);
+                    $count++;
+                }
+            }
 
-if ($this->params->get('enable_ga4', 0)) {
-$this->addGA4Tracking($document);
-}
+            if ($count > 0) {
+                $this->logDebug('Added ' . $count . ' Google Search Console verification meta tag(s) at top of head');
+            }
+        }
 
-if ($this->params->get('enable_gtm', 0)) {
-$this->addGTMTracking($document);
-}
-}
+        $additionalHtml = $this->params->get('gsc_additional_html', '');
+        if (!empty($additionalHtml)) {
+            $document->addCustomTag($additionalHtml);
+            $this->logDebug('Added additional Google verification HTML');
+        }
 
-private function addGA4Tracking(HtmlDocument $document): void
-{
-$measurementId = $this->params->get('ga4_measurement_id', '');
-if (empty($measurementId)) {
-$this->logDebug('GA4: No measurement ID provided');
-return;
-}
+        // Analytics Service (GA4, GTM)
+        if ($this->analyticsService === null) {
+            $this->analyticsService = new AnalyticsService($this->getApp(), $this->params);
+        }
+        $this->analyticsService->injectAnalytics($document);
+    }
 
-$ga4Script = "\n
-<!-- Google Analytics 4 -->\n<script async src=\"https://www.googletagmanager.com/gtag/js?id={$measurementId}\">
-</script>\n<script>
-\
-nwindow.dataLayer = window.dataLayer || [];\
-n\ nfunction gtag() {
-  \
-  n dataLayer.push(arguments);\
-  n
-}\
-ngtag('js', new Date());\
-nMARKER_GA4_CONFIG_HERE\
-n
-</script>";
-$document->addCustomTag($ga4Script);
-$this->logDebug('Added Google Analytics 4 tracking for: ' . $measurementId);
-}
 
-private function addGTMTracking(HtmlDocument $document): void
-{
-$containerId = $this->params->get('gtm_container_id', '');
-if (empty($containerId)) {
-$this->logDebug('GTM: No container ID provided');
-return;
-}
+    private function addMetaPixel(HtmlDocument $document): void
+    {
+        if (!$this->params->get('enable_meta_pixel', false)) {
+            return;
+        }
 
-$gtmHead = "\n
-<!-- Google Tag Manager -->\n<script>
-\
-n(function(w, d, s, l, i) {
-  \
-  n w[l] = w[l] || [];\
-  n w[l].push({
-    \
-    n 'gtm.start': new Date().getTime(),
-    \n event: 'gtm.js'\
-    n
-  });\
-  n
-  var f = d.getElementsByTagName(s)[0],
-    \n j = d.createElement(s),
-    \n dl = l != 'dataLayer' ? '&l=' + l : '';\
-  n j.async = true;\
-  n j.src = \n 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;\
-  n f.parentNode.insertBefore(j, f);\
-  n
-})(window, document, 'script', 'dataLayer', '{$containerId}');\
-n
-</script>\n
-<!-- End Google Tag Manager -->";
-$document->addCustomTag($gtmHead);
-$this->logDebug('Added Google Tag Manager tracking for: ' . $containerId);
-}
+        if ($this->metaPixelService === null) {
+            $this->metaPixelService = new MetaPixelService($this->params);
+        }
 
-private function addMetaPixel(HtmlDocument $document): void
-{
-if (!$this->params->get('enable_meta_pixel', false)) {
-return;
-}
-
-if ($this->metaPixelService === null) {
-$this->metaPixelService = new MetaPixelService($this->params);
-}
-
-$this->metaPixelService->injectPixelCode($document);
-$this->metaPixelService->injectCustomEvents($document);
-$this->logDebug('Added Meta Pixel tracking');
-}
+        $this->metaPixelService->injectPixelCode($document);
+        $this->metaPixelService->injectCustomEvents($document);
+        $this->logDebug('Added Meta Pixel tracking');
+    }
 }
