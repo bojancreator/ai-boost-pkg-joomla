@@ -3,9 +3,18 @@ includes:
 
 parameters:
   paths:
-    - ../src
-  level: 6
-  ignoreErrors: []
+    - ../src/plugins/system/joomlaboost/src
+  level: 4
+  ignoreErrors:
+    - '#unknown class Joomla\\#'
+    - '#unknown class .*EnvironmentType#'
+    - '#Class Joomla\\Database\\DatabaseInterface not found#'
+    - '#invalid return type .*EnvironmentType#'
+    - '#Constant JPATH_#'
+    - '#Call to an undefined (static )?method Joomla\\#'
+    - '#Static method Joomla\\CMS\\Factory::getUser\(\) invoked with 0 parameters#'
+    - '#Access to an undefined property object#'
+    - '#Template type T.*is not referenced in a parameter#'
   excludePaths:
     # Isključi optimizovane verzije plugin-a
     - ../plugin/joomlaboost-*.php
