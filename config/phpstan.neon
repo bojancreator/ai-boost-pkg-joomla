@@ -3,7 +3,7 @@ includes:
 
 parameters:
   paths:
-    - ../plugin
+    - ../src
   level: 6
   ignoreErrors: []
   excludePaths:
