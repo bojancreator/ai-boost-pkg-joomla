@@ -554,7 +554,8 @@ HTML;
         // Use SitemapService for both staging and production
         // This allows full testing of AI features (lastmod, images) on staging
         try {
-            $sitemap = $this->getService('sitemap');
+            $container = $this->getServiceContainer();
+            $sitemap = $container->sitemap();
             return $sitemap->generateSitemap();
         } catch (\Exception $e) {
             // Fallback to basic sitemap if service fails
