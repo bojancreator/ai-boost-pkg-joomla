@@ -238,11 +238,29 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
 HTML;
 
-            // Inject before </body>
+            // ⚠️ STAGING: Add robots noindex meta tag
+            // We do this here (onAfterRender) to append to existing tags instead of overwriting them
+            if (stripos($body, '<meta name="robots"') !== false) {
+                // Robots tag exists - append noindex,nofollow if not present
+                $body = preg_replace_callback('/(<meta\s+name=["\']robots["\']\s+content=["\'])([^"\']*?)(["\']\s*\/?>)/i', function ($matches) {
+                    $content = $matches[2];
+                    if (stripos($content, 'noindex') === false) $content .= ', noindex';
+                    if (stripos($content, 'nofollow') === false) $content .= ', nofollow';
+                    return $matches[1] . $content . $matches[3];
+                }, $body);
+            } else {
+                // Robots tag missing - insert it after opening <head> or before closing </head>
+                $metaHtml = '<meta name="robots" content="noindex,nofollow">' . "\n";
+                if (stripos($body, '</head>') !== false) {
+                    $body = str_ireplace('</head>', $metaHtml . '</head>', $body);
+                }
+            }
+
+            // Inject badge before </body>
             $body = str_ireplace('</body>', $badge . '</body>', $body);
             $app->setBody($body);
         } catch (\Throwable $e) {
-            $this->logDebug('Staging badge injection failed: ' . $e->getMessage());
+            $this->logDebug('Staging injection failed: ' . $e->getMessage());
         }
     }
 
@@ -650,33 +668,17 @@ HTML;
 
     /**
      * Add domain-specific meta tags (robots noindex for staging, etc.)
+     * @deprecated Moved logic to onAfterRender for better compatibility
      */
     private function addDomainMetaTags(HtmlDocument $document): void
     {
+        // Logic moved to onAfterRender to ensure we append to valid Joomla core tags
+        // instead of overwriting them if they haven't been set yet.
         $domain = $this->getCurrentDomain();
-
-        // Add robots noindex for staging environments
         if ($this->isStaging($domain)) {
-            // Get existing robots meta tag and merge with noindex,nofollow
-            $existingRobots = $document->getMetaData('robots');
-            if ($existingRobots) {
-                $directives = array_map('trim', explode(',', $existingRobots));
-                if (!in_array('noindex', $directives)) {
-                    $directives[] = 'noindex';
-                }
-                if (!in_array('nofollow', $directives)) {
-                    $directives[] = 'nofollow';
-                }
-                $robotsContent = implode(',', $directives);
-            } else {
-                $robotsContent = 'noindex,nofollow';
-            }
-            $document->setMetaData('robots', $robotsContent);
-            $document->addCustomTag('<!-- Environment: STAGING -->');
-            $this->logDebug('Added robots noindex meta tag for staging environment');
+            $document->addCustomTag('<!-- Environment: STAGING (protected) -->');
         } else {
             $document->addCustomTag('<!-- Environment: PRODUCTION -->');
-            $this->logDebug('Production environment - allowing indexing');
         }
     }
 

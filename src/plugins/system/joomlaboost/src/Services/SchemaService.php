@@ -180,8 +180,11 @@ class SchemaService extends AbstractService
         $orgName = $this->params->get('org_name', '');
         $siteName = !empty($orgName) ? $orgName : $config->get('sitename');
 
-        // Get organization logo from plugin config (fallback to og_image)
-        $orgLogo = $this->params->get('og_image', $this->params->get('org_logo', ''));
+        // Get organization logo (prioritize specific org_logo, fallback to og_image)
+        $orgLogo = $this->params->get('org_logo', '');
+        if (empty($orgLogo)) {
+            $orgLogo = $this->params->get('og_image', '');
+        }
         if (!empty($orgLogo)) {
             // Convert relative path to absolute URL
             if (!str_starts_with($orgLogo, 'http')) {
