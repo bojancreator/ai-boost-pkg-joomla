@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.2.30</version>
+  <version>0.3.0</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -175,7 +175,21 @@
         <field name="faq_schema_enabled" type="radio" label="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_LABEL" description="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_DESC" default="1" class="btn-group btn-group-yesno" showon="enable_schema:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
+                <!-- Q&A Management (New in v0.3.0) -->
+        <field name="separator_qa_management" type="spacer" label="Q&amp;A Management (Manual FAQ Input)" class="text-primary" />
+        <field name="enable_manual_faqs" type="radio" label="Enable Manual FAQs" description="Add custom FAQ items viaJSON editor below. These will be merged with auto-detected FAQs." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1,faq_schema_enabled:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
         </field>
+        <field name="faq_display_mode" type="list" label="FAQ Display Mode" description="Choose how to combine manual and auto-detected FAQs" default="manual_first" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
+          <option value="manual_only">Manual FAQs Only</option>
+          <option value="auto_only">Auto-detected Only</option>
+          <option value="manual_first">Manual First, then Auto-detected</option>
+          <option value="auto_first">Auto-detected First, then Manual</option>
+        </field>
+        <field name="manual_faqs" type="textarea" label="Manual FAQ Items (JSON)" description="Enter FAQ items in JSON format." default="" rows="10" cols="80" filter="raw" class="input-xxlarge" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{\&quot;question\&quot;: \&quot;What?\&quot;, \&quot;answer\&quot;: \&quot;This!\&quot;}]" class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+</field>
       </fieldset>
       <fieldset name="google" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_GOOGLE">
         <!-- Google Search Console Verification -->

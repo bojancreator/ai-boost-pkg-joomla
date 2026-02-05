@@ -530,20 +530,40 @@ class SchemaService extends AbstractService
             return null;
         }
 
+        // Get auto-detected FAQs from page content
+        $autoFAQs = [];
         $content = $this->getPageContent();
-        if (empty($content)) {
-            return null;
+        if (!empty($content)) {
+            $autoFAQs = $this->extractFAQItems($content);
         }
 
-        $faqItems = $this->extractFAQItems($content);
-        if (empty($faqItems)) {
+        // Get manual FAQs from Q&A Management Service (v0.3.0+)
+        $manualFAQs = [];
+        try {
+            $qaService = new QAManagementService($this->app, $this->params, null);
+            $manualFAQs = $qaService->getManualFAQs();
+
+            // Merge based on display mode
+            if (!empty($manualFAQs)) {
+                $displayMode = $this->params->get('faq_display_mode', 'manual_first');
+                $finalFAQs = $qaService->mergeFAQs($autoFAQs, $manualFAQs, $displayMode);
+            } else {
+                $finalFAQs = $autoFAQs;
+            }
+        } catch (\Throwable $e) {
+            // Fallback to auto-detected only if QA service fails
+            $this->logDebug('QAManagementService error: ' . $e->getMessage());
+            $finalFAQs = $autoFAQs;
+        }
+
+        if (empty($finalFAQs)) {
             return null;
         }
 
         return [
             '@context' => 'https://schema.org',
             '@type' => 'FAQPage',
-            'mainEntity' => $faqItems
+            'mainEntity' => $finalFAQs
         ];
     }
 
