@@ -17,8 +17,8 @@
     }
   },
   "scripts": {
-    "lint": "@php vendor/bin/phpcs -n --no-colors -p -s --standard=config/phpcs.xml --extensions=php,inc,php3,php4 plugin/",
-    "lint-fix": "@php vendor/bin/phpcbf --standard=config/phpcs.xml --extensions=php,inc,php3,php4 plugin/",
+    "lint": "@php vendor/bin/phpcs -n --no-colors -p -s --standard=config/phpcs.xml --extensions=php,inc,php3,php4 src/plugins/system/joomlaboost/",
+    "lint-fix": "@php vendor/bin/phpcbf --standard=config/phpcs.xml --extensions=php,inc,php3,php4 src/plugins/system/joomlaboost/",
     "stan": "@php vendor/bin/phpstan analyse --memory-limit=1G --configuration=config/phpstan.neon"
   }
 }

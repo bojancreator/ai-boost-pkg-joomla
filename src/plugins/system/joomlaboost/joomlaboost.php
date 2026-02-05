@@ -244,8 +244,12 @@ HTML;
                 // Robots tag exists - append noindex,nofollow if not present
                 $body = preg_replace_callback('/(<meta\s+name=["\']robots["\']\s+content=["\'])([^"\']*?)(["\']\s*\/?>)/i', function ($matches) {
                     $content = $matches[2];
-                    if (stripos($content, 'noindex') === false) $content .= ', noindex';
-                    if (stripos($content, 'nofollow') === false) $content .= ', nofollow';
+                    if (stripos($content, 'noindex') === false) {
+                        $content .= ', noindex';
+                    }
+                    if (stripos($content, 'nofollow') === false) {
+                        $content .= ', nofollow';
+                    }
                     return $matches[1] . $content . $matches[3];
                 }, $body);
             } else {

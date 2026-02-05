@@ -196,7 +196,7 @@ class SitemapService extends AbstractService
 
     /**
      * Get featured images from article
-     * 
+     *
      * @param int $articleId Article ID
      * @return array Array of images with 'loc' and 'caption' keys
      */

@@ -15,9 +15,8 @@ parameters:
     - '#Static method Joomla\\CMS\\Factory::getUser\(\) invoked with 0 parameters#'
     - '#Access to an undefined property object#'
     - '#Template type T.*is not referenced in a parameter#'
-  excludePaths:
-    # Isključi optimizovane verzije plugin-a
-    - ../plugin/joomlaboost-*.php
+  # No excluded paths currently
+  # excludePaths:
   bootstrapFiles:
     - ../stubs/autoload.php
     - ../stubs/bootstrap.php

@@ -38,7 +38,7 @@ class CustomFieldsService
     public function __construct()
     {
         $this->db = Factory::getContainer()->get(DatabaseInterface::class);
-        
+
         // Add fields table path
         Table::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_fields/tables');
     }
