@@ -540,7 +540,7 @@ class SchemaService extends AbstractService
         // Get manual FAQs from Q&A Management Service (v0.3.0+)
         $manualFAQs = [];
         try {
-            $qaService = new QAManagementService($this->app, $this->params, null);
+            $qaService = new QAManagementService($this->app, $this->params);
             $manualFAQs = $qaService->getManualFAQs();
 
             // Merge based on display mode
