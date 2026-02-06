@@ -603,8 +603,8 @@ class SchemaService extends AbstractService
             return false;
         }
 
-        // Check if FAQ generation is enabled
-        if (!$this->params->get('faq_schema_enabled', true)) {
+        // Check if FAQ generation is enabled (cast to bool - Registry returns strings!)
+        if (!(bool)$this->params->get('faq_schema_enabled', 1)) {
             return false;
         }
 
