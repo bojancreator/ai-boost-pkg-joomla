@@ -23,7 +23,6 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Model\ArticleModel;
 use Joomla\Component\Content\Site\Model\CategoryModel;
 use Joomla\Registry\Registry;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\QAManagementService;
 
 // Make sure Joomla constants are available
 if (!defined('JPATH_ROOT')) {
@@ -527,64 +526,58 @@ class SchemaService extends AbstractService
      */
     private function generateFAQSchema(): ?array
     {
-        $this->logDebug('[FAQ] === Starting FAQ Schema Generation ===');
+        $this->logDebug('[FAQ] === TEST: Bypassing shouldGenerateFAQSchema, using real QAManagementService ===');
 
-        if (!$this->shouldGenerateFAQSchema()) {
-            $this->logDebug('[FAQ] shouldGenerateFAQSchema returned FALSE - exiting');
-            return null;
-        }
-
-        $this->logDebug('[FAQ] shouldGenerateFAQSchema returned TRUE - proceeding');
-
-        // Get auto-detected FAQs from page content
-        $autoFAQs = [];
-        $content = $this->getPageContent();
-        if (!empty($content)) {
-            $this->logDebug('[FAQ] Page content found, length: ' . strlen($content));
-            $autoFAQs = $this->extractFAQItems($content);
-            $this->logDebug('[FAQ] Auto-detected FAQs count: ' . count($autoFAQs));
-        } else {
-            $this->logDebug('[FAQ] No page content found');
-        }
-
-        // Get manual FAQs from Q&A Management Service (v0.3.0+)
-        $manualFAQs = [];
+        // Get manual FAQs from Q&A Management Service
         try {
-            $this->logDebug('[FAQ] Attempting to instantiate QAManagementService...');
+            $this->logDebug('[FAQ] Instantiating QAManagementService...');
             $qaService = new QAManagementService($this->app, $this->params);
-            $this->logDebug('[FAQ] QAManagementService instantiated successfully');
 
             $manualFAQs = $qaService->getManualFAQs();
-            $this->logDebug('[FAQ] Manual FAQs count: ' . count($manualFAQs));
+            $this->logDebug('[FAQ] QAManagementService returned ' . count($manualFAQs) . ' FAQ items');
 
-            // Merge based on display mode
-            if (!empty($manualFAQs)) {
-                $displayMode = $this->params->get('faq_display_mode', 'manual_first');
-                $this->logDebug('[FAQ] Display mode: ' . $displayMode);
-                $finalFAQs = $qaService->mergeFAQs($autoFAQs, $manualFAQs, $displayMode);
-                $this->logDebug('[FAQ] Merged FAQs count: ' . count($finalFAQs));
-            } else {
-                $finalFAQs = $autoFAQs;
-                $this->logDebug('[FAQ] Using auto FAQs only (no manual FAQs)');
+            if (empty($manualFAQs)) {
+                $this->logDebug('[FAQ] ⚠️ QAManagementService returned EMPTY array!');
+                // Return test FAQ to confirm mechanism works
+                return [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'FAQPage',
+                    'mainEntity' => [
+                        [
+                            '@type' => 'Question',
+                            'name' => 'QAManagementService vratio prazan array',
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text' => 'getManualFAQs() nije vratio FAQ items - problem u QAManagementService'
+                            ]
+                        ]
+                    ]
+                ];
             }
+
+            $this->logDebug('[FAQ] ✅ Returning FAQPage with manual FAQs');
+            return [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => $manualFAQs
+            ];
         } catch (\Throwable $e) {
-            // Fallback to auto-detected only if QA service fails
-            $this->logDebug('[FAQ] QAManagementService ERROR: ' . $e->getMessage());
-            $this->logDebug('[FAQ] Stack trace: ' . $e->getTraceAsString());
-            $finalFAQs = $autoFAQs;
+            $this->logDebug('[FAQ] ❌ ERROR: ' . $e->getMessage());
+            return [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => [
+                    [
+                        '@type' => 'Question',
+                        'name' => 'QAManagementService ERROR',
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $e->getMessage()
+                        ]
+                    ]
+                ]
+            ];
         }
-
-        if (empty($finalFAQs)) {
-            $this->logDebug('[FAQ] No FAQs found (neither auto nor manual) - returning NULL');
-            return null;
-        }
-
-        $this->logDebug('[FAQ] Returning FAQPage schema with ' . count($finalFAQs) . ' items');
-        return [
-            '@context' => 'https://schema.org',
-            '@type' => 'FAQPage',
-            'mainEntity' => $finalFAQs
-        ];
     }
 
     /**
