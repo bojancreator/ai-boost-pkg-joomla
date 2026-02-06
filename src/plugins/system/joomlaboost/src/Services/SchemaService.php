@@ -23,6 +23,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Model\ArticleModel;
 use Joomla\Component\Content\Site\Model\CategoryModel;
 use Joomla\Registry\Registry;
+use JoomlaBoost\Plugin\System\JoomlaBoost\Services\QAManagementService;
 
 // Make sure Joomla constants are available
 if (!defined('JPATH_ROOT')) {
