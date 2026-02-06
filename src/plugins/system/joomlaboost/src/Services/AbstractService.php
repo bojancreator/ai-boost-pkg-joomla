@@ -74,7 +74,7 @@ abstract class AbstractService implements ServiceInterface
     public function isEnabled(): bool
     {
         $serviceKey = $this->getServiceKey();
-        return (bool) $this->params->get($serviceKey, true);
+        return (bool) $this->params->get($serviceKey, 1);  // Default 1 not true - Registry stores strings!
     }
 
     /**
