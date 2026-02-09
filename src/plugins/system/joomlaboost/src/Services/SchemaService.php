@@ -594,31 +594,6 @@ class SchemaService extends AbstractService
     }
 
     /**
-     * Check if current page should have FAQ schema
-     *
-     * @return bool
-     */
-    private function shouldGenerateFAQSchema(): bool
-    {
-        $input = $this->app->getInput();
-        $option = $input->getCmd('option');
-        $view = $input->getCmd('view');
-
-        // Only for content pages
-        if ($option !== 'com_content') {
-            return false;
-        }
-
-        // Check if FAQ generation is enabled (cast to bool - Registry returns strings!)
-        if (!(bool)$this->params->get('faq_schema_enabled', 1)) {
-            return false;
-        }
-
-        // For articles and categories
-        return in_array($view, ['article', 'category'], true);
-    }
-
-    /**
      * Get current page content for FAQ extraction
      *
      * @return string
