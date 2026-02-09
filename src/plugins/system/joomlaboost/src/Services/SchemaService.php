@@ -526,58 +526,71 @@ class SchemaService extends AbstractService
      */
     private function generateFAQSchema(): ?array
     {
-        $this->logDebug('[FAQ] === TEST: Bypassing shouldGenerateFAQSchema, using real QAManagementService ===');
+        // Only for content pages (articles/categories)
+        $input = $this->app->getInput();
+        $option = $input->getCmd('option');
+        $view = $input->getCmd('view');
 
-        // Get manual FAQs from Q&A Management Service
-        try {
-            $this->logDebug('[FAQ] Instantiating QAManagementService...');
-            $qaService = new QAManagementService($this->app, $this->params);
-
-            $manualFAQs = $qaService->getManualFAQs();
-            $this->logDebug('[FAQ] QAManagementService returned ' . count($manualFAQs) . ' FAQ items');
-
-            if (empty($manualFAQs)) {
-                $this->logDebug('[FAQ] ⚠️ QAManagementService returned EMPTY array!');
-                // Return test FAQ to confirm mechanism works
-                return [
-                    '@context' => 'https://schema.org',
-                    '@type' => 'FAQPage',
-                    'mainEntity' => [
-                        [
-                            '@type' => 'Question',
-                            'name' => 'QAManagementService vratio prazan array',
-                            'acceptedAnswer' => [
-                                '@type' => 'Answer',
-                                'text' => 'getManualFAQs() nije vratio FAQ items - problem u QAManagementService'
-                            ]
-                        ]
-                    ]
-                ];
-            }
-
-            $this->logDebug('[FAQ] ✅ Returning FAQPage with manual FAQs');
-            return [
-                '@context' => 'https://schema.org',
-                '@type' => 'FAQPage',
-                'mainEntity' => $manualFAQs
-            ];
-        } catch (\Throwable $e) {
-            $this->logDebug('[FAQ] ❌ ERROR: ' . $e->getMessage());
-            return [
-                '@context' => 'https://schema.org',
-                '@type' => 'FAQPage',
-                'mainEntity' => [
-                    [
-                        '@type' => 'Question',
-                        'name' => 'QAManagementService ERROR',
-                        'acceptedAnswer' => [
-                            '@type' => 'Answer',
-                            'text' => $e->getMessage()
-                        ]
-                    ]
-                ]
-            ];
+        if ($option !== 'com_content' || !in_array($view, ['article', 'category'], true)) {
+            return null;
         }
+
+        // Check if FAQ schema is enabled
+        if (!(bool)$this->params->get('faq_schema_enabled', 1)) {
+            return null;
+        }
+
+        // Get manual FAQs JSON directly from params (no separate service needed!)
+        $faqItems = [];
+
+        // Read manual FAQs if enabled
+        if ((bool)$this->params->get('enable_manual_faqs', 1)) {
+            $manualFAQsJson = trim((string)$this->params->get('manual_faqs', ''));
+
+            if (!empty($manualFAQsJson)) {
+                try {
+                    $rawFAQs = json_decode($manualFAQsJson, true, 512, JSON_THROW_ON_ERROR);
+
+                    if (is_array($rawFAQs)) {
+                        // Convert to Schema.org format
+                        foreach ($rawFAQs as $item) {
+                            if (!empty($item['question']) && !empty($item['answer'])) {
+                                $faqItems[] = [
+                                    '@type' => 'Question',
+                                    'name' => $item['question'],
+                                    'acceptedAnswer' => [
+                                        '@type' => 'Answer',
+                                        'text' => $item['answer']
+                                    ]
+                                ];
+                            }
+                        }
+                    }
+                } catch (\JsonException $e) {
+                    // Invalid JSON - skip manual FAQs
+                }
+            }
+        }
+
+        // If no manual FAQs, try auto-detection from page content
+        if (empty($faqItems)) {
+            $content = $this->getPageContent();
+            if (!empty($content)) {
+                $faqItems = $this->extractFAQItems($content);
+            }
+        }
+
+        // Return null if no FAQs found
+        if (empty($faqItems)) {
+            return null;
+        }
+
+        // Generate FAQPage schema
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => $faqItems
+        ];
     }
 
     /**
