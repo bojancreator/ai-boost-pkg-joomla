@@ -23,7 +23,6 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Model\ArticleModel;
 use Joomla\Component\Content\Site\Model\CategoryModel;
 use Joomla\Registry\Registry;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\QAManagementService;
 
 // Make sure Joomla constants are available
 if (!defined('JPATH_ROOT')) {
@@ -541,32 +540,47 @@ class SchemaService extends AbstractService
             return null;
         }
 
-        // Get QAManagementService for merge functionality
-        $qaService = $this->getService(QAManagementService::class);
+        // Get manual FAQs JSON directly from params (no separate service needed!)
+        $faqItems = [];
 
-        // Type assertion for PHPStan
-        assert($qaService instanceof QAManagementService);
-
-        // Collect manual FAQs
-        $manualFAQs = [];
+        // Read manual FAQs if enabled
         if ((bool)$this->params->get('enable_manual_faqs', 1)) {
-            $manualFAQs = $qaService->getManualFAQs();
+            $manualFAQsJson = trim((string)$this->params->get('manual_faqs', ''));
+
+            if (!empty($manualFAQsJson)) {
+                try {
+                    $rawFAQs = json_decode($manualFAQsJson, true, 512, JSON_THROW_ON_ERROR);
+
+                    if (is_array($rawFAQs)) {
+                        // Convert to Schema.org format
+                        foreach ($rawFAQs as $item) {
+                            if (!empty($item['question']) && !empty($item['answer'])) {
+                                $faqItems[] = [
+                                    '@type' => 'Question',
+                                    'name' => $item['question'],
+                                    'acceptedAnswer' => [
+                                        '@type' => 'Answer',
+                                        'text' => $item['answer']
+                                    ]
+                                ];
+                            }
+                        }
+                    }
+                } catch (\JsonException $e) {
+                    // Invalid JSON - skip manual FAQs
+                }
+            }
         }
 
-        // Collect auto-detected FAQs from current page
-        $autoFAQs = [];
-        $content = $this->getPageContent();
-        if (!empty($content)) {
-            $autoFAQs = $this->extractFAQItems($content);
+        // If no manual FAQs, try auto-detection from page content
+        if (empty($faqItems)) {
+            $content = $this->getPageContent();
+            if (!empty($content)) {
+                $faqItems = $this->extractFAQItems($content);
+            }
         }
 
-        // Get merge mode from config (default: manual_first for backward compatibility)
-        $mergeMode = (string)$this->params->get('faq_display_mode', 'manual_first');
-
-        // Merge FAQs using QAManagementService
-        $faqItems = $qaService->mergeFAQs($autoFAQs, $manualFAQs, $mergeMode);
-
-        // Return null if no FAQs found after merging
+        // Return null if no FAQs found
         if (empty($faqItems)) {
             return null;
         }
