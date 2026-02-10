@@ -176,7 +176,7 @@ class SchemaService extends AbstractService
         $config = Factory::getApplication()->getConfig();
         $baseUrl = $this->getSchemaUrl();
 
-        // Get organization name: plugin config → Joomla site name
+        // Get organization name: plugin config ΓåÆ Joomla site name
         $orgName = $this->params->get('org_name', '');
         $siteName = !empty($orgName) ? $orgName : $config->get('sitename');
 
@@ -268,8 +268,7 @@ class SchemaService extends AbstractService
                     '@type' => 'ContactPoint',
                     'contactType' => 'customer service',
                     'availableLanguage' => $this->getLanguageCode()
-                ],
-                'sameAs' => $this->getSocialMediaProfiles($baseUrl)
+                ]
             ];
 
             // Add logo if configured
@@ -292,20 +291,12 @@ class SchemaService extends AbstractService
     {
         $profiles = [];
 
-        // Read social media URLs from plugin configuration
-        $socialFields = [
-            'schema_social_facebook',
-            'schema_social_instagram',
-            'schema_social_youtube',
-            'schema_social_twitter',
-            'schema_social_linkedin'
-        ];
-
-        foreach ($socialFields as $field) {
-            $url = trim((string) $this->params->get($field, ''));
-            if (!empty($url)) {
-                $profiles[] = $url;
-            }
+        // Try to detect social media links from common patterns
+        if (str_contains($baseUrl, 'offroadserbia')) {
+            // Add known OffRoad Serbia social profiles if available
+            $profiles[] = 'https://www.facebook.com/offroadserbia';
+            $profiles[] = 'https://www.instagram.com/offroadserbia';
+            $profiles[] = 'https://www.youtube.com/c/offroadserbia';
         }
 
         return array_filter($profiles);
@@ -471,7 +462,7 @@ class SchemaService extends AbstractService
             '@context' => 'https://schema.org',
             '@type' => 'Blog',
             'name' => $config->get('sitename') . ' - Blog',
-            'description' => $config->get('MetaDesc') ?: 'Najnoviji članci',
+            'description' => $config->get('MetaDesc') ?: 'Najnoviji ─ìlanci',
             'url' => Uri::getInstance()->toString(),
             'inLanguage' => $this->getLanguageCode(),
             'publisher' => [
@@ -501,7 +492,7 @@ class SchemaService extends AbstractService
 
         // Get home label (multilingual)
         $lang = Factory::getLanguage();
-        $homeLabel = $lang->getTag() === 'sr-RS' ? 'Početna' : 'Home';
+        $homeLabel = $lang->getTag() === 'sr-RS' ? 'Po─ìetna' : 'Home';
 
         // Add home
         $listItems[] = [
@@ -535,6 +526,15 @@ class SchemaService extends AbstractService
      */
     private function generateFAQSchema(): ?array
     {
+        // Only for content pages (articles/categories)
+        $input = $this->app->getInput();
+        $option = $input->getCmd('option');
+        $view = $input->getCmd('view');
+
+        if ($option !== 'com_content' || !in_array($view, ['article', 'category'], true)) {
+            return null;
+        }
+
         // Check if FAQ schema is enabled
         if (!(bool)$this->params->get('faq_schema_enabled', 1)) {
             return null;
@@ -572,6 +572,14 @@ class SchemaService extends AbstractService
             }
         }
 
+        // If no manual FAQs, try auto-detection from page content
+        if (empty($faqItems)) {
+            $content = $this->getPageContent();
+            if (!empty($content)) {
+                $faqItems = $this->extractFAQItems($content);
+            }
+        }
+
         // Return null if no FAQs found
         if (empty($faqItems)) {
             return null;
@@ -585,6 +593,225 @@ class SchemaService extends AbstractService
         ];
     }
 
+    /**
+     * Check if current page should have FAQ schema
+     *
+     * @return bool
+     */
+    private function shouldGenerateFAQSchema(): bool
+    {
+        $input = $this->app->getInput();
+        $option = $input->getCmd('option');
+        $view = $input->getCmd('view');
+
+        // Only for content pages
+        if ($option !== 'com_content') {
+            return false;
+        }
+
+        // Check if FAQ generation is enabled (cast to bool - Registry returns strings!)
+        if (!(bool)$this->params->get('faq_schema_enabled', 1)) {
+            return false;
+        }
+
+        // For articles and categories
+        return in_array($view, ['article', 'category'], true);
+    }
+
+    /**
+     * Get current page content for FAQ extraction
+     *
+     * @return string
+     */
+    private function getPageContent(): string
+    {
+        $input = $this->app->getInput();
+        $option = $input->getCmd('option');
+        $view = $input->getCmd('view');
+        $id = $input->getInt('id');
+
+        if (!$id || $option !== 'com_content') {
+            return '';
+        }
+
+        try {
+            $db = Factory::getDbo();
+
+            if ($view === 'article') {
+                $query = $db->getQuery(true)
+                    ->select($db->quoteName(['introtext', 'fulltext', 'title']))
+                    ->from($db->quoteName('#__content'))
+                    ->where($db->quoteName('id') . ' = ' . (int) $id)
+                    ->where($db->quoteName('published') . ' = 1');
+            } elseif ($view === 'category') {
+                $query = $db->getQuery(true)
+                    ->select('description as introtext, title')
+                    ->from('#__categories')
+                    ->where('id = ' . (int) $id)
+                    ->where('published = 1');
+            } else {
+                return '';
+            }
+
+            $db->setQuery($query);
+            $result = $db->loadObject();
+
+            if (!$result) {
+                return '';
+            }
+
+            $content = $result->introtext ?? '';
+            if (isset($result->fulltext)) {
+                $content .= ' ' . $result->fulltext;
+            }
+
+            return $content;
+        } catch (\Throwable $e) {
+            $this->logDebug('FAQ content extraction failed: ' . $e->getMessage());
+            return '';
+        }
+    }
+
+    /**
+     * Extract FAQ items from content
+     *
+     * @param string $content HTML content
+     * @return array<int, array<string, mixed>>
+     */
+    private function extractFAQItems(string $content): array
+    {
+        $faqItems = [];
+
+        // Method 1: YooTheme Accordion (uk-accordion)
+        $yooAccordionPattern = '/<li[^>]*class="[^"]*uk-(?:open|close)[^"]*"[^>]*>.*?<a[^>]*class="[^"]*uk-accordion-title[^"]*"[^>]*>(.*?)<\/a>.*?<div[^>]*class="[^"]*uk-accordion-content[^"]*"[^>]*>(.*?)<\/div>/is';
+        if (preg_match_all($yooAccordionPattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $question = strip_tags($match[1]);
+                $answer = strip_tags($match[2]);
+
+                // Clean up answer text
+                $answer = preg_replace('/\s+/', ' ', $answer);
+                $answer = trim($answer);
+
+                if (strlen($question) > 5 && strlen($answer) > 10) {
+                    $faqItems[] = [
+                        '@type' => 'Question',
+                        'name' => trim($question),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $answer
+                        ]
+                    ];
+                }
+            }
+        }
+
+        // Method 2: Bootstrap Accordion/Collapse
+        $bootstrapPattern = '/<button[^>]*data-(?:bs-)?target="[^"]*"[^>]*>(.*?)<\/button>.*?<div[^>]*id="[^"]*"[^>]*class="[^"]*collapse[^"]*"[^>]*>(.*?)<\/div>/is';
+        if (preg_match_all($bootstrapPattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $question = strip_tags($match[1]);
+                $answer = strip_tags($match[2]);
+
+                $answer = preg_replace('/\s+/', ' ', $answer);
+                $answer = trim($answer);
+
+                if (strlen($question) > 5 && strlen($answer) > 10) {
+                    $faqItems[] = [
+                        '@type' => 'Question',
+                        'name' => trim($question),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $answer
+                        ]
+                    ];
+                }
+            }
+        }
+
+        // Method 3: Definition lists (dt/dd) - classic HTML
+        $dlPattern = '/<dt[^>]*>(.*?)<\/dt>\s*<dd[^>]*>(.*?)<\/dd>/is';
+        if (preg_match_all($dlPattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $question = strip_tags($match[1]);
+                $answer = strip_tags($match[2]);
+
+                if (strlen($question) > 5 && strlen($answer) > 10) {
+                    $faqItems[] = [
+                        '@type' => 'Question',
+                        'name' => trim($question),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => trim($answer)
+                        ]
+                    ];
+                }
+            }
+        }
+
+        // Method 4: Headings with question keywords (multilingual)
+        $qaPattern = '/<h[2-4][^>]*>(.*?(?:pitanje|question|Q:|kako|why|za┼íto|┼íta|what|when|where|kada|gde).*?)<\/h[2-4]>\s*(?:<[^>]+>)*(.*?)(?=<h[1-6]|<\/div>|<\/article>|$)/is';
+        if (preg_match_all($qaPattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $question = strip_tags($match[1]);
+                $answer = strip_tags($match[2]);
+
+                // Clean up answer text
+                $answer = preg_replace('/\s+/', ' ', $answer);
+                $answer = trim($answer);
+
+                if (strlen($question) > 5 && strlen($answer) > 20) {
+                    $faqItems[] = [
+                        '@type' => 'Question',
+                        'name' => trim($question),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $answer
+                        ]
+                    ];
+                }
+            }
+        }
+
+        // Method 5: Strong/bold Q&A patterns
+        $boldQAPattern = '/<(?:strong|b)[^>]*>(.*?(?:pitanje|question|Q:|kako|odgovor|answer|A:).*?)<\/(?:strong|b)>\s*[:\-\s]*([^<]*(?:<(?!(?:strong|b|h[1-6]))[^>]*>[^<]*<\/[^>]+>[^<]*)*)/is';
+        if (preg_match_all($boldQAPattern, $content, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $questionText = strip_tags($match[1]);
+                $answerText = strip_tags($match[2]);
+
+                // Clean up
+                $answerText = preg_replace('/\s+/', ' ', $answerText);
+                $answerText = trim($answerText);
+
+                if (strlen($questionText) > 5 && strlen($answerText) > 15) {
+                    $faqItems[] = [
+                        '@type' => 'Question',
+                        'name' => trim($questionText),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $answerText
+                        ]
+                    ];
+                }
+            }
+        }
+
+        // Remove duplicates based on question text
+        $uniqueFAQs = [];
+        $seenQuestions = [];
+
+        foreach ($faqItems as $item) {
+            $questionKey = strtolower(trim($item['name']));
+            if (!in_array($questionKey, $seenQuestions, true)) {
+                $seenQuestions[] = $questionKey;
+                $uniqueFAQs[] = $item;
+            }
+        }
+
+        // Limit to reasonable number for performance
+        return array_slice($uniqueFAQs, 0, 20);
+    }
 
     /**
      * Get language code for schema

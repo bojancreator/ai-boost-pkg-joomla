@@ -1,0 +1,95 @@
+  0/19 [>---------------------------]   0%[1G[2K 19/19 [============================] 100%
+
+ ------ ----------------------------------------------------------------------------------------- 
+  Line   Services\SchemaService.php                                                               
+ ------ ----------------------------------------------------------------------------------------- 
+  :601   Method                                                                                   
+         JoomlaBoost\Plugin\System\JoomlaBoost\Services\SchemaService::shouldGenerateFAQSchema()  
+         is unused.                                                                               
+ ------ ----------------------------------------------------------------------------------------- 
+
+ -- ----------------------------------------------------------------------------------------------------- 
+     Error                                                                                                
+ -- ----------------------------------------------------------------------------------------------------- 
+     Ignored error pattern #^Left side of && is always true\.$# in path                                   
+     C:\POSLOVI\__JoomlaBoost\plugin\joomlaboost.php was not matched in                                   
+     reported errors.                                                                                     
+     Ignored error pattern #^Method                                                                       
+     Joomla\\CMS\\Plugin\\CMSPlugin\:\:__construct\(\) invoked with 2                                     
+     parameters, 0 required\.$# in path                                                                   
+     C:\POSLOVI\__JoomlaBoost\plugin\joomlaboost.php was not matched in                                   
+     reported errors.                                                                                     
+     Ignored error pattern #^Method                                                                       
+     PlgSystemJoomlaboost\:\:addSchemaMarkup\(\) is unused\.$# in path                                    
+     C:\POSLOVI\__JoomlaBoost\plugin\joomlaboost.php was not matched in                                   
+     reported errors.                                                                                     
+     Ignored error pattern #^Method                                                                       
+     PlgSystemJoomlaboost\:\:generateDiagnosticData\(\) return type has no                                
+     value type specified in iterable type array\.$# in path                                              
+     C:\POSLOVI\__JoomlaBoost\plugin\joomlaboost.php was not matched in                                   
+     reported errors.                                                                                     
+     Ignored error pattern #^Method PlgSystemJoomlaboost\:\:logDebug\(\) has                              
+     parameter \$context with no value type specified in iterable type                                    
+     array\.$# in path C:\POSLOVI\__JoomlaBoost\plugin\joomlaboost.php was not                            
+     matched in reported errors.                                                                          
+     Ignored error pattern #^Parameter \#1 \$serviceKey of method                                         
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer\:\:get\(\)                      
+     expects                                                                                              
+     class\-string<JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceInterface>,                 
+     string given\.$# in path C:\POSLOVI\__JoomlaBoost\plugin\joomlaboost.php                             
+     was not matched in reported errors.                                                                  
+     Ignored error pattern #^Unable to resolve the template type T in call to                             
+     method                                                                                               
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer\:\:get\(\)$#                    
+     in path C:\POSLOVI\__JoomlaBoost\plugin\joomlaboost.php was not matched                              
+     in reported errors.                                                                                  
+     Ignored error pattern #^Template type T of method                                                    
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\AbstractService\:\:getService\(\)                
+     is not referenced in a parameter\.$# in path                                                         
+     C:\POSLOVI\__JoomlaBoost\plugin\src\Services\AbstractService.php was not                             
+     matched in reported errors.                                                                          
+     Ignored error pattern #^Unable to resolve the template type T in call to                             
+     method                                                                                               
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer\:\:get\(\)$#                    
+     in path C:\POSLOVI\__JoomlaBoost\plugin\src\Services\AbstractService.php                             
+     was not matched in reported errors.                                                                  
+     Ignored error pattern #^Method                                                                       
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\OpenGraphService\:\:getArticleTimestamps\(\)     
+     return type has no value type specified in iterable type array\.$# in                                
+     path C:\POSLOVI\__JoomlaBoost\plugin\src\Services\OpenGraphService.php                               
+     was not matched in reported errors.                                                                  
+     Ignored error pattern #^Call to an undefined method                                                  
+     Joomla\\CMS\\Document\\HtmlDocument\:\:getMetaData\(\)\.$# in path                                   
+     C:\POSLOVI\__JoomlaBoost\plugin\src\Services\PerformanceService.php was                              
+     not matched in reported errors.                                                                      
+     Ignored error pattern #^Method                                                                       
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\PerformanceService\:\:getPerformanceMetrics\(\)  
+     return type has no value type specified in iterable type array\.$# in                                
+     path C:\POSLOVI\__JoomlaBoost\plugin\src\Services\PerformanceService.php                             
+     was not matched in reported errors.                                                                  
+     Ignored error pattern #^Parameter \#1 \$callback of function                                         
+     spl_autoload_register expects \(callable\(string\)\: void\)\|null,                                   
+     array\{'JoomlaBoost\\\\Plugin\\\\System\\\\JoomlaBoost\\\\Services\\\\ServiceAutoloader',            
+     'autoload'\} given\.$# in path                                                                       
+     C:\POSLOVI\__JoomlaBoost\plugin\src\Services\ServiceAutoloader.php was                               
+     not matched in reported errors.                                                                      
+     Ignored error pattern #^Method                                                                       
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer\:\:__call\(\)                   
+     has parameter \$arguments with no value type specified in iterable type                              
+     array\.$# in path                                                                                    
+     C:\POSLOVI\__JoomlaBoost\plugin\src\Services\ServiceContainer.php was not                            
+     matched in reported errors.                                                                          
+     Ignored error pattern #^Method                                                                       
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer\:\:getMetrics\(\)               
+     return type has no value type specified in iterable type array\.$# in                                
+     path C:\POSLOVI\__JoomlaBoost\plugin\src\Services\ServiceContainer.php                               
+     was not matched in reported errors.                                                                  
+     Ignored error pattern #^Unable to resolve the template type T in call to                             
+     method                                                                                               
+     JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer\:\:get\(\)$#                    
+     in path C:\POSLOVI\__JoomlaBoost\plugin\src\Services\ServiceContainer.php                            
+     was not matched in reported errors.                                                                  
+ -- ----------------------------------------------------------------------------------------------------- 
+
+ [ERROR] Found 17 errors                                                       
+

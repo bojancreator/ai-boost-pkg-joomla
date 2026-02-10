@@ -105,7 +105,7 @@ class PlgSystemJoomlaboost extends CMSPlugin
         if (!$app->isClient('site')) {
             // Optional: debug in backend
             if ($app->isClient('administrator')) {
-                $this->logDebug('JoomlaBoost initialised (admin)');
+                // Admin area ready - no verbose messaging needed
             }
             return;
         }
@@ -947,6 +947,13 @@ HTML;
         if (!empty($additionalHtml)) {
             $document->addCustomTag($additionalHtml);
             $this->logDebug('Added additional Google verification HTML');
+        }
+
+        // Facebook Domain Verification
+        $fbVerification = trim((string) $this->params->get('fb_domain_verification', ''));
+        if (!empty($fbVerification)) {
+            $document->setMetaData('facebook-domain-verification', $fbVerification);
+            $this->logDebug('Added Facebook domain verification meta tag');
         }
 
         // Analytics Service (GA4, GTM)

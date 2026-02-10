@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>February 9, 2026 14:05</creationDate>
+  <creationDate>February 10, 2026 10:16</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.5.2</version>
+  <version>0.5.3</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -141,6 +141,13 @@
         <field name="schema_description" type="textarea" label="Organization Description" description="Brief description of the organization" rows="3" default="" showon="enable_schema:1" />
         <field name="schema_telephone" type="tel" label="Telephone" description="Organization contact telephone number" default="" showon="enable_schema:1" hint="+381 11 1234567" />
         <field name="schema_email" type="email" label="Email" description="Organization contact email" default="" showon="enable_schema:1" hint="info@example.com" />
+        <!-- Social Media Links (sameAs) -->
+        <field name="schema_social_spacer" type="spacer" label="Social Media Links" class="text-primary" />
+        <field name="schema_social_facebook" type="url" label="Facebook URL" description="Full URL to your Facebook page" default="" hint="https://www.facebook.com/yourpage" />
+        <field name="schema_social_instagram" type="url" label="Instagram URL" description="Full URL to your Instagram profile" default="" hint="https://www.instagram.com/yourprofile" />
+        <field name="schema_social_youtube" type="url" label="YouTube URL" description="Full URL to your YouTube channel" default="" hint="https://www.youtube.com/c/yourchannel" />
+        <field name="schema_social_twitter" type="url" label="Twitter/X URL" description="Full URL to your Twitter/X profile" default="" hint="https://twitter.com/yourhandle" />
+        <field name="schema_social_linkedin" type="url" label="LinkedIn URL" description="Full URL to your LinkedIn page" default="" hint="https://www.linkedin.com/company/yourcompany" />
         <!-- LocalBusiness/Hotel Geo Coordinates -->
         <field name="schema_latitude" type="text" label="Latitude" description="Geographic latitude (e.g., 44.0165)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="44.0165" />
         <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., 21.0059)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="21.0059" />
@@ -217,6 +224,8 @@
           <option value="0">JNO</option>
         </field>
         <field name="meta_pixel_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_DESC" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
+        <!-- Facebook Domain Verification -->
+        <field name="fb_domain_verification" type="text" label="Facebook Domain Verification Code" description="Enter the verification code from Facebook Business Manager (without the meta tag markup)" default="" hint="abcdefgh1234567890" showon="enable_meta_pixel:1" />
         <!-- Meta Pixel Custom Events -->
         <field name="meta_pixel_events_header" type="note" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER_DESC" showon="enable_meta_pixel:1" />
         <field name="meta_pixel_track_purchase" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1">
