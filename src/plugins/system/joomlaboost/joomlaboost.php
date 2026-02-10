@@ -19,12 +19,15 @@ JoomlaBoost\Plugin\System\JoomlaBoost\Services\ServiceAutoloader::register(__DIR
 // Load core services immediately for better performance
 JoomlaBoost\Plugin\System\JoomlaBoost\Services\ServiceAutoloader::loadCoreServices();
 
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\ServiceContainer;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\PerformanceService;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\OpenGraphService;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\SchemaService;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\MetaPixelService;
-use JoomlaBoost\Plugin\System\JoomlaBoost\Services\AnalyticsService;
+use JoomlaBoost\Plugin\System\JoomlaBoost\Services\{
+    ServiceContainer,
+    PerformanceService,
+    OpenGraphService,
+    MetaPixelService,
+    SchemaService,
+    AnalyticsService,
+    SettingsPersistenceService
+};
 
 /**
  * JoomlaBoost plugin - Performance Optimized Architecture
@@ -48,6 +51,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
     /** @var AnalyticsService|null */
     private ?AnalyticsService $analyticsService = null;
+
+    /** @var SettingsPersistenceService|null */
+    private ?SettingsPersistenceService $settingsPersistenceService = null;
 
     /**
      * Constructor
@@ -977,5 +983,42 @@ HTML;
         $this->metaPixelService->injectPixelCode($document);
         $this->metaPixelService->injectCustomEvents($document);
         $this->logDebug('Added Meta Pixel tracking');
+    }
+
+    /**
+     * Event handler: Auto-save settings when plugin configuration is saved
+     *
+     * @param string $context The extension context
+     * @param object $table Table object
+     * @param bool $isNew Whether this is a new extension
+     * @return void
+     */
+    public function onExtensionAfterSave($context, $table, $isNew): void
+    {
+        // Only save for this plugin
+        if ($context !== 'com_plugins.plugin' || empty($table->element) || $table->element !== 'joomlaboost') {
+            return;
+        }
+
+        try {
+            // Initialize service if needed
+            if ($this->settingsPersistenceService === null) {
+                $this->settingsPersistenceService = new SettingsPersistenceService($this->getApp(), $this->params);
+            }
+
+            // Get current plugin parameters
+            $params = json_decode($table->params, true);
+            if (!is_array($params)) {
+                return;
+            }
+
+            // Save to database
+            $this->settingsPersistenceService->saveSettings($params);
+
+            $this->logDebug('JoomlaBoost settings auto-saved to persistence storage');
+        } catch (\Exception $e) {
+            // Silent fail - don't break plugin save
+            $this->logDebug('Failed to auto-save settings: ' . $e->getMessage());
+        }
     }
 }
