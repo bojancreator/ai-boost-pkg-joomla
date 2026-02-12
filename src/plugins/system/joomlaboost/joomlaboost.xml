@@ -2,7 +2,7 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>February 12, 2026 14:09</creationDate>
+  <creationDate>February 12, 2026 14:39</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
@@ -72,7 +72,7 @@
           <option value="1">Level 1 only</option>
           <option value="2">Levels 1-2</option>
         </field>
-        <field name="sitemap_menu_types" type="menutype" label="Select Menus" description="Choose which menus to include (empty = all menus)" default="" multiple="true" showon="enable_sitemap:1,sitemap_include_menu:1" />
+        <field name="sitemap_menu_types" type="sql" label="Select Menus" description="Choose which menus to include (empty = all menus)" default="" multiple="true" showon="enable_sitemap:1,sitemap_include_menu:1" query="SELECT menutype AS value, title FROM #__menu_types ORDER BY title" key_field="value" value_field="title" />
         <!-- Article Options -->
         <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
         <field name="sitemap_article_categories" type="category" extension="com_content" multiple="true" label="Select Categories" description="Choose categories (empty = all)" default="" showon="enable_sitemap:1,sitemap_include_articles:1" />
