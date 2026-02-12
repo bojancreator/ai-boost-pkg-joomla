@@ -166,12 +166,19 @@ class SitemapService extends AbstractService
     {
         try {
             $db = Factory::getDbo();
+            $maxDepth = (int)$this->params->get('sitemap_menu_depth', 0);
+
             $query = $db->getQuery(true)
-                ->select('id, alias, link, type')
+                ->select('id, alias, link, type, level')
                 ->from('#__menu')
                 ->where('published = 1')
                 ->where('client_id = 0')  // Site menu only
                 ->where('type != ' . $db->quote('url'));  // Exclude external links
+
+            // Apply depth filtering if configured
+            if ($maxDepth > 0) {
+                $query->where('level <= ' . (int)$maxDepth);
+            }
 
             $db->setQuery($query);
             $items = $db->loadObjectList();
@@ -186,7 +193,10 @@ class SitemapService extends AbstractService
                 $item->url = $this->getBaseUrl() . Route::_($item->link);
             }
 
-            $this->logDebug("Loaded {count} menu items for sitemap", ['count' => count($items)]);
+            $this->logDebug("Loaded {count} menu items for sitemap (depth: {depth})", [
+                'count' => count($items),
+                'depth' => $maxDepth === 0 ? 'unlimited' : $maxDepth
+            ]);
             return array_filter($items, fn($i) => !empty($i->url));
         } catch (\Throwable $e) {
             $this->logDebug('Menu loading failed: ' . $e->getMessage());

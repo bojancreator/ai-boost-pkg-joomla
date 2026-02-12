@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>February 12, 2026 13:58</creationDate>
+  <creationDate>February 12, 2026 14:06</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.5.4</version>
+  <version>0.5.5</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -66,6 +66,11 @@
         <field name="sitemap_include_menu" type="radio" label="Include Menu Items" description="Add menu items" default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
+        </field>
+        <field name="sitemap_menu_depth" type="list" label="Menu Depth" description="Control menu hierarchy depth (0 = unlimited, 1 = top level only, 2 = two levels)" default="0" showon="enable_sitemap:1,sitemap_include_menu:1">
+          <option value="0">Unlimited (All levels)</option>
+          <option value="1">Level 1 only</option>
+          <option value="2">Levels 1-2</option>
         </field>
         <!-- Article Options -->
         <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
