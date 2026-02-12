@@ -167,9 +167,10 @@ class SitemapService extends AbstractService
         try {
             $db = Factory::getDbo();
             $maxDepth = (int)$this->params->get('sitemap_menu_depth', 0);
+            $selectedMenuTypes = $this->params->get('sitemap_menu_types', []);
 
             $query = $db->getQuery(true)
-                ->select('id, alias, link, type, level')
+                ->select('id, alias, link, type, level, menutype')
                 ->from('#__menu')
                 ->where('published = 1')
                 ->where('client_id = 0')  // Site menu only
@@ -178,6 +179,12 @@ class SitemapService extends AbstractService
             // Apply depth filtering if configured
             if ($maxDepth > 0) {
                 $query->where('level <= ' . (int)$maxDepth);
+            }
+
+            // Apply menu type filtering if configured
+            if (!empty($selectedMenuTypes) && is_array($selectedMenuTypes)) {
+                $quotedTypes = array_map([$db, 'quote'], $selectedMenuTypes);
+                $query->where('menutype IN (' . implode(',', $quotedTypes) . ')');
             }
 
             $db->setQuery($query);
@@ -193,8 +200,10 @@ class SitemapService extends AbstractService
                 $item->url = $this->getBaseUrl() . Route::_($item->link);
             }
 
-            $this->logDebug("Loaded {count} menu items for sitemap (depth: {depth})", [
+            $menuInfo = empty($selectedMenuTypes) ? 'all menus' : implode(', ', $selectedMenuTypes);
+            $this->logDebug("Loaded {count} menu items for sitemap (menus: {menus}, depth: {depth})", [
                 'count' => count($items),
+                'menus' => $menuInfo,
                 'depth' => $maxDepth === 0 ? 'unlimited' : $maxDepth
             ]);
             return array_filter($items, fn($i) => !empty($i->url));
