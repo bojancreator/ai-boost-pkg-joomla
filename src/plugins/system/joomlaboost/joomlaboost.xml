@@ -2,7 +2,7 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>February 10, 2026 10:16</creationDate>
+  <creationDate>February 12, 2026 13:58</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
@@ -251,26 +251,6 @@
           <option value="0">JNO</option>
         </field>
         <field name="cache_ttl" type="number" label="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_DESC" default="3600" min="60" max="86400" showon="enable_caching:1" />
-      </fieldset>
-      <!-- Settings Management -->
-      <fieldset name="settings_management" label="Settings Management">
-        <field name="persist_settings_on_uninstall" type="radio" 
-               label="Persist Settings on Uninstall" 
-               description="Keep plugin settings after uninstallation for easy restoration when reinstalling. Settings are stored in database table (#__joomlaboost_settings). Recommended: YES." 
-               default="1" class="btn-group btn-group-yesno">
-          <option value="1">YES (Recommended)</option>
-          <option value="0">NO (Delete on uninstall)</option>
-        </field>
-        
-        <field name="settings_info_note" type="note" 
-               label="Settings Persistence Info" 
-               description="Plugin automatically saves your configuration to the database. When you reinstall the plugin, your settings will be restored automatically. You can also manually export/import settings as JSON files." 
-               class="alert alert-info" />
-        
-        <field name="settings_export_note" type="note" 
-               label="Export/Import Settings" 
-               description="To manually export settings: System → Plugins → JoomlaBoost → Edit → Save → Check 'joomlaboost_install.log' for settings backup location. To import: Use JSON file from previous export." 
-               class="alert alert-success" />
       </fieldset>
       <fieldset name="debug" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_DEBUG">
         <field name="debug_mode" type="radio" label="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_DESC" default="0" class="btn-group btn-group-yesno">
