@@ -41,7 +41,10 @@ class ServiceAutoloader
         'HreflangService' => 'HreflangService.php',
         'InjectionService' => 'InjectionService.php',
         'HealthService' => 'HealthService.php',
-        'MetaPixelService' => 'MetaPixelService.php'
+        'MetaPixelService' => 'MetaPixelService.php',
+        'QAManagementService' => 'QAManagementService.php',
+        'CustomFieldsService' => 'CustomFieldsService.php',
+        'SettingsPersistenceService' => 'SettingsPersistenceService.php'
     ];
 
     /** @var string Base services directory */
