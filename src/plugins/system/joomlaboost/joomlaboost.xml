@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>February 12, 2026 14:42</creationDate>
+  <creationDate>February 13, 2026 11:32</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.5.7</version>
+  <version>0.5.8</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -133,6 +133,12 @@
         </field>
         <!-- Organization Name -->
         <field name="org_name" type="text" label="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_LABEL" description="PLG_SYSTEM_JOOMLABOOST_ORG_NAME_DESC" default="" hint="Organization Name" showon="enable_schema:1" />
+        <!-- Multi-Language Organization Name -->
+        <field name="schema_multilang_spacer" type="spacer" label="Multi-Language Configuration (Optional)" class="text-primary" showon="enable_schema:1" />
+        <field name="schema_multilang_note" type="note" label="💡 Translation Tips" description="Fill in language-specific fields only if needed. Brand names typically stay the same. Leave empty to use default values above." class="alert alert-info" showon="enable_schema:1" />
+        <field name="org_name_en" type="text" label="Organization Name (English)" hint="Leave empty to use default above" showon="enable_schema:1" />
+        <field name="org_name_sr" type="text" label="Organization Name (Serbian / Српски)" hint="Оставити празно за подразумевано" showon="enable_schema:1" />
+        <field name="org_name_ru" type="text" label="Organization Name (Russian / Русский)" hint="Оставить пустым для значения по умолчанию" showon="enable_schema:1" />
         <!-- Organization Logo -->
         <field name="org_logo" type="media" label="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_LABEL" description="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_DESC" default="" directory="images" showon="enable_schema:1" />
         <!-- Schema.org Type Selection -->
@@ -145,6 +151,10 @@
         <!-- Organization Contact Information (All Types) -->
         <field name="schema_url" type="url" label="Organization URL" description="Official website URL (auto-detected if empty)" default="" showon="enable_schema:1" hint="https://example.com" />
         <field name="schema_description" type="textarea" label="Organization Description" description="Brief description of the organization" rows="3" default="" showon="enable_schema:1" />
+        <!-- Multi-Language Description -->
+        <field name="schema_description_en" type="textarea" label="Description (English)" hint="Professional services description" rows="3" showon="enable_schema:1" />
+        <field name="schema_description_sr" type="textarea" label="Description (Serbian / Српски)" hint="Опис професионалних услуга" rows="3" showon="enable_schema:1" />
+        <field name="schema_description_ru" type="textarea" label="Description (Russian / Русский)" hint="Описание профессиональных услуг" rows="3" showon="enable_schema:1" />
         <field name="schema_telephone" type="tel" label="Telephone" description="Organization contact telephone number" default="" showon="enable_schema:1" hint="+381 11 1234567" />
         <field name="schema_email" type="email" label="Email" description="Organization contact email" default="" showon="enable_schema:1" hint="info@example.com" />
         <!-- Social Media Links (sameAs) -->
@@ -199,8 +209,12 @@
           <option value="manual_first">Manual First, then Auto-detected</option>
           <option value="auto_first">Auto-detected First, then Manual</option>
         </field>
-        <field name="manual_faqs" type="textarea" label="Manual FAQ Items (JSON)" description="Enter FAQ items in JSON format." default="" rows="10" cols="80" filter="raw" class="input-xxlarge" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
-        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{\&quot;question\&quot;: \&quot;What?\&quot;, \&quot;answer\&quot;: \&quot;This!\&quot;}]" class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <field name="manual_faqs" type="textarea" label="Manual FAQ Items (JSON) - Default" description="Enter FAQ items in JSON format. Leave empty if using language-specific fields below." default="" rows="10" cols="80" filter="raw" class="input-xxlarge" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <!-- Multi-Language Manual FAQs -->
+        <field name="manual_faqs_en" type="textarea" label="Manual FAQs (English)" description="FAQ items in English - JSON format" default="" rows="10" cols="80" filter="raw" class="input-xxlarge" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <field name="manual_faqs_sr" type="textarea" label="Manual FAQs (Serbian / Српски)" description="FAQ ставке на српском - JSON формат" default="" rows="10" cols="80" filter="raw" class="input-xxlarge" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <field name="manual_faqs_ru" type="textarea" label="Manual FAQs (Russian / Русский)" description="FAQ элементы на русском - JSON формат" default="" rows="10" cols="80" filter="raw" class="input-xxlarge" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{\&quot;question\&quot;: \&quot;What?\&quot;, \&quot;answer\&quot;: \&quot;This!\&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
       </fieldset>
       <fieldset name="google" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_GOOGLE">
         <!-- Google Search Console Verification -->

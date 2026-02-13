@@ -55,6 +55,53 @@ class SchemaService extends AbstractService
     }
 
     /**
+     * Get localized parameter value with language fallback
+     *
+     * Fallback priority: current language → English → default field → $default
+     *
+     * @param string $fieldName Base field name (e.g., 'org_name', 'schema_description')
+     * @param mixed $default Default value if all fields are empty
+     * @return mixed Localized value or fallback
+     */
+    private function getLocalizedParam(string $fieldName, $default = '')
+    {
+        $lang = Factory::getLanguage();
+        $langTag = $lang->getTag(); // e.g., 'sr-RS', 'en-GB', 'ru-RU'
+
+        // Extract language code (first 2 letters)
+        $langCode = strtolower(substr($langTag, 0, 2)); // 'sr', 'en', 'ru'
+
+        // Try current language field first
+        $localizedField = "{$fieldName}_{$langCode}";
+        $value = $this->params->get($localizedField, '');
+
+        if (!empty($value)) {
+            $this->logDebug("Using localized field: {$localizedField}");
+            return $value;
+        }
+
+        // Fallback to English (if not already EN)
+        if ($langCode !== 'en') {
+            $enField = "{$fieldName}_en";
+            $value = $this->params->get($enField, '');
+            if (!empty($value)) {
+                $this->logDebug("Fallback to English field: {$enField}");
+                return $value;
+            }
+        }
+
+        // Fallback to default field (for backward compatibility)
+        $value = $this->params->get($fieldName, '');
+        if (!empty($value)) {
+            $this->logDebug("Using default field: {$fieldName}");
+            return $value;
+        }
+
+        // Return default value
+        return $default;
+    }
+
+    /**
      * Main schema generation method with performance optimizations
      *
      * @return array<int, array<string, mixed>>
@@ -176,9 +223,11 @@ class SchemaService extends AbstractService
         $config = Factory::getApplication()->getConfig();
         $baseUrl = $this->getSchemaUrl();
 
-        // Get organization name: plugin config → Joomla site name
-        $orgName = $this->params->get('org_name', '');
-        $siteName = !empty($orgName) ? $orgName : $config->get('sitename');
+        // Get organization name with language support
+        $orgName = $this->getLocalizedParam('org_name', $config->get('sitename'));
+
+        // Get organization description with language support
+        $orgDescription = $this->getLocalizedParam('schema_description', $config->get('MetaDesc') ?: ($orgName . ' - Professional services'));
 
         // Get organization logo (prioritize specific org_logo, fallback to og_image)
         $orgLogo = $this->params->get('org_logo', '');
@@ -207,9 +256,9 @@ class SchemaService extends AbstractService
             $schema = [
                 '@context' => 'https://schema.org',
                 '@type' => 'LocalBusiness',
-                'name' => $siteName,
+                'name' => $orgName,
                 'url' => $baseUrl,
-                'description' => $config->get('MetaDesc') ?: ($siteName . ' - Professional services'),
+                'description' => $orgDescription,
                 'address' => [
                     '@type' => 'PostalAddress',
                     'addressCountry' => $this->params->get('schema_address_country', 'RS'),
@@ -261,9 +310,9 @@ class SchemaService extends AbstractService
             $schema = [
                 '@context' => 'https://schema.org',
                 '@type' => 'Organization',
-                'name' => $siteName,
+                'name' => $orgName,
                 'url' => $baseUrl,
-                'description' => $config->get('MetaDesc'),
+                'description' => $orgDescription,
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'contactType' => 'customer service',

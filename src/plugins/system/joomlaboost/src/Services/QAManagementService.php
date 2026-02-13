@@ -31,6 +31,7 @@ class QAManagementService extends AbstractService
 {
     /**
      * Get manually configured FAQ items from plugin parameters
+     * Supports multi-language FAQ fields with fallback
      *
      * @return array Array of FAQ items in Schema.org format
      */
@@ -40,7 +41,25 @@ class QAManagementService extends AbstractService
             return [];
         }
 
-        $manualFAQsJson = $this->params->get('manual_faqs', '');
+        // Get current language code
+        $lang = \Joomla\CMS\Factory::getLanguage();
+        $langTag = $lang->getTag(); // e.g., 'sr-RS', 'en-GB', 'ru-RU'
+        $langCode = strtolower(substr($langTag, 0, 2)); // 'sr', 'en', 'ru'
+
+        // Try language-specific field first
+        $langField = "manual_faqs_{$langCode}";
+        $manualFAQsJson = $this->params->get($langField, '');
+
+        // Fallback to English (if not already EN)
+        if (empty($manualFAQsJson) && $langCode !== 'en') {
+            $manualFAQsJson = $this->params->get('manual_faqs_en', '');
+            $this->logDebug("FAQ fallback to EN field");
+        }
+
+        // Fallback to default field (backward compatibility)
+        if (empty($manualFAQsJson)) {
+            $manualFAQsJson = $this->params->get('manual_faqs', '');
+        }
 
         if (empty($manualFAQsJson)) {
             return [];
@@ -53,6 +72,11 @@ class QAManagementService extends AbstractService
                 $this->logDebug('Manual FAQs: Invalid JSON format (not an array)');
                 return [];
             }
+
+            $this->logDebug("Loaded {count} manual FAQ items for language: {lang}", [
+                'count' => count($faqData),
+                'lang' => $langCode
+            ]);
 
             return $this->processFAQItems($faqData);
         } catch (\JsonException $e) {
