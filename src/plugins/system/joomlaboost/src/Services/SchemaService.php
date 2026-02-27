@@ -23,10 +23,12 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Model\ArticleModel;
 use Joomla\Component\Content\Site\Model\CategoryModel;
 use Joomla\Registry\Registry;
+
 // Make sure Joomla constants are available
 if (!defined('JPATH_ROOT')) {
     define('JPATH_ROOT', realpath(__DIR__ . '/../../../../../../..'));
 }
+
 if (!defined('JPATH_SITE')) {
     define('JPATH_SITE', JPATH_ROOT);
 }

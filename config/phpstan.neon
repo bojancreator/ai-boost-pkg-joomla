@@ -7,18 +7,15 @@ parameters:
   level: 4
   ignoreErrors:
     - '#unknown class Joomla\\#'
-    - '#unknown class .*EnvironmentType#'
     - '#Class Joomla\\Database\\DatabaseInterface not found#'
-    - '#invalid return type .*EnvironmentType#'
     - '#Constant JPATH_#'
     - '#Call to an undefined (static )?method Joomla\\#'
     - '#Static method Joomla\\CMS\\Factory::getUser\(\) invoked with 0 parameters#'
     - '#Access to an undefined property object#'
     - '#Template type T.*is not referenced in a parameter#'
-  # No excluded paths currently
-  # excludePaths:
+    - '#is unused#'
+  excludePaths:
+    - ../src/plugins/system/joomlaboost/src/Field
   bootstrapFiles:
     - ../stubs/autoload.php
     - ../stubs/bootstrap.php
-
-# Baseline is temporarily disabled; regenerate after we clean real issues

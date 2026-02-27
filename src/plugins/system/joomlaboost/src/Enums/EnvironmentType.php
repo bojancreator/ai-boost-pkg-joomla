@@ -56,4 +56,62 @@ enum EnvironmentType: string
     {
         return $this === self::Production;
     }
+
+    /**
+     * Get a human-readable label for this environment
+     */
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::Production => 'Production',
+            self::Staging    => 'Staging',
+            self::Local      => 'Local',
+        };
+    }
+
+    /**
+     * Get robots.txt rules for this environment
+     *
+     * @return array<int, string>
+     */
+    public function getRobotsRules(): array
+    {
+        if (!$this->isProduction()) {
+            return [
+                '# JoomlaBoost Robots.txt - ' . strtoupper($this->value) . ' ENVIRONMENT',
+                '',
+                'User-agent: *',
+                'Disallow: /',
+            ];
+        }
+
+        return [
+            '# JoomlaBoost Robots.txt - PRODUCTION ENVIRONMENT',
+            '',
+            'User-agent: *',
+            'Allow: /',
+            '',
+            '# Disallow admin and system folders',
+            'Disallow: /administrator/',
+            'Disallow: /api/',
+            'Disallow: /bin/',
+            'Disallow: /cache/',
+            'Disallow: /cli/',
+            'Disallow: /components/',
+            'Disallow: /includes/',
+            'Disallow: /installation/',
+            'Disallow: /language/',
+            'Disallow: /layouts/',
+            'Disallow: /libraries/',
+            'Disallow: /logs/',
+            'Disallow: /modules/',
+            'Disallow: /plugins/',
+            'Disallow: /tmp/',
+            '',
+            '# Allow public assets',
+            'Allow: /templates/',
+            'Allow: /media/',
+            'Allow: /images/',
+        ];
+    }
 }
