@@ -31,20 +31,23 @@ class ServiceAutoloader
         'ServiceInterface' => 'ServiceInterface.php',
         'AbstractService' => 'AbstractService.php',
         'ServiceContainer' => 'ServiceContainer.php',
+        'ServiceManager' => 'ServiceManager.php',
         'PerformanceService' => 'PerformanceService.php',
-        'DomainDetectionService' => 'DomainDetectionService.php',
-        'RobotService' => 'RobotService.php',
-        'SitemapService' => 'SitemapService.php',
         'SchemaService' => 'SchemaService.php',
         'OpenGraphService' => 'OpenGraphService.php',
-        'AnalyticsService' => 'AnalyticsService.php',
+        'RobotService' => 'RobotService.php',
+        'SitemapService' => 'SitemapService.php',
         'HreflangService' => 'HreflangService.php',
         'InjectionService' => 'InjectionService.php',
         'HealthService' => 'HealthService.php',
         'MetaPixelService' => 'MetaPixelService.php',
         'QAManagementService' => 'QAManagementService.php',
         'CustomFieldsService' => 'CustomFieldsService.php',
-        'SettingsPersistenceService' => 'SettingsPersistenceService.php'
+        'SettingsPersistenceService' => 'SettingsPersistenceService.php',
+        'AnalyticsService' => 'AnalyticsService.php',
+        'DomainDetectionService' => 'DomainDetectionService.php',
+        'TranslationService' => 'TranslationService.php',
+        'LanguageService'    => 'LanguageService.php'
     ];
 
     /** @var string Base services directory */
@@ -73,31 +76,44 @@ class ServiceAutoloader
      */
     public static function autoload(string $className): bool
     {
-        $prefix = 'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\';
+        $servicesPrefix = 'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\';
+        $enumsPrefix    = 'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Enums\\';
 
-        // Check if this is our namespace
-        if (strpos($className, $prefix) !== 0) {
+        // Handle Services namespace
+        if (strpos($className, $servicesPrefix) === 0) {
+            $relativeClass = substr($className, strlen($servicesPrefix));
+
+            if (!isset(self::$classMap[$relativeClass])) {
+                return false;
+            }
+
+            $file = self::$baseDir . self::$classMap[$relativeClass];
+
+            if (file_exists($file)) {
+                require_once $file;
+                return true;
+            }
+
             return false;
         }
 
-        // Extract the relative class name
-        $relativeClass = substr($className, strlen($prefix));
+        // Handle Enums namespace — load from src/Enums/ relative to Services dir
+        if (strpos($className, $enumsPrefix) === 0) {
+            $relativeClass = substr($className, strlen($enumsPrefix));
+            $enumsDir      = dirname(self::$baseDir) . DIRECTORY_SEPARATOR . 'Enums' . DIRECTORY_SEPARATOR;
+            $file          = $enumsDir . $relativeClass . '.php';
 
-        // Check if we have this class in our map
-        if (!isset(self::$classMap[$relativeClass])) {
+            if (file_exists($file)) {
+                require_once $file;
+                return true;
+            }
+
             return false;
-        }
-
-        $file = self::$baseDir . self::$classMap[$relativeClass];
-
-        // Load the file if it exists
-        if (file_exists($file)) {
-            require_once $file;
-            return true;
         }
 
         return false;
     }
+
 
     /**
      * Load core services (performance critical ones first)

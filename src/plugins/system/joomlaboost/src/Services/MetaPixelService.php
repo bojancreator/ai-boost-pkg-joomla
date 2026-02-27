@@ -93,13 +93,25 @@ final class MetaPixelService
 
     /**
      * Generate Meta Pixel tracking code
+     *
+     * Supports GDPR consent modes:
+     * - 'none'      : Direct inject (legacy, no consent control)
+     * - 'yootheme'  : Uses type="text/plain" + data-category="marketing.Meta Pixel"
+     *                 for YooTheme Pro 5 consent manager.
+     *
+     * CRITICAL: type="text/plain" is REQUIRED. YooTheme consent.js only blocks scripts
+     * that have type="text/plain" + data-category. Without it, script runs immediately!
+     *
+     * The category name "marketing.Meta Pixel" must match the name defined in:
+     * YooTheme Customizer > Theme > Consent > Marketing > item name
+     * Default YooTheme config: yootheme.consent.categories.marketing = ["Meta Pixel", "google_ads"]
      */
     private function generatePixelCode(string $pixelId, string $version): string
     {
-        return sprintf(
-            '<!-- Meta Pixel Code by %s -->
-<script>
-!function(f,b,e,v,n,t,s)
+        $consentMode = $this->params->get('pixel_consent_mode', 'none');
+
+        $innerScript = sprintf(
+            '!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
 if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version=\'2.0\';
@@ -108,7 +120,51 @@ t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,\'script\',
 \'https://connect.facebook.net/en_US/fbevents.js\');
 fbq(\'init\', \'%s\');
-fbq(\'track\', \'PageView\');
+fbq(\'track\', \'PageView\');',
+            $pixelId
+        );
+
+        if ($consentMode === 'yootheme') {
+            // type="text/plain" prevents browser from executing the script.
+            // IMPORTANT: No spaces in category name!
+            // consent.js splits data-category by whitespace (/\s+/)
+            // so 'marketing.Meta Pixel' would be parsed as 'marketing.Meta' + 'Pixel' (wrong!)
+            // Using 'meta_pixel' (no space) to avoid this bug.
+            return sprintf(
+                '<!-- Meta Pixel Code by %s (YooTheme Consent) -->
+<!-- Step 1: Register meta_pixel in YooTheme consent categories -->
+<script>
+(function() {
+  window.yootheme = window.yootheme || {};
+  window.yootheme.consent = window.yootheme.consent || {};
+  window.yootheme.consent.categories = window.yootheme.consent.categories || {};
+  window.yootheme.consent.categories.marketing = window.yootheme.consent.categories.marketing || [];
+  var m = window.yootheme.consent.categories.marketing;
+  if (m.indexOf(\'meta_pixel\') === -1) m.push(\'meta_pixel\');
+})();
+</script>
+<!-- Step 2: Blocked until user accepts Marketing cookies -->
+<script type="text/plain" data-category="marketing.meta_pixel">
+%s
+</script>
+<noscript>
+<img height="1" width="1" style="display:none"
+     src="https://www.facebook.com/tr?id=%s&ev=PageView&noscript=1"/>
+</noscript>
+<!-- End Meta Pixel Code -->',
+                $version,
+                $innerScript,
+                $pixelId
+            );
+        }
+
+
+
+        // Default: direct inject (legacy, no consent)
+        return sprintf(
+            '<!-- Meta Pixel Code by %s -->
+<script>
+%s
 </script>
 <noscript>
 <img height="1" width="1" style="display:none"
@@ -116,10 +172,12 @@ fbq(\'track\', \'PageView\');
 </noscript>
 <!-- End Meta Pixel Code -->',
             $version,
-            $pixelId,
+            $innerScript,
             $pixelId
         );
     }
+
+
 
     /**
      * Generate custom event tracking code

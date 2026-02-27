@@ -12,6 +12,7 @@ class plgSystemJoomlaboostInstallerScript
     public function install($adapter)
     {
         $this->createSettingsTable();
+        $this->createTranslationsTable();
         return true;
     }
 
@@ -22,6 +23,11 @@ class plgSystemJoomlaboostInstallerScript
     {
         // Ensure settings table exists (for upgrades from older versions)
         $this->createSettingsTable();
+        $this->createTranslationsTable();
+
+        // Migrate existing v0.5.8 language fields to database
+        $this->migrateLegacyTranslations();
+
         return true;
     }
 
@@ -79,6 +85,135 @@ class plgSystemJoomlaboostInstallerScript
                 'warning'
             );
             return false;
+        }
+    }
+
+    /**
+     * Create translations table (v0.6.0+)
+     */
+    private function createTranslationsTable()
+    {
+        $db = Factory::getDbo();
+
+        // Check if table already exists
+        $tables = $db->getTableList();
+        $tablePrefix = $db->getPrefix();
+        $tableName = $tablePrefix . 'joomlaboost_translations';
+
+        if (in_array($tableName, $tables)) {
+            return true; // Table already exists
+        }
+
+        // Create table
+        $query = "CREATE TABLE IF NOT EXISTS `{$tableName}` (
+            `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `field_key` VARCHAR(100) NOT NULL COMMENT 'Field identifier',
+            `lang_code` VARCHAR(10) NOT NULL COMMENT 'ISO language code',
+            `field_value` TEXT NOT NULL,
+            `created_at` DATETIME NOT NULL,
+            `updated_at` DATETIME NOT NULL,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `idx_field_lang` (`field_key`, `lang_code`),
+            KEY `idx_field_key` (`field_key`),
+            KEY `idx_lang_code` (`lang_code`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+          COMMENT='Multi-language translations for JoomlaBoost Schema.org fields';";
+
+        try {
+            $db->setQuery($query);
+            $db->execute();
+            return true;
+        } catch (Exception $e) {
+            // Log error but don't fail installation
+            Factory::getApplication()->enqueueMessage(
+                'JoomlaBoost: Could not create translations table: ' . $e->getMessage(),
+                'warning'
+            );
+            return false;
+        }
+    }
+
+    /**
+     * Migrate legacy v0.5.8 language fields to database
+     */
+    private function migrateLegacyTranslations()
+    {
+        try {
+            $db = Factory::getDbo();
+
+            // Get current plugin params
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('params'))
+                ->from($db->quoteName('#__extensions'))
+                ->where($db->quoteName('element') . ' = ' . $db->quote('joomlaboost'))
+                ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                ->where($db->quoteName('folder') . ' = ' . $db->quote('system'));
+
+            $db->setQuery($query);
+            $paramsJson = $db->loadResult();
+
+            if (empty($paramsJson)) {
+                return;
+            }
+
+            $params = json_decode($paramsJson, true);
+            if (!is_array($params)) {
+                return;
+            }
+
+            $now = Factory::getDate()->toSql();
+            $migrated = 0;
+
+            // Define field mappings: field_key => [language-specific param names]
+            $migrations = [
+                'org_name' => ['org_name_en', 'org_name_sr', 'org_name_ru'],
+                'schema_description' => ['schema_description_en', 'schema_description_sr', 'schema_description_ru'],
+                'manual_faqs' => ['manual_faqs_en', 'manual_faqs_sr', 'manual_faqs_ru']
+            ];
+
+            foreach ($migrations as $fieldKey => $langFields) {
+                foreach ($langFields as $langField) {
+                    if (!empty($params[$langField])) {
+                        // Extract language code from field name (e.g., 'org_name_en' → 'en')
+                        $langCode = substr($langField, -2);
+
+                        // Insert into translations table
+                        $query = $db->getQuery(true)
+                            ->insert($db->quoteName('#__joomlaboost_translations'))
+                            ->columns([
+                                $db->quoteName('field_key'),
+                                $db->quoteName('lang_code'),
+                                $db->quoteName('field_value'),
+                                $db->quoteName('created_at'),
+                                $db->quoteName('updated_at')
+                            ])
+                            ->values(
+                                $db->quote($fieldKey) . ', ' .
+                                    $db->quote($langCode) . ', ' .
+                                    $db->quote($params[$langField]) . ', ' .
+                                    $db->quote($now) . ', ' .
+                                    $db->quote($now)
+                            );
+
+                        $db->setQuery($query);
+                        try {
+                            $db->execute();
+                            $migrated++;
+                        } catch (Exception $e) {
+                            // Skip duplicates or errors
+                        }
+                    }
+                }
+            }
+
+            if ($migrated > 0) {
+                Factory::getApplication()->enqueueMessage(
+                    "✅ JoomlaBoost: Migrated {$migrated} language-specific fields to new database system!",
+                    'success'
+                );
+            }
+        } catch (Exception $e) {
+            // Silent fail - don't break update
         }
     }
 

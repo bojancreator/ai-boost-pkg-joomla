@@ -31,7 +31,7 @@ class QAManagementService extends AbstractService
 {
     /**
      * Get manually configured FAQ items from plugin parameters
-     * Supports multi-language FAQ fields with fallback
+     * Supports multi-language FAQ fields with database-backed translations
      *
      * @return array Array of FAQ items in Schema.org format
      */
@@ -41,32 +41,61 @@ class QAManagementService extends AbstractService
             return [];
         }
 
-        // Get current language code
-        $lang = \Joomla\CMS\Factory::getLanguage();
-        $langTag = $lang->getTag(); // e.g., 'sr-RS', 'en-GB', 'ru-RU'
-        $langCode = strtolower(substr($langTag, 0, 2)); // 'sr', 'en', 'ru'
+        $lang     = \Joomla\CMS\Factory::getLanguage();
+        $langCode = strtolower(substr($lang->getTag(), 0, 2)); // e.g. sr-RS -> sr
 
-        // Try language-specific field first
-        $langField = "manual_faqs_{$langCode}";
-        $manualFAQsJson = $this->params->get($langField, '');
+        // 1. Try language-specific param field (e.g. manual_faqs_sr)
+        $manualFAQsJson = $this->params->get("manual_faqs_{$langCode}", '');
 
-        // Fallback to English (if not already EN)
-        if (empty($manualFAQsJson) && $langCode !== 'en') {
+        if (!empty($manualFAQsJson)) {
+            $this->logDebug("FAQ: Using param field manual_faqs_{$langCode}");
+            return $this->processFAQJson($manualFAQsJson, $langCode);
+        }
+
+        // 2. Try English param field as fallback
+        if ($langCode !== 'en') {
             $manualFAQsJson = $this->params->get('manual_faqs_en', '');
-            $this->logDebug("FAQ fallback to EN field");
+            if (!empty($manualFAQsJson)) {
+                $this->logDebug("FAQ: Fallback to manual_faqs_en");
+                return $this->processFAQJson($manualFAQsJson, $langCode);
+            }
         }
 
-        // Fallback to default field (backward compatibility)
-        if (empty($manualFAQsJson)) {
-            $manualFAQsJson = $this->params->get('manual_faqs', '');
+        // 3. Try generic/legacy param field (backward compatibility with v0.5.x)
+        $manualFAQsJson = $this->params->get('manual_faqs', '');
+        if (!empty($manualFAQsJson)) {
+            $this->logDebug("FAQ: Using legacy manual_faqs param");
+            return $this->processFAQJson($manualFAQsJson, $langCode);
         }
 
-        if (empty($manualFAQsJson)) {
-            return [];
-        }
-
+        // 4. Try database-backed translations (last resort)
         try {
-            $faqData = json_decode($manualFAQsJson, true, 512, JSON_THROW_ON_ERROR);
+            $translationService = new TranslationService($this->app, $this->params);
+            $manualFAQsJson     = $translationService->get('manual_faqs');
+
+            if (!empty($manualFAQsJson)) {
+                $this->logDebug("FAQ: Using database translation ({$langCode})");
+                return $this->processFAQJson($manualFAQsJson, $langCode);
+            }
+        } catch (\Exception $e) {
+            $this->logDebug("FAQ TranslationService error: {$e->getMessage()}");
+        }
+
+        $this->logDebug("FAQ: No data found for lang={$langCode}");
+        return [];
+    }
+
+    /**
+     * Process FAQ JSON string into array
+     *
+     * @param string $json JSON string
+     * @param string $langCode Language code for logging
+     * @return array Processed FAQ items
+     */
+    private function processFAQJson(string $json, string $langCode): array
+    {
+        try {
+            $faqData = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
             if (!is_array($faqData)) {
                 $this->logDebug('Manual FAQs: Invalid JSON format (not an array)');

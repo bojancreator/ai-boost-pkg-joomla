@@ -11,6 +11,8 @@
  * @license     GNU General Public License version 2 or later
  */
 
+declare(strict_types=1);
+
 namespace JoomlaBoost\Plugin\System\JoomlaBoost\Services;
 
 use Joomla\CMS\Factory;
@@ -18,10 +20,21 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 
 /**
- * Enhanced Sitemap Service with Configurable Content
+ * Enhanced Sitemap Service with Configurable Content and Multilingual Support
+ *
+ * Multilingual hreflang strategy:
+ * - Auto-detects all published Joomla content languages from #__languages
+ * - Generates xhtml:link alternate tags for each URL in each language
+ * - Uses Route::_(...&lang=xx-XX) so Language Filter plugin adds correct /lang/ prefix
+ * - Works with both Falang and native Joomla multilingual
  */
 class SitemapService extends AbstractService
 {
+    /**
+     * Language service instance (lazy loaded)
+     */
+    private ?LanguageService $languageService = null;
+
     /**
      * Generate complete sitemap with configurable content
      */
@@ -33,25 +46,39 @@ class SitemapService extends AbstractService
 
         $urls = [];
 
+        // Detect if multilingual sitemap is requested
+        $multilingual = (bool)$this->params->get('sitemap_hreflang', 0);
+        $languages    = $multilingual ? $this->getLanguageService()->getActiveLanguages() : [];
+
         // Homepage (always included)
-        $urls[] = $this->createUrlEntry($this->getBaseUrl(), '1.0', 'daily');
+        $urls[] = $this->createUrlEntry(
+            $this->getBaseUrl(),
+            '1.0',
+            'daily',
+            null,
+            [],
+            $multilingual ? $this->buildAlternatesForHomepage($languages) : []
+        );
 
         // Articles (if enabled)
         if ($this->params->get('sitemap_include_articles', 1)) {
-            $articles = $this->getPublishedArticles();
-            $priority = $this->params->get('sitemap_priority_articles', '0.8');
-            $changefreq = $this->params->get('sitemap_changefreq_articles', 'weekly');
+            $articles    = $this->getPublishedArticles();
+            $priority    = $this->params->get('sitemap_priority_articles', '0.8');
+            $changefreq  = $this->params->get('sitemap_changefreq_articles', 'weekly');
 
             foreach ($articles as $article) {
-                // Get featured images for this article
-                $images = $this->getArticleImages($article->id);
+                $images     = $this->getArticleImages($article->id);
+                $alternates = $multilingual
+                    ? $this->buildAlternatesForArticle($article, $languages)
+                    : [];
 
                 $urls[] = $this->createUrlEntry(
                     $article->url,
                     $priority,
                     $changefreq,
                     $article->modified,
-                    $images
+                    $images,
+                    $alternates
                 );
             }
         }
@@ -59,27 +86,174 @@ class SitemapService extends AbstractService
         // Categories (if enabled)
         if ($this->params->get('sitemap_include_categories', 1)) {
             $categories = $this->getPublishedCategories();
-            $priority = $this->params->get('sitemap_priority_categories', '0.7');
+            $priority   = $this->params->get('sitemap_priority_categories', '0.7');
             $changefreq = $this->params->get('sitemap_changefreq_categories', 'weekly');
 
             foreach ($categories as $category) {
-                $urls[] = $this->createUrlEntry($category->url, $priority, $changefreq);
+                $alternates = $multilingual
+                    ? $this->buildAlternatesForCategory($category, $languages)
+                    : [];
+
+                $urls[] = $this->createUrlEntry(
+                    $category->url,
+                    $priority,
+                    $changefreq,
+                    null,
+                    [],
+                    $alternates
+                );
             }
         }
 
         // Menu items (if enabled)
         if ($this->params->get('sitemap_include_menu', 0)) {
-            $menuItems = $this->getMenuItems();
-            $priority = $this->params->get('sitemap_priority_menu', '0.6');
+            $menuItems  = $this->getMenuItems();
+            $priority   = $this->params->get('sitemap_priority_menu', '0.6');
             $changefreq = $this->params->get('sitemap_changefreq_menu', 'monthly');
 
             foreach ($menuItems as $item) {
-                $urls[] = $this->createUrlEntry($item->url, $priority, $changefreq);
+                $urls[] = $this->createUrlEntry(
+                    $item->url,
+                    $priority,
+                    $changefreq,
+                    null,
+                    [],
+                    [] // Menu items: multilingual would need separate language menus
+                );
             }
         }
 
-        return $this->buildXml($urls);
+        return $this->buildXml($urls, $multilingual);
     }
+
+    // =========================================================================
+    // MULTILINGUAL — Alternates building
+    // =========================================================================
+
+    /**
+     * Get LanguageService (lazy init)
+     */
+    private function getLanguageService(): LanguageService
+    {
+        if ($this->languageService === null) {
+            $this->languageService = new LanguageService($this->app, $this->params);
+        }
+        return $this->languageService;
+    }
+
+    /**
+     * Build alternates array for the homepage
+     *
+     * @param array<string, object> $languages
+     * @return array<array{hreflang: string, href: string}>
+     */
+    private function buildAlternatesForHomepage(array $languages): array
+    {
+        $langSvc    = $this->getLanguageService();
+        $baseUrl    = $this->getBaseUrl();
+        $defaultCode = $langSvc->getDefaultLanguageCode();
+        $alternates = [];
+
+        foreach ($languages as $lang) {
+            $url = rtrim($baseUrl, '/') . '/' . $lang->sef . '/';
+            $alternates[] = [
+                'hreflang' => $langSvc->getHreflangCode($lang->lang_code),
+                'href'     => $url,
+            ];
+        }
+
+        // Add x-default pointing to default language homepage
+        if (isset($languages[$defaultCode])) {
+            $alternates[] = [
+                'hreflang' => 'x-default',
+                'href'     => rtrim($baseUrl, '/') . '/' . $languages[$defaultCode]->sef . '/',
+            ];
+        }
+
+        return $alternates;
+    }
+
+    /**
+     * Build alternates array for an article
+     *
+     * @param object                $article    Article with id, alias, catid, cat_alias
+     * @param array<string, object> $languages
+     * @return array<array{hreflang: string, href: string}>
+     */
+    private function buildAlternatesForArticle(object $article, array $languages): array
+    {
+        $langSvc     = $this->getLanguageService();
+        $baseUrl     = $this->getBaseUrl();
+        $defaultCode = $langSvc->getDefaultLanguageCode();
+        $alternates  = [];
+        $defaultHref = '';
+
+        foreach ($languages as $lang) {
+            $link = "index.php?option=com_content&view=article&id={$article->id}:{$article->alias}&catid={$article->catid}&lang={$lang->lang_code}";
+            $url  = $langSvc->buildUrlForLanguage($link, $lang->lang_code, $baseUrl);
+
+            $entry = [
+                'hreflang' => $langSvc->getHreflangCode($lang->lang_code),
+                'href'     => $url,
+            ];
+            $alternates[] = $entry;
+
+            if ($lang->lang_code === $defaultCode) {
+                $defaultHref = $url;
+            }
+        }
+
+        // x-default pointing to default language
+        if ($defaultHref) {
+            $alternates[] = [
+                'hreflang' => 'x-default',
+                'href'     => $defaultHref,
+            ];
+        }
+
+        return $alternates;
+    }
+
+    /**
+     * Build alternates array for a category
+     *
+     * @param object                $category   Category with id, alias
+     * @param array<string, object> $languages
+     * @return array<array{hreflang: string, href: string}>
+     */
+    private function buildAlternatesForCategory(object $category, array $languages): array
+    {
+        $langSvc     = $this->getLanguageService();
+        $baseUrl     = $this->getBaseUrl();
+        $defaultCode = $langSvc->getDefaultLanguageCode();
+        $alternates  = [];
+        $defaultHref = '';
+
+        foreach ($languages as $lang) {
+            $link = "index.php?option=com_content&view=category&id={$category->id}:{$category->alias}&lang={$lang->lang_code}";
+            $url  = $langSvc->buildUrlForLanguage($link, $lang->lang_code, $baseUrl);
+
+            $entry = [
+                'hreflang' => $langSvc->getHreflangCode($lang->lang_code),
+                'href'     => $url,
+            ];
+            $alternates[] = $entry;
+
+            if ($lang->lang_code === $defaultCode) {
+                $defaultHref = $url;
+            }
+        }
+
+        if ($defaultHref) {
+            $alternates[] = ['hreflang' => 'x-default', 'href' => $defaultHref];
+        }
+
+        return $alternates;
+    }
+
+    // =========================================================================
+    // DATABASE — Content loading
+    // =========================================================================
 
     /**
      * Get published articles with exclusions
@@ -87,12 +261,11 @@ class SitemapService extends AbstractService
     private function getPublishedArticles(): array
     {
         try {
-            $db = Factory::getDbo();
-            $excludeIds = $this->params->get('sitemap_exclude_ids', '');
+            $db          = Factory::getDbo();
+            $excludeIds  = $this->params->get('sitemap_exclude_ids', '');
             $excludeArray = array_filter(array_map('trim', explode(',', $excludeIds)));
             $selectedCats = $this->params->get('sitemap_article_categories', []);
-            $maxArticles = (int)$this->params->get('sitemap_max_articles', 0);
-
+            $maxArticles  = (int)$this->params->get('sitemap_max_articles', 0);
 
             $query = $db->getQuery(true)
                 ->select('a.id, a.alias, a.modified, a.catid, c.alias AS cat_alias')
@@ -100,20 +273,22 @@ class SitemapService extends AbstractService
                 ->leftJoin('#__categories AS c ON c.id = a.catid')
                 ->where('a.state = 1');
 
-            // Filter by selected categories
             if (!empty($selectedCats) && is_array($selectedCats)) {
                 $query->where('a.catid IN (' . implode(',', array_map('intval', $selectedCats)) . ')');
             }
-
 
             if (!empty($excludeArray)) {
                 $query->where('a.id NOT IN (' . implode(',', array_map('intval', $excludeArray)) . ')');
             }
 
+            if ($maxArticles > 0) {
+                $query->setLimit($maxArticles);
+            }
+
             $db->setQuery($query);
             $articles = $db->loadObjectList();
 
-            // Build URLs
+            // Build default-language URLs
             foreach ($articles as $article) {
                 $article->url = $this->getBaseUrl() . Route::_(
                     "index.php?option=com_content&view=article&id={$article->id}:{$article->alias}&catid={$article->catid}"
@@ -134,7 +309,7 @@ class SitemapService extends AbstractService
     private function getPublishedCategories(): array
     {
         try {
-            $db = Factory::getDbo();
+            $db    = Factory::getDbo();
             $query = $db->getQuery(true)
                 ->select('id, alias, title')
                 ->from('#__categories')
@@ -144,7 +319,6 @@ class SitemapService extends AbstractService
             $db->setQuery($query);
             $categories = $db->loadObjectList();
 
-            // Build URLs
             foreach ($categories as $category) {
                 $category->url = $this->getBaseUrl() . Route::_(
                     "index.php?option=com_content&view=category&id={$category->id}:{$category->alias}"
@@ -165,23 +339,21 @@ class SitemapService extends AbstractService
     private function getMenuItems(): array
     {
         try {
-            $db = Factory::getDbo();
-            $maxDepth = (int)$this->params->get('sitemap_menu_depth', 0);
+            $db             = Factory::getDbo();
+            $maxDepth       = (int)$this->params->get('sitemap_menu_depth', 0);
             $selectedMenuTypes = $this->params->get('sitemap_menu_types', []);
 
             $query = $db->getQuery(true)
                 ->select('id, alias, link, type, level, menutype')
                 ->from('#__menu')
                 ->where('published = 1')
-                ->where('client_id = 0')  // Site menu only
-                ->where('type != ' . $db->quote('url'));  // Exclude external links
+                ->where('client_id = 0')
+                ->where('type != ' . $db->quote('url'));
 
-            // Apply depth filtering if configured
             if ($maxDepth > 0) {
                 $query->where('level <= ' . (int)$maxDepth);
             }
 
-            // Apply menu type filtering if configured
             if (!empty($selectedMenuTypes) && is_array($selectedMenuTypes)) {
                 $quotedTypes = array_map([$db, 'quote'], $selectedMenuTypes);
                 $query->where('menutype IN (' . implode(',', $quotedTypes) . ')');
@@ -190,13 +362,10 @@ class SitemapService extends AbstractService
             $db->setQuery($query);
             $items = $db->loadObjectList();
 
-            // Build URLs
             foreach ($items as $item) {
-                // Skip if link is empty or external
                 if (empty($item->link) || str_starts_with($item->link, 'http')) {
                     continue;
                 }
-
                 $item->url = $this->getBaseUrl() . Route::_($item->link);
             }
 
@@ -222,9 +391,7 @@ class SitemapService extends AbstractService
     private function getArticleImages(int $articleId): array
     {
         try {
-            $db = Factory::getDbo();
-
-            // Get images JSON from article
+            $db    = Factory::getDbo();
             $query = $db->getQuery(true)
                 ->select('images')
                 ->from('#__content')
@@ -237,18 +404,16 @@ class SitemapService extends AbstractService
             if ($imagesJson) {
                 $imageData = json_decode($imagesJson);
 
-                // Add intro image
                 if (!empty($imageData->image_intro)) {
                     $images[] = [
-                        'loc' => Uri::root() . $imageData->image_intro,
+                        'loc'     => Uri::root() . $imageData->image_intro,
                         'caption' => $imageData->image_intro_alt ?? '',
                     ];
                 }
 
-                // Add fulltext image (only if different from intro)
                 if (!empty($imageData->image_fulltext) && $imageData->image_fulltext !== $imageData->image_intro) {
                     $images[] = [
-                        'loc' => Uri::root() . $imageData->image_fulltext,
+                        'loc'     => Uri::root() . $imageData->image_fulltext,
                         'caption' => $imageData->image_fulltext_alt ?? '',
                     ];
                 }
@@ -256,31 +421,36 @@ class SitemapService extends AbstractService
 
             return $images;
         } catch (\Exception $e) {
-            // Return empty array on error
             return [];
         }
     }
 
+    // =========================================================================
+    // URL ENTRY + XML building
+    // =========================================================================
+
     /**
      * Create URL entry for sitemap
+     *
+     * @param array<array{hreflang: string, href: string}> $alternates  Language alternates
      */
     private function createUrlEntry(
         string $url,
         string $priority = '0.5',
         string $changefreq = 'weekly',
         ?string $lastmod = null,
-        array $images = []
+        array $images = [],
+        array $alternates = []
     ): array {
         $entry = [
-            'loc' => $url,
-            'priority' => $priority,
-            'changefreq' => $changefreq
+            'loc'        => $url,
+            'priority'   => $priority,
+            'changefreq' => $changefreq,
         ];
 
         if ($lastmod) {
             try {
-                $date = Factory::getDate($lastmod);
-                // ISO 8601 format for AI crawlers (e.g., 2025-12-08T10:30:00+01:00)
+                $date           = Factory::getDate($lastmod);
                 $entry['lastmod'] = $date->format('c');
             } catch (\Exception $e) {
                 // Skip lastmod if date parsing fails
@@ -291,17 +461,29 @@ class SitemapService extends AbstractService
             $entry['images'] = $images;
         }
 
+        if (!empty($alternates)) {
+            $entry['alternates'] = $alternates;
+        }
+
         return $entry;
     }
 
     /**
      * Build XML from URL entries
+     *
+     * @param bool $multilingual  Whether to include xhtml namespace and hreflang tags
      */
-    private function buildXml(array $urls): string
+    private function buildXml(array $urls, bool $multilingual = false): string
     {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
-        $xml .= '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">' . "\n";
+        $xml .= '        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"';
+
+        if ($multilingual) {
+            $xml .= "\n" . '        xmlns:xhtml="http://www.w3.org/1999/xhtml"';
+        }
+
+        $xml .= '>' . "\n";
 
         foreach ($urls as $url) {
             $xml .= '  <url>' . "\n";
@@ -313,7 +495,18 @@ class SitemapService extends AbstractService
                 $xml .= '    <lastmod>' . $url['lastmod'] . '</lastmod>' . "\n";
             }
 
-            // Render images if present
+            // Hreflang alternates (multilingual)
+            if (!empty($url['alternates'])) {
+                foreach ($url['alternates'] as $alt) {
+                    $xml .= '    <xhtml:link' . "\n";
+                    $xml .= '      rel="alternate"' . "\n";
+                    $xml .= '      hreflang="' . htmlspecialchars($alt['hreflang'], ENT_XML1, 'UTF-8') . '"' . "\n";
+                    $xml .= '      href="' . htmlspecialchars($alt['href'], ENT_XML1, 'UTF-8') . '"' . "\n";
+                    $xml .= '    />' . "\n";
+                }
+            }
+
+            // Images
             if (!empty($url['images'])) {
                 foreach ($url['images'] as $image) {
                     $xml .= '    <image:image>' . "\n";
@@ -330,7 +523,11 @@ class SitemapService extends AbstractService
 
         $xml .= '</urlset>';
 
-        $this->logDebug("Generated sitemap with {count} URLs", ['count' => count($urls)]);
+        $this->logDebug("Generated sitemap with {count} URLs (multilingual: {ml})", [
+            'count' => count($urls),
+            'ml'    => $multilingual ? 'yes' : 'no',
+        ]);
+
         return $xml;
     }
 

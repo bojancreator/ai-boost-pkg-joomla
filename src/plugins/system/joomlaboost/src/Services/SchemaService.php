@@ -23,7 +23,6 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\Component\Content\Site\Model\ArticleModel;
 use Joomla\Component\Content\Site\Model\CategoryModel;
 use Joomla\Registry\Registry;
-
 // Make sure Joomla constants are available
 if (!defined('JPATH_ROOT')) {
     define('JPATH_ROOT', realpath(__DIR__ . '/../../../../../../..'));
@@ -57,7 +56,7 @@ class SchemaService extends AbstractService
     /**
      * Get localized parameter value with language fallback
      *
-     * Fallback priority: current language → English → default field → $default
+     * Priority: lang-specific param → EN param → generic param → database
      *
      * @param string $fieldName Base field name (e.g., 'org_name', 'schema_description')
      * @param mixed $default Default value if all fields are empty
@@ -65,39 +64,44 @@ class SchemaService extends AbstractService
      */
     private function getLocalizedParam(string $fieldName, $default = '')
     {
-        $lang = Factory::getLanguage();
-        $langTag = $lang->getTag(); // e.g., 'sr-RS', 'en-GB', 'ru-RU'
+        $lang     = Factory::getLanguage();
+        $langCode = strtolower(substr($lang->getTag(), 0, 2)); // e.g. sr-RS -> sr
 
-        // Extract language code (first 2 letters)
-        $langCode = strtolower(substr($langTag, 0, 2)); // 'sr', 'en', 'ru'
-
-        // Try current language field first
-        $localizedField = "{$fieldName}_{$langCode}";
-        $value = $this->params->get($localizedField, '');
-
+        // 1. Try current language param (e.g. org_name_sr)
+        $value = $this->params->get("{$fieldName}_{$langCode}", '');
         if (!empty($value)) {
-            $this->logDebug("Using localized field: {$localizedField}");
+            $this->logDebug("Schema: Using param {$fieldName}_{$langCode}");
             return $value;
         }
 
-        // Fallback to English (if not already EN)
+        // 2. Try English param (e.g. org_name_en)
         if ($langCode !== 'en') {
-            $enField = "{$fieldName}_en";
-            $value = $this->params->get($enField, '');
+            $value = $this->params->get("{$fieldName}_en", '');
             if (!empty($value)) {
-                $this->logDebug("Fallback to English field: {$enField}");
+                $this->logDebug("Schema: Fallback to {$fieldName}_en");
                 return $value;
             }
         }
 
-        // Fallback to default field (for backward compatibility)
+        // 3. Try generic/legacy param (e.g. org_name) - backward compat with v0.5.x
         $value = $this->params->get($fieldName, '');
         if (!empty($value)) {
-            $this->logDebug("Using default field: {$fieldName}");
+            $this->logDebug("Schema: Using legacy param {$fieldName}");
             return $value;
         }
 
-        // Return default value
+        // 4. Try database-backed translations (last resort)
+        try {
+            $translationService = new TranslationService($this->app, $this->params);
+            $value = $translationService->get($fieldName);
+            if (!empty($value)) {
+                $this->logDebug("Schema: DB translation for {$fieldName} ({$langCode})");
+                return $value;
+            }
+        } catch (\Exception $e) {
+            $this->logDebug("Schema TranslationService error: {$e->getMessage()}");
+        }
+
         return $default;
     }
 
@@ -166,11 +170,6 @@ class SchemaService extends AbstractService
             $schema[] = $breadcrumbSchema;
         }
 
-        // Add FAQ schema for relevant pages
-        $faqSchema = $this->generateFAQSchema();
-        if ($faqSchema) {
-            $schema[] = $faqSchema;
-        }
 
         $filteredSchema = array_filter($schema);
 
@@ -261,12 +260,16 @@ class SchemaService extends AbstractService
                 'description' => $orgDescription,
                 'address' => [
                     '@type' => 'PostalAddress',
-                    'addressCountry' => $this->params->get('schema_address_country', 'RS'),
-                    'addressLocality' => $this->params->get('schema_address_locality', 'Belgrade')
+                    'addressCountry'  => $this->params->get('schema_address_country', 'RS'),
+                    'addressLocality' => $this->params->get('schema_address_locality', 'Belgrade'),
+                    'streetAddress'   => $this->params->get('schema_address_street', ''),
+                    'postalCode'      => $this->params->get('schema_address_zip', '')
                 ],
                 'contactPoint' => [
-                    '@type' => 'ContactPoint',
-                    'contactType' => 'customer service',
+                    '@type'             => 'ContactPoint',
+                    'contactType'       => 'customer service',
+                    'telephone'         => $this->params->get('schema_phone', ''),
+                    'email'             => $this->params->get('schema_email', ''),
                     'availableLanguage' => [$this->getLanguageCode(), 'en']
                 ],
                 'priceRange' => $this->params->get('schema_price_range', '$$'),
@@ -562,11 +565,14 @@ class SchemaService extends AbstractService
 
         // Add pathway items
         foreach ($items as $item) {
+            $itemObj  = (object) $item;
+            $itemName = isset($itemObj->name) ? (string) $itemObj->name : '';
+            $itemLink = isset($itemObj->link) ? (string) $itemObj->link : '';
             $listItems[] = [
-                '@type' => 'ListItem',
+                '@type'    => 'ListItem',
                 'position' => $position++,
-                'name' => $item->name,
-                'item' => $item->link ? $this->getSchemaUrl() . ltrim($item->link, '/') : Uri::getInstance()->toString()
+                'name'     => $itemName,
+                'item'     => $itemLink ? $this->getSchemaUrl() . ltrim($itemLink, '/') : Uri::getInstance()->toString()
             ];
         }
 
@@ -578,7 +584,7 @@ class SchemaService extends AbstractService
     }
 
     /**
-     * Generate FAQ schema for pages with question/answer content
+     * Generate FAQ schema using QAManagementService (supports multi-language fallback)
      *
      * @return array<string, mixed>|null
      */
@@ -589,55 +595,243 @@ class SchemaService extends AbstractService
             return null;
         }
 
-        // Get manual FAQs JSON directly from params (no separate service needed!)
-        $faqItems = [];
+        if (!(bool)$this->params->get('enable_manual_faqs', 0)) {
+            return null;
+        }
 
-        // Read manual FAQs if enabled
-        if ((bool)$this->params->get('enable_manual_faqs', 1)) {
-            $manualFAQsJson = trim((string)$this->params->get('manual_faqs', ''));
+        // Use QAManagementService for proper multi-language support and fallback chain
+        try {
+            $qaService  = new QAManagementService($this->app, $this->params);
+            $faqItems   = $qaService->getManualFAQs();
+        } catch (\Throwable $e) {
+            $this->logDebug('FAQ schema: QAManagementService error - ' . $e->getMessage());
 
-            if (!empty($manualFAQsJson)) {
+            // Last-resort fallback: read generic manual_faqs param directly
+            $faqItems = [];
+            $json     = trim((string)$this->params->get('manual_faqs', ''));
+            if (!empty($json)) {
                 try {
-                    $rawFAQs = json_decode($manualFAQsJson, true, 512, JSON_THROW_ON_ERROR);
-
-                    if (is_array($rawFAQs)) {
-                        // Convert to Schema.org format
-                        foreach ($rawFAQs as $item) {
+                    $raw = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+                    if (is_array($raw)) {
+                        foreach ($raw as $item) {
                             if (!empty($item['question']) && !empty($item['answer'])) {
                                 $faqItems[] = [
                                     '@type' => 'Question',
-                                    'name' => $item['question'],
-                                    'acceptedAnswer' => [
-                                        '@type' => 'Answer',
-                                        'text' => $item['answer']
-                                    ]
+                                    'name'  => $item['question'],
+                                    'acceptedAnswer' => ['@type' => 'Answer', 'text' => $item['answer']]
                                 ];
                             }
                         }
                     }
-                } catch (\JsonException $e) {
-                    // Invalid JSON - skip manual FAQs
+                } catch (\JsonException $je) {
+                    // Skip invalid JSON
                 }
             }
         }
 
-        // Return null if no FAQs found
         if (empty($faqItems)) {
+            $this->logDebug('FAQ schema: No FAQ items found');
             return null;
         }
 
-        // Generate FAQPage schema
+        $this->logDebug('FAQ schema: Generated with ' . count($faqItems) . ' items');
         return [
-            '@context' => 'https://schema.org',
-            '@type' => 'FAQPage',
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
             'mainEntity' => $faqItems
         ];
     }
 
 
     /**
-     * Get language code for schema
+     * Generate FAQ schema by auto-detecting Q&A pairs from current article content
+     *
+     * Supported HTML patterns (in priority order):
+     * 1. <dl><dt>Question</dt><dd>Answer</dd></dl>  ← recommended, semantic HTML
+     * 2. <h3>Question</h3><p>Answer</p>             ← common heading + paragraph
+     * 3. <h4>Question</h4><p>Answer</p>             ← sub-heading variant
+     *
+     * @return array<string, mixed>|null
      */
+    private function generateContentFAQSchema(): ?array
+    {
+        $input     = $this->app->getInput();
+        $articleId = (int)$input->getInt('id');
+
+        if (!$articleId) {
+            return null;
+        }
+
+        try {
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('introtext, fulltext')
+                ->from('#__content')
+                ->where('id = ' . (int)$articleId)
+                ->where('state = 1');
+
+            $db->setQuery($query);
+            $row = $db->loadObject();
+
+            if (!$row) {
+                return null;
+            }
+
+            $content = ($row->introtext ?? '') . ' ' . ($row->fulltext ?? '');
+
+            if (empty(trim($content))) {
+                return null;
+            }
+
+            $faqItems = $this->extractFAQFromContent($content);
+
+            if (empty($faqItems)) {
+                $this->logDebug('FAQ auto-detect: No Q&A patterns found in article ' . $articleId);
+                return null;
+            }
+
+            $this->logDebug('FAQ auto-detect: Found ' . count($faqItems) . ' Q&A pairs in article ' . $articleId);
+
+            return [
+                '@context'   => 'https://schema.org',
+                '@type'      => 'FAQPage',
+                'mainEntity' => $faqItems,
+            ];
+        } catch (\Throwable $e) {
+            $this->logDebug('FAQ auto-detect error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Extract FAQ Q&A pairs from HTML content using DOMDocument
+     *
+     * Parser hierarchy:
+     * 1. <dl> with <dt>/<dd> pairs  (most semantic, preferred for editors)
+     * 2. <h3> or <h4> followed by <p> or <div>  (common content pattern)
+     *
+     * @param string $html  Raw HTML content from article
+     * @return array<int, array<string, mixed>>  Array of Schema.org Question objects
+     */
+    private function extractFAQFromContent(string $html): array
+    {
+        // Suppress DOMDocument warnings (malformed HTML is common in CMS content)
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="UTF-8">' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $faqItems = [];
+        $xpath    = new \DOMXPath($dom);
+
+        // ── Find the content root node ─────────────────────────────────────────
+        // Priority: <main> → <article> → <div id="content"> → entire body
+        // This prevents picking up dl/dt/dd from YooTheme cookie consent modal,
+        // navigation, sidebars and other non-content areas of the page.
+        $contentRoot = null;
+
+        $candidates = [
+            '//main',
+            '//article',
+            '//*[@id="content"]',
+            '//*[@id="main-content"]',
+            '//*[@class="uk-section"]',  // YooTheme section
+        ];
+
+        foreach ($candidates as $xpathExpr) {
+            $nodes = $xpath->query($xpathExpr);
+            if ($nodes && $nodes->length > 0) {
+                $contentRoot = $nodes->item(0);
+                $this->logDebug('FAQ extract: Content root found via ' . $xpathExpr);
+                break;
+            }
+        }
+
+        // Fallback: use the full document (but this may pick up consent modals)
+        if ($contentRoot === null) {
+            $this->logDebug('FAQ extract: No content root found, scanning full document');
+            $contentRoot = $dom->documentElement ?? $dom;
+        }
+
+        // ── Pattern 1: <dl> / <dt> / <dd> ────────────────────────────────────
+        $dlNodes = $xpath->query('.//dl', $contentRoot);
+        if ($dlNodes && $dlNodes->length > 0) {
+            foreach ($dlNodes as $dl) {
+                $dtNodes = $xpath->query('./dt', $dl);
+                $ddNodes = $xpath->query('./dd', $dl);
+
+                if (!$dtNodes || !$ddNodes) {
+                    continue;
+                }
+
+                $count = min($dtNodes->length, $ddNodes->length);
+                for ($i = 0; $i < $count; $i++) {
+                    $question = trim($dtNodes->item($i)->textContent ?? '');
+                    $answer   = trim($ddNodes->item($i)->textContent ?? '');
+
+                    if ($question !== '' && $answer !== '') {
+                        $faqItems[] = $this->buildFAQItem($question, $answer);
+                    }
+                }
+            }
+        }
+
+        // ── Pattern 2: <h3> or <h4> followed by <p> or <div> ────────────────
+        // Only run if <dl> pattern found nothing (to avoid mixing sources)
+        if (empty($faqItems)) {
+            $headingNodes = $xpath->query('.//*[self::h3 or self::h4]', $contentRoot);
+            if ($headingNodes) {
+                foreach ($headingNodes as $heading) {
+                    $question = trim($heading->textContent ?? '');
+                    if ($question === '') {
+                        continue;
+                    }
+
+                    // Look for the next sibling that is a <p>, <div>, or <ul>
+                    $sibling = $heading->nextSibling;
+                    while ($sibling && $sibling->nodeType === XML_TEXT_NODE) {
+                        $sibling = $sibling->nextSibling; // skip whitespace text nodes
+                    }
+
+                    if (
+                        $sibling &&
+                        $sibling->nodeType === XML_ELEMENT_NODE &&
+                        in_array(strtolower($sibling->nodeName), ['p', 'div', 'ul', 'ol'], true)
+                    ) {
+                        $answer = trim($sibling->textContent ?? '');
+                        if ($answer !== '' && strlen($answer) > 15) { // min length sanity check
+                            $faqItems[] = $this->buildFAQItem($question, $answer);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $faqItems;
+    }
+
+
+    /**
+     * Build a single Schema.org Question object
+     *
+     * @param string $question
+     * @param string $answer
+     * @return array<string, mixed>
+     */
+    private function buildFAQItem(string $question, string $answer): array
+    {
+        return [
+            '@type' => 'Question',
+            'name'  => htmlspecialchars_decode(strip_tags($question), ENT_QUOTES),
+            'acceptedAnswer' => [
+                '@type' => 'Answer',
+                'text'  => htmlspecialchars_decode(strip_tags($answer), ENT_QUOTES),
+            ],
+        ];
+    }
+
+
+
     private function getLanguageCode(): string
     {
         $lang = Factory::getLanguage();
@@ -742,6 +936,99 @@ class SchemaService extends AbstractService
             return $baseUrl . '/' . $imageUrl;
         }
     }
+
+    /**
+     * Detect FAQ Q&A pairs from the fully-rendered HTML body buffer and inject
+     * the FAQPage JSON-LD schema directly into the <head> section of the page.
+     *
+     * This method is intended to be called from onAfterRender(), at which point
+     * the entire page HTML (including YooTheme / Falang translated content) is
+     * available via $app->getBody().
+     *
+     * Why HTML-buffer instead of DB query
+     * ------------------------------------
+     * - YooTheme pages are NOT stored in #__content → DB approach returns nothing.
+     * - Falang/Joomla multilingual translation completes BEFORE onAfterRender, so
+     *   the buffer already contains the translated <dt>/<dd> text — no extra
+     *   language handling is needed; it works for every active language automatically.
+     *
+     * Duplicate-prevention
+     * ---------------------
+     * If onBeforeCompileHead already injected a FAQPage schema (e.g. for a real
+     * com_content article), we skip injection to avoid duplicate schemas.
+     *
+     * @param  string $body  Full HTML string from $app->getBody()
+     * @return string        Modified HTML (schema inserted before </head>) or original
+     */
+    public function injectFAQFromHtmlBuffer(string $body): string
+    {
+        // Guard: service must be enabled and search-engine-accessible
+        if (!$this->isEnabled() || !$this->allowSearchEngines()) {
+            return $body;
+        }
+
+        // Guard: FAQ schema must be enabled
+        if (!(bool)$this->params->get('faq_schema_enabled', 1)) {
+            return $body;
+        }
+
+        // Guard: must have a </head> to inject into
+        if (stripos($body, '</head>') === false) {
+            return $body;
+        }
+
+        // Guard: skip if a FAQPage schema was already injected by onBeforeCompileHead
+        // (should not happen anymore, but kept as safety net)
+        if (stripos($body, '"@type":"FAQPage"') !== false || stripos($body, '"@type": "FAQPage"') !== false) {
+            $this->logDebug('FAQ buffer-inject: FAQPage already present in head, skipping');
+            return $body;
+        }
+
+        $faqItems = [];
+
+        // ── Step 1: Auto-detect from rendered HTML (works for YooTheme + Falang) ──
+        if ((bool)$this->params->get('faq_auto_detect', 1)) {
+            $faqItems = $this->extractFAQFromContent($body);
+            if (!empty($faqItems)) {
+                $this->logDebug('FAQ buffer-inject: Auto-detected ' . count($faqItems) . ' Q&A pairs from rendered HTML');
+            } else {
+                $this->logDebug('FAQ buffer-inject: No <dl>/<dt>/<dd> patterns found in rendered HTML');
+            }
+        }
+
+        // ── Step 2: Fallback to manual global FAQs if auto-detect found nothing ──
+        if (empty($faqItems) && (bool)$this->params->get('enable_manual_faqs', 0)) {
+            try {
+                $qaService = new QAManagementService($this->app, $this->params);
+                $faqItems  = $qaService->getManualFAQs();
+                if (!empty($faqItems)) {
+                    $this->logDebug('FAQ buffer-inject: Using manual FAQs as fallback (' . count($faqItems) . ' items)');
+                }
+            } catch (\Throwable $e) {
+                $this->logDebug('FAQ buffer-inject: QAManagementService error - ' . $e->getMessage());
+            }
+        }
+
+        if (empty($faqItems)) {
+            $this->logDebug('FAQ buffer-inject: No FAQ items to inject');
+            return $body;
+        }
+
+        $schema = [
+            '@context'   => 'https://schema.org',
+            '@type'      => 'FAQPage',
+            'mainEntity' => $faqItems,
+        ];
+
+        $json      = json_encode($schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+        $scriptTag = "\n<script type=\"application/ld+json\">\n" . $json . "\n</script>\n";
+
+        // Insert before closing </head>
+        $body = str_ireplace('</head>', $scriptTag . '</head>', $body);
+
+        return $body;
+    }
+
 
     /**
      * Inject schema into document head

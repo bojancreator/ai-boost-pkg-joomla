@@ -195,7 +195,11 @@ class PlgSystemJoomlaboost extends CMSPlugin
     }
 
     /**
-     * Add staging badge with version to frontend if enabled
+     * onAfterRender: HTML buffer post-processing
+     *
+     * 1. FAQ auto-detect: scan rendered HTML for <dl>/<dt>/<dd> patterns and
+     *    inject FAQPage JSON-LD into <head> — works for YooTheme + all Falang languages.
+     * 2. Staging badge: inject version badge + noindex meta (staging only).
      */
     public function onAfterRender(): void
     {
@@ -204,88 +208,130 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-        // Check if staging badge is enabled
-        if (!(bool) $this->params->get('show_staging_badge', 0)) {
-            return;
-        }
+        $body    = $app->getBody();
+        $changed = false;
 
-        // Check if this is staging environment
-        $domain = $this->getCurrentDomain();
-        if (!$this->isStaging($domain)) {
-            return;
-        }
-
+        // ── 1. FAQ auto-detect from rendered HTML buffer ─────────────────────
+        // Runs on every page, for all languages (Falang translates before this hook).
+        // SchemaService internally guards: enabled, allowSearchEngines, no duplicate FAQPage.
         try {
-            $body = $app->getBody();
-
-            // Only inject if </body> tag exists
-            if (stripos($body, '</body>') === false) {
-                return;
+            $schemaService = new SchemaService($app, $this->params);
+            $newBody = $schemaService->injectFAQFromHtmlBuffer($body);
+            if ($newBody !== $body) {
+                $body    = $newBody;
+                $changed = true;
             }
+        } catch (\Throwable $e) {
+            $this->logDebug('FAQ buffer injection failed: ' . $e->getMessage());
+        }
 
-            // Get plugin version and current domain
-            $pluginVersion = $this->getPluginVersion();
-            $currentTime = date('H:i:s');
+        // ── 2. Staging badge (only for staging environments) ──────────────────
+        if ((bool) $this->params->get('show_staging_badge', 0)) {
+            $domain = $this->getCurrentDomain();
+            if ($this->isStaging($domain)) {
+                try {
+                    // Only inject if </body> tag exists
+                    if (stripos($body, '</body>') !== false) {
+                        // Get plugin version and current domain
+                        $pluginVersion = $this->getPluginVersion();
+                        $currentTime   = date('H:i:s');
 
-            // Staging badge HTML with inline styles and more info
-            $badge = <<<HTML
+                        // Staging badge HTML with inline styles and more info
+                        $badge = <<<HTML
 <!-- JoomlaBoost Staging Badge -->
 <div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="Klikni da sakriješ">
-    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-        🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">Staging Environment</span>
-    </div>
-    <div style="font-size: 11px; font-weight: normal; opacity: 0.95; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
-        <div><strong>Plugin:</strong> JoomlaBoost v{$pluginVersion}</div>
-        <div><strong>Domen:</strong> {$domain}</div>
-        <div><strong>Generisano:</strong> {$currentTime}</div>
-    </div>
+<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+    🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">Staging Environment</span>
+</div>
+<div style="font-size: 11px; font-weight: normal; opacity: 0.95; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
+    <div><strong>Plugin:</strong> JoomlaBoost v{$pluginVersion}</div>
+    <div><strong>Domen:</strong> {$domain}</div>
+    <div><strong>Generisano:</strong> {$currentTime}</div>
+</div>
 </div>
 <!-- /JoomlaBoost Staging Badge -->
 
 HTML;
 
-            // ⚠️ STAGING: Add robots noindex meta tag
-            // We do this here (onAfterRender) to append to existing tags instead of overwriting them
-            if (stripos($body, '<meta name="robots"') !== false) {
-                // Robots tag exists - append noindex,nofollow if not present
-                $body = preg_replace_callback('/(<meta\s+name=["\']robots["\']\s+content=["\'])([^"\']*?)(["\']\s*\/?>)/i', function ($matches) {
-                    $content = $matches[2];
-                    if (stripos($content, 'noindex') === false) {
-                        $content .= ', noindex';
+                        // ⚠️ STAGING: Add robots noindex meta tag
+                        // We do this here (onAfterRender) to append to existing tags instead of overwriting them
+                        if (stripos($body, '<meta name="robots"') !== false) {
+                            // Robots tag exists - append noindex,nofollow if not present
+                            $body = preg_replace_callback('/(<meta\s+name=["\']robots["\']\s+content=["\'])([^"\']*?)(["\']\s*\/?>)/i', function ($matches) {
+                                $content = $matches[2];
+                                if (stripos($content, 'noindex') === false) {
+                                    $content .= ', noindex';
+                                }
+                                if (stripos($content, 'nofollow') === false) {
+                                    $content .= ', nofollow';
+                                }
+                                return $matches[1] . $content . $matches[3];
+                            }, $body);
+                        } else {
+                            // Robots tag missing - insert before closing </head>
+                            $metaHtml = '<meta name="robots" content="noindex,nofollow">' . "\n";
+                            if (stripos($body, '</head>') !== false) {
+                                $body = str_ireplace('</head>', $metaHtml . '</head>', $body);
+                            }
+                        }
+
+                        // Inject badge before </body>
+                        $body    = str_ireplace('</body>', $badge . '</body>', $body);
+                        $changed = true;
                     }
-                    if (stripos($content, 'nofollow') === false) {
-                        $content .= ', nofollow';
-                    }
-                    return $matches[1] . $content . $matches[3];
-                }, $body);
-            } else {
-                // Robots tag missing - insert it after opening <head> or before closing </head>
-                $metaHtml = '<meta name="robots" content="noindex,nofollow">' . "\n";
-                if (stripos($body, '</head>') !== false) {
-                    $body = str_ireplace('</head>', $metaHtml . '</head>', $body);
+                } catch (\Throwable $e) {
+                    $this->logDebug('Staging injection failed: ' . $e->getMessage());
                 }
             }
+        }
 
-            // Inject badge before </body>
-            $body = str_ireplace('</body>', $badge . '</body>', $body);
+        // Only call setBody() if we actually changed something (performance)
+        if ($changed) {
             $app->setBody($body);
-        } catch (\Throwable $e) {
-            $this->logDebug('Staging injection failed: ' . $e->getMessage());
         }
     }
 
+
     /**
-     * Fix NULL custom field values BEFORE form is loaded (PHP 8.1+ compatibility)
-     * Prevents json_decode(null) deprecation when opening article editor
+     * onContentPrepareForm event
+     * 1. Register custom form field types for plugin config
+     * 2. Fix NULL custom field values for articles (PHP 8.1+ compatibility)
      */
     public function onContentPrepareForm($form, $data): void
     {
-        // Only process com_content.article forms
         if (!($form instanceof \Joomla\CMS\Form\Form)) {
             return;
         }
 
         $formName = $form->getName();
+
+        // Register custom fields for plugin configuration
+        if ($formName === 'com_plugins.plugin') {
+            \Joomla\CMS\Form\FormHelper::addFieldPrefix('JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Field');
+            \Joomla\CMS\Form\FormHelper::addFieldPath(__DIR__ . '/src/Field');
+
+            // Load JavaScript for multi-language selector
+            try {
+                $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
+                $wa->registerAndUseScript(
+                    'plg_system_joomlaboost.multilang-selector',
+                    'plg_system_joomlaboost/multilang-selector.js',
+                    [],
+                    ['defer' => true],
+                    []
+                );
+                $wa->registerAndUseStyle(
+                    'plg_system_joomlaboost.multilang-selector-css',
+                    'plg_system_joomlaboost/multilang-selector.css'
+                );
+            } catch (\Exception $e) {
+                // Silent failure - assets are optional enhancement
+            }
+
+            return;
+        }
+
+        // Fix NULL custom field values for articles
         if ($formName !== 'com_content.article') {
             return;
         }
