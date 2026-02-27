@@ -25,7 +25,7 @@ class plgSystemJoomlaboostInstallerScript
         $this->createSettingsTable();
         $this->createTranslationsTable();
 
-        // Migrate existing v0.5.8 language fields to database
+        // Migrate existing legacy language fields to database
         $this->migrateLegacyTranslations();
 
         return true;
@@ -268,7 +268,7 @@ class plgSystemJoomlaboostInstallerScript
                 </div>
                 
                 <div style="margin-top: 20px; font-size: 12px; opacity: 0.8; text-align: center;">
-                    <strong>Version 0.5.4</strong> | Joomla 4.0+ / 5.0+ / 6.0+ | PHP 8.1+ | Built with ❤️ by JoomlaBoost Team
+                    <strong>Version ' . $this->getPluginVersion() . '</strong> | Joomla 4.0+ / 5.0+ / 6.0+ | PHP 8.1+ | Built with ❤️ by JoomlaBoost Team
                 </div>
             </div>
             ';
@@ -277,7 +277,7 @@ class plgSystemJoomlaboostInstallerScript
         // Silent logging without user-facing messages
         $log = JPATH_ROOT . '/joomlaboost_install.log';
         file_put_contents($log, "\n" . str_repeat('=', 60) . "\n", FILE_APPEND);
-        file_put_contents($log, date('Y-m-d H:i:s') . " - v0.5.4 Installation Complete\n", FILE_APPEND);
+        file_put_contents($log, date('Y-m-d H:i:s') . ' - v' . $this->getPluginVersion() . " Installation Complete\n", FILE_APPEND);
         file_put_contents($log, str_repeat('=', 60) . "\n", FILE_APPEND);
 
         return true;
@@ -350,5 +350,21 @@ class plgSystemJoomlaboostInstallerScript
         } catch (Exception $e) {
             // Silent fail - don't break installation
         }
+    }
+
+    /**
+     * Get plugin version dynamically from XML manifest
+     * This ensures the version shown on install screen always matches the built version.
+     */
+    private function getPluginVersion(): string
+    {
+        $xmlPath = __DIR__ . '/joomlaboost.xml';
+        if (file_exists($xmlPath)) {
+            $xml = simplexml_load_file($xmlPath);
+            if ($xml && isset($xml->version)) {
+                return (string) $xml->version;
+            }
+        }
+        return 'unknown';
     }
 }
