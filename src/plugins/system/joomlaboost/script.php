@@ -274,12 +274,6 @@ class plgSystemJoomlaboostInstallerScript
             ';
         }
 
-        // Silent logging without user-facing messages
-        $log = JPATH_ROOT . '/joomlaboost_install.log';
-        file_put_contents($log, "\n" . str_repeat('=', 60) . "\n", FILE_APPEND);
-        file_put_contents($log, date('Y-m-d H:i:s') . ' - v' . $this->getPluginVersion() . " Installation Complete\n", FILE_APPEND);
-        file_put_contents($log, str_repeat('=', 60) . "\n", FILE_APPEND);
-
         return true;
     }
 

@@ -825,13 +825,7 @@ HTML;
                 file_get_contents($robotsPath) !== $currentContent;
 
             if ($needsUpdate) {
-                // Backup old file if it exists
-                if (file_exists($robotsPath)) {
-                    $backupPath = $robotsPath . '.backup.' . date('Ymd_His');
-                    copy($robotsPath, $backupPath);
-                }
-
-                // Write new content (silently)
+                // Write new content directly (no backup - backups pollute the server)
                 file_put_contents($robotsPath, $currentContent);
             }
 
