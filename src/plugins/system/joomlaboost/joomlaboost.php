@@ -26,6 +26,7 @@ use JoomlaBoost\Plugin\System\JoomlaBoost\Services\{
     MetaPixelService,
     SchemaService,
     AnalyticsService,
+    HreflangService,
     SettingsPersistenceService
 };
 
@@ -176,6 +177,9 @@ class PlgSystemJoomlaboost extends CMSPlugin
 
             // Add Schema markup with performance optimizations
             $this->addOptimizedSchemaMarkup($document);
+
+            // Add hreflang alternate tags for multilingual support
+            $this->addHreflangTags($document);
 
             // Process all batched meta tags in single DOM operation
             $processed = $this->performanceService->processBatchedMeta($document);
@@ -735,6 +739,28 @@ HTML;
             $document->addCustomTag('<!-- Environment: STAGING (protected) -->');
         } else {
             $document->addCustomTag('<!-- Environment: PRODUCTION -->');
+        }
+    }
+
+    /**
+     * Inject hreflang <link> tags for multilingual pages.
+     *
+     * Delegates to HreflangService which:
+     * - Uses Falang as primary URL source (vividblue.me setup)
+     * - Falls back to native Joomla multilingual
+     * - Skips if Language Filter plugin already injected hreflang tags
+     */
+    private function addHreflangTags(HtmlDocument $document): void
+    {
+        if (!$this->params->get('enable_hreflang', 1)) {
+            return;
+        }
+
+        try {
+            $hreflangService = new HreflangService($this->app, $this->params);
+            $hreflangService->injectIntoDocument($document);
+        } catch (\Throwable $e) {
+            $this->logDebug('Hreflang injection failed: ' . $e->getMessage());
         }
     }
 
