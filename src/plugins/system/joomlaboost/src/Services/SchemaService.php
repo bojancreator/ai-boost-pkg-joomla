@@ -825,8 +825,44 @@ class SchemaService extends AbstractService
             }
         }
 
+        // ── Pattern 3: YooTheme UIkit — el-item > el-title + el-content ─────
+        // Covers Accordion (<a class="el-title">), Grid (<h3 class="el-title">),
+        // List (<div class="el-title">) — all YooTheme elements share this structure.
+        // Only run if previous patterns found nothing.
+        if (empty($faqItems)) {
+            $itemNodes = $xpath->query('.//*[contains(concat(" ",normalize-space(@class)," ")," el-item ")]', $contentRoot);
+            if ($itemNodes) {
+                foreach ($itemNodes as $item) {
+                    // el-title can be any tag: <a>, <h3>, <div>, etc.
+                    $titleNodes = $xpath->query('.//*[contains(concat(" ",normalize-space(@class)," ")," el-title ")]', $item);
+                    $contentNodes = $xpath->query('.//*[contains(concat(" ",normalize-space(@class)," ")," el-content ")]', $item);
+
+                    if (!$titleNodes || $titleNodes->length === 0 || !$contentNodes || $contentNodes->length === 0) {
+                        continue;
+                    }
+
+                    // Strip UIkit accordion icon text from title (span[uk-accordion-icon])
+                    $titleNode = $titleNodes->item(0);
+                    $iconNodes = $xpath->query('.//span[@uk-accordion-icon]', $titleNode);
+                    if ($iconNodes) {
+                        foreach ($iconNodes as $icon) {
+                            $icon->parentNode?->removeChild($icon);
+                        }
+                    }
+
+                    $question = trim($titleNode->textContent ?? '');
+                    $answer   = trim($contentNodes->item(0)->textContent ?? '');
+
+                    if ($question !== '' && $answer !== '' && strlen($answer) > 15) {
+                        $faqItems[] = $this->buildFAQItem($question, $answer);
+                    }
+                }
+            }
+        }
+
         return $faqItems;
     }
+
 
 
     /**
