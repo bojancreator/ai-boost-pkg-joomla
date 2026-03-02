@@ -765,10 +765,13 @@ class SchemaService extends AbstractService
             }
         }
 
-        // Fallback: use the full document (but this may pick up consent modals)
+        // Fallback: use DOMDocument as XPath context (searches all elements)
+        // Note: do NOT use $dom->documentElement — for HTML fragments (e.g. extracted
+        // jb--faq container), documentElement is the first child element, so .//*
+        // would only search its descendants, missing sibling el-items and the root itself.
         if ($contentRoot === null) {
             $this->logDebug('FAQ extract: No content root found, scanning full document');
-            $contentRoot = $dom->documentElement ?? $dom;
+            $contentRoot = $dom;
         }
 
         // ── Pattern 1: <dl> / <dt> / <dd> ────────────────────────────────────
