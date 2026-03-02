@@ -569,34 +569,49 @@ class SchemaService extends AbstractService
         $listItems = [];
         $position = 1;
 
-        // Get home label (multilingual)
-        $lang = Factory::getLanguage();
-        $homeLabel = $lang->getTag() === 'sr-RS' ? 'Početna' : 'Home';
-
         // Add home
         $listItems[] = [
-            '@type' => 'ListItem',
+            '@type'    => 'ListItem',
             'position' => $position++,
-            'name' => $homeLabel,
-            'item' => $this->getSchemaUrl()
+            'name'     => 'Home',
+            'item'     => $this->getSchemaUrl()
         ];
 
-        // Add pathway items
+        $baseUrl = rtrim($this->getSchemaUrl(), '/');
+
+        // Add pathway items — convert internal Joomla URLs to SEF URLs via Route::_()
         foreach ($items as $item) {
             $itemObj  = (object) $item;
             $itemName = isset($itemObj->name) ? (string) $itemObj->name : '';
             $itemLink = isset($itemObj->link) ? (string) $itemObj->link : '';
+
+            if ($itemLink) {
+                try {
+                    // Route::_(url, false) = convert to SEF, no HTML-encoding
+                    $sefPath = Route::_($itemLink, false);
+                    // Ensure absolute URL
+                    $itemUrl = str_starts_with($sefPath, 'http')
+                        ? $sefPath
+                        : $baseUrl . '/' . ltrim($sefPath, '/');
+                } catch (\Throwable $e) {
+                    // Fallback to raw link if routing fails
+                    $itemUrl = $baseUrl . '/' . ltrim($itemLink, '/');
+                }
+            } else {
+                $itemUrl = Uri::getInstance()->toString(['scheme', 'host', 'path']);
+            }
+
             $listItems[] = [
                 '@type'    => 'ListItem',
                 'position' => $position++,
                 'name'     => $itemName,
-                'item'     => $itemLink ? $this->getSchemaUrl() . ltrim($itemLink, '/') : Uri::getInstance()->toString()
+                'item'     => $itemUrl
             ];
         }
 
         return [
-            '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
+            '@context'        => 'https://schema.org',
+            '@type'           => 'BreadcrumbList',
             'itemListElement' => $listItems
         ];
     }

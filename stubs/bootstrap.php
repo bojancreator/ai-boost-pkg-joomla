@@ -256,7 +256,7 @@ namespace Joomla\CMS\Uri {
                 {
                     return 443;
                 }
-                public function toString()
+                public function toString($parts = [])
                 {
                     return 'https://example.com/';
                 }
@@ -268,7 +268,7 @@ namespace Joomla\CMS\Uri {
 namespace Joomla\CMS\Router {
     class Route
     {
-        public static function _($a)
+        public static function _($a, bool $xhtml = true): string
         {
             return (string)$a;
         }

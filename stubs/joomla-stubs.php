@@ -173,9 +173,9 @@ namespace Joomla\CMS\Uri {
 namespace Joomla\CMS\Router {
     class Route
     {
-        public static function _($a)
+        public static function _($a, bool $xhtml = true): string
         {
-            return $a;
+            return (string)$a;
         }
     }
 }
