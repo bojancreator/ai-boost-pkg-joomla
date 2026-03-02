@@ -5,16 +5,24 @@ All notable changes to JoomlaBoost will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
 
-### Planned
-- Automatic version bumping in build process
-- Build artifact management automation
+## [0.8.0] - 2026-03-02
+
+### Added
+- **FAQ detection via `jb--faq` CSS class**: mark any block element with `class="jb--faq"` and the plugin will extract FAQ Q&A only from that container. Fallback to global FAQ if no container found.
+- **YooTheme UIkit Pattern 3 parser**: `el-item > el-title + el-content` — supports Accordion (`a.el-title`), Grid (`h3.el-title`) and List (`div.el-title`) elements inside `jb--faq`.
+
+### Changed
+- `LanguageService::getActiveLanguages()` now reads from `#__falang_languages` as primary source on Falang sites (fixes multilingual detection where `#__languages` has only 1 entry).
+- `generateWebsiteSchema()` description now uses `$document->getMetaData('description')` (language-aware, Falang-ready) instead of global Joomla config `MetaDesc`.
+- `generateBreadcrumbSchema()` now converts internal `index.php?option=...` URLs to SEF URLs via `Route::_()`.
+
+### Fixed
+- `HreflangService` now correctly detects Falang languages and injects hreflang tags on multilingual Falang sites.
+- `HreflangService` guard now checks both `$headData['links']` (Language Filter) and `$headData['custom']`, skipping only when a full tag set exists.
+- `extractFAQFromContent()` XPath context fallback changed from `$dom->documentElement` to `$dom` — fixes el-item detection when processing HTML fragments (extracted `jb--faq` container content).
 
 ---
-
-
-
 
 
 
