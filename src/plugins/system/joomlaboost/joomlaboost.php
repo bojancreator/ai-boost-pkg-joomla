@@ -791,12 +791,21 @@ HTML;
     }
 
     /**
-     * Auto-sync robots.txt file with daily check cache
-     * Prevents conflicts with Joomla updates and Admin Tools
+     * Auto-sync robots.txt using content hash stored in a small sidecar file.
+     *
+     * Why not Joomla cache? LiteSpeed Cache purges Joomla's cache on every page save,
+     * so the Joomla cache guard was always empty → file_get_contents() ran on every request.
+     *
+     * New approach (zero Joomla cache dependency):
+     *   1. Generate the desired robots.txt content (in memory, no I/O)
+     *   2. Hash it (md5, fast string op)
+     *   3. Read the tiny .robots_hash sidecar file (~32 bytes, OS page-cached)
+     *   4. Only write robots.txt when the hash differs
+     *
+     * Result: one 32-byte file read per request instead of a full file_get_contents().
      */
     private function autoSyncRobotsFile(): void
     {
-        // Check if auto-sync is enabled
         if (!$this->params->get('enable_robots', 1)) {
             return;
         }
@@ -806,33 +815,24 @@ HTML;
         }
 
         try {
-            // Cache key for last sync check
-            $cacheKey = 'joomlaboost_robots_last_sync';
-            $cache = Factory::getCache('plg_system_joomlaboost', '');
-            $lastSync = $cache->get($cacheKey);
+            $robotsPath   = JPATH_ROOT . '/robots.txt';
+            $hashPath     = JPATH_ROOT . '/.robots_hash';
+            $newContent   = $this->generateRobotsContent();
+            $newHash      = md5($newContent);
 
-            // Only check once per day to avoid performance issues
-            $today = date('Y-m-d');
-            if ($lastSync === $today) {
-                return; // Already synced today
+            // Read stored hash (tiny file, ~32 bytes — very cheap)
+            $storedHash = file_exists($hashPath) ? trim((string) file_get_contents($hashPath)) : '';
+
+            // Nothing to do if hashes match
+            if ($storedHash === $newHash) {
+                return;
             }
 
-            $robotsPath = JPATH_ROOT . '/robots.txt';
-            $currentContent = $this->generateRobotsContent();
-
-            // Only update if file doesn't exist or content is different
-            $needsUpdate = !file_exists($robotsPath) ||
-                file_get_contents($robotsPath) !== $currentContent;
-
-            if ($needsUpdate) {
-                // Write new content directly (no backup - backups pollute the server)
-                file_put_contents($robotsPath, $currentContent);
-            }
-
-            // Update cache
-            $cache->store($today, $cacheKey);
+            // Write updated robots.txt and persist the new hash
+            file_put_contents($robotsPath, $newContent, LOCK_EX);
+            file_put_contents($hashPath, $newHash, LOCK_EX);
         } catch (\Throwable $e) {
-            // Fail silently - don't break site or show messages
+            // Fail silently — never break the site
         }
     }
 
