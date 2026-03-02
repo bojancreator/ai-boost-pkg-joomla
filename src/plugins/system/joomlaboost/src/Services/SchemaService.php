@@ -1004,23 +1004,32 @@ class SchemaService extends AbstractService
 
         $faqItems = [];
 
-        // ── Step 1: Auto-detect from rendered HTML (works for YooTheme + Falang) ──
+        // ── Step 1: Look for jb--faq container in rendered HTML ──────────────────
+        // Users mark their FAQ sections with class="jb--faq".
+        // We scan ONLY that container — no false positives from navigation, headers, etc.
+        // Supports all patterns inside the container: <dl>/<dt>/<dd>, <h3><p>, <h4><p>.
         if ((bool)$this->params->get('faq_auto_detect', 1)) {
-            $faqItems = $this->extractFAQFromContent($body);
-            if (!empty($faqItems)) {
-                $this->logDebug('FAQ buffer-inject: Auto-detected ' . count($faqItems) . ' Q&A pairs from rendered HTML');
+            $containerHtml = $this->extractJbFaqContainer($body);
+
+            if ($containerHtml !== null) {
+                $faqItems = $this->extractFAQFromContent($containerHtml);
+                if (!empty($faqItems)) {
+                    $this->logDebug('FAQ buffer-inject: Found jb--faq container, extracted ' . count($faqItems) . ' Q&A pairs');
+                } else {
+                    $this->logDebug('FAQ buffer-inject: jb--faq container found but no Q&A pairs extracted');
+                }
             } else {
-                $this->logDebug('FAQ buffer-inject: No <dl>/<dt>/<dd> patterns found in rendered HTML');
+                $this->logDebug('FAQ buffer-inject: No jb--faq container found — will use global FAQ');
             }
         }
 
-        // ── Step 2: Fallback to manual global FAQs if auto-detect found nothing ──
+        // ── Step 2: Fallback to global FAQ if no container or container was empty ─
         if (empty($faqItems) && (bool)$this->params->get('enable_manual_faqs', 0)) {
             try {
                 $qaService = new QAManagementService($this->app, $this->params);
                 $faqItems  = $qaService->getManualFAQs();
                 if (!empty($faqItems)) {
-                    $this->logDebug('FAQ buffer-inject: Using manual FAQs as fallback (' . count($faqItems) . ' items)');
+                    $this->logDebug('FAQ buffer-inject: Using global FAQ (' . count($faqItems) . ' items)');
                 }
             } catch (\Throwable $e) {
                 $this->logDebug('FAQ buffer-inject: QAManagementService error - ' . $e->getMessage());
@@ -1046,6 +1055,65 @@ class SchemaService extends AbstractService
 
         return $body;
     }
+
+    /**
+     * Extract the inner HTML of the first element with class="jb--faq".
+     *
+     * Users wrap their FAQ content in any block element with this class:
+     *   <div class="jb--faq"> ... <dl><dt>Q</dt><dd>A</dd></dl> ... </div>
+     *   <section class="jb--faq"> ... <h3>Q</h3><p>A</p> ... </section>
+     *
+     * Returns the innerHTML of the container, or null if not found.
+     */
+    private function extractJbFaqContainer(string $body): ?string
+    {
+        // Fast pre-check before full regex — avoids regex overhead on most pages
+        if (stripos($body, 'jb--faq') === false) {
+            return null;
+        }
+
+        // Match opening tag with jb--faq class (handles extra classes and attributes)
+        // e.g. <div class="jb--faq other-class" id="faq">
+        if (!preg_match('/<([a-z][a-z0-9]*)\b[^>]*\bclass=["\'][^"\']*\bjb--faq\b[^"\']*["\'][^>]*>/i', $body, $open, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+
+        $tagName    = $open[1][0];           // e.g. 'div'
+        $openStart  = $open[0][1];           // byte offset of opening tag
+        $openLen    = strlen($open[0][0]);   // length of opening tag
+        $innerStart = $openStart + $openLen; // start of inner HTML
+
+        // Find the matching closing tag, respecting nesting
+        $depth  = 1;
+        $pos    = $innerStart;
+        $len    = strlen($body);
+        $inner  = '';
+
+        while ($pos < $len && $depth > 0) {
+            // Look for next opening or closing tag of the same element
+            $nextOpen  = stripos($body, '<' . $tagName, $pos);
+            $nextClose = stripos($body, '</' . $tagName, $pos);
+
+            if ($nextClose === false) {
+                break; // Malformed HTML
+            }
+
+            if ($nextOpen !== false && $nextOpen < $nextClose) {
+                $depth++;
+                $pos = $nextOpen + 1;
+            } else {
+                $depth--;
+                if ($depth === 0) {
+                    $inner = substr($body, $innerStart, $nextClose - $innerStart);
+                } else {
+                    $pos = $nextClose + 1;
+                }
+            }
+        }
+
+        return $inner !== '' ? $inner : null;
+    }
+
 
 
     /**
