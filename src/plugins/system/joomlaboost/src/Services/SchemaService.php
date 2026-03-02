@@ -196,17 +196,33 @@ class SchemaService extends AbstractService
     {
         $config = Factory::getApplication()->getConfig();
 
+        // Use document meta description (language-aware — Falang/YooTheme already set it)
+        // Fall back to global Joomla MetaDesc only if document has none
+        $description = '';
+        try {
+            $doc = $this->app->getDocument();
+            if ($doc instanceof \Joomla\CMS\Document\HtmlDocument) {
+                $description = $doc->getMetaData('description');
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        if (empty($description)) {
+            $description = (string) $config->get('MetaDesc', '');
+        }
+
         return [
-            '@context' => 'https://schema.org',
-            '@type' => 'WebSite',
-            'name' => $config->get('sitename'),
-            'description' => $config->get('MetaDesc'),
-            'url' => $this->getSchemaUrl(),
-            'inLanguage' => $this->getLanguageCode(),
+            '@context'       => 'https://schema.org',
+            '@type'          => 'WebSite',
+            'name'           => $config->get('sitename'),
+            'description'    => $description,
+            'url'            => $this->getSchemaUrl(),
+            'inLanguage'     => $this->getLanguageCode(),
             'potentialAction' => [
-                '@type' => 'SearchAction',
+                '@type'  => 'SearchAction',
                 'target' => [
-                    '@type' => 'EntryPoint',
+                    '@type'       => 'EntryPoint',
                     'urlTemplate' => $this->getSchemaUrl() . 'index.php?option=com_search&searchword={search_term_string}'
                 ],
                 'query-input' => 'required name=search_term_string'
