@@ -60,6 +60,17 @@ class LanguageService extends AbstractService
             return $this->languages;
         }
 
+        // Falang priority: use Falang language table if Falang is active
+        if ($this->isFalangActive()) {
+            $falangLangs = $this->getFalangLanguages();
+            if (count($falangLangs) > 0) {
+                $this->languages = $falangLangs;
+                $this->logDebug('LanguageService: detected ' . count($falangLangs) . ' Falang languages');
+                return $this->languages;
+            }
+        }
+
+        // Native Joomla multilingual: read from #__languages
         try {
             $db = Factory::getDbo();
 
@@ -109,6 +120,50 @@ class LanguageService extends AbstractService
         }
 
         return $this->languages;
+    }
+
+    /**
+     * Get languages from Falang's language table.
+     *
+     * Falang uses a single Joomla install with one language in #__languages,
+     * and manages translations in its own #__falang_languages table.
+     * This is the correct source for multilingual detection on Falang sites.
+     *
+     * @return array<string, object>  keyed by lang_code, each object has lang_code, sef, title, is_default
+     */
+    public function getFalangLanguages(): array
+    {
+        try {
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('fl.id, fl.lang_code, fl.published, fl.published AS is_default')
+                ->select('l.lang_code AS joomla_lang_code, l.sef, l.title')
+                ->from('#__falang_languages AS fl')
+                ->join('INNER', '#__languages AS l ON l.lang_id = fl.joomla_lang_id')
+                ->where('fl.published = 1')
+                ->order('fl.id ASC');
+
+            $db->setQuery($query);
+            $rawRows = $db->loadObjectList();
+
+            if (empty($rawRows)) {
+                return [];
+            }
+
+            $defaultCode = $this->getDefaultLanguageCode();
+            $rows        = [];
+
+            foreach ($rawRows as $row) {
+                $row->lang_code  = $row->joomla_lang_code;
+                $row->is_default = ($row->lang_code === $defaultCode);
+                $rows[$row->lang_code] = $row;
+            }
+
+            return $rows;
+        } catch (\Throwable $e) {
+            $this->logDebug('LanguageService: Falang language query failed - ' . $e->getMessage());
+            return [];
+        }
     }
 
     /**

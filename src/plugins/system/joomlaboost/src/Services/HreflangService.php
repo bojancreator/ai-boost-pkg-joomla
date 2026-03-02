@@ -58,13 +58,14 @@ class HreflangService extends AbstractService
                 return;
             }
 
-            // Guard: don't duplicate if Joomla Language Filter already added hreflang tags
-            if ($this->hasExistingHreflangTags($document)) {
-                $this->logDebug('HreflangService: skipping — Language Filter already injected hreflang tags');
+            $tags          = $this->generateTags($langService);
+            $languageCount = count($langService->getActiveLanguages());
+
+            // Guard: skip if document already has a full set of hreflang tags
+            if ($this->hasExistingHreflangTags($document, $languageCount)) {
+                $this->logDebug('HreflangService: skipping — full hreflang set already present');
                 return;
             }
-
-            $tags = $this->generateTags($langService);
 
             foreach ($tags as $tag) {
                 $document->addCustomTag(
@@ -189,24 +190,42 @@ class HreflangService extends AbstractService
     }
 
     /**
-     * Check if the document already has hreflang link tags (from Language Filter).
+     * Check if the document already has a complete set of hreflang link tags.
+     *
+     * Joomla Language Filter adds hreflang via addHeadLink() → stored in $headData['links'].
+     * Our service adds via addCustomTag() → stored in $headData['custom'].
+     * We check both to avoid duplicates.
+     *
+     * A "complete" set means one tag per active language + x-default.
+     * If Language Filter only added x-default (no per-language tags), we still inject.
      */
-    private function hasExistingHreflangTags(HtmlDocument $document): bool
+    private function hasExistingHreflangTags(HtmlDocument $document, int $languageCount): bool
     {
         try {
-            $headData = $document->getHeadData();
+            $headData  = $document->getHeadData();
+            $count     = 0;
 
-            if (!isset($headData['custom']) || !is_array($headData['custom'])) {
-                return false;
-            }
-
-            foreach ($headData['custom'] as $tag) {
-                if (is_string($tag) && str_contains($tag, 'hreflang')) {
-                    return true;
+            // Check custom tags (our own tags from previous runs)
+            if (isset($headData['custom']) && is_array($headData['custom'])) {
+                foreach ($headData['custom'] as $tag) {
+                    if (is_string($tag) && str_contains($tag, 'hreflang')) {
+                        $count++;
+                    }
                 }
             }
 
-            return false;
+            // Check links (Language Filter uses addHeadLink which goes here)
+            if (isset($headData['links']) && is_array($headData['links'])) {
+                foreach ($headData['links'] as $attribs) {
+                    if (isset($attribs['hreflang'])) {
+                        $count++;
+                    }
+                }
+            }
+
+            // Skip only if full set is present: one per language + x-default
+            // If only x-default exists (count=1), we still need to add language-specific tags
+            return $count >= $languageCount + 1; // +1 for x-default
         } catch (\Throwable $e) {
             return false;
         }
