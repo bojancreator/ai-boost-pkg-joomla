@@ -2,7 +2,7 @@
   "name": "joomlaboost/joomlaboost",
   "description": "Monorepo for JoomlaBoost universal plugin and related assets.",
   "type": "project",
-  "license": "MIT",
+  "license": "GPL-2.0-or-later",
   "require": {
     "php": ">=8.1"
   },
