@@ -19,7 +19,9 @@
     s.textContent = [
         '#style-form input:not([type="radio"]):not([type="checkbox"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):not([type="range"]),',
         '#style-form textarea,',
-        '#style-form select {',
+        '#style-form select,',
+        '#style-form .alert,',
+        '#style-form .wf-media-wrapper {',
         '  max-width: 800px !important;',
         '  width: 100% !important;',
         '  box-sizing: border-box !important;',
