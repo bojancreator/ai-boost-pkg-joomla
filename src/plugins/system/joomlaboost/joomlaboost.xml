@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 7, 2026 12:32</creationDate>
+  <creationDate>April 7, 2026 12:39</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.9.27</version>
+  <version>0.9.28</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -361,7 +361,7 @@
           <option value="0">JNO</option>
         </field>
         <field name="indexnow_api_key"
-               type="indexnowkey"
+               type="IndexNowKey"
                label="IndexNow API Key"
                description="Your unique IndexNow key. The plugin will create the required verification file at your site root automatically."
                default=""
