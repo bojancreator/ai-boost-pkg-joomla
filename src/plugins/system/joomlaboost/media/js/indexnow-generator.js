@@ -13,6 +13,22 @@
 (function () {
     'use strict';
 
+    // Inject admin input width limit — CSS approach failed (delivery issue),
+    // JS injection is guaranteed since this file is confirmed to load.
+    var s = document.createElement('style');
+    s.textContent = [
+        '#style-form .controls input[type="text"],',
+        '#style-form .controls input[type="url"],',
+        '#style-form .controls input[type="email"],',
+        '#style-form .controls input[type="number"],',
+        '#style-form .controls textarea {',
+        '  max-width: 800px !important;',
+        '  width: 100% !important;',
+        '  box-sizing: border-box !important;',
+        '}'
+    ].join('\n');
+    document.head.appendChild(s);
+
     document.addEventListener('DOMContentLoaded', function () {
         var genBtn = document.querySelector('[data-jb-indexnow-gen]');
         var field  = document.getElementById('jform_params_indexnow_api_key');
