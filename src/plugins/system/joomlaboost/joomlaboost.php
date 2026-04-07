@@ -350,6 +350,13 @@ HTML;
                     'plg_system_joomlaboost.multilang-selector-css',
                     'plg_system_joomlaboost/multilang-selector.css'
                 );
+                $wa->registerAndUseScript(
+                    'plg_system_joomlaboost.indexnow-generator',
+                    'plg_system_joomlaboost/indexnow-generator.js',
+                    [],
+                    ['defer' => true],
+                    []
+                );
             } catch (\Exception $e) {
                 // Silent failure - assets are optional enhancement
             }

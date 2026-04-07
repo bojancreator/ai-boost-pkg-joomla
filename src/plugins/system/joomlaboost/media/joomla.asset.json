@@ -24,6 +24,15 @@
             "type": "style",
             "uri": "css/multilang-selector.css",
             "dependencies": []
+        },
+        {
+            "name": "plg_system_joomlaboost.indexnow-generator",
+            "type": "script",
+            "uri": "js/indexnow-generator.js",
+            "attributes": {
+                "defer": true
+            },
+            "dependencies": []
         }
     ]
 }

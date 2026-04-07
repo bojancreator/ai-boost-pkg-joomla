@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 7, 2026 12:49</creationDate>
+  <creationDate>April 7, 2026 12:56</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.9.30</version>
+  <version>0.9.31</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -363,7 +363,7 @@
         <field name="indexnow_key_generator"
                type="note"
                label=" "
-               description="&lt;div style='margin:6px 0'&gt;&lt;button type='button' class='btn btn-sm btn-secondary' onclick=&quot;var f=document.getElementById('jform_params_indexnow_api_key');if(f){var k=Array(32).fill(0).map(function(){return '0123456789abcdef'[Math.floor(Math.random()*16)]}).join('');f.value=k;this.disabled=true;this.textContent='Key generated';}&quot;&gt;&#128273; Generate API Key&lt;/button&gt;&lt;/div&gt;"
+               description="&lt;div style='margin:6px 0'&gt;&lt;button type='button' data-jb-indexnow-gen='1' class='btn btn-sm btn-secondary' onclick=&quot;var f=document.getElementById('jform_params_indexnow_api_key');if(f){var k=Array(32).fill(0).map(function(){return '0123456789abcdef'[Math.floor(Math.random()*16)]}).join('');f.value=k;this.disabled=true;this.textContent='Key generated';}&quot;&gt;&#128273; Generate API Key&lt;/button&gt;&lt;/div&gt;"
                showon="indexnow_enabled:1" />
         <field name="indexnow_api_key"
                type="text"
