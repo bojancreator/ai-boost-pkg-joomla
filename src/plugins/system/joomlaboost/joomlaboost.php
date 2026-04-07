@@ -339,6 +339,10 @@ HTML;
             // Load JavaScript for multi-language selector
             try {
                 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
+                $wa->registerAndUseStyle(
+                    'plg_system_joomlaboost.admin',
+                    'plg_system_joomlaboost/admin.css'
+                );
                 $wa->registerAndUseScript(
                     'plg_system_joomlaboost.multilang-selector',
                     'plg_system_joomlaboost/multilang-selector.js',

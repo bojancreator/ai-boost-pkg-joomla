@@ -1,0 +1,14 @@
+/* JoomlaBoost Plugin Admin Styles
+ * Loaded only when editing plugin params (com_plugins.plugin context)
+ */
+
+/* Limit text input/textarea width for better readability on wide screens */
+#adminForm .controls input[type="text"],
+#adminForm .controls input[type="url"],
+#adminForm .controls input[type="email"],
+#adminForm .controls input[type="number"],
+#adminForm .controls textarea {
+    max-width: 800px;
+    width: 100%;
+    box-sizing: border-box;
+}
