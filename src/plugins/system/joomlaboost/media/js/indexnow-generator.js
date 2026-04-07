@@ -17,11 +17,8 @@
     // JS injection is guaranteed since this file is confirmed to load.
     var s = document.createElement('style');
     s.textContent = [
-        '#style-form .controls input[type="text"],',
-        '#style-form .controls input[type="url"],',
-        '#style-form .controls input[type="email"],',
-        '#style-form .controls input[type="number"],',
-        '#style-form .controls textarea {',
+        '#style-form input:not([type="radio"]):not([type="checkbox"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):not([type="range"]),',
+        '#style-form textarea {',
         '  max-width: 800px !important;',
         '  width: 100% !important;',
         '  box-sizing: border-box !important;',
