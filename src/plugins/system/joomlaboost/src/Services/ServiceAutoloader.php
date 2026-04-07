@@ -48,7 +48,8 @@ class ServiceAutoloader
         'DomainDetectionService' => 'DomainDetectionService.php',
         'TranslationService' => 'TranslationService.php',
         'LanguageService'    => 'LanguageService.php',
-        'IndexNowService'    => 'IndexNowService.php'
+        'IndexNowService'    => 'IndexNowService.php',
+        'LlmsTxtService'     => 'LlmsTxtService.php'
     ];
 
     /** @var string Base services directory */

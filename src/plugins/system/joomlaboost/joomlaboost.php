@@ -29,7 +29,8 @@ use JoomlaBoost\Plugin\System\JoomlaBoost\Services\{
     AnalyticsService,
     HreflangService,
     SettingsPersistenceService,
-    IndexNowService
+    IndexNowService,
+    LlmsTxtService
 };
 
 /**
@@ -1150,6 +1151,16 @@ HTML;
                 }
             } catch (\Throwable $e) {
                 $this->logDebug('IndexNow key file creation failed: ' . $e->getMessage());
+            }
+
+            // LLMs.txt — generate file when plugin settings are saved
+            try {
+                $llmsTxt = new LlmsTxtService($this->getApp(), $this->params);
+                if ($llmsTxt->isEnabled()) {
+                    $llmsTxt->generateAndWrite();
+                }
+            } catch (\Throwable $e) {
+                $this->logDebug('LlmsTxt generation failed: ' . $e->getMessage());
             }
 
             $this->logDebug('JoomlaBoost settings auto-saved to persistence storage');
