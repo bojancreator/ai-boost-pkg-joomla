@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 7, 2026 11:59</creationDate>
+  <creationDate>April 7, 2026 12:09</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.9.25</version>
+  <version>0.9.26</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -354,6 +354,43 @@
           <option value="0">JNO</option>
         </field>
         <field name="gtm_container_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL" description="GTM Container ID (format: GTM-XXXXXXX). NOTE: If YooTheme also has GA4 configured in its own Customizer integrations, disable GA4 here (or use mode Via GTM) to avoid duplicate tracking." default="" hint="GTM-XXXXXXX" showon="enable_gtm:1" />
+        <!-- IndexNow — Instant Indexing -->
+        <field name="separator_indexnow" type="spacer" label="IndexNow — Instant Indexing (Bing, Yandex, Seznam)" class="text" />
+        <field name="indexnow_enabled" type="radio" label="Enable IndexNow" description="Automatically notify Bing, Yandex and Seznam when content is published or updated. Requires a valid API key." default="0" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="indexnow_api_key"
+               type="text"
+               label="IndexNow API Key"
+               description="Your unique IndexNow key. The plugin will create the required verification file at your site root automatically."
+               default=""
+               showon="indexnow_enabled:1"
+               hint="e.g. a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4" />
+        <field name="indexnow_note" type="note"
+               label="How IndexNow Works"
+               description="Save plugin → key file auto-created → every published article is instantly pinged to Bing/Yandex/Seznam. AI search engines discover new content in minutes, not days."
+               class="alert alert-info"
+               showon="indexnow_enabled:1" />
+        <!-- LLMs.txt — AI Search Visibility -->
+        <field name="separator_llmstxt" type="spacer" label="LLMs.txt — AI Crawler Visibility (ChatGPT, Claude, Perplexity)" class="text" />
+        <field name="llmstxt_enabled" type="radio" label="Generate /llms.txt" description="Creates a structured /llms.txt file at the site root that helps AI systems (ChatGPT, Claude, Perplexity, Gemini) understand your site's content and structure." default="0" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="llmstxt_custom_pages"
+               type="textarea"
+               label="Custom Pages for LLMs.txt"
+               description="Optional extra pages as JSON. Format: [{&quot;title&quot;: &quot;Page Name&quot;, &quot;url&quot;: &quot;/path&quot;, &quot;description&quot;: &quot;Brief description&quot;}]"
+               rows="5"
+               cols="80"
+               default=""
+               showon="llmstxt_enabled:1" />
+        <field name="llmstxt_note" type="note"
+               label="How LLMs.txt Works"
+               description="An emerging AI standard (llmstxt.org). JoomlaBoost auto-fills it with org data, menu pages, ratings, contact &amp; social links. Visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify after saving."
+               class="alert alert-info"
+               showon="llmstxt_enabled:1" />
       </fieldset>
       <fieldset name="facebook" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_FACEBOOK">
         <!-- Meta Pixel (Facebook Pixel) -->
@@ -395,45 +432,6 @@
           <option value="0">JNO</option>
         </field>
         <field name="cache_ttl" type="number" label="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_DESC" default="3600" min="60" max="86400" showon="enable_caching:1" />
-      </fieldset>
-      <!-- IndexNow Configuration -->
-      <fieldset name="indexnow" label="IndexNow — Instant Indexing">
-        <field name="indexnow_enabled" type="radio" label="Enable IndexNow" description="Automatically notify Bing, Yandex and Seznam when content is published or updated. Requires a valid API key." default="0" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="indexnow_api_key"
-               type="text"
-               label="IndexNow API Key"
-               description="Your unique IndexNow key. Generate one at indexnow.org or use any random 32+ character alphanumeric string. The plugin will create the required verification file at your site root automatically."
-               default=""
-               showon="indexnow_enabled:1"
-               hint="e.g. a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4" />
-        <field name="indexnow_note" type="note"
-               label="How IndexNow Works"
-               description="1. Enter your API key above. &lt;br&gt;2. Save the plugin — JoomlaBoost creates &lt;strong&gt;{your-key}.txt&lt;/strong&gt; at your site root automatically. &lt;br&gt;3. Every time you publish or update a Joomla article, the page URL is instantly sent to Bing/Yandex/Seznam. &lt;br&gt;&lt;strong&gt;Result:&lt;/strong&gt; AI search engines discover new content in minutes, not days."
-               class="alert alert-info"
-               showon="indexnow_enabled:1" />
-      </fieldset>
-      <!-- LLMs.txt Configuration -->
-      <fieldset name="llmstxt" label="LLMs.txt — AI Search Visibility">
-        <field name="llmstxt_enabled" type="radio" label="Generate /llms.txt" description="Creates a structured /llms.txt file at the site root that helps AI systems (ChatGPT, Claude, Perplexity, Gemini) understand your site's content and structure." default="0" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="llmstxt_custom_pages"
-               type="textarea"
-               label="Custom Pages for LLMs.txt"
-               description="Optional: add custom pages as JSON. These appear in 'Additional Pages' section. Format: [{&quot;title&quot;: &quot;Page Name&quot;, &quot;url&quot;: &quot;/path&quot;, &quot;description&quot;: &quot;Brief description&quot;}]"
-               rows="5"
-               cols="80"
-               default=""
-               showon="llmstxt_enabled:1" />
-        <field name="llmstxt_note" type="note"
-               label="How LLMs.txt Works"
-               description="&lt;strong&gt;LLMs.txt&lt;/strong&gt; (llmstxt.org) is an emerging AI standard, like robots.txt but for AI systems. &lt;br&gt;JoomlaBoost automatically fills it with: your organization name, description, Joomla menu pages, ratings, contact and social links. &lt;br&gt;After saving these settings, visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify the output."
-               class="alert alert-info"
-               showon="llmstxt_enabled:1" />
       </fieldset>
       <fieldset name="debug" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_DEBUG">
         <field name="debug_mode" type="radio" label="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_DESC" default="0" class="btn-group btn-group-yesno">
