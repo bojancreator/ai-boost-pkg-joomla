@@ -317,6 +317,11 @@ class SchemaService extends AbstractService
                 $schema['logo']  = $orgLogo;
                 $schema['image'] = $orgLogo;
             }
+            // AggregateRating (guest reviews)
+            $aggregateRating = $this->buildAggregateRating();
+            if ($aggregateRating !== null) {
+                $schema['aggregateRating'] = $aggregateRating;
+            }
         } elseif ($schemaType === 'localbusiness') {
             // LocalBusiness schema with geo and address data
             $schema = [
@@ -375,6 +380,12 @@ class SchemaService extends AbstractService
                 $schema['logo'] = $orgLogo;
                 $schema['image'] = $orgLogo;
             }
+
+            // AggregateRating (guest reviews)
+            $aggregateRating = $this->buildAggregateRating();
+            if ($aggregateRating !== null) {
+                $schema['aggregateRating'] = $aggregateRating;
+            }
         } else {
             // Standard Organization schema for other sites
             $schema = [
@@ -401,6 +412,39 @@ class SchemaService extends AbstractService
         return $schema;
     }
 
+    /**
+     * Build AggregateRating block from plugin settings.
+     * Returns null if no rating value is configured.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function buildAggregateRating(): ?array
+    {
+        $ratingValue = trim((string) $this->params->get('schema_rating_value', ''));
+        $ratingCount = trim((string) $this->params->get('schema_rating_count', ''));
+
+        if (empty($ratingValue)) {
+            return null;
+        }
+
+        $rating = [
+            '@type'       => 'AggregateRating',
+            'ratingValue' => $ratingValue,
+            'bestRating'  => (string) $this->params->get('schema_rating_best', '5'),
+            'worstRating' => (string) $this->params->get('schema_rating_worst', '1'),
+        ];
+
+        if (!empty($ratingCount)) {
+            $rating['reviewCount'] = $ratingCount;
+        }
+
+        $source = trim((string) $this->params->get('schema_rating_source', ''));
+        if (!empty($source)) {
+            $rating['description'] = 'Based on reviews from ' . $source;
+        }
+
+        return $rating;
+    }
     /**
      * Get social media profiles for the organization
      *

@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 7, 2026 11:21</creationDate>
+  <creationDate>April 7, 2026 11:44</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.9.22</version>
+  <version>0.9.23</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -248,6 +248,43 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
+        <!-- AggregateRating (Guest Reviews) -->
+        <field name="separator_rating" type="spacer" label="⭐ Guest Ratings (AggregateRating)" class="text" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
+        <field name="schema_rating_value"
+               type="text"
+               label="Average Rating"
+               description="Average guest rating (e.g., 4.6). Google shows this in search results and AI Overviews."
+               default=""
+               showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
+               hint="4.6" />
+        <field name="schema_rating_count"
+               type="text"
+               label="Number of Reviews"
+               description="Total number of guest reviews. More reviews = stronger signal for AI search."
+               default=""
+               showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
+               hint="2341" />
+        <field name="schema_rating_best"
+               type="text"
+               label="Best Rating (Max)"
+               description="Maximum possible rating on the platform (usually 5 or 10)"
+               default="5"
+               showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
+               hint="5" />
+        <field name="schema_rating_worst"
+               type="text"
+               label="Worst Rating (Min)"
+               description="Minimum possible rating (usually 1)"
+               default="1"
+               showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
+               hint="1" />
+        <field name="schema_rating_source"
+               type="text"
+               label="Rating Source"
+               description="Platform where reviews are collected (e.g., Booking.com, Google, TripAdvisor)"
+               default=""
+               showon="enable_schema:1[AND]schema_type:localbusiness,hotel"
+               hint="Booking.com" />
         <!-- Separator -->
         <field name="separator_faq" type="spacer" label="FAQ Schema Support" class="text" />
         <!-- FAQ Schema -->
