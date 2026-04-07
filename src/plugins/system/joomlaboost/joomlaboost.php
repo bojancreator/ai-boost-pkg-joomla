@@ -339,10 +339,18 @@ HTML;
             // Load JavaScript for multi-language selector
             try {
                 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
-                $wa->registerAndUseStyle(
-                    'plg_system_joomlaboost.admin',
-                    'plg_system_joomlaboost/admin.css'
+
+                // Inline admin styles — limit input/textarea width for readability.
+                // Selector confirmed via browser inspection: plugin editor uses #style-form.
+                Factory::getApplication()->getDocument()->addStyleDeclaration(
+                    '#style-form .controls input[type="text"],' .
+                    '#style-form .controls input[type="url"],' .
+                    '#style-form .controls input[type="email"],' .
+                    '#style-form .controls input[type="number"],' .
+                    '#style-form .controls textarea {' .
+                    'max-width:800px;width:100%;box-sizing:border-box;}'
                 );
+
                 $wa->registerAndUseScript(
                     'plg_system_joomlaboost.multilang-selector',
                     'plg_system_joomlaboost/multilang-selector.js',
