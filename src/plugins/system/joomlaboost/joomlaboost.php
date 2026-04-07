@@ -28,7 +28,8 @@ use JoomlaBoost\Plugin\System\JoomlaBoost\Services\{
     SchemaService,
     AnalyticsService,
     HreflangService,
-    SettingsPersistenceService
+    SettingsPersistenceService,
+    IndexNowService
 };
 
 /**
@@ -392,6 +393,19 @@ HTML;
         }
 
         $this->fixArticleFieldValues($article->id);
+
+        // IndexNow — ping search engines for published articles
+        try {
+            $indexNow = new IndexNowService($this->getApp(), $this->params);
+            if ($indexNow->isEnabled() && isset($article->state) && (int) $article->state === 1) {
+                $url = $indexNow->buildArticleUrl($article->id);
+                if (!empty($url)) {
+                    $indexNow->pingUrl($url);
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('IndexNow ping failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -1127,6 +1141,16 @@ HTML;
 
             // Save to database
             $this->settingsPersistenceService->saveSettings($params);
+
+            // IndexNow — create key file when plugin settings are saved
+            try {
+                if (!empty($params['indexnow_api_key'])) {
+                    $indexNow = new IndexNowService($this->getApp(), $this->params);
+                    $indexNow->ensureKeyFile();
+                }
+            } catch (\Throwable $e) {
+                $this->logDebug('IndexNow key file creation failed: ' . $e->getMessage());
+            }
 
             $this->logDebug('JoomlaBoost settings auto-saved to persistence storage');
         } catch (\Exception $e) {

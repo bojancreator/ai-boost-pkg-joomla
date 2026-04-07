@@ -47,7 +47,8 @@ class ServiceAutoloader
         'AnalyticsService' => 'AnalyticsService.php',
         'DomainDetectionService' => 'DomainDetectionService.php',
         'TranslationService' => 'TranslationService.php',
-        'LanguageService'    => 'LanguageService.php'
+        'LanguageService'    => 'LanguageService.php',
+        'IndexNowService'    => 'IndexNowService.php'
     ];
 
     /** @var string Base services directory */
