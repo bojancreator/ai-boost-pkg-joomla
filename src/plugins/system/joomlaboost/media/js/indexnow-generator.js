@@ -18,7 +18,8 @@
     var s = document.createElement('style');
     s.textContent = [
         '#style-form input:not([type="radio"]):not([type="checkbox"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):not([type="range"]),',
-        '#style-form textarea {',
+        '#style-form textarea,',
+        '#style-form select {',
         '  max-width: 800px !important;',
         '  width: 100% !important;',
         '  box-sizing: border-box !important;',
@@ -45,6 +46,7 @@
         keyCode.id  = 'jb-key-display';
         keyCode.style.cssText = [
             'flex:1',
+            'max-width:760px',
             'background:#0d1117',
             'color:#58d68d',
             'border:1px solid #2d4a3e',
