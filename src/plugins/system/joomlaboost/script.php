@@ -219,9 +219,9 @@ class plgSystemJoomlaboostInstallerScript
 
     public function postflight($type, $adapter)
     {
-        // Auto-restore settings on install (if persisted settings exist)
-        if ($type === 'install') {
-            $this->restorePersistedSettings();
+        // Auto-restore settings on install OR update (in case params were lost/reset)
+        if ($type === 'install' || $type === 'update') {
+            $this->restorePersistedSettings($type);
         }
 
         // Show modern installation message
@@ -280,7 +280,7 @@ class plgSystemJoomlaboostInstallerScript
     /**
      * Restore persisted settings on install
      */
-    private function restorePersistedSettings(): void
+    private function restorePersistedSettings(string $type = 'install'): void
     {
         try {
             $db = Factory::getDbo();
@@ -306,37 +306,51 @@ class plgSystemJoomlaboostInstallerScript
                 return; // No settings found
             }
 
-            // Decode settings
-            $settings = json_decode($settingsJson, true);
-            if (!is_array($settings) || empty($settings)) {
+            // Decode persisted settings
+            $persisted = json_decode($settingsJson, true);
+            if (!is_array($persisted) || empty($persisted)) {
                 return;
             }
 
-            // Get plugin ID
+            // Get plugin ID and current params
             $query = $db->getQuery(true)
-                ->select('extension_id')
+                ->select(['extension_id', 'params'])
                 ->from('#__extensions')
                 ->where($db->quoteName('element') . ' = ' . $db->quote('joomlaboost'))
                 ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
                 ->where($db->quoteName('folder') . ' = ' . $db->quote('system'));
 
             $db->setQuery($query);
-            $extensionId = $db->loadResult();
+            $row = $db->loadObject();
 
-            if (!$extensionId) {
+            if (!$row || !$row->extension_id) {
                 return;
             }
 
-            // Restore settings to plugin params
+            if ($type === 'update') {
+                // On UPDATE: merge — only fill in missing/empty keys from persisted backup
+                $current = json_decode($row->params ?? '{}', true) ?: [];
+                $merged  = $persisted;
+                foreach ($current as $k => $v) {
+                    if ($v !== null && $v !== '' && $v !== [] && $v !== '{}') {
+                        $merged[$k] = $v; // current wins over persisted
+                    }
+                }
+                $finalParams = json_encode($merged);
+            } else {
+                // On INSTALL: full restore from backup
+                $finalParams = json_encode($persisted);
+            }
+
+            // Write back to extensions table
             $query = $db->getQuery(true)
                 ->update('#__extensions')
-                ->set($db->quoteName('params') . ' = ' . $db->quote(json_encode($settings)))
-                ->where($db->quoteName('extension_id') . ' = ' . (int) $extensionId);
+                ->set($db->quoteName('params') . ' = ' . $db->quote($finalParams))
+                ->where($db->quoteName('extension_id') . ' = ' . (int) $row->extension_id);
 
             $db->setQuery($query);
             $db->execute();
 
-            // Show success message
             Factory::getApplication()->enqueueMessage(
                 '✅ JoomlaBoost: Your previous settings have been restored!',
                 'success'

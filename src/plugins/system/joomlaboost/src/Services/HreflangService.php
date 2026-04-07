@@ -22,13 +22,7 @@ use Joomla\CMS\Uri\Uri;
  * Hreflang Service
  *
  * Generates <link rel="alternate" hreflang="..."> tags for multilingual pages.
- *
- * Priority:
- * 1. Falang (single Joomla install + Falang translation layer) — primary for vividblue.me
- * 2. Native Joomla multilingual (Language Associations) — fallback
- *
- * Guard: if Joomla Language Filter plugin already injected hreflang tags into
- * the document, this service skips injection to avoid duplicates.
+ * Overrides any incomplete tags inserted by Joomla Language Filter.
  */
 class HreflangService extends AbstractService
 {
@@ -38,12 +32,64 @@ class HreflangService extends AbstractService
     }
 
     /**
-     * Inject hreflang <link> tags into the HTML document.
+     * Inject hreflang <link> tags via raw HTML buffer manipulation.
      *
-     * Skips silently if:
-     * - Service is disabled
-     * - Site is not multilingual (only 1 language)
-     * - Hreflang tags already exist in document head (Language Filter guard)
+     * Called from onAfterRender — guaranteed to run AFTER Language Filter / Falang.
+     * Strategy:
+     *   1. Strip ALL existing <link rel="alternate" hreflang="..."> tags from HTML.
+     *   2. Build our clean set (one per active language + x-default).
+     *   3. Insert before </head>.
+     *
+     * @param string          $body        Raw HTML output buffer
+     * @param LanguageService $langService Already-initialised LanguageService
+     * @return string                      Modified buffer (or original if nothing done)
+     */
+    public function injectIntoBuffer(string $body, LanguageService $langService): string
+    {
+        $headClose = stripos($body, '</head>');
+        if ($headClose === false) {
+            return $body; // Not a full HTML page
+        }
+
+        // 1. Strip ALL existing hreflang link tags (including the broken Joomla x-default)
+        $body = preg_replace(
+            '/<link[^>]+\bhreflang\b[^>]*\/?>\s*/i',
+            '',
+            $body
+        ) ?? $body;
+
+        // Re-locate </head> after removal (line count may have changed)
+        $headClose = stripos($body, '</head>');
+        if ($headClose === false) {
+            return $body;
+        }
+
+        // 2. Generate our clean hreflang tags
+        $tags    = $this->generateTags($langService);
+        if (empty($tags)) {
+            return $body;
+        }
+
+        $linkHtml = "\n";
+        foreach ($tags as $tag) {
+            $linkHtml .= sprintf(
+                '<link rel="alternate" hreflang="%s" href="%s">' . "\n",
+                htmlspecialchars($tag['hreflang'], ENT_QUOTES, 'UTF-8'),
+                htmlspecialchars($tag['href'], ENT_QUOTES, 'UTF-8')
+            );
+        }
+
+        // 3. Insert before </head>
+        $body = substr($body, 0, $headClose) . $linkHtml . substr($body, $headClose);
+
+        $this->logDebug('HreflangService: injected ' . count($tags) . ' hreflang tags via buffer');
+
+        return $body;
+    }
+
+    /**
+     * Inject hreflang <link> tags into the HTML document (legacy — onBeforeCompileHead).
+     * Kept for backward compat but no longer called (Language Filter runs after us).
      */
     public function injectIntoDocument(HtmlDocument $document): void
     {
@@ -58,22 +104,32 @@ class HreflangService extends AbstractService
                 return;
             }
 
-            $tags          = $this->generateTags($langService);
-            $languageCount = count($langService->getActiveLanguages());
+            // Generate full set of hreflang tags
+            $tags = $this->generateTags($langService);
 
-            // Guard: skip if document already has a full set of hreflang tags
-            if ($this->hasExistingHreflangTags($document, $languageCount)) {
-                $this->logDebug('HreflangService: skipping — full hreflang set already present');
+            if (empty($tags)) {
                 return;
             }
 
+            // Remove any existing hreflang tags added by Joomla Language Filter
+            // so we don't have duplicates.
+            $headData = $document->getHeadData();
+            if (isset($headData['links']) && is_array($headData['links'])) {
+                foreach ($headData['links'] as $url => $attribs) {
+                    if (isset($attribs['hreflang'])) {
+                        unset($headData['links'][$url]);
+                    }
+                }
+                $document->setHeadData($headData);
+            }
+
+            // Inject our comprehensive set
             foreach ($tags as $tag) {
-                $document->addCustomTag(
-                    '<link rel="alternate" hreflang="'
-                        . htmlspecialchars($tag['hreflang'], ENT_QUOTES, 'UTF-8')
-                        . '" href="'
-                        . htmlspecialchars($tag['href'], ENT_QUOTES, 'UTF-8')
-                        . '">'
+                $document->addHeadLink(
+                    htmlspecialchars($tag['href'], ENT_QUOTES, 'UTF-8'),
+                    'alternate',
+                    'rel',
+                    ['hreflang' => htmlspecialchars($tag['hreflang'], ENT_QUOTES, 'UTF-8')]
                 );
             }
 
@@ -84,30 +140,42 @@ class HreflangService extends AbstractService
     }
 
     /**
-     * Generate hreflang tag data for all active languages + x-default.
+     * Generate hreflang tag data.
      *
      * @return array<int, array{hreflang: string, href: string}>
      */
-    public function generateTags(LanguageService $langService): array
+    private function generateTags(LanguageService $langService): array
     {
-        $tags       = [];
-        $languages  = $langService->getActiveLanguages();
-        $baseUrl    = rtrim((string) Uri::root(), '/');
-        $defaultCode = $langService->getDefaultLanguageCode();
+        $tags = [];
+        $languages    = $langService->getActiveLanguages();
+        $baseUrl      = rtrim((string) Uri::root(), '/');
+        $defaultCode  = $langService->getDefaultLanguageCode();
+
+        // Build a set of known SEF prefixes so buildHref can detect the lang segment
+        $knownSefs = [];
+        foreach ($languages as $lang) {
+            $knownSefs[] = strtolower((string) $lang->sef);
+        }
 
         foreach ($languages as $lang) {
             $hreflang = $langService->getHreflangCode($lang->lang_code);
-            $href     = $this->buildHref($langService, $lang, $baseUrl);
+            $href     = $this->buildHref($lang, $baseUrl, $knownSefs);
 
             if (empty($href)) {
                 continue;
             }
 
             $tags[] = ['hreflang' => $hreflang, 'href' => $href];
+        }
 
-            // x-default points to the default language URL
+        // Add x-default pointing to the default language URL
+        foreach ($languages as $lang) {
             if ($lang->lang_code === $defaultCode) {
-                $tags[] = ['hreflang' => 'x-default', 'href' => $href];
+                $href = $this->buildHref($lang, $baseUrl, $knownSefs);
+                if (!empty($href)) {
+                    $tags[] = ['hreflang' => 'x-default', 'href' => $href];
+                }
+                break;
             }
         }
 
@@ -115,119 +183,54 @@ class HreflangService extends AbstractService
     }
 
     /**
-     * Build the href URL for a language.
+     * Build the href URL for a given language.
      *
-     * Uses Falang if active (primary), otherwise native Joomla SEF URL.
+     * Takes the current request path, detects the existing language SEF prefix
+     * (e.g. "en" or "me") and replaces it with the target language's SEF code.
+     * If no known prefix is found the target prefix is prepended instead.
+     *
+     * @param object   $lang       Language object with ->sef property
+     * @param string   $baseUrl    Site base URL without trailing slash
+     * @param string[] $knownSefs  All active language SEF codes (lowercase)
      */
-    private function buildHref(LanguageService $langService, object $lang, string $baseUrl): string
+    private function buildHref(object $lang, string $baseUrl, array $knownSefs): string
     {
         try {
             $currentUri = Uri::getInstance();
+            $path       = $currentUri->getPath();
 
-            // For Falang: swap language SEF prefix in current URL path
-            if ($langService->isFalangActive()) {
-                return $this->buildFalangHref($lang, $baseUrl, $currentUri);
+            // Preserve trailing slash for canonical consistency
+            $hasTrailingSlash = str_ends_with($path, '/');
+
+            // Strip subdirectory prefix when Joomla is not installed at root
+            $joomlaBase = parse_url((string) Uri::root(), PHP_URL_PATH) ?? '/';
+            $joomlaBase = rtrim((string) $joomlaBase, '/');
+
+            $relativePath = $path;
+            if ($joomlaBase !== '' && str_starts_with($path, $joomlaBase)) {
+                $relativePath = substr($path, strlen($joomlaBase));
             }
 
-            // Native Joomla multilingual: use LanguageService URL builder
-            $input       = $this->app->getInput();
-            $option      = $input->getCmd('option', '');
-            $view        = $input->getCmd('view', '');
-            $id          = $input->getInt('id', 0);
+            // Build clean list of non-empty path segments
+            $segments = array_values(array_filter(explode('/', $relativePath)));
 
-            if ($option && $view && $id) {
-                $internalLink = "index.php?option={$option}&view={$view}&id={$id}";
-                return $langService->buildUrlForLanguage($internalLink, $lang->lang_code, $baseUrl);
+            // If the first segment is a known language prefix, replace it;
+            // otherwise prepend the target language prefix.
+            if (!empty($segments) && in_array(strtolower($segments[0]), $knownSefs, true)) {
+                $segments[0] = $lang->sef;
+            } else {
+                array_unshift($segments, $lang->sef);
             }
 
-            // Fallback: swap SEF prefix
-            return $this->buildFalangHref($lang, $baseUrl, $currentUri);
+            $newPath = '/' . implode('/', $segments);
+
+            if ($hasTrailingSlash) {
+                $newPath .= '/';
+            }
+
+            return $baseUrl . $joomlaBase . $newPath;
         } catch (\Throwable $e) {
             return '';
-        }
-    }
-
-    /**
-     * Build href by swapping the language SEF prefix in the current URL.
-     *
-     * Example: /en/spa-center → /me/spa-center
-     *
-     * Works for Falang (same slug, different prefix) and simple prefix-based setups.
-     */
-    private function buildFalangHref(object $lang, string $baseUrl, Uri $currentUri): string
-    {
-        $path = $currentUri->getPath();
-
-        // Remove base URL path prefix if Joomla is installed in a subdirectory
-        $joomlaBase = parse_url((string) Uri::root(), PHP_URL_PATH) ?? '/';
-        $joomlaBase = rtrim((string) $joomlaBase, '/');
-
-        $relativePath = $path;
-        if ($joomlaBase !== '' && str_starts_with($path, $joomlaBase)) {
-            $relativePath = substr($path, strlen($joomlaBase));
-        }
-
-        // Normalise: ensure leading slash
-        $relativePath = '/' . ltrim($relativePath, '/');
-
-        // Split path into segments and replace first non-empty segment (the lang prefix)
-        $segments = explode('/', $relativePath);
-
-        // Find and replace the language prefix segment
-        foreach ($segments as $i => $segment) {
-            if ($segment === '') {
-                continue;
-            }
-
-            // Replace this segment with the target language SEF prefix
-            $segments[$i] = $lang->sef;
-            break;
-        }
-
-        $newPath = implode('/', $segments);
-
-        return $baseUrl . $joomlaBase . $newPath;
-    }
-
-    /**
-     * Check if the document already has a complete set of hreflang link tags.
-     *
-     * Joomla Language Filter adds hreflang via addHeadLink() → stored in $headData['links'].
-     * Our service adds via addCustomTag() → stored in $headData['custom'].
-     * We check both to avoid duplicates.
-     *
-     * A "complete" set means one tag per active language + x-default.
-     * If Language Filter only added x-default (no per-language tags), we still inject.
-     */
-    private function hasExistingHreflangTags(HtmlDocument $document, int $languageCount): bool
-    {
-        try {
-            $headData  = $document->getHeadData();
-            $count     = 0;
-
-            // Check custom tags (our own tags from previous runs)
-            if (isset($headData['custom']) && is_array($headData['custom'])) {
-                foreach ($headData['custom'] as $tag) {
-                    if (is_string($tag) && str_contains($tag, 'hreflang')) {
-                        $count++;
-                    }
-                }
-            }
-
-            // Check links (Language Filter uses addHeadLink which goes here)
-            if (isset($headData['links']) && is_array($headData['links'])) {
-                foreach ($headData['links'] as $attribs) {
-                    if (isset($attribs['hreflang'])) {
-                        $count++;
-                    }
-                }
-            }
-
-            // Skip only if full set is present: one per language + x-default
-            // If only x-default exists (count=1), we still need to add language-specific tags
-            return $count >= $languageCount + 1; // +1 for x-default
-        } catch (\Throwable $e) {
-            return false;
         }
     }
 }

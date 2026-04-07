@@ -6,6 +6,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.8.6] - 2026-03-30
+
+### Fixed
+- **Hreflang tags missing on Falang non-default language pages (root cause fix)**: `LanguageService::getFalangLanguages()` used `INNER JOIN #__languages` — on sites with a single Joomla language + Falang overlay, the Montenegrin (ME) language has no matching row in `#__languages`, so the INNER JOIN silently dropped it and the plugin detected only 1 language, triggering the `isMultilingual() = false` early return. Changed to LEFT JOIN and reconstruct the language object from Falang's own `lang_code` field.
+- **SEF prefix resolution for Falang languages**: added three-stage fallback: (1) `#__falang_url_configuration.sef` if available, (2) first 2 chars of Falang `lang_code` (e.g. `"me"` from `"me-ME"`), (3) Joomla `#__languages.sef` via LEFT JOIN.
+
+---
+
+## [0.8.5] - 2026-03-30
+
+### Fixed
+- **Hreflang incomplete on non-default language pages**: `HreflangService::buildHref()` was losing the trailing slash when rebuilding URLs (`implode('/', $segments)` doesn't preserve it), causing inconsistent URL generation. Fixed by explicitly checking and restoring trailing slash.
+- **Hreflang `x-default` missing on ME version**: `generateTags()` now resolves `x-default` in a separate pass through all languages, decoupled from the per-language loop. This ensures `x-default` is always emitted even when the default language entry comes after non-default languages.
+- **Language prefix detection**: replaced call to non-existent `isLanguagePrefix()` method with inline `in_array()` check against a pre-built list of known SEF codes (e.g. `['en', 'me']`).
+
+---
+
+## [0.8.3] - 2026-03-13
+
+### Fixed
+- **Hotel schema not generated**: `generateOrganizationSchema()` had no `hotel` branch — when `schema_type = 'hotel'` was selected, the code fell through to the generic `Organization` schema. Now generates proper `LodgingBusiness` schema with `starRating`, `checkInTime`, `checkOutTime`, `petsAllowed`, `geo`, `address`, and social `sameAs` links.
+
+---
+
+## [0.8.2] - 2026-03-09
+
+### Fixed
+- **Sitemap duplicate root URL**: homepage (`/`) was added twice — once explicitly and again as a menu item. Added URL deduplication in `SitemapService::generateSitemap()` using a `$seenUrls` hash map (normalized without trailing slash). Google now sees each URL exactly once.
+
+---
+
+## [0.8.1] - 2026-03-09
+
+### Fixed
+- **Meta Pixel YooTheme consent**: changed category name from `meta_pixel` (underscore) to `meta-pixel` (hyphen) to match YooTheme's default consent category naming — without this fix, Meta Pixel script was not released when user accepted Marketing consent.
+
+### Removed
+- Dead code: `addSchemaMarkup()` method removed from `joomlaboost.php` — this method was never called (replaced by `addOptimizedSchemaMarkup()`).
+
+### Documentation
+- `ga4_consent_mode` field description updated: clearly explains that YooTheme consent mode requires a one-time setup in YooTheme Customizer → Scripts → Google Analytics (container can stay empty, just needs to be enabled).
+- `pixel_consent_mode` field description updated: clearly explains the same one-time YooTheme Customizer setup for Meta Pixel container.
+- `gtm_container_id` field description updated: added warning about potential GA4 duplicate tracking if YooTheme also has GA4 configured in its own Customizer integrations.
+
+---
+
 ## [0.8.0] - 2026-03-02
 
 ### Added

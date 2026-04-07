@@ -11,6 +11,7 @@ use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Uri\Uri;
 
 // Register optimized autoloader
 require_once __DIR__ . '/src/Services/ServiceAutoloader.php';
@@ -178,8 +179,11 @@ class PlgSystemJoomlaboost extends CMSPlugin
             // Add Schema markup with performance optimizations
             $this->addOptimizedSchemaMarkup($document);
 
-            // Add hreflang alternate tags for multilingual support
-            $this->addHreflangTags($document);
+            // Add canonical link tag (current URL without query params)
+            $this->addCanonicalTag($document);
+
+            // Hreflang is handled in onAfterRender (buffer phase) to run AFTER
+            // Language Filter / Falang which would otherwise overwrite our tags.
 
             // Process all batched meta tags in single DOM operation
             $processed = $this->performanceService->processBatchedMeta($document);
@@ -216,8 +220,6 @@ class PlgSystemJoomlaboost extends CMSPlugin
         $changed = false;
 
         // ── 1. FAQ auto-detect from rendered HTML buffer ─────────────────────
-        // Runs on every page, for all languages (Falang translates before this hook).
-        // SchemaService internally guards: enabled, allowSearchEngines, no duplicate FAQPage.
         try {
             $schemaService = new SchemaService($app, $this->params);
             $newBody = $schemaService->injectFAQFromHtmlBuffer($body);
@@ -227,6 +229,24 @@ class PlgSystemJoomlaboost extends CMSPlugin
             }
         } catch (\Throwable $e) {
             $this->logDebug('FAQ buffer injection failed: ' . $e->getMessage());
+        }
+
+        // ── 2. Hreflang injection (HTML buffer) ───────────────────────────────
+        // Runs LAST — after Language Filter / Falang — to guarantee clean output.
+        try {
+            if ((bool) $this->params->get('enable_hreflang', 1)) {
+                $langService = new \JoomlaBoost\Plugin\System\JoomlaBoost\Services\LanguageService($app, $this->params);
+                if ($langService->isMultilingual()) {
+                    $hreflangService = new HreflangService($app, $this->params);
+                    $newBody = $hreflangService->injectIntoBuffer($body, $langService);
+                    if ($newBody !== $body) {
+                        $body    = $newBody;
+                        $changed = true;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('Hreflang buffer injection failed: ' . $e->getMessage());
         }
 
         // ── 2. Staging badge (only for staging environments) ──────────────────
@@ -958,61 +978,88 @@ HTML;
             // ignore
         }
     }
-
-    private function addSchemaMarkup(HtmlDocument $document): void
+    /**
+     * Add canonical <link rel="canonical"> tag.
+     *
+     * Canonical URL = current URL with scheme+host+path, query params stripped.
+     * This prevents duplicate-content penalties when the same page is reachable
+     * via multiple URLs (Joomla non-SEF params, www vs non-www, sessions, etc.).
+     *
+     * Only injected if no canonical already exists (e.g. from another plugin).
+     */
+    private function addCanonicalTag(HtmlDocument $document): void
     {
         try {
-            if ($this->schemaService === null) {
-                $this->schemaService = new SchemaService($this->getApp(), $this->params);
+            // Check if a canonical link already exists — avoid duplicates
+            $headData = $document->getHeadData();
+            if (!empty($headData['links'])) {
+                foreach ($headData['links'] as $attribs) {
+                    if (
+                        isset($attribs['rel']) &&
+                        strtolower((string) $attribs['rel']) === 'canonical'
+                    ) {
+                        return; // Already set — nothing to do
+                    }
+                }
             }
 
-            if (!$this->params->get('enable_schema', 1)) {
-                $this->logDebug('Schema: Disabled in plugin settings');
+            // Build canonical URL: scheme + host + path (no query, no fragment)
+            $uri  = Uri::getInstance();
+            $base = rtrim((string) Uri::base(), '/');
+
+            $path = $uri->getPath();
+
+            // Preserve trailing slash only for homepage
+            $canonical = $base . $path;
+
+            // Ensure we never produce a bare domain without trailing slash on homepage
+            if ($canonical === $base || $canonical === $base . '/') {
+                $canonical = $base . '/';
+            }
+
+            if (empty($canonical)) {
                 return;
             }
 
-            $schema = $this->schemaService->generateSchema();
-            if (!empty($schema)) {
-                $jsonLd = '<script type="application/ld+json">
-' . "\n";
-                $jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-                $jsonLd .= "\n
-</script>";
-                $document->addCustomTag($jsonLd);
-                if ($this->params->get('debug_mode', 0)) {
-                    $this->logDebug('Schema.org JSON-LD generated: ' . count($schema) . ' schema(s)');
-                }
-            } else {
-                $this->logDebug('Schema: No schema data generated');
-            }
+            $document->addHeadLink(
+                htmlspecialchars($canonical, ENT_QUOTES, 'UTF-8'),
+                'canonical',
+                'rel'
+            );
+
+            $this->logDebug('Canonical tag added: ' . $canonical);
         } catch (\Throwable $e) {
-            if ($this->params->get('debug_mode', 0)) {
-                $this->logDebug('Schema.org generation failed: ' . $e->getMessage());
-            }
+            $this->logDebug('Canonical tag injection failed: ' . $e->getMessage());
         }
     }
 
     private function addGoogleVerificationTags(HtmlDocument $document): void
     {
-        $gscMeta = $this->params->get('gsc_verification_meta', '');
-        if (!empty($gscMeta)) {
-            // Support multiple verification codes (comma or newline separated)
-            $codes = preg_split('/[,\n\r]+/', $gscMeta, -1, PREG_SPLIT_NO_EMPTY);
+        // Collect all GSC verification codes from primary + secondary fields
+        $allCodes = [];
 
-            $count = 0;
-            foreach ($codes as $code) {
-                $code = trim($code);
-                if (!empty($code)) {
-                    // Use setMetaData with unique name to ensure tags appear early in <head>
-                    // Joomla renders these BEFORE custom tags and right after charset/viewport
-                    $document->setMetaData('google-site-verification-' . $count, $code);
-                    $count++;
+        foreach (['gsc_verification_meta', 'gsc_verification_meta_2'] as $field) {
+            $raw = trim((string) $this->params->get($field, ''));
+            if ($raw !== '') {
+                // Split on comma or newline (legacy single-field support)
+                $parts = preg_split('/[,\n\r]+/', $raw, -1, PREG_SPLIT_NO_EMPTY);
+                foreach ($parts as $part) {
+                    $part = trim($part);
+                    if ($part !== '') {
+                        $allCodes[] = $part;
+                    }
                 }
             }
+        }
 
-            if ($count > 0) {
-                $this->logDebug('Added ' . $count . ' Google Search Console verification meta tag(s) at top of head');
-            }
+        $count = 0;
+        foreach ($allCodes as $code) {
+            $document->setMetaData('google-site-verification-' . $count, $code);
+            $count++;
+        }
+
+        if ($count > 0) {
+            $this->logDebug('Added ' . $count . ' Google Search Console verification meta tag(s) at top of head');
         }
 
         $additionalHtml = $this->params->get('gsc_additional_html', '');

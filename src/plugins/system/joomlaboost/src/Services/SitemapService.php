@@ -44,21 +44,29 @@ class SitemapService extends AbstractService
             return $this->getEmptySitemap();
         }
 
-        $urls = [];
+        $urls     = [];
+        $seenUrls = []; // Track normalized URLs to prevent duplicates
+
+        // Normalize URL for comparison: strip trailing slash, lowercase scheme+host
+        $normalize = static function (string $url): string {
+            return rtrim($url, '/');
+        };
 
         // Detect if multilingual sitemap is requested
         $multilingual = (bool)$this->params->get('sitemap_hreflang', 0);
         $languages    = $multilingual ? $this->getLanguageService()->getActiveLanguages() : [];
 
         // Homepage (always included)
+        $homeUrl = $this->getBaseUrl();
         $urls[] = $this->createUrlEntry(
-            $this->getBaseUrl(),
+            $homeUrl,
             '1.0',
             'daily',
             null,
             [],
             $multilingual ? $this->buildAlternatesForHomepage($languages) : []
         );
+        $seenUrls[$normalize($homeUrl)] = true;
 
         // Articles (if enabled)
         if ($this->params->get('sitemap_include_articles', 1)) {
@@ -67,6 +75,10 @@ class SitemapService extends AbstractService
             $changefreq  = $this->params->get('sitemap_changefreq_articles', 'weekly');
 
             foreach ($articles as $article) {
+                $normalized = $normalize($article->url);
+                if (isset($seenUrls[$normalized])) {
+                    continue; // Skip duplicate
+                }
                 $images     = $this->getArticleImages($article->id);
                 $alternates = $multilingual
                     ? $this->buildAlternatesForArticle($article, $languages)
@@ -80,6 +92,7 @@ class SitemapService extends AbstractService
                     $images,
                     $alternates
                 );
+                $seenUrls[$normalized] = true;
             }
         }
 
@@ -90,6 +103,10 @@ class SitemapService extends AbstractService
             $changefreq = $this->params->get('sitemap_changefreq_categories', 'weekly');
 
             foreach ($categories as $category) {
+                $normalized = $normalize($category->url);
+                if (isset($seenUrls[$normalized])) {
+                    continue; // Skip duplicate
+                }
                 $alternates = $multilingual
                     ? $this->buildAlternatesForCategory($category, $languages)
                     : [];
@@ -102,6 +119,7 @@ class SitemapService extends AbstractService
                     [],
                     $alternates
                 );
+                $seenUrls[$normalized] = true;
             }
         }
 
@@ -112,6 +130,10 @@ class SitemapService extends AbstractService
             $changefreq = $this->params->get('sitemap_changefreq_menu', 'monthly');
 
             foreach ($menuItems as $item) {
+                $normalized = $normalize($item->url);
+                if (isset($seenUrls[$normalized])) {
+                    continue; // Skip duplicate (e.g. homepage menu item = already added)
+                }
                 $urls[] = $this->createUrlEntry(
                     $item->url,
                     $priority,
@@ -120,11 +142,13 @@ class SitemapService extends AbstractService
                     [],
                     [] // Menu items: multilingual would need separate language menus
                 );
+                $seenUrls[$normalized] = true;
             }
         }
 
         return $this->buildXml($urls, $multilingual);
     }
+
 
     // =========================================================================
     // MULTILINGUAL — Alternates building
@@ -348,7 +372,11 @@ class SitemapService extends AbstractService
                 ->from('#__menu')
                 ->where('published = 1')
                 ->where('client_id = 0')
-                ->where('type != ' . $db->quote('url'));
+                ->where('type NOT IN (' . implode(',', [
+                    $db->quote('url'),
+                    $db->quote('separator'),
+                    $db->quote('alias'),
+                ]) . ')');
 
             if ($maxDepth > 0) {
                 $query->where('level <= ' . (int)$maxDepth);
@@ -375,7 +403,16 @@ class SitemapService extends AbstractService
                 'menus' => $menuInfo,
                 'depth' => $maxDepth === 0 ? 'unlimited' : $maxDepth
             ]);
-            return array_filter($items, fn($i) => !empty($i->url));
+            return array_filter($items, function ($i) {
+                if (empty($i->url)) {
+                    return false;
+                }
+                // Filter ?Itemid= URLs (separator/alias menu items with no real route)
+                if (preg_match('/\?Itemid=\d*$/', $i->url)) {
+                    return false;
+                }
+                return true;
+            });
         } catch (\Throwable $e) {
             $this->logDebug('Menu loading failed: ' . $e->getMessage());
             return [];

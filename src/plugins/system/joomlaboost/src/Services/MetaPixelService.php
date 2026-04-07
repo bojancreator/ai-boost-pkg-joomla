@@ -60,7 +60,29 @@ final class MetaPixelService
     }
 
     /**
-     * Get Meta Pixel ID
+     * Get all configured Pixel IDs (primary + optional secondary)
+     *
+     * @return string[]
+     */
+    public function getPixelIds(): array
+    {
+        $ids = [];
+
+        $primary = trim((string) $this->params->get('meta_pixel_id', ''));
+        if ($primary !== '') {
+            $ids[] = $primary;
+        }
+
+        $secondary = trim((string) $this->params->get('meta_pixel_id_2', ''));
+        if ($secondary !== '') {
+            $ids[] = $secondary;
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Get primary Meta Pixel ID (legacy helper)
      */
     public function getPixelId(): string
     {
@@ -72,7 +94,7 @@ final class MetaPixelService
      */
     public function isConfigured(): bool
     {
-        return $this->isEnabled() && !empty($this->getPixelId());
+        return $this->isEnabled() && count($this->getPixelIds()) > 0;
     }
 
     /**
@@ -84,10 +106,10 @@ final class MetaPixelService
             return;
         }
 
-        $pixelId = $this->getPixelId();
-        $version = 'JoomlaBoost v' . $this->getPluginVersion();
+        $pixelIds = $this->getPixelIds();
+        $version  = 'JoomlaBoost v' . $this->getPluginVersion();
 
-        $pixelCode = $this->generatePixelCode($pixelId, $version);    // Add to document head
+        $pixelCode = $this->generatePixelCode($pixelIds, $version);
         $document->addCustomTag($pixelCode);
     }
 
@@ -106,9 +128,24 @@ final class MetaPixelService
      * YooTheme Customizer > Theme > Consent > Marketing > item name
      * Default YooTheme config: yootheme.consent.categories.marketing = ["Meta Pixel", "google_ads"]
      */
-    private function generatePixelCode(string $pixelId, string $version): string
+    /**
+     * Generate Meta Pixel tracking code for one or more Pixel IDs.
+     *
+     * The fbq loader runs once. Each ID gets its own fbq('init') call.
+     * PageView is tracked once (fires for all initialised pixels).
+     *
+     * @param string[] $pixelIds
+     */
+    private function generatePixelCode(array $pixelIds, string $version): string
     {
+        $primaryId = $pixelIds[0] ?? '';
         $consentMode = $this->params->get('pixel_consent_mode', 'none');
+
+        // Build init calls for every ID
+        $initCalls = implode("\n", array_map(
+            static fn(string $id) => "fbq('init', '{$id}');",
+            $pixelIds
+        ));
 
         $innerScript = sprintf(
             '!function(f,b,e,v,n,t,s)
@@ -119,20 +156,15 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,\'script\',
 \'https://connect.facebook.net/en_US/fbevents.js\');
-fbq(\'init\', \'%s\');
+%s
 fbq(\'track\', \'PageView\');',
-            $pixelId
+            $initCalls
         );
 
         if ($consentMode === 'yootheme') {
-            // type="text/plain" prevents browser from executing the script.
-            // IMPORTANT: No spaces in category name!
-            // consent.js splits data-category by whitespace (/\s+/)
-            // so 'marketing.Meta Pixel' would be parsed as 'marketing.Meta' + 'Pixel' (wrong!)
-            // Using 'meta_pixel' (no space) to avoid this bug.
             return sprintf(
                 '<!-- Meta Pixel Code by %s (YooTheme Consent) -->
-<!-- Step 1: Register meta_pixel in YooTheme consent categories -->
+<!-- Step 1: Register meta-pixel in YooTheme consent categories -->
 <script>
 (function() {
   window.yootheme = window.yootheme || {};
@@ -140,11 +172,11 @@ fbq(\'track\', \'PageView\');',
   window.yootheme.consent.categories = window.yootheme.consent.categories || {};
   window.yootheme.consent.categories.marketing = window.yootheme.consent.categories.marketing || [];
   var m = window.yootheme.consent.categories.marketing;
-  if (m.indexOf(\'meta_pixel\') === -1) m.push(\'meta_pixel\');
+  if (m.indexOf(\'meta-pixel\') === -1) m.push(\'meta-pixel\');
 })();
 </script>
 <!-- Step 2: Blocked until user accepts Marketing cookies -->
-<script type="text/plain" data-category="marketing.meta_pixel">
+<script type="text/plain" data-category="marketing.meta-pixel">
 %s
 </script>
 <noscript>
@@ -154,13 +186,11 @@ fbq(\'track\', \'PageView\');',
 <!-- End Meta Pixel Code -->',
                 $version,
                 $innerScript,
-                $pixelId
+                $primaryId
             );
         }
 
-
-
-        // Default: direct inject (legacy, no consent)
+        // Default: direct inject
         return sprintf(
             '<!-- Meta Pixel Code by %s -->
 <script>
@@ -173,10 +203,9 @@ fbq(\'track\', \'PageView\');',
 <!-- End Meta Pixel Code -->',
             $version,
             $innerScript,
-            $pixelId
+            $primaryId
         );
     }
-
 
 
     /**

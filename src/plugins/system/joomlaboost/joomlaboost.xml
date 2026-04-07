@@ -1,13 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>February 27, 2026 12:49</creationDate>
+  <creationDate>April 7, 2026 11:21</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.8.0</version>
+  <version>0.9.22</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -25,6 +25,9 @@
   <addonfields path="src/Field">
     <field>MultiLangTextField</field>
     <field>MultiLangTextarea</field>
+    <field>MultiLangFaqField</field>
+    <field>MultiLangParamsTextField</field>
+    <field>MultiLangParamsTextarea</field>
   </addonfields>
   <!-- Media Assets -->
   <media folder="media" destination="plg_system_joomlaboost">
@@ -152,48 +155,44 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- Multi-Language Organization Name -->
-        <field name="schema_multilang_spacer" type="spacer" label="Multi-Language Configuration" class="text-primary" showon="enable_schema:1" />
-        
-        <!-- Language Selector Dropdown -->
-        <field name="schema_lang_selector"
-               type="list"
-               label="View Language Fields"
-               description="Select which language fields to display below"
-               default="en"
-               showon="enable_schema:1">
-          <option value="all">🌍 All Languages</option>
-          <option value="en">🇬🇧 English Only</option>
-          <option value="sr">🇷🇸 Српски Only</option>
-          <option value="ru">🇷🇺 Русский Only</option>
-        </field>
-        
-        <!-- Organization Name (Multi-Language) -->
+        <!-- Organization Name (EN) -->
         <field name="org_name_en"
                type="text"
-               label="Organization Name (English)"
-               description="Schema.org organization name in English"
-               hint="e.g., Off-Road Serbia"
-               class="form-control"
-               showon="enable_schema:1[AND]schema_lang_selector:all,en" />
-
+               label="Organization Name (EN)"
+               description="Schema.org organization name — English"
+               hint="e.g., Vivid Blue Serenity Resort"
+               showon="enable_schema:1" />
+        <!-- Organization Name (SR/ME) -->
         <field name="org_name_sr"
                type="text"
-               label="Organization Name (Српски)"
-               description="Schema.org organization name in Serbian"
-               hint="e.g., Off-Road Serbia"
-               class="form-control"
-               showon="enable_schema:1[AND]schema_lang_selector:all,sr" />
+               label="Organization Name (SR/ME — Srpski/Crnogorski)"
+               description="Naziv organizacije na srpskom/crnogorskom"
+               hint="npr. Vivid Blue Serenity Resort"
+               showon="enable_schema:1" />
 
-        <field name="org_name_ru"
-               type="text"
-               label="Organization Name (Русский)"
-               description="Schema.org organization name in Russian"
-               hint="e.g., Off-Road Serbia"
-               class="form-control"
-               showon="enable_schema:1[AND]schema_lang_selector:all,ru" />
-        <!-- Organization Logo -->
-        <field name="org_logo" type="media" label="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_LABEL" description="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_DESC" default="" directory="images" showon="enable_schema:1" />
+        <!-- Organization Description (EN) -->
+        <field name="org_description_en"
+               type="textarea"
+               label="Organization Description (EN)"
+               description="Short description of your organization — English (1-2 sentences)"
+               hint="e.g., Luxury adult-only resort on the Montenegrin Adriatic coast."
+               rows="3"
+               cols="80"
+               showon="enable_schema:1" />
+        <!-- Organization Description (SR/ME) -->
+        <field name="org_description_sr"
+               type="textarea"
+               label="Organization Description (SR/ME — Srpski/Crnogorski)"
+               description="Kratak opis organizacije na srpskom/crnogorskom (1-2 rečenice)"
+               hint="npr. Luksuzni resort za odrasle na crnogorskom Jadranu."
+               rows="3"
+               cols="80"
+               showon="enable_schema:1" />
+
+        <!-- Organization Logo (EN) -->
+        <field name="org_logo_en" type="media" label="Organization Logo (EN)" description="Logo for English language pages" default="" directory="images" showon="enable_schema:1" />
+        <!-- Organization Logo (SR/ME) -->
+        <field name="org_logo_sr" type="media" label="Organization Logo (SR/ME)" description="Logo za srpske/crnogorske stranice" default="" directory="images" showon="enable_schema:1" />
         <!-- Schema.org Type Selection -->
         <field name="schema_type" type="list" label="Schema.org Organization Type" description="Choose the type of schema for your organization. Auto-detect uses site characteristics, LocalBusiness includes geo/address data, Hotel includes accommodation-specific fields, Organization is generic." default="auto" showon="enable_schema:1">
           <option value="auto">Auto-detect (recommended)</option>
@@ -201,37 +200,9 @@
           <option value="localbusiness">LocalBusiness (physical location)</option>
           <option value="hotel">Hotel (accommodation)</option>
         </field>
-        <!-- Organization Contact Information (All Types) -->
+        <!-- Organization URL + Contact -->
         <field name="schema_url" type="url" label="Organization URL" description="Official website URL (auto-detected if empty)" default="" showon="enable_schema:1" hint="https://example.com" />
-        <!-- Multi-Language Description -->
-        <field name="schema_description_en"
-               type="textarea"
-               label="Organization Description (English)"
-               description="Short description of your organization in English (1-2 sentences)"
-               hint="e.g., Professional off-road tours and 4x4 adventures in Serbia"
-               class="form-control"
-               rows="3"
-               showon="enable_schema:1[AND]schema_lang_selector:all,en" />
-
-        <field name="schema_description_sr"
-               type="textarea"
-               label="Organization Description (Српски)"
-               description="Short description of your organization in Serbian (1-2 sentences)"
-               hint="e.g., Professional off-road tours and 4x4 adventures in Serbia"
-               class="form-control"
-               rows="3"
-               showon="enable_schema:1[AND]schema_lang_selector:all,sr" />
-
-        <field name="schema_description_ru"
-               type="textarea"
-               label="Organization Description (Русский)"
-               description="Short description of your organization in Russian (1-2 sentences)"
-               hint="e.g., Professional off-road tours and 4x4 adventures in Serbia"
-               class="form-control"
-               rows="3"
-               showon="enable_schema:1[AND]schema_lang_selector:all,ru" />
         <field name="schema_telephone" type="tel" label="Telephone" description="Organization contact telephone number" default="" showon="enable_schema:1" hint="+381 11 1234567" />
-        <field name="schema_email" type="email" label="Email" description="Organization contact email" default="" showon="enable_schema:1" hint="info@example.com" />
         <!-- Social Media Links (sameAs) -->
         <field name="schema_social_spacer" type="spacer" label="Social Media Links" class="text-primary" />
         <field name="schema_social_facebook" type="url" label="Facebook URL" description="Full URL to your Facebook page" default="" hint="https://www.facebook.com/yourpage" />
@@ -244,8 +215,14 @@
         <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., 21.0059)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="21.0059" />
         <!-- LocalBusiness/Hotel Address -->
         <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., RS, US, GB)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="RS" />
-        <field name="schema_address_locality" type="text" label="City/Locality" description="City or locality name" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Belgrade" />
-        <field name="schema_address_street" type="text" label="Street Address" description="Full street address including number" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Knez Mihajlova 1" />
+        <!-- Address: City/Locality (EN) -->
+        <field name="schema_address_locality_en" type="text" label="City/Locality (EN)" description="City name in English" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="e.g., Budva" />
+        <!-- Address: City/Locality (SR/ME) -->
+        <field name="schema_address_locality_sr" type="text" label="City/Locality (SR/ME)" description="Naziv grada na srpskom/crnogorskom" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="npr. Budva" />
+        <!-- Address: Street (EN) -->
+        <field name="schema_address_street_en" type="text" label="Street Address (EN)" description="Street address in English" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="e.g., Reževići bb" />
+        <!-- Address: Street (SR/ME) -->
+        <field name="schema_address_street_sr" type="text" label="Street Address (SR/ME)" description="Adresa ulice na srpskom/crnogorskom" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="npr. Reževići bb" />
         <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="11000" />
         <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="+381111234567" />
         <field name="schema_email" type="email" label="Email Address" description="Business contact email" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
@@ -288,55 +265,30 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="faq_display_mode" type="list" label="FAQ Display Mode" description="Choose how to combine manual and auto-detected FAQs" default="manual_first" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
-          <option value="manual_only">Manual FAQs Only</option>
-          <option value="auto_only">Auto-detected Only</option>
-          <option value="manual_first">Manual First, then Auto-detected</option>
-          <option value="auto_first">Auto-detected First, then Manual</option>
+        <field name="manual_faq_scope" type="list" label="Global FAQ — When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup. Auto-detect always runs first; this setting defines what happens with the global FAQ in relation to it." default="fallback_all" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
+          <option value="fallback_all">Fallback on all pages — show global FAQ on any page without auto-detected FAQ</option>
+          <option value="always_all">All pages — always inject global FAQ, ignore auto-detect</option>
+          <option value="fallback_home">Homepage fallback — show global FAQ on homepage only, if no auto-detected FAQ</option>
+          <option value="always_home">Homepage only — always inject global FAQ on homepage, ignore auto-detect</option>
+          <option value="disabled">Disabled — global FAQ is saved but never injected into Schema</option>
         </field>
-        <!-- Multi-Language Manual FAQs -->
-        <field name="faq_lang_selector"
-               type="list"
-               label="FAQ Language - View Fields"
-               description="Select which language FAQ fields to display below"
-               default="en"
-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
-          <option value="all">🌍 All Languages</option>
-          <option value="en">🇬🇧 English Only</option>
-          <option value="sr">🇷🇸 Српски Only</option>
-          <option value="ru">🇷🇺 Русский Only</option>
-        </field>
+        <!-- Manual FAQ — English -->
         <field name="manual_faqs_en"
                type="textarea"
-               label="Manual FAQ Items (English)"
-               description="FAQ items in JSON format for English. Format: [{&quot;question&quot;: &quot;Q?&quot;, &quot;answer&quot;: &quot;A.&quot;}]"
-               default=""
-               rows="8"
+               label="Manual FAQ Items (EN — English)"
+               description="FAQ items in JSON format for English pages. Format: [{&quot;question&quot;: &quot;Q?&quot;, &quot;answer&quot;: &quot;A.&quot;}]"
+               rows="6"
                cols="80"
-               filter="raw"
-               class="input-xxlarge"
-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1[AND]faq_lang_selector:all,en" />
+               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <!-- Manual FAQ — Serbian/Montenegrin (sr-RS / me) -->
         <field name="manual_faqs_sr"
                type="textarea"
-               label="Manual FAQ Items (Српски)"
-               description="FAQ stavke u JSON formatu za srpski jezik. Ako je prazno, koristi se engleski."
-               default=""
-               rows="8"
+               label="Manual FAQ Items (SR/ME — Srpski/Crnogorski)"
+               description="FAQ u JSON formatu za srpski/crnogorski jezik. Format: [{&quot;question&quot;: &quot;Pitanje?&quot;, &quot;answer&quot;: &quot;Odgovor.&quot;}]"
+               rows="6"
                cols="80"
-               filter="raw"
-               class="input-xxlarge"
-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1[AND]faq_lang_selector:all,sr" />
-        <field name="manual_faqs_ru"
-               type="textarea"
-               label="Manual FAQ Items (Русский)"
-               description="Элементы FAQ в формате JSON для русского языка. Если пусто, используется английский."
-               default=""
-               rows="8"
-               cols="80"
-               filter="raw"
-               class="input-xxlarge"
-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1[AND]faq_lang_selector:all,ru" />
-        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{\&quot;question\&quot;: \&quot;What?\&quot;, \&quot;answer\&quot;: \&quot;This!\&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
       </fieldset>
       <fieldset name="google" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_GOOGLE">
         <!-- Google Search Console Verification -->
@@ -344,7 +296,8 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="gsc_verification_meta" type="text" label="PLG_SYSTEM_JOOMLABOOST_GSC_VERIFICATION_META_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GSC_VERIFICATION_META_DESC" default="" showon="enable_google_verification:1" />
+        <field name="gsc_verification_meta" type="text" label="Google Site Verification Code (Primary)" description="Paste only the content value from the meta tag: &lt;meta name='google-site-verification' content='PASTE_THIS_VALUE'/&gt;" default="" showon="enable_google_verification:1" />
+        <field name="gsc_verification_meta_2" type="text" label="Google Site Verification Code (Secondary — optional)" description="Second verification code if you have two Google Search Console properties (e.g. www + non-www, or two organizations). Leave empty if not needed." default="" hint="" showon="enable_google_verification:1" />
         <field name="gsc_additional_html" type="textarea" label="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_DESC" default="" rows="5" cols="80" showon="enable_google_verification:1" />
         <!-- Google Analytics 4 -->
         <field name="enable_ga4" type="radio" label="PLG_SYSTEM_JOOMLABOOST_GA4_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_DESC" default="0" class="btn-group btn-group-yesno">
@@ -353,7 +306,7 @@
         </field>
         <field name="ga4_measurement_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_DESC" default="" hint="G-XXXXXXXXXX" showon="enable_ga4:1" />
         <!-- GA4 GDPR Consent Mode -->
-        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="YooTheme Pro 5: adds data-category attributes so YooTheme consent manager blocks this script until user accepts. GTM: skip direct GA4 injection, let GTM handle it with its own consent settings. None: inject directly without consent (legacy)." default="none" showon="enable_ga4:1">
+        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="How GA4 is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain) until user accepts Statistics in YooTheme consent banner — REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Google Analytics container (code can stay empty). GTM: skip direct GA4, let GTM handle it with its own consent settings." default="none" showon="enable_ga4:1">
           <option value="none">None (Direct inject - no GDPR)</option>
           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
           <option value="gtm">Via GTM (skip direct GA4)</option>
@@ -363,7 +316,7 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="gtm_container_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_DESC" default="" hint="GTM-XXXXXXX" showon="enable_gtm:1" />
+        <field name="gtm_container_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL" description="GTM Container ID (format: GTM-XXXXXXX). NOTE: If YooTheme also has GA4 configured in its own Customizer integrations, disable GA4 here (or use mode Via GTM) to avoid duplicate tracking." default="" hint="GTM-XXXXXXX" showon="enable_gtm:1" />
       </fieldset>
       <fieldset name="facebook" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_FACEBOOK">
         <!-- Meta Pixel (Facebook Pixel) -->
@@ -371,9 +324,10 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="meta_pixel_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_DESC" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
+        <field name="meta_pixel_id" type="text" label="Meta Pixel ID (Primary)" description="Your primary Meta (Facebook) Pixel ID" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
+        <field name="meta_pixel_id_2" type="text" label="Meta Pixel ID (Secondary — optional)" description="Second Pixel ID if you need to track two accounts simultaneously (e.g. agency + client). Leave empty if not needed." default="" hint="784973044476993" showon="enable_meta_pixel:1" />
         <!-- Meta Pixel GDPR Consent Mode -->
-        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="YooTheme Pro 5: wraps pixel script with data-category='marketing' so YooTheme consent manager blocks it until user accepts marketing cookies. None: inject directly without consent (legacy)." default="none" showon="enable_meta_pixel:1">
+        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain, data-category=marketing.meta-pixel) until user accepts Marketing in YooTheme consent banner — REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Meta Pixel container (code can stay empty)." default="none" showon="enable_meta_pixel:1">
           <option value="none">None (Direct inject - no GDPR)</option>
           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
         </field>

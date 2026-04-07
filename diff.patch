@@ -1,0 +1,1270 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 395d96e..c6b689a 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -6,6 +6,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
+ 
++## [0.8.6] - 2026-03-30
++
++### Fixed
++- **Hreflang tags missing on Falang non-default language pages (root cause fix)**: `LanguageService::getFalangLanguages()` used `INNER JOIN #__languages` — on sites with a single Joomla language + Falang overlay, the Montenegrin (ME) language has no matching row in `#__languages`, so the INNER JOIN silently dropped it and the plugin detected only 1 language, triggering the `isMultilingual() = false` early return. Changed to LEFT JOIN and reconstruct the language object from Falang's own `lang_code` field.
++- **SEF prefix resolution for Falang languages**: added three-stage fallback: (1) `#__falang_url_configuration.sef` if available, (2) first 2 chars of Falang `lang_code` (e.g. `"me"` from `"me-ME"`), (3) Joomla `#__languages.sef` via LEFT JOIN.
++
++---
++
++## [0.8.5] - 2026-03-30
++
++### Fixed
++- **Hreflang incomplete on non-default language pages**: `HreflangService::buildHref()` was losing the trailing slash when rebuilding URLs (`implode('/', $segments)` doesn't preserve it), causing inconsistent URL generation. Fixed by explicitly checking and restoring trailing slash.
++- **Hreflang `x-default` missing on ME version**: `generateTags()` now resolves `x-default` in a separate pass through all languages, decoupled from the per-language loop. This ensures `x-default` is always emitted even when the default language entry comes after non-default languages.
++- **Language prefix detection**: replaced call to non-existent `isLanguagePrefix()` method with inline `in_array()` check against a pre-built list of known SEF codes (e.g. `['en', 'me']`).
++
++---
++
++## [0.8.3] - 2026-03-13
++
++### Fixed
++- **Hotel schema not generated**: `generateOrganizationSchema()` had no `hotel` branch — when `schema_type = 'hotel'` was selected, the code fell through to the generic `Organization` schema. Now generates proper `LodgingBusiness` schema with `starRating`, `checkInTime`, `checkOutTime`, `petsAllowed`, `geo`, `address`, and social `sameAs` links.
++
++---
++
++## [0.8.2] - 2026-03-09
++
++### Fixed
++- **Sitemap duplicate root URL**: homepage (`/`) was added twice — once explicitly and again as a menu item. Added URL deduplication in `SitemapService::generateSitemap()` using a `$seenUrls` hash map (normalized without trailing slash). Google now sees each URL exactly once.
++
++---
++
++## [0.8.1] - 2026-03-09
++
++### Fixed
++- **Meta Pixel YooTheme consent**: changed category name from `meta_pixel` (underscore) to `meta-pixel` (hyphen) to match YooTheme's default consent category naming — without this fix, Meta Pixel script was not released when user accepted Marketing consent.
++
++### Removed
++- Dead code: `addSchemaMarkup()` method removed from `joomlaboost.php` — this method was never called (replaced by `addOptimizedSchemaMarkup()`).
++
++### Documentation
++- `ga4_consent_mode` field description updated: clearly explains that YooTheme consent mode requires a one-time setup in YooTheme Customizer → Scripts → Google Analytics (container can stay empty, just needs to be enabled).
++- `pixel_consent_mode` field description updated: clearly explains the same one-time YooTheme Customizer setup for Meta Pixel container.
++- `gtm_container_id` field description updated: added warning about potential GA4 duplicate tracking if YooTheme also has GA4 configured in its own Customizer integrations.
++
++---
++
+ ## [0.8.0] - 2026-03-02
+ 
+ ### Added
+diff --git a/src/plugins/system/joomlaboost/joomlaboost.php b/src/plugins/system/joomlaboost/joomlaboost.php
+index b4c694d..4ce029d 100644
+--- a/src/plugins/system/joomlaboost/joomlaboost.php
++++ b/src/plugins/system/joomlaboost/joomlaboost.php
+@@ -959,39 +959,6 @@ HTML;
+         }
+     }
+ 
+-    private function addSchemaMarkup(HtmlDocument $document): void
+-    {
+-        try {
+-            if ($this->schemaService === null) {
+-                $this->schemaService = new SchemaService($this->getApp(), $this->params);
+-            }
+-
+-            if (!$this->params->get('enable_schema', 1)) {
+-                $this->logDebug('Schema: Disabled in plugin settings');
+-                return;
+-            }
+-
+-            $schema = $this->schemaService->generateSchema();
+-            if (!empty($schema)) {
+-                $jsonLd = '<script type="application/ld+json">
+-' . "\n";
+-                $jsonLd .= json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+-                $jsonLd .= "\n
+-</script>";
+-                $document->addCustomTag($jsonLd);
+-                if ($this->params->get('debug_mode', 0)) {
+-                    $this->logDebug('Schema.org JSON-LD generated: ' . count($schema) . ' schema(s)');
+-                }
+-            } else {
+-                $this->logDebug('Schema: No schema data generated');
+-            }
+-        } catch (\Throwable $e) {
+-            if ($this->params->get('debug_mode', 0)) {
+-                $this->logDebug('Schema.org generation failed: ' . $e->getMessage());
+-            }
+-        }
+-    }
+-
+     private function addGoogleVerificationTags(HtmlDocument $document): void
+     {
+         $gscMeta = $this->params->get('gsc_verification_meta', '');
+diff --git a/src/plugins/system/joomlaboost/joomlaboost.xml b/src/plugins/system/joomlaboost/joomlaboost.xml
+index c1c8304..0a06880 100644
+--- a/src/plugins/system/joomlaboost/joomlaboost.xml
++++ b/src/plugins/system/joomlaboost/joomlaboost.xml
+@@ -1,13 +1,13 @@
+-﻿<?xml version="1.0" encoding="utf-8"?>
++<?xml version="1.0" encoding="utf-8"?>
+ <extension type="plugin" group="system" method="upgrade">
+   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
+   <author>JoomlaBoost Team</author>
+-  <creationDate>February 27, 2026 12:49</creationDate>
++  <creationDate>March 31, 2026 09:56</creationDate>
+   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
+   <license>GNU General Public License version 2 or later</license>
+   <authorEmail>info@joomlaboost.com</authorEmail>
+   <authorUrl>https://joomlaboost.com</authorUrl>
+-  <version>0.8.0</version>
++  <version>0.9.13</version>
+   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
+   <!-- System Requirements -->
+   <php_minimum>8.1.0</php_minimum>
+@@ -25,6 +25,9 @@
+   <addonfields path="src/Field">
+     <field>MultiLangTextField</field>
+     <field>MultiLangTextarea</field>
++    <field>MultiLangFaqField</field>
++    <field>MultiLangParamsTextField</field>
++    <field>MultiLangParamsTextarea</field>
+   </addonfields>
+   <!-- Media Assets -->
+   <media folder="media" destination="plg_system_joomlaboost">
+@@ -152,48 +155,44 @@
+           <option value="1">JYES</option>
+           <option value="0">JNO</option>
+         </field>
+-        <!-- Multi-Language Organization Name -->
+-        <field name="schema_multilang_spacer" type="spacer" label="Multi-Language Configuration" class="text-primary" showon="enable_schema:1" />
+-        
+-        <!-- Language Selector Dropdown -->
+-        <field name="schema_lang_selector"
+-               type="list"
+-               label="View Language Fields"
+-               description="Select which language fields to display below"
+-               default="en"
+-               showon="enable_schema:1">
+-          <option value="all">🌍 All Languages</option>
+-          <option value="en">🇬🇧 English Only</option>
+-          <option value="sr">🇷🇸 Српски Only</option>
+-          <option value="ru">🇷🇺 Русский Only</option>
+-        </field>
+-        
+-        <!-- Organization Name (Multi-Language) -->
++        <!-- Organization Name (EN) -->
+         <field name="org_name_en"
+                type="text"
+-               label="Organization Name (English)"
+-               description="Schema.org organization name in English"
+-               hint="e.g., Off-Road Serbia"
+-               class="form-control"
+-               showon="enable_schema:1[AND]schema_lang_selector:all,en" />
+-
++               label="Organization Name (EN)"
++               description="Schema.org organization name — English"
++               hint="e.g., Vivid Blue Serenity Resort"
++               showon="enable_schema:1" />
++        <!-- Organization Name (SR/ME) -->
+         <field name="org_name_sr"
+                type="text"
+-               label="Organization Name (Српски)"
+-               description="Schema.org organization name in Serbian"
+-               hint="e.g., Off-Road Serbia"
+-               class="form-control"
+-               showon="enable_schema:1[AND]schema_lang_selector:all,sr" />
++               label="Organization Name (SR/ME — Srpski/Crnogorski)"
++               description="Naziv organizacije na srpskom/crnogorskom"
++               hint="npr. Vivid Blue Serenity Resort"
++               showon="enable_schema:1" />
+ 
+-        <field name="org_name_ru"
+-               type="text"
+-               label="Organization Name (Русский)"
+-               description="Schema.org organization name in Russian"
+-               hint="e.g., Off-Road Serbia"
+-               class="form-control"
+-               showon="enable_schema:1[AND]schema_lang_selector:all,ru" />
+-        <!-- Organization Logo -->
+-        <field name="org_logo" type="media" label="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_LABEL" description="PLG_SYSTEM_JOOMLABOOST_ORG_LOGO_DESC" default="" directory="images" showon="enable_schema:1" />
++        <!-- Organization Description (EN) -->
++        <field name="org_description_en"
++               type="textarea"
++               label="Organization Description (EN)"
++               description="Short description of your organization — English (1-2 sentences)"
++               hint="e.g., Luxury adult-only resort on the Montenegrin Adriatic coast."
++               rows="3"
++               cols="80"
++               showon="enable_schema:1" />
++        <!-- Organization Description (SR/ME) -->
++        <field name="org_description_sr"
++               type="textarea"
++               label="Organization Description (SR/ME — Srpski/Crnogorski)"
++               description="Kratak opis organizacije na srpskom/crnogorskom (1-2 rečenice)"
++               hint="npr. Luksuzni resort za odrasle na crnogorskom Jadranu."
++               rows="3"
++               cols="80"
++               showon="enable_schema:1" />
++
++        <!-- Organization Logo (EN) -->
++        <field name="org_logo_en" type="media" label="Organization Logo (EN)" description="Logo for English language pages" default="" directory="images" showon="enable_schema:1" />
++        <!-- Organization Logo (SR/ME) -->
++        <field name="org_logo_sr" type="media" label="Organization Logo (SR/ME)" description="Logo za srpske/crnogorske stranice" default="" directory="images" showon="enable_schema:1" />
+         <!-- Schema.org Type Selection -->
+         <field name="schema_type" type="list" label="Schema.org Organization Type" description="Choose the type of schema for your organization. Auto-detect uses site characteristics, LocalBusiness includes geo/address data, Hotel includes accommodation-specific fields, Organization is generic." default="auto" showon="enable_schema:1">
+           <option value="auto">Auto-detect (recommended)</option>
+@@ -201,35 +200,8 @@
+           <option value="localbusiness">LocalBusiness (physical location)</option>
+           <option value="hotel">Hotel (accommodation)</option>
+         </field>
+-        <!-- Organization Contact Information (All Types) -->
++        <!-- Organization URL + Contact -->
+         <field name="schema_url" type="url" label="Organization URL" description="Official website URL (auto-detected if empty)" default="" showon="enable_schema:1" hint="https://example.com" />
+-        <!-- Multi-Language Description -->
+-        <field name="schema_description_en"
+-               type="textarea"
+-               label="Organization Description (English)"
+-               description="Short description of your organization in English (1-2 sentences)"
+-               hint="e.g., Professional off-road tours and 4x4 adventures in Serbia"
+-               class="form-control"
+-               rows="3"
+-               showon="enable_schema:1[AND]schema_lang_selector:all,en" />
+-
+-        <field name="schema_description_sr"
+-               type="textarea"
+-               label="Organization Description (Српски)"
+-               description="Short description of your organization in Serbian (1-2 sentences)"
+-               hint="e.g., Professional off-road tours and 4x4 adventures in Serbia"
+-               class="form-control"
+-               rows="3"
+-               showon="enable_schema:1[AND]schema_lang_selector:all,sr" />
+-
+-        <field name="schema_description_ru"
+-               type="textarea"
+-               label="Organization Description (Русский)"
+-               description="Short description of your organization in Russian (1-2 sentences)"
+-               hint="e.g., Professional off-road tours and 4x4 adventures in Serbia"
+-               class="form-control"
+-               rows="3"
+-               showon="enable_schema:1[AND]schema_lang_selector:all,ru" />
+         <field name="schema_telephone" type="tel" label="Telephone" description="Organization contact telephone number" default="" showon="enable_schema:1" hint="+381 11 1234567" />
+         <field name="schema_email" type="email" label="Email" description="Organization contact email" default="" showon="enable_schema:1" hint="info@example.com" />
+         <!-- Social Media Links (sameAs) -->
+@@ -244,8 +216,14 @@
+         <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., 21.0059)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="21.0059" />
+         <!-- LocalBusiness/Hotel Address -->
+         <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., RS, US, GB)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="RS" />
+-        <field name="schema_address_locality" type="text" label="City/Locality" description="City or locality name" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Belgrade" />
+-        <field name="schema_address_street" type="text" label="Street Address" description="Full street address including number" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Knez Mihajlova 1" />
++        <!-- Address: City/Locality (EN) -->
++        <field name="schema_address_locality_en" type="text" label="City/Locality (EN)" description="City name in English" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="e.g., Budva" />
++        <!-- Address: City/Locality (SR/ME) -->
++        <field name="schema_address_locality_sr" type="text" label="City/Locality (SR/ME)" description="Naziv grada na srpskom/crnogorskom" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="npr. Budva" />
++        <!-- Address: Street (EN) -->
++        <field name="schema_address_street_en" type="text" label="Street Address (EN)" description="Street address in English" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="e.g., Reževići bb" />
++        <!-- Address: Street (SR/ME) -->
++        <field name="schema_address_street_sr" type="text" label="Street Address (SR/ME)" description="Adresa ulice na srpskom/crnogorskom" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="npr. Reževići bb" />
+         <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="11000" />
+         <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="+381111234567" />
+         <field name="schema_email" type="email" label="Email Address" description="Business contact email" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
+@@ -288,55 +266,30 @@
+           <option value="1">JYES</option>
+           <option value="0">JNO</option>
+         </field>
+-        <field name="faq_display_mode" type="list" label="FAQ Display Mode" description="Choose how to combine manual and auto-detected FAQs" default="manual_first" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
+-          <option value="manual_only">Manual FAQs Only</option>
+-          <option value="auto_only">Auto-detected Only</option>
+-          <option value="manual_first">Manual First, then Auto-detected</option>
+-          <option value="auto_first">Auto-detected First, then Manual</option>
+-        </field>
+-        <!-- Multi-Language Manual FAQs -->
+-        <field name="faq_lang_selector"
+-               type="list"
+-               label="FAQ Language - View Fields"
+-               description="Select which language FAQ fields to display below"
+-               default="en"
+-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
+-          <option value="all">🌍 All Languages</option>
+-          <option value="en">🇬🇧 English Only</option>
+-          <option value="sr">🇷🇸 Српски Only</option>
+-          <option value="ru">🇷🇺 Русский Only</option>
++        <field name="manual_faq_scope" type="list" label="Global FAQ — When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup. Auto-detect always runs first; this setting defines what happens with the global FAQ in relation to it." default="fallback_all" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
++          <option value="fallback_all">Fallback on all pages — show global FAQ on any page without auto-detected FAQ</option>
++          <option value="always_all">All pages — always inject global FAQ, ignore auto-detect</option>
++          <option value="fallback_home">Homepage fallback — show global FAQ on homepage only, if no auto-detected FAQ</option>
++          <option value="always_home">Homepage only — always inject global FAQ on homepage, ignore auto-detect</option>
++          <option value="disabled">Disabled — global FAQ is saved but never injected into Schema</option>
+         </field>
++        <!-- Manual FAQ — English -->
+         <field name="manual_faqs_en"
+                type="textarea"
+-               label="Manual FAQ Items (English)"
+-               description="FAQ items in JSON format for English. Format: [{&quot;question&quot;: &quot;Q?&quot;, &quot;answer&quot;: &quot;A.&quot;}]"
+-               default=""
+-               rows="8"
++               label="Manual FAQ Items (EN — English)"
++               description="FAQ items in JSON format for English pages. Format: [{&quot;question&quot;: &quot;Q?&quot;, &quot;answer&quot;: &quot;A.&quot;}]"
++               rows="6"
+                cols="80"
+-               filter="raw"
+-               class="input-xxlarge"
+-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1[AND]faq_lang_selector:all,en" />
++               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
++        <!-- Manual FAQ — Serbian/Montenegrin (sr-RS / me) -->
+         <field name="manual_faqs_sr"
+                type="textarea"
+-               label="Manual FAQ Items (Српски)"
+-               description="FAQ stavke u JSON formatu za srpski jezik. Ako je prazno, koristi se engleski."
+-               default=""
+-               rows="8"
+-               cols="80"
+-               filter="raw"
+-               class="input-xxlarge"
+-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1[AND]faq_lang_selector:all,sr" />
+-        <field name="manual_faqs_ru"
+-               type="textarea"
+-               label="Manual FAQ Items (Русский)"
+-               description="Элементы FAQ в формате JSON для русского языка. Если пусто, используется английский."
+-               default=""
+-               rows="8"
++               label="Manual FAQ Items (SR/ME — Srpski/Crnogorski)"
++               description="FAQ u JSON formatu za srpski/crnogorski jezik. Format: [{&quot;question&quot;: &quot;Pitanje?&quot;, &quot;answer&quot;: &quot;Odgovor.&quot;}]"
++               rows="6"
+                cols="80"
+-               filter="raw"
+-               class="input-xxlarge"
+-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1[AND]faq_lang_selector:all,ru" />
+-        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{\&quot;question\&quot;: \&quot;What?\&quot;, \&quot;answer\&quot;: \&quot;This!\&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
++               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
++        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+       </fieldset>
+       <fieldset name="google" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_GOOGLE">
+         <!-- Google Search Console Verification -->
+@@ -353,7 +306,7 @@
+         </field>
+         <field name="ga4_measurement_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_DESC" default="" hint="G-XXXXXXXXXX" showon="enable_ga4:1" />
+         <!-- GA4 GDPR Consent Mode -->
+-        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="YooTheme Pro 5: adds data-category attributes so YooTheme consent manager blocks this script until user accepts. GTM: skip direct GA4 injection, let GTM handle it with its own consent settings. None: inject directly without consent (legacy)." default="none" showon="enable_ga4:1">
++        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="How GA4 is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain) until user accepts Statistics in YooTheme consent banner — REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Google Analytics container (code can stay empty). GTM: skip direct GA4, let GTM handle it with its own consent settings." default="none" showon="enable_ga4:1">
+           <option value="none">None (Direct inject - no GDPR)</option>
+           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
+           <option value="gtm">Via GTM (skip direct GA4)</option>
+@@ -363,7 +316,7 @@
+           <option value="1">JYES</option>
+           <option value="0">JNO</option>
+         </field>
+-        <field name="gtm_container_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_DESC" default="" hint="GTM-XXXXXXX" showon="enable_gtm:1" />
++        <field name="gtm_container_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL" description="GTM Container ID (format: GTM-XXXXXXX). NOTE: If YooTheme also has GA4 configured in its own Customizer integrations, disable GA4 here (or use mode Via GTM) to avoid duplicate tracking." default="" hint="GTM-XXXXXXX" showon="enable_gtm:1" />
+       </fieldset>
+       <fieldset name="facebook" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_FACEBOOK">
+         <!-- Meta Pixel (Facebook Pixel) -->
+@@ -373,7 +326,7 @@
+         </field>
+         <field name="meta_pixel_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_DESC" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
+         <!-- Meta Pixel GDPR Consent Mode -->
+-        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="YooTheme Pro 5: wraps pixel script with data-category='marketing' so YooTheme consent manager blocks it until user accepts marketing cookies. None: inject directly without consent (legacy)." default="none" showon="enable_meta_pixel:1">
++        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain, data-category=marketing.meta-pixel) until user accepts Marketing in YooTheme consent banner — REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Meta Pixel container (code can stay empty)." default="none" showon="enable_meta_pixel:1">
+           <option value="none">None (Direct inject - no GDPR)</option>
+           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
+         </field>
+diff --git a/src/plugins/system/joomlaboost/src/Services/HreflangService.php b/src/plugins/system/joomlaboost/src/Services/HreflangService.php
+index 2829910..bf37e76 100644
+--- a/src/plugins/system/joomlaboost/src/Services/HreflangService.php
++++ b/src/plugins/system/joomlaboost/src/Services/HreflangService.php
+@@ -22,13 +22,7 @@ use Joomla\CMS\Uri\Uri;
+  * Hreflang Service
+  *
+  * Generates <link rel="alternate" hreflang="..."> tags for multilingual pages.
+- *
+- * Priority:
+- * 1. Falang (single Joomla install + Falang translation layer) — primary for vividblue.me
+- * 2. Native Joomla multilingual (Language Associations) — fallback
+- *
+- * Guard: if Joomla Language Filter plugin already injected hreflang tags into
+- * the document, this service skips injection to avoid duplicates.
++ * Overrides any incomplete tags inserted by Joomla Language Filter.
+  */
+ class HreflangService extends AbstractService
+ {
+@@ -39,11 +33,6 @@ class HreflangService extends AbstractService
+ 
+     /**
+      * Inject hreflang <link> tags into the HTML document.
+-     *
+-     * Skips silently if:
+-     * - Service is disabled
+-     * - Site is not multilingual (only 1 language)
+-     * - Hreflang tags already exist in document head (Language Filter guard)
+      */
+     public function injectIntoDocument(HtmlDocument $document): void
+     {
+@@ -53,27 +42,37 @@ class HreflangService extends AbstractService
+ 
+         try {
+             $langService = new LanguageService($this->app, $this->params);
+-
++            
+             if (!$langService->isMultilingual()) {
+                 return;
+             }
+ 
+-            $tags          = $this->generateTags($langService);
+-            $languageCount = count($langService->getActiveLanguages());
++            // Generate full set of hreflang tags
++            $tags = $this->generateTags($langService);
+ 
+-            // Guard: skip if document already has a full set of hreflang tags
+-            if ($this->hasExistingHreflangTags($document, $languageCount)) {
+-                $this->logDebug('HreflangService: skipping — full hreflang set already present');
++            if (empty($tags)) {
+                 return;
+             }
+ 
++            // Remove any existing hreflang tags added by Joomla Language Filter 
++            // so we don't have duplicates.
++            $headData = $document->getHeadData();
++            if (isset($headData['links']) && is_array($headData['links'])) {
++                foreach ($headData['links'] as $url => $attribs) {
++                    if (isset($attribs['hreflang'])) {
++                        unset($headData['links'][$url]);
++                    }
++                }
++                $document->setHeadData($headData);
++            }
++
++            // Inject our comprehensive set
+             foreach ($tags as $tag) {
+-                $document->addCustomTag(
+-                    '<link rel="alternate" hreflang="'
+-                        . htmlspecialchars($tag['hreflang'], ENT_QUOTES, 'UTF-8')
+-                        . '" href="'
+-                        . htmlspecialchars($tag['href'], ENT_QUOTES, 'UTF-8')
+-                        . '">'
++                $document->addHeadLink(
++                    htmlspecialchars($tag['href'], ENT_QUOTES, 'UTF-8'),
++                    'alternate',
++                    'rel',
++                    ['hreflang' => htmlspecialchars($tag['hreflang'], ENT_QUOTES, 'UTF-8')]
+                 );
+             }
+ 
+@@ -84,30 +83,42 @@ class HreflangService extends AbstractService
+     }
+ 
+     /**
+-     * Generate hreflang tag data for all active languages + x-default.
++     * Generate hreflang tag data.
+      *
+      * @return array<int, array{hreflang: string, href: string}>
+      */
+-    public function generateTags(LanguageService $langService): array
++    private function generateTags(LanguageService $langService): array
+     {
+-        $tags       = [];
+-        $languages  = $langService->getActiveLanguages();
+-        $baseUrl    = rtrim((string) Uri::root(), '/');
+-        $defaultCode = $langService->getDefaultLanguageCode();
++        $tags = [];
++        $languages    = $langService->getActiveLanguages();
++        $baseUrl      = rtrim((string) Uri::root(), '/');
++        $defaultCode  = $langService->getDefaultLanguageCode();
++
++        // Build a set of known SEF prefixes so buildHref can detect the lang segment
++        $knownSefs = [];
++        foreach ($languages as $lang) {
++            $knownSefs[] = strtolower((string) $lang->sef);
++        }
+ 
+         foreach ($languages as $lang) {
+             $hreflang = $langService->getHreflangCode($lang->lang_code);
+-            $href     = $this->buildHref($langService, $lang, $baseUrl);
++            $href     = $this->buildHref($lang, $baseUrl, $knownSefs);
+ 
+             if (empty($href)) {
+                 continue;
+             }
+ 
+             $tags[] = ['hreflang' => $hreflang, 'href' => $href];
++        }
+ 
+-            // x-default points to the default language URL
++        // Add x-default pointing to the default language URL
++        foreach ($languages as $lang) {
+             if ($lang->lang_code === $defaultCode) {
+-                $tags[] = ['hreflang' => 'x-default', 'href' => $href];
++                $href = $this->buildHref($lang, $baseUrl, $knownSefs);
++                if (!empty($href)) {
++                    $tags[] = ['hreflang' => 'x-default', 'href' => $href];
++                }
++                break;
+             }
+         }
+ 
+@@ -115,119 +126,54 @@ class HreflangService extends AbstractService
+     }
+ 
+     /**
+-     * Build the href URL for a language.
++     * Build the href URL for a given language.
+      *
+-     * Uses Falang if active (primary), otherwise native Joomla SEF URL.
++     * Takes the current request path, detects the existing language SEF prefix
++     * (e.g. "en" or "me") and replaces it with the target language's SEF code.
++     * If no known prefix is found the target prefix is prepended instead.
++     *
++     * @param object   $lang       Language object with ->sef property
++     * @param string   $baseUrl    Site base URL without trailing slash
++     * @param string[] $knownSefs  All active language SEF codes (lowercase)
+      */
+-    private function buildHref(LanguageService $langService, object $lang, string $baseUrl): string
++    private function buildHref(object $lang, string $baseUrl, array $knownSefs): string
+     {
+         try {
+             $currentUri = Uri::getInstance();
++            $path       = $currentUri->getPath();
+ 
+-            // For Falang: swap language SEF prefix in current URL path
+-            if ($langService->isFalangActive()) {
+-                return $this->buildFalangHref($lang, $baseUrl, $currentUri);
+-            }
++            // Preserve trailing slash for canonical consistency
++            $hasTrailingSlash = str_ends_with($path, '/');
+ 
+-            // Native Joomla multilingual: use LanguageService URL builder
+-            $input       = $this->app->getInput();
+-            $option      = $input->getCmd('option', '');
+-            $view        = $input->getCmd('view', '');
+-            $id          = $input->getInt('id', 0);
++            // Strip subdirectory prefix when Joomla is not installed at root
++            $joomlaBase = parse_url((string) Uri::root(), PHP_URL_PATH) ?? '/';
++            $joomlaBase = rtrim((string) $joomlaBase, '/');
+ 
+-            if ($option && $view && $id) {
+-                $internalLink = "index.php?option={$option}&view={$view}&id={$id}";
+-                return $langService->buildUrlForLanguage($internalLink, $lang->lang_code, $baseUrl);
++            $relativePath = $path;
++            if ($joomlaBase !== '' && str_starts_with($path, $joomlaBase)) {
++                $relativePath = substr($path, strlen($joomlaBase));
+             }
+ 
+-            // Fallback: swap SEF prefix
+-            return $this->buildFalangHref($lang, $baseUrl, $currentUri);
+-        } catch (\Throwable $e) {
+-            return '';
+-        }
+-    }
++            // Build clean list of non-empty path segments
++            $segments = array_values(array_filter(explode('/', $relativePath)));
+ 
+-    /**
+-     * Build href by swapping the language SEF prefix in the current URL.
+-     *
+-     * Example: /en/spa-center → /me/spa-center
+-     *
+-     * Works for Falang (same slug, different prefix) and simple prefix-based setups.
+-     */
+-    private function buildFalangHref(object $lang, string $baseUrl, Uri $currentUri): string
+-    {
+-        $path = $currentUri->getPath();
+-
+-        // Remove base URL path prefix if Joomla is installed in a subdirectory
+-        $joomlaBase = parse_url((string) Uri::root(), PHP_URL_PATH) ?? '/';
+-        $joomlaBase = rtrim((string) $joomlaBase, '/');
+-
+-        $relativePath = $path;
+-        if ($joomlaBase !== '' && str_starts_with($path, $joomlaBase)) {
+-            $relativePath = substr($path, strlen($joomlaBase));
+-        }
+-
+-        // Normalise: ensure leading slash
+-        $relativePath = '/' . ltrim($relativePath, '/');
+-
+-        // Split path into segments and replace first non-empty segment (the lang prefix)
+-        $segments = explode('/', $relativePath);
+-
+-        // Find and replace the language prefix segment
+-        foreach ($segments as $i => $segment) {
+-            if ($segment === '') {
+-                continue;
++            // If the first segment is a known language prefix, replace it;
++            // otherwise prepend the target language prefix.
++            if (!empty($segments) && in_array(strtolower($segments[0]), $knownSefs, true)) {
++                $segments[0] = $lang->sef;
++            } else {
++                array_unshift($segments, $lang->sef);
+             }
+ 
+-            // Replace this segment with the target language SEF prefix
+-            $segments[$i] = $lang->sef;
+-            break;
+-        }
+-
+-        $newPath = implode('/', $segments);
+-
+-        return $baseUrl . $joomlaBase . $newPath;
+-    }
+-
+-    /**
+-     * Check if the document already has a complete set of hreflang link tags.
+-     *
+-     * Joomla Language Filter adds hreflang via addHeadLink() → stored in $headData['links'].
+-     * Our service adds via addCustomTag() → stored in $headData['custom'].
+-     * We check both to avoid duplicates.
+-     *
+-     * A "complete" set means one tag per active language + x-default.
+-     * If Language Filter only added x-default (no per-language tags), we still inject.
+-     */
+-    private function hasExistingHreflangTags(HtmlDocument $document, int $languageCount): bool
+-    {
+-        try {
+-            $headData  = $document->getHeadData();
+-            $count     = 0;
+-
+-            // Check custom tags (our own tags from previous runs)
+-            if (isset($headData['custom']) && is_array($headData['custom'])) {
+-                foreach ($headData['custom'] as $tag) {
+-                    if (is_string($tag) && str_contains($tag, 'hreflang')) {
+-                        $count++;
+-                    }
+-                }
+-            }
++            $newPath = '/' . implode('/', $segments);
+ 
+-            // Check links (Language Filter uses addHeadLink which goes here)
+-            if (isset($headData['links']) && is_array($headData['links'])) {
+-                foreach ($headData['links'] as $attribs) {
+-                    if (isset($attribs['hreflang'])) {
+-                        $count++;
+-                    }
+-                }
++            if ($hasTrailingSlash) {
++                $newPath .= '/';
+             }
+ 
+-            // Skip only if full set is present: one per language + x-default
+-            // If only x-default exists (count=1), we still need to add language-specific tags
+-            return $count >= $languageCount + 1; // +1 for x-default
++            return $baseUrl . $joomlaBase . $newPath;
+         } catch (\Throwable $e) {
+-            return false;
++            return '';
+         }
+     }
+ }
+diff --git a/src/plugins/system/joomlaboost/src/Services/LanguageService.php b/src/plugins/system/joomlaboost/src/Services/LanguageService.php
+index c174bc9..434e1c3 100644
+--- a/src/plugins/system/joomlaboost/src/Services/LanguageService.php
++++ b/src/plugins/system/joomlaboost/src/Services/LanguageService.php
+@@ -125,21 +125,31 @@ class LanguageService extends AbstractService
+     /**
+      * Get languages from Falang's language table.
+      *
+-     * Falang uses a single Joomla install with one language in #__languages,
+-     * and manages translations in its own #__falang_languages table.
+-     * This is the correct source for multilingual detection on Falang sites.
++     * Falang uses a single Joomla install (often one language in #__languages)
++     * and manages additional languages in #__falang_languages. We MUST read
++     * Falang's own table directly — a JOIN against #__languages would silently
++     * drop any Falang language whose joomla_lang_id has no matching row there
++     * (common on single-Joomla-language + Falang-overlay installs).
++     *
++     * SEF prefix strategy (in priority order):
++     *  1. Falang URL Configuration table  (#__falang_url_configuration.sef)
++     *  2. Falang lang_code first 2 chars  (e.g. "me" from "me-ME")
++     *  3. Joomla #__languages.sef         (fallback via LEFT JOIN)
+      *
+      * @return array<string, object>  keyed by lang_code, each object has lang_code, sef, title, is_default
+      */
+     public function getFalangLanguages(): array
+     {
+         try {
+-            $db    = Factory::getDbo();
++            $db = Factory::getDbo();
++
++            // Primary query: Falang languages LEFT-joined to Joomla languages
++            // LEFT JOIN so we never lose a Falang language that has no Joomla match
+             $query = $db->getQuery(true)
+-                ->select('fl.id, fl.lang_code, fl.published, fl.published AS is_default')
+-                ->select('l.lang_code AS joomla_lang_code, l.sef, l.title')
++                ->select('fl.id, fl.lang_code, fl.published')
++                ->select('l.sef AS joomla_sef, l.title AS joomla_title')
+                 ->from('#__falang_languages AS fl')
+-                ->join('INNER', '#__languages AS l ON l.lang_id = fl.joomla_lang_id')
++                ->join('LEFT', '#__languages AS l ON l.lang_id = fl.joomla_lang_id')
+                 ->where('fl.published = 1')
+                 ->order('fl.id ASC');
+ 
+@@ -150,13 +160,33 @@ class LanguageService extends AbstractService
+                 return [];
+             }
+ 
++            // Try to load Falang URL configuration for SEF overrides
++            $sefMap = $this->getFalangSefMap($db);
++
+             $defaultCode = $this->getDefaultLanguageCode();
+             $rows        = [];
+ 
+             foreach ($rawRows as $row) {
+-                $row->lang_code  = $row->joomla_lang_code;
+-                $row->is_default = ($row->lang_code === $defaultCode);
+-                $rows[$row->lang_code] = $row;
++                $langCode = (string) $row->lang_code;
++
++                // Determine SEF prefix: Falang URL config → lang_code prefix → Joomla sef
++                if (isset($sefMap[$langCode])) {
++                    $sef = $sefMap[$langCode];
++                } elseif ($row->joomla_sef !== null && $row->joomla_sef !== '') {
++                    $sef = $row->joomla_sef;
++                } else {
++                    // Derive from lang_code: "me-ME" → "me", "en-GB" → "en"
++                    $sef = strtolower(substr($langCode, 0, 2));
++                }
++
++                $lang             = new \stdClass();
++                $lang->lang_code  = $langCode;
++                $lang->sef        = $sef;
++                $lang->title      = $row->joomla_title ?? $langCode;
++                $lang->published  = 1;
++                $lang->is_default = ($langCode === $defaultCode);
++
++                $rows[$langCode] = $lang;
+             }
+ 
+             return $rows;
+@@ -166,6 +196,37 @@ class LanguageService extends AbstractService
+         }
+     }
+ 
++    /**
++     * Load SEF prefixes from Falang URL configuration table (if it exists).
++     *
++     * @param \Joomla\Database\DatabaseInterface $db
++     * @return array<string, string>  lang_code => sef
++     */
++    private function getFalangSefMap($db): array
++    {
++        try {
++            $query = $db->getQuery(true)
++                ->select('fl.lang_code, fu.sef')
++                ->from('#__falang_url_configuration AS fu')
++                ->join('INNER', '#__falang_languages AS fl ON fl.id = fu.language_id')
++                ->where('fu.sef IS NOT NULL')
++                ->where('fu.sef != ' . $db->quote(''));
++
++            $db->setQuery($query);
++            $rows = $db->loadObjectList();
++
++            $map = [];
++            foreach ($rows as $row) {
++                $map[(string) $row->lang_code] = (string) $row->sef;
++            }
++            return $map;
++        } catch (\Throwable $e) {
++            // Table may not exist on all Falang versions — silent fallback
++            return [];
++        }
++    }
++
++
+     /**
+      * Get the default (x-default) language code
+      * Reads from Joomla site language setting
+diff --git a/src/plugins/system/joomlaboost/src/Services/MetaPixelService.php b/src/plugins/system/joomlaboost/src/Services/MetaPixelService.php
+index 1820bcf..60d1f96 100644
+--- a/src/plugins/system/joomlaboost/src/Services/MetaPixelService.php
++++ b/src/plugins/system/joomlaboost/src/Services/MetaPixelService.php
+@@ -126,13 +126,12 @@ fbq(\'track\', \'PageView\');',
+ 
+         if ($consentMode === 'yootheme') {
+             // type="text/plain" prevents browser from executing the script.
+-            // IMPORTANT: No spaces in category name!
+-            // consent.js splits data-category by whitespace (/\s+/)
+-            // so 'marketing.Meta Pixel' would be parsed as 'marketing.Meta' + 'Pixel' (wrong!)
+-            // Using 'meta_pixel' (no space) to avoid this bug.
++            // IMPORTANT: Use 'meta-pixel' (hyphen) to match YooTheme's default consent category name.
++            // YooTheme defines: consent.categories.marketing = ["meta-pixel", "google_ads"]
++            // data-category must match exactly — 'meta_pixel' (underscore) would NOT activate!
+             return sprintf(
+                 '<!-- Meta Pixel Code by %s (YooTheme Consent) -->
+-<!-- Step 1: Register meta_pixel in YooTheme consent categories -->
++<!-- Step 1: Register meta-pixel in YooTheme consent categories (matches YooTheme default naming) -->
+ <script>
+ (function() {
+   window.yootheme = window.yootheme || {};
+@@ -140,11 +139,11 @@ fbq(\'track\', \'PageView\');',
+   window.yootheme.consent.categories = window.yootheme.consent.categories || {};
+   window.yootheme.consent.categories.marketing = window.yootheme.consent.categories.marketing || [];
+   var m = window.yootheme.consent.categories.marketing;
+-  if (m.indexOf(\'meta_pixel\') === -1) m.push(\'meta_pixel\');
++  if (m.indexOf(\'meta-pixel\') === -1) m.push(\'meta-pixel\');
+ })();
+ </script>
+ <!-- Step 2: Blocked until user accepts Marketing cookies -->
+-<script type="text/plain" data-category="marketing.meta_pixel">
++<script type="text/plain" data-category="marketing.meta-pixel">
+ %s
+ </script>
+ <noscript>
+diff --git a/src/plugins/system/joomlaboost/src/Services/SchemaService.php b/src/plugins/system/joomlaboost/src/Services/SchemaService.php
+index da49b6e..701f279 100644
+--- a/src/plugins/system/joomlaboost/src/Services/SchemaService.php
++++ b/src/plugins/system/joomlaboost/src/Services/SchemaService.php
+@@ -244,18 +244,15 @@ class SchemaService extends AbstractService
+         $orgName = $this->getLocalizedParam('org_name', $config->get('sitename'));
+ 
+         // Get organization description with language support
+-        $orgDescription = $this->getLocalizedParam('schema_description', $config->get('MetaDesc') ?: ($orgName . ' - Professional services'));
+-
+-        // Get organization logo (prioritize specific org_logo, fallback to og_image)
+-        $orgLogo = $this->params->get('org_logo', '');
+-        if (empty($orgLogo)) {
+-            $orgLogo = $this->params->get('og_image', '');
+-        }
+-        if (!empty($orgLogo)) {
+-            // Convert relative path to absolute URL
+-            if (!str_starts_with($orgLogo, 'http')) {
+-                $orgLogo = rtrim($baseUrl, '/') . '/' . ltrim($orgLogo, '/');
+-            }
++        $orgDescription = $this->getLocalizedParam('org_description', $config->get('MetaDesc') ?: ($orgName . ' - Professional services'));
++
++        // Get organization logo with language support (per-language logo, fallback to og_image)
++        $orgLogoRaw = $this->getLocalizedParam('org_logo', (string) $this->params->get('og_image', ''));
++        $orgLogo = '';
++        if (!empty($orgLogoRaw)) {
++            $orgLogo = str_starts_with($orgLogoRaw, 'http')
++                ? $orgLogoRaw
++                : rtrim($baseUrl, '/') . '/' . ltrim($orgLogoRaw, '/');
+         }
+ 
+         // Determine schema type from config (auto-detect by default)
+@@ -268,7 +265,59 @@ class SchemaService extends AbstractService
+             $schemaType = ($hasGeo || $hasAddress) ? 'localbusiness' : 'organization';
+         }
+ 
+-        if ($schemaType === 'localbusiness') {
++        if ($schemaType === 'hotel') {
++            // Hotel / LodgingBusiness schema with accommodation-specific fields
++            $schema = [
++                '@context' => 'https://schema.org',
++                '@type'    => 'LodgingBusiness',
++                'name'     => $orgName,
++                'url'      => $baseUrl,
++                'description' => $orgDescription,
++                'address'  => [
++                    '@type'           => 'PostalAddress',
++                    'addressCountry'  => $this->params->get('schema_address_country', ''),
++                    'addressLocality' => $this->getLocalizedParam('schema_address_locality', ''),
++                    'streetAddress'   => $this->getLocalizedParam('schema_address_street', ''),
++                    'postalCode'      => $this->params->get('schema_address_zip', ''),
++                ],
++                'telephone' => $this->params->get('schema_phone', ''),
++                'email'     => $this->params->get('schema_email', ''),
++                'petsAllowed' => (bool) $this->params->get('schema_hotel_pets_allowed', 0),
++                'checkInTime'  => $this->params->get('schema_hotel_checkin_time', '14:00'),
++                'checkOutTime' => $this->params->get('schema_hotel_checkout_time', '11:00'),
++                'priceRange' => $this->params->get('schema_price_range', '$$'),
++                'sameAs' => $this->getSocialMediaProfiles($baseUrl),
++            ];
++
++            // Star Rating
++            $starRating = (int) $this->params->get('schema_hotel_star_rating', 0);
++            if ($starRating > 0) {
++                $schema['starRating'] = [
++                    '@type'       => 'Rating',
++                    'ratingValue' => $starRating,
++                    'bestRating'  => 5,
++                    'worstRating' => 1,
++                ];
++            }
++
++            // Geo coordinates
++            $latitude  = $this->params->get('schema_latitude', '');
++            $longitude = $this->params->get('schema_longitude', '');
++            if (!empty($latitude) && !empty($longitude)) {
++                $schema['geo'] = [
++                    '@type'     => 'GeoCoordinates',
++                    'latitude'  => (float) $latitude,
++                    'longitude' => (float) $longitude,
++                ];
++            }
++
++            // Logo
++            if (!empty($orgLogo)) {
++                $schema['logo']  = $orgLogo;
++                $schema['image'] = $orgLogo;
++            }
++        } elseif ($schemaType === 'localbusiness') {
++
+             // LocalBusiness schema with geo and address data
+             $schema = [
+                 '@context' => 'https://schema.org',
+@@ -279,8 +328,8 @@ class SchemaService extends AbstractService
+                 'address' => [
+                     '@type' => 'PostalAddress',
+                     'addressCountry'  => $this->params->get('schema_address_country', 'RS'),
+-                    'addressLocality' => $this->params->get('schema_address_locality', 'Belgrade'),
+-                    'streetAddress'   => $this->params->get('schema_address_street', ''),
++                    'addressLocality' => $this->getLocalizedParam('schema_address_locality', 'Budva'),
++                    'streetAddress'   => $this->getLocalizedParam('schema_address_street', ''),
+                     'postalCode'      => $this->params->get('schema_address_zip', '')
+                 ],
+                 'contactPoint' => [
+@@ -768,7 +817,7 @@ class SchemaService extends AbstractService
+             '//article',
+             '//*[@id="content"]',
+             '//*[@id="main-content"]',
+-            '//*[@class="uk-section"]',  // YooTheme section
++            '//*[contains(concat(" ",normalize-space(@class)," ")," uk-section ")]',  // YooTheme section (multi-class safe)
+         ];
+ 
+         foreach ($candidates as $xpathExpr) {
+@@ -1063,33 +1112,54 @@ class SchemaService extends AbstractService
+         // We scan ONLY that container — no false positives from navigation, headers, etc.
+         // Supports all patterns inside the container: <dl>/<dt>/<dd>, <h3><p>, <h4><p>.
+         if ((bool)$this->params->get('faq_auto_detect', 1)) {
+-            $containerHtml = $this->extractJbFaqContainer($body);
++            $containers = $this->extractAllJbFaqContainers($body);
+ 
+-            if ($containerHtml !== null) {
+-                $faqItems = $this->extractFAQFromContent($containerHtml);
++            if (!empty($containers)) {
++                foreach ($containers as $containerHtml) {
++                    $items = $this->extractFAQFromContent($containerHtml);
++                    $faqItems = array_merge($faqItems, $items);
++                }
+                 if (!empty($faqItems)) {
+-                    $this->logDebug('FAQ buffer-inject: Found jb--faq container, extracted ' . count($faqItems) . ' Q&A pairs');
++                    $this->logDebug('FAQ buffer-inject: Found ' . count($containers) . ' jb--faq container(s), extracted ' . count($faqItems) . ' Q&A pairs total');
+                 } else {
+-                    $this->logDebug('FAQ buffer-inject: jb--faq container found but no Q&A pairs extracted');
++                    $this->logDebug('FAQ buffer-inject: jb--faq container(s) found but no Q&A pairs extracted');
+                 }
+             } else {
+                 $this->logDebug('FAQ buffer-inject: No jb--faq container found — will use global FAQ');
+             }
+         }
+ 
+-        // ── Step 2: Fallback to global FAQ if no container or container was empty ─
+-        if (empty($faqItems) && (bool)$this->params->get('enable_manual_faqs', 0)) {
++        // ── Step 2: Apply global/manual FAQ based on configured scope ─────────────
++        $enableManual = (bool)$this->params->get('enable_manual_faqs', 0);
++        $scope        = (string)$this->params->get('manual_faq_scope', 'fallback_all');
++        $isHomePage   = $this->isHomePage();
++        $shouldInject = $enableManual ? $this->shouldInjectManualFAQ($scope, $faqItems) : false;
++
++        if ($this->isDebugMode()) {
++            $debugInfo = sprintf(
++                "\n<!-- JB-DEBUG: scope=%s autoItems=%d isHomePage=%d shouldInject=%d -->\n",
++                $scope, count($faqItems), (int) $isHomePage, (int) $shouldInject
++            );
++            $body = str_ireplace('</head>', $debugInfo . '</head>', $body);
++        }
++
++        if ($enableManual && $shouldInject) {
+             try {
+-                $qaService = new QAManagementService($this->app, $this->params);
+-                $faqItems  = $qaService->getManualFAQs();
+-                if (!empty($faqItems)) {
+-                    $this->logDebug('FAQ buffer-inject: Using global FAQ (' . count($faqItems) . ' items)');
++                $qaService   = new QAManagementService($this->app, $this->params);
++                $manualItems = $qaService->getManualFAQs();
++
++                if (!empty($manualItems)) {
++                    $faqItems = $manualItems;
++                    $this->logDebug('FAQ buffer-inject: Global FAQ applied (scope=' . $scope . ', ' . count($faqItems) . ' items)');
++                } else {
++                    $this->logDebug('FAQ buffer-inject: getManualFAQs returned empty array');
+                 }
+             } catch (\Throwable $e) {
+                 $this->logDebug('FAQ buffer-inject: QAManagementService error - ' . $e->getMessage());
+             }
+         }
+ 
++
+         if (empty($faqItems)) {
+             $this->logDebug('FAQ buffer-inject: No FAQ items to inject');
+             return $body;
+@@ -1168,6 +1238,153 @@ class SchemaService extends AbstractService
+         return $inner !== '' ? $inner : null;
+     }
+ 
++    /**
++     * Extract inner HTML of ALL elements with class="jb--faq" in the page body.
++     *
++     * Supports multiple FAQ sections on one page (e.g. one per hotel).
++     * Returns an array of innerHTML strings, one per matched container.
++     * Returns empty array if none found.
++     *
++     * @return string[]
++     */
++    private function extractAllJbFaqContainers(string $body): array
++    {
++        // Fast pre-check before full regex — avoids regex overhead on most pages
++        if (stripos($body, 'jb--faq') === false) {
++            return [];
++        }
++
++        $pattern = '/<([a-z][a-z0-9]*)\b[^>]*\bclass=["\'][^"\']*\bjb--faq\b[^"\']*["\'][^>]*>/i';
++
++        // Find all opening tags with jb--faq class
++        if (!preg_match_all($pattern, $body, $allMatches, PREG_OFFSET_CAPTURE)) {
++            return [];
++        }
++
++        $results = [];
++        $len     = strlen($body);
++
++        foreach ($allMatches[0] as $index => $match) {
++            $openTag    = $match[0];                    // Full opening tag string
++            $openStart  = $match[1];                    // Byte offset of opening tag
++            $tagName    = $allMatches[1][$index][0];    // Tag name e.g. 'div'
++            $openLen    = strlen($openTag);
++            $innerStart = $openStart + $openLen;
++
++            // Find the matching closing tag, respecting nesting
++            $depth = 1;
++            $pos   = $innerStart;
++            $inner = '';
++
++            while ($pos < $len && $depth > 0) {
++                $nextOpen  = stripos($body, '<' . $tagName, $pos);
++                $nextClose = stripos($body, '</' . $tagName, $pos);
++
++                if ($nextClose === false) {
++                    break; // Malformed HTML
++                }
++
++                if ($nextOpen !== false && $nextOpen < $nextClose) {
++                    $depth++;
++                    $pos = $nextOpen + 1;
++                } else {
++                    $depth--;
++                    if ($depth === 0) {
++                        $inner = substr($body, $innerStart, $nextClose - $innerStart);
++                    } else {
++                        $pos = $nextClose + 1;
++                    }
++                }
++            }
++
++            if ($inner !== '') {
++                $results[] = $inner;
++            }
++        }
++
++        return $results;
++    }
++
++
++
++    /**
++     * Determine whether the global/manual FAQ should be injected on the current page,
++     * based on the configured `manual_faq_scope` parameter.
++     *
++     * @param string  $scope      Value of `manual_faq_scope` param
++     * @param array   $autoItems  FAQ items already found by auto-detect (may be empty)
++     * @return bool   true = proceed with manual FAQ injection
++     */
++    private function shouldInjectManualFAQ(string $scope, array $autoItems): bool
++    {
++        if ($scope === 'disabled') {
++            return false;
++        }
++
++        $isHome = $this->isHomePage();
++
++        return match ($scope) {
++            // Inject on any page, but only if auto-detect found nothing
++            'fallback_all'  => empty($autoItems),
++            // Inject on every page regardless of auto-detect
++            'always_all'    => true,
++            // Homepage only — inject only if auto-detect found nothing
++            'fallback_home' => $isHome && empty($autoItems),
++            // Homepage only — always inject (ignore auto-detect result)
++            'always_home'   => $isHome,
++            // Unknown value: safe default = don't inject
++            default         => false,
++        };
++    }
++
++    /**
++     * Detect whether the current request is for the site homepage.
++     */
++    private function isHomePage(): bool
++    {
++        try {
++            // ── Strategy 1: URL path check (most reliable for Falang sites) ──────
++            // Falang sets Joomla input `id` internally even for /me/, /en/ homepage
++            // routes, so we MUST check the URL pattern first.
++            $rawPath = $_SERVER['REQUEST_URI'] ?? '';
++            $rawPath = (string) (explode('?', $rawPath)[0] ?? $rawPath);
++            $base    = trim(parse_url((string) \Joomla\CMS\Uri\Uri::root(), PHP_URL_PATH) ?? '', '/');
++            $path    = trim($rawPath, '/');
++
++            if ($base !== '' && str_starts_with($path, $base)) {
++                $path = trim(substr($path, strlen($base)), '/');
++            }
++
++            // Homepage patterns:
++            //   ''               → bare domain root
++            //   'en', 'me'       → 2-char language prefix (SEF homepage, Falang)
++            //   'index.php'      → Joomla without URL rewriting
++            //   'en/index.php'   → language prefix + Joomla index
++            if (
++                $path === '' ||
++                $path === 'index.php' ||
++                preg_match('/^[a-z]{2}$/i', $path) ||
++                preg_match('/^[a-z]{2}\/index\.php$/i', $path)
++            ) {
++                return true;
++            }
++
++            // ── Strategy 2: Joomla menu active vs. default ────────────────────────
++            // Only used if URL pattern doesn't match (non-SEF or fallback).
++            // NOTE: In Joomla 6, Menu::getDefault() takes NO arguments.
++            $menu    = $this->app->getMenu();
++            $active  = $menu ? $menu->getActive()  : null;
++            $default = $menu ? $menu->getDefault()  : null;
++
++            if ($active && $default && $active->id === $default->id) {
++                return true;
++            }
++
++            return false;
++        } catch (\Throwable $e) {
++            return false;
++        }
++    }
+ 
+ 
+     /**
+diff --git a/src/plugins/system/joomlaboost/src/Services/SitemapService.php b/src/plugins/system/joomlaboost/src/Services/SitemapService.php
+index 59695bb..865fb8b 100644
+--- a/src/plugins/system/joomlaboost/src/Services/SitemapService.php
++++ b/src/plugins/system/joomlaboost/src/Services/SitemapService.php
+@@ -44,21 +44,29 @@ class SitemapService extends AbstractService
+             return $this->getEmptySitemap();
+         }
+ 
+-        $urls = [];
++        $urls     = [];
++        $seenUrls = []; // Track normalized URLs to prevent duplicates
++
++        // Normalize URL for comparison: strip trailing slash, lowercase scheme+host
++        $normalize = static function (string $url): string {
++            return rtrim($url, '/');
++        };
+ 
+         // Detect if multilingual sitemap is requested
+         $multilingual = (bool)$this->params->get('sitemap_hreflang', 0);
+         $languages    = $multilingual ? $this->getLanguageService()->getActiveLanguages() : [];
+ 
+         // Homepage (always included)
++        $homeUrl = $this->getBaseUrl();
+         $urls[] = $this->createUrlEntry(
+-            $this->getBaseUrl(),
++            $homeUrl,
+             '1.0',
+             'daily',
+             null,
+             [],
+             $multilingual ? $this->buildAlternatesForHomepage($languages) : []
+         );
++        $seenUrls[$normalize($homeUrl)] = true;
+ 
+         // Articles (if enabled)
+         if ($this->params->get('sitemap_include_articles', 1)) {
+@@ -67,6 +75,10 @@ class SitemapService extends AbstractService
+             $changefreq  = $this->params->get('sitemap_changefreq_articles', 'weekly');
+ 
+             foreach ($articles as $article) {
++                $normalized = $normalize($article->url);
++                if (isset($seenUrls[$normalized])) {
++                    continue; // Skip duplicate
++                }
+                 $images     = $this->getArticleImages($article->id);
+                 $alternates = $multilingual
+                     ? $this->buildAlternatesForArticle($article, $languages)
+@@ -80,6 +92,7 @@ class SitemapService extends AbstractService
+                     $images,
+                     $alternates
+                 );
++                $seenUrls[$normalized] = true;
+             }
+         }
+ 
+@@ -90,6 +103,10 @@ class SitemapService extends AbstractService
+             $changefreq = $this->params->get('sitemap_changefreq_categories', 'weekly');
+ 
+             foreach ($categories as $category) {
++                $normalized = $normalize($category->url);
++                if (isset($seenUrls[$normalized])) {
++                    continue; // Skip duplicate
++                }
+                 $alternates = $multilingual
+                     ? $this->buildAlternatesForCategory($category, $languages)
+                     : [];
+@@ -102,6 +119,7 @@ class SitemapService extends AbstractService
+                     [],
+                     $alternates
+                 );
++                $seenUrls[$normalized] = true;
+             }
+         }
+ 
+@@ -112,6 +130,10 @@ class SitemapService extends AbstractService
+             $changefreq = $this->params->get('sitemap_changefreq_menu', 'monthly');
+ 
+             foreach ($menuItems as $item) {
++                $normalized = $normalize($item->url);
++                if (isset($seenUrls[$normalized])) {
++                    continue; // Skip duplicate (e.g. homepage menu item = already added)
++                }
+                 $urls[] = $this->createUrlEntry(
+                     $item->url,
+                     $priority,
+@@ -120,12 +142,14 @@ class SitemapService extends AbstractService
+                     [],
+                     [] // Menu items: multilingual would need separate language menus
+                 );
++                $seenUrls[$normalized] = true;
+             }
+         }
+ 
+         return $this->buildXml($urls, $multilingual);
+     }
+ 
++
+     // =========================================================================
+     // MULTILINGUAL — Alternates building
+     // =========================================================================
+@@ -348,7 +372,11 @@ class SitemapService extends AbstractService
+                 ->from('#__menu')
+                 ->where('published = 1')
+                 ->where('client_id = 0')
+-                ->where('type != ' . $db->quote('url'));
++                ->where('type NOT IN (' . implode(',', [
++                    $db->quote('url'),
++                    $db->quote('separator'),
++                    $db->quote('alias'),
++                ]) . ')');
+ 
+             if ($maxDepth > 0) {
+                 $query->where('level <= ' . (int)$maxDepth);
+@@ -375,7 +403,16 @@ class SitemapService extends AbstractService
+                 'menus' => $menuInfo,
+                 'depth' => $maxDepth === 0 ? 'unlimited' : $maxDepth
+             ]);
+-            return array_filter($items, fn($i) => !empty($i->url));
++            return array_filter($items, function ($i) {
++                if (empty($i->url)) {
++                    return false;
++                }
++                // Filter ?Itemid= URLs (separator/alias menu items with no real route)
++                if (preg_match('/\?Itemid=\d*$/', $i->url)) {
++                    return false;
++                }
++                return true;
++            });
+         } catch (\Throwable $e) {
+             $this->logDebug('Menu loading failed: ' . $e->getMessage());
+             return [];

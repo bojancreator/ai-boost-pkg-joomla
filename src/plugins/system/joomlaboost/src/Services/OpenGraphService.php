@@ -115,11 +115,19 @@ class OpenGraphService extends AbstractService
         $document = $this->app->getDocument();
         $override = (bool) $this->params->get('og_override', 0);
 
-        // og:type - lightweight determination
-        if ($override || !$perfService->isMetaTagPresent('og:type', 'property')) {
-            $ogType = ($option === 'com_content' && $view === 'article') ? 'article' : 'website';
-            $perfService->addMetaToBatch('og:type', $ogType, 'property');
+        // og:type — always force correct value.
+        // Homepage always = 'website' (even if menu item is Single Article).
+        // Other pages: 'article' only for com_content/view=article, else 'website'.
+        try {
+            $menu       = $this->app->getMenu();
+            $isHomepage = ($menu && $menu->getActive() === $menu->getDefault());
+        } catch (\Throwable $e) {
+            $isHomepage = false;
         }
+        $ogType = ($isHomepage)
+            ? 'website'
+            : (($option === 'com_content' && $view === 'article') ? 'article' : 'website');
+        $perfService->addMetaToBatch('og:type', $ogType, 'property');
 
         // og:site_name - from config, no DB hit
         $siteName = $this->params->get('og_site_name', $this->params->get('org_name', ''));
@@ -327,14 +335,14 @@ class OpenGraphService extends AbstractService
 
             if (!$article) {
                 return '';
-            }            // Try to extract from images JSON (Priority 2)
-            error_log("JB DEBUG - Article $articleId images raw: " . var_export($article->images, true));
-            $this->logDebug("Article images raw: " . ($article->images ?? 'NULL'));
+            }
+
+            // Try to extract from images JSON (Priority 2)
+            $this->logDebug('Article images raw: ' . ($article->images ?? 'NULL'));
 
             if (!empty($article->images)) {
                 $images = json_decode($article->images, true);
-                error_log("JB DEBUG - Article $articleId JSON decode result: " . var_export($images, true));
-                $this->logDebug("Article images decoded: " . json_encode($images));
+                $this->logDebug('Article images decoded: ' . json_encode($images));
 
                 if (is_array($images)) {
                     // Try all possible Joomla image field variations
@@ -357,13 +365,10 @@ class OpenGraphService extends AbstractService
                         }
                     }
 
-                    // Dump all available keys if nothing found
-                    error_log("JB DEBUG - Available JSON keys: " . implode(', ', array_keys($images)));
-                    $this->logDebug("✗ No valid image found. Available keys: " . implode(', ', array_keys($images)));
+                    $this->logDebug('No valid image found. Available keys: ' . implode(', ', array_keys($images)));
                 }
             } else {
-                error_log("JB DEBUG - ✗ Article $articleId images field is empty or NULL");
-                $this->logDebug("✗ Article images field is empty");
+                $this->logDebug('Article images field is empty');
             }
 
             // Extract from article text as fallback (Priority 3)

@@ -196,18 +196,10 @@ class SchemaService extends AbstractService
     {
         $config = Factory::getApplication()->getConfig();
 
-        // Use document meta description (language-aware — Falang/YooTheme already set it)
-        // Fall back to global Joomla MetaDesc only if document has none
-        $description = '';
-        try {
-            $doc = $this->app->getDocument();
-            if ($doc instanceof \Joomla\CMS\Document\HtmlDocument) {
-                $description = $doc->getMetaData('description');
-            }
-        } catch (\Throwable $e) {
-            // ignore
-        }
-
+        // WebSite description should describe the whole site/organization,
+        // NOT the current page. Use org_description from plugin settings,
+        // fall back to Joomla global MetaDesc only if not set.
+        $description = $this->getLocalizedParam('org_description', '');
         if (empty($description)) {
             $description = (string) $config->get('MetaDesc', '');
         }
@@ -244,18 +236,24 @@ class SchemaService extends AbstractService
         $orgName = $this->getLocalizedParam('org_name', $config->get('sitename'));
 
         // Get organization description with language support
-        $orgDescription = $this->getLocalizedParam('schema_description', $config->get('MetaDesc') ?: ($orgName . ' - Professional services'));
+        $orgDescription = $this->getLocalizedParam('org_description', $config->get('MetaDesc') ?: ($orgName . ' - Professional services'));
 
-        // Get organization logo (prioritize specific org_logo, fallback to og_image)
-        $orgLogo = $this->params->get('org_logo', '');
-        if (empty($orgLogo)) {
-            $orgLogo = $this->params->get('og_image', '');
-        }
-        if (!empty($orgLogo)) {
-            // Convert relative path to absolute URL
-            if (!str_starts_with($orgLogo, 'http')) {
-                $orgLogo = rtrim($baseUrl, '/') . '/' . ltrim($orgLogo, '/');
+        // Get organization logo with language support (per-language logo, fallback to og_image)
+        $orgLogoRaw = $this->getLocalizedParam('org_logo', (string) $this->params->get('og_image', ''));
+        $orgLogo = '';
+        if (!empty($orgLogoRaw)) {
+            // Strip Joomla media picker fragment: #joomlaImage://local-images/...
+            if (str_contains($orgLogoRaw, '#joomlaImage://')) {
+                $orgLogoRaw = explode('#joomlaImage://', $orgLogoRaw)[0];
             }
+            // Strip query parameters (width, height etc.) that confuse schema validators
+            if (str_contains($orgLogoRaw, '?')) {
+                $orgLogoRaw = explode('?', $orgLogoRaw)[0];
+            }
+            $orgLogoRaw = trim($orgLogoRaw);
+            $orgLogo = str_starts_with($orgLogoRaw, 'http')
+                ? $orgLogoRaw
+                : rtrim($baseUrl, '/') . '/' . ltrim($orgLogoRaw, '/');
         }
 
         // Determine schema type from config (auto-detect by default)
@@ -268,7 +266,58 @@ class SchemaService extends AbstractService
             $schemaType = ($hasGeo || $hasAddress) ? 'localbusiness' : 'organization';
         }
 
-        if ($schemaType === 'localbusiness') {
+        if ($schemaType === 'hotel') {
+            // Hotel / LodgingBusiness schema with accommodation-specific fields
+            $schema = [
+                '@context' => 'https://schema.org',
+                '@type'    => 'LodgingBusiness',
+                'name'     => $orgName,
+                'url'      => $baseUrl,
+                'description' => $orgDescription,
+                'address'  => [
+                    '@type'           => 'PostalAddress',
+                    'addressCountry'  => $this->params->get('schema_address_country', ''),
+                    'addressLocality' => $this->getLocalizedParam('schema_address_locality', ''),
+                    'streetAddress'   => $this->getLocalizedParam('schema_address_street', ''),
+                    'postalCode'      => $this->params->get('schema_address_zip', ''),
+                ],
+                'telephone' => $this->params->get('schema_phone', ''),
+                'email'     => $this->params->get('schema_email', ''),
+                'petsAllowed' => (bool) $this->params->get('schema_hotel_pets_allowed', 0),
+                'checkInTime'  => $this->params->get('schema_hotel_checkin_time', '14:00'),
+                'checkOutTime' => $this->params->get('schema_hotel_checkout_time', '11:00'),
+                'priceRange' => $this->params->get('schema_price_range', '$$'),
+                'sameAs' => $this->getSocialMediaProfiles($baseUrl),
+            ];
+
+            // Star Rating
+            $starRating = (int) $this->params->get('schema_hotel_star_rating', 0);
+            if ($starRating > 0) {
+                $schema['starRating'] = [
+                    '@type'       => 'Rating',
+                    'ratingValue' => $starRating,
+                    'bestRating'  => 5,
+                    'worstRating' => 1,
+                ];
+            }
+
+            // Geo coordinates
+            $latitude  = $this->params->get('schema_latitude', '');
+            $longitude = $this->params->get('schema_longitude', '');
+            if (!empty($latitude) && !empty($longitude)) {
+                $schema['geo'] = [
+                    '@type'     => 'GeoCoordinates',
+                    'latitude'  => (float) $latitude,
+                    'longitude' => (float) $longitude,
+                ];
+            }
+
+            // Logo
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+        } elseif ($schemaType === 'localbusiness') {
             // LocalBusiness schema with geo and address data
             $schema = [
                 '@context' => 'https://schema.org',
@@ -279,8 +328,8 @@ class SchemaService extends AbstractService
                 'address' => [
                     '@type' => 'PostalAddress',
                     'addressCountry'  => $this->params->get('schema_address_country', 'RS'),
-                    'addressLocality' => $this->params->get('schema_address_locality', 'Belgrade'),
-                    'streetAddress'   => $this->params->get('schema_address_street', ''),
+                    'addressLocality' => $this->getLocalizedParam('schema_address_locality', 'Budva'),
+                    'streetAddress'   => $this->getLocalizedParam('schema_address_street', ''),
                     'postalCode'      => $this->params->get('schema_address_zip', '')
                 ],
                 'contactPoint' => [
@@ -768,7 +817,7 @@ class SchemaService extends AbstractService
             '//article',
             '//*[@id="content"]',
             '//*[@id="main-content"]',
-            '//*[@class="uk-section"]',  // YooTheme section
+            '//*[contains(concat(" ",normalize-space(@class)," ")," uk-section ")]',  // YooTheme section (multi-class safe)
         ];
 
         foreach ($candidates as $xpathExpr) {
@@ -1063,32 +1112,56 @@ class SchemaService extends AbstractService
         // We scan ONLY that container — no false positives from navigation, headers, etc.
         // Supports all patterns inside the container: <dl>/<dt>/<dd>, <h3><p>, <h4><p>.
         if ((bool)$this->params->get('faq_auto_detect', 1)) {
-            $containerHtml = $this->extractJbFaqContainer($body);
+            $containers = $this->extractAllJbFaqContainers($body);
 
-            if ($containerHtml !== null) {
-                $faqItems = $this->extractFAQFromContent($containerHtml);
+            if (!empty($containers)) {
+                foreach ($containers as $containerHtml) {
+                    $items = $this->extractFAQFromContent($containerHtml);
+                    $faqItems = array_merge($faqItems, $items);
+                }
                 if (!empty($faqItems)) {
-                    $this->logDebug('FAQ buffer-inject: Found jb--faq container, extracted ' . count($faqItems) . ' Q&A pairs');
+                    $this->logDebug('FAQ buffer-inject: Found ' . count($containers) . ' jb--faq container(s), extracted ' . count($faqItems) . ' Q&A pairs total');
                 } else {
-                    $this->logDebug('FAQ buffer-inject: jb--faq container found but no Q&A pairs extracted');
+                    $this->logDebug('FAQ buffer-inject: jb--faq container(s) found but no Q&A pairs extracted');
                 }
             } else {
                 $this->logDebug('FAQ buffer-inject: No jb--faq container found — will use global FAQ');
             }
         }
 
-        // ── Step 2: Fallback to global FAQ if no container or container was empty ─
-        if (empty($faqItems) && (bool)$this->params->get('enable_manual_faqs', 0)) {
+        // ── Step 2: Apply global/manual FAQ based on configured scope ─────────────
+        $enableManual = (bool)$this->params->get('enable_manual_faqs', 0);
+        $scope        = (string)$this->params->get('manual_faq_scope', 'fallback_all');
+        $isHomePage   = $this->isHomePage();
+        $shouldInject = $enableManual ? $this->shouldInjectManualFAQ($scope, $faqItems) : false;
+
+        if ($this->isDebugMode()) {
+            $debugInfo = sprintf(
+                "\n<!-- JB-DEBUG: scope=%s autoItems=%d isHomePage=%d shouldInject=%d -->\n",
+                $scope,
+                count($faqItems),
+                (int) $isHomePage,
+                (int) $shouldInject
+            );
+            $body = str_ireplace('</head>', $debugInfo . '</head>', $body);
+        }
+
+        if ($enableManual && $shouldInject) {
             try {
-                $qaService = new QAManagementService($this->app, $this->params);
-                $faqItems  = $qaService->getManualFAQs();
-                if (!empty($faqItems)) {
-                    $this->logDebug('FAQ buffer-inject: Using global FAQ (' . count($faqItems) . ' items)');
+                $qaService   = new QAManagementService($this->app, $this->params);
+                $manualItems = $qaService->getManualFAQs();
+
+                if (!empty($manualItems)) {
+                    $faqItems = $manualItems;
+                    $this->logDebug('FAQ buffer-inject: Global FAQ applied (scope=' . $scope . ', ' . count($faqItems) . ' items)');
+                } else {
+                    $this->logDebug('FAQ buffer-inject: getManualFAQs returned empty array');
                 }
             } catch (\Throwable $e) {
                 $this->logDebug('FAQ buffer-inject: QAManagementService error - ' . $e->getMessage());
             }
         }
+
 
         if (empty($faqItems)) {
             $this->logDebug('FAQ buffer-inject: No FAQ items to inject');
@@ -1168,6 +1241,153 @@ class SchemaService extends AbstractService
         return $inner !== '' ? $inner : null;
     }
 
+    /**
+     * Extract inner HTML of ALL elements with class="jb--faq" in the page body.
+     *
+     * Supports multiple FAQ sections on one page (e.g. one per hotel).
+     * Returns an array of innerHTML strings, one per matched container.
+     * Returns empty array if none found.
+     *
+     * @return string[]
+     */
+    private function extractAllJbFaqContainers(string $body): array
+    {
+        // Fast pre-check before full regex — avoids regex overhead on most pages
+        if (stripos($body, 'jb--faq') === false) {
+            return [];
+        }
+
+        $pattern = '/<([a-z][a-z0-9]*)\b[^>]*\bclass=["\'][^"\']*\bjb--faq\b[^"\']*["\'][^>]*>/i';
+
+        // Find all opening tags with jb--faq class
+        if (!preg_match_all($pattern, $body, $allMatches, PREG_OFFSET_CAPTURE)) {
+            return [];
+        }
+
+        $results = [];
+        $len     = strlen($body);
+
+        foreach ($allMatches[0] as $index => $match) {
+            $openTag    = $match[0];                    // Full opening tag string
+            $openStart  = $match[1];                    // Byte offset of opening tag
+            $tagName    = $allMatches[1][$index][0];    // Tag name e.g. 'div'
+            $openLen    = strlen($openTag);
+            $innerStart = $openStart + $openLen;
+
+            // Find the matching closing tag, respecting nesting
+            $depth = 1;
+            $pos   = $innerStart;
+            $inner = '';
+
+            while ($pos < $len && $depth > 0) {
+                $nextOpen  = stripos($body, '<' . $tagName, $pos);
+                $nextClose = stripos($body, '</' . $tagName, $pos);
+
+                if ($nextClose === false) {
+                    break; // Malformed HTML
+                }
+
+                if ($nextOpen !== false && $nextOpen < $nextClose) {
+                    $depth++;
+                    $pos = $nextOpen + 1;
+                } else {
+                    $depth--;
+                    if ($depth === 0) {
+                        $inner = substr($body, $innerStart, $nextClose - $innerStart);
+                    } else {
+                        $pos = $nextClose + 1;
+                    }
+                }
+            }
+
+            if ($inner !== '') {
+                $results[] = $inner;
+            }
+        }
+
+        return $results;
+    }
+
+
+
+    /**
+     * Determine whether the global/manual FAQ should be injected on the current page,
+     * based on the configured `manual_faq_scope` parameter.
+     *
+     * @param string  $scope      Value of `manual_faq_scope` param
+     * @param array   $autoItems  FAQ items already found by auto-detect (may be empty)
+     * @return bool   true = proceed with manual FAQ injection
+     */
+    private function shouldInjectManualFAQ(string $scope, array $autoItems): bool
+    {
+        if ($scope === 'disabled') {
+            return false;
+        }
+
+        $isHome = $this->isHomePage();
+
+        return match ($scope) {
+            // Inject on any page, but only if auto-detect found nothing
+            'fallback_all'  => empty($autoItems),
+            // Inject on every page regardless of auto-detect
+            'always_all'    => true,
+            // Homepage only — inject only if auto-detect found nothing
+            'fallback_home' => $isHome && empty($autoItems),
+            // Homepage only — always inject (ignore auto-detect result)
+            'always_home'   => $isHome,
+            // Unknown value: safe default = don't inject
+            default         => false,
+        };
+    }
+
+    /**
+     * Detect whether the current request is for the site homepage.
+     */
+    private function isHomePage(): bool
+    {
+        try {
+            // ── Strategy 1: URL path check (most reliable for Falang sites) ──────
+            // Falang sets Joomla input `id` internally even for /me/, /en/ homepage
+            // routes, so we MUST check the URL pattern first.
+            $rawPath = $_SERVER['REQUEST_URI'] ?? '';
+            $rawPath = (string) (explode('?', $rawPath)[0] ?? $rawPath);
+            $base    = trim(parse_url((string) \Joomla\CMS\Uri\Uri::root(), PHP_URL_PATH) ?? '', '/');
+            $path    = trim($rawPath, '/');
+
+            if ($base !== '' && str_starts_with($path, $base)) {
+                $path = trim(substr($path, strlen($base)), '/');
+            }
+
+            // Homepage patterns:
+            //   ''               → bare domain root
+            //   'en', 'me'       → 2-char language prefix (SEF homepage, Falang)
+            //   'index.php'      → Joomla without URL rewriting
+            //   'en/index.php'   → language prefix + Joomla index
+            if (
+                $path === '' ||
+                $path === 'index.php' ||
+                preg_match('/^[a-z]{2}$/i', $path) ||
+                preg_match('/^[a-z]{2}\/index\.php$/i', $path)
+            ) {
+                return true;
+            }
+
+            // ── Strategy 2: Joomla menu active vs. default ────────────────────────
+            // Only used if URL pattern doesn't match (non-SEF or fallback).
+            // NOTE: In Joomla 6, Menu::getDefault() takes NO arguments.
+            $menu    = $this->app->getMenu();
+            $active  = $menu ? $menu->getActive()  : null;
+            $default = $menu ? $menu->getDefault()  : null;
+
+            if ($active && $default && $active->id === $default->id) {
+                return true;
+            }
+
+            return false;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
 
 
     /**

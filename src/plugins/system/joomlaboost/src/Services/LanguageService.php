@@ -125,21 +125,31 @@ class LanguageService extends AbstractService
     /**
      * Get languages from Falang's language table.
      *
-     * Falang uses a single Joomla install with one language in #__languages,
-     * and manages translations in its own #__falang_languages table.
-     * This is the correct source for multilingual detection on Falang sites.
+     * Falang uses a single Joomla install (often one language in #__languages)
+     * and manages additional languages in #__falang_languages. We MUST read
+     * Falang's own table directly — a JOIN against #__languages would silently
+     * drop any Falang language whose joomla_lang_id has no matching row there
+     * (common on single-Joomla-language + Falang-overlay installs).
+     *
+     * SEF prefix strategy (in priority order):
+     *  1. Falang URL Configuration table  (#__falang_url_configuration.sef)
+     *  2. Falang lang_code first 2 chars  (e.g. "me" from "me-ME")
+     *  3. Joomla #__languages.sef         (fallback via LEFT JOIN)
      *
      * @return array<string, object>  keyed by lang_code, each object has lang_code, sef, title, is_default
      */
     public function getFalangLanguages(): array
     {
         try {
-            $db    = Factory::getDbo();
+            $db = Factory::getDbo();
+
+            // Primary query: Falang languages LEFT-joined to Joomla languages
+            // LEFT JOIN so we never lose a Falang language that has no Joomla match
             $query = $db->getQuery(true)
-                ->select('fl.id, fl.lang_code, fl.published, fl.published AS is_default')
-                ->select('l.lang_code AS joomla_lang_code, l.sef, l.title')
+                ->select('fl.id, fl.lang_code, fl.published')
+                ->select('l.sef AS joomla_sef, l.title AS joomla_title')
                 ->from('#__falang_languages AS fl')
-                ->join('INNER', '#__languages AS l ON l.lang_id = fl.joomla_lang_id')
+                ->join('LEFT', '#__languages AS l ON l.lang_id = fl.joomla_lang_id')
                 ->where('fl.published = 1')
                 ->order('fl.id ASC');
 
@@ -150,13 +160,33 @@ class LanguageService extends AbstractService
                 return [];
             }
 
+            // Try to load Falang URL configuration for SEF overrides
+            $sefMap = $this->getFalangSefMap($db);
+
             $defaultCode = $this->getDefaultLanguageCode();
             $rows        = [];
 
             foreach ($rawRows as $row) {
-                $row->lang_code  = $row->joomla_lang_code;
-                $row->is_default = ($row->lang_code === $defaultCode);
-                $rows[$row->lang_code] = $row;
+                $langCode = (string) $row->lang_code;
+
+                // Determine SEF prefix: Falang URL config → lang_code prefix → Joomla sef
+                if (isset($sefMap[$langCode])) {
+                    $sef = $sefMap[$langCode];
+                } elseif ($row->joomla_sef !== null && $row->joomla_sef !== '') {
+                    $sef = $row->joomla_sef;
+                } else {
+                    // Derive from lang_code: "me-ME" → "me", "en-GB" → "en"
+                    $sef = strtolower(substr($langCode, 0, 2));
+                }
+
+                $lang             = new \stdClass();
+                $lang->lang_code  = $langCode;
+                $lang->sef        = $sef;
+                $lang->title      = $row->joomla_title ?? $langCode;
+                $lang->published  = 1;
+                $lang->is_default = ($langCode === $defaultCode);
+
+                $rows[$langCode] = $lang;
             }
 
             return $rows;
@@ -165,6 +195,37 @@ class LanguageService extends AbstractService
             return [];
         }
     }
+
+    /**
+     * Load SEF prefixes from Falang URL configuration table (if it exists).
+     *
+     * @param mixed $db  Joomla database instance (DatabaseInterface)
+     * @return array<string, string>  lang_code => sef
+     */
+    private function getFalangSefMap($db): array
+    {
+        try {
+            $query = $db->getQuery(true)
+                ->select('fl.lang_code, fu.sef')
+                ->from('#__falang_url_configuration AS fu')
+                ->join('INNER', '#__falang_languages AS fl ON fl.id = fu.language_id')
+                ->where('fu.sef IS NOT NULL')
+                ->where('fu.sef != ' . $db->quote(''));
+
+            $db->setQuery($query);
+            $rows = $db->loadObjectList();
+
+            $map = [];
+            foreach ($rows as $row) {
+                $map[(string) $row->lang_code] = (string) $row->sef;
+            }
+            return $map;
+        } catch (\Throwable $e) {
+            // Table may not exist on all Falang versions — silent fallback
+            return [];
+        }
+    }
+
 
     /**
      * Get the default (x-default) language code
