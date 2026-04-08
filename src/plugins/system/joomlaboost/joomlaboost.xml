@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 8, 2026 14:28</creationDate>
+  <creationDate>April 8, 2026 14:38</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.9.46</version>
+  <version>0.9.47</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>

@@ -1220,7 +1220,9 @@ HTML;
                 if ($this->params->get('enable_robots', 1) && $this->params->get('robots_auto_sync', 1)) {
                     $robotsPath = JPATH_ROOT . '/robots.txt';
                     $hashPath   = JPATH_ROOT . '/.robots_hash';
-                    $content    = $this->getProductionRobots();
+                    // Use generateRobotsContent() — exactly the same method as autoSyncRobotsFile()
+                    // This correctly handles staging vs production detection and AI bot directives.
+                    $content    = $this->generateRobotsContent();
                     file_put_contents($robotsPath, $content, LOCK_EX);
                     file_put_contents($hashPath, md5($content), LOCK_EX);
                     $this->logDebug('robots.txt written from admin save hook');
