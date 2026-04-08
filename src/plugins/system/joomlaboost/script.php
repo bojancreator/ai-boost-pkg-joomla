@@ -274,6 +274,45 @@ class plgSystemJoomlaboostInstallerScript
             ';
         }
 
+        // =====================================================================
+        // FORCE OPCACHE RECOMPILATION
+        // =====================================================================
+        // LiteSpeed PHP (and PHP-FPM with validate_timestamps=0) does NOT
+        // automatically pick up changed PHP files from disk. We must explicitly
+        // invalidate the OPcache entries so the next request uses the new code.
+        $pluginDir = JPATH_PLUGINS . '/system/joomlaboost';
+        $filesToInvalidate = [
+            $pluginDir . '/joomlaboost.php',
+            $pluginDir . '/script.php',
+            $pluginDir . '/src/Services/RobotService.php',
+            $pluginDir . '/src/Enums/EnvironmentType.php',
+            $pluginDir . '/src/Services/AbstractService.php',
+            $pluginDir . '/src/Services/LlmsTxtService.php',
+        ];
+
+        if (function_exists('opcache_invalidate')) {
+            foreach ($filesToInvalidate as $file) {
+                if (file_exists($file)) {
+                    opcache_invalidate($file, true); // true = force immediate recompile
+                }
+            }
+        }
+
+        // Full reset as fallback (works on single-process LSPHP)
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
+
+        // =====================================================================
+        // FORCE ROBOTS.TXT REGENERATION
+        // =====================================================================
+        // Delete the hash file so the next frontend request rewrites robots.txt
+        // using the NEW code (AI crawlers from RobotService + EnvironmentType).
+        $hashFile = JPATH_ROOT . '/.robots_hash';
+        if (file_exists($hashFile)) {
+            @unlink($hashFile);
+        }
+
         return true;
     }
 

@@ -92,4 +92,3 @@ class RobotService extends AbstractService
         return 'enable_robots';
     }
 }
-
