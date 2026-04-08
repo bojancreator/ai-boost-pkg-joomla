@@ -770,15 +770,15 @@ HTML;
         header('Content-Type: text/plain');
         header('Cache-Control: public, max-age=3600');
 
-        echo $this->generateRobotsContent();
+        $robotService = new RobotService($this->getApp(), $this->params);
+        echo $robotService->generateRobots();
         $app->close();
     }
 
     private function generateRobotsContent(): string
     {
-        $domain = $this->getCurrentDomain();
-        $isStaging = $this->isStaging($domain);
-        return $isStaging ? $this->getStagingRobots() : $this->getProductionRobots();
+        $robotService = new RobotService($this->getApp(), $this->params);
+        return $robotService->generateRobots();
     }
 
     /**
