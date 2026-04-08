@@ -223,8 +223,10 @@ class OpenGraphService extends AbstractService
                     }
 
                     // og:image:alt — accessibility requirement + Facebook validation
-                    $siteName = (string) $this->params->get('org_name',
-                        (string) $this->params->get('og_site_name', ''));
+                    $siteName = (string) $this->params->get('org_name', '');
+                    if (empty($siteName)) {
+                        $siteName = (string) $this->params->get('og_site_name', '');
+                    }
                     if (!empty($siteName)) {
                         $perfService->addMetaToBatch('og:image:alt', $siteName, 'property');
                     }
