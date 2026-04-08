@@ -215,7 +215,8 @@ class SchemaService extends AbstractService
                 '@type'  => 'SearchAction',
                 'target' => [
                     '@type'       => 'EntryPoint',
-                    'urlTemplate' => $this->getSchemaUrl() . 'index.php?option=com_search&searchword={search_term_string}'
+                    // com_finder is the modern Joomla Smart Search (com_search is deprecated since Joomla 4)
+                    'urlTemplate' => $this->getSchemaUrl() . 'index.php?option=com_finder&q={search_term_string}'
                 ],
                 'query-input' => 'required name=search_term_string'
             ]
@@ -361,17 +362,37 @@ class SchemaService extends AbstractService
 
                 // Add areaServed based on country
                 $countryCode = $this->params->get('schema_address_country', 'RS');
+                // Comprehensive ISO 3166-1 alpha-2 → country name map (extend as needed)
                 $countryNames = [
-                    'RS' => 'Serbia',
-                    'US' => 'United States',
-                    'GB' => 'United Kingdom',
-                    'DE' => 'Germany',
-                    'FR' => 'France',
-                    'IT' => 'Italy'
+                    'AD' => 'Andorra',          'AL' => 'Albania',
+                    'AT' => 'Austria',          'BA' => 'Bosnia and Herzegovina',
+                    'BE' => 'Belgium',          'BG' => 'Bulgaria',
+                    'CH' => 'Switzerland',      'CY' => 'Cyprus',
+                    'CZ' => 'Czech Republic',   'DE' => 'Germany',
+                    'DK' => 'Denmark',          'EE' => 'Estonia',
+                    'ES' => 'Spain',            'FI' => 'Finland',
+                    'FR' => 'France',           'GB' => 'United Kingdom',
+                    'GR' => 'Greece',           'HR' => 'Croatia',
+                    'HU' => 'Hungary',          'IE' => 'Ireland',
+                    'IT' => 'Italy',            'LT' => 'Lithuania',
+                    'LU' => 'Luxembourg',       'LV' => 'Latvia',
+                    'ME' => 'Montenegro',       'MK' => 'North Macedonia',
+                    'MT' => 'Malta',            'NL' => 'Netherlands',
+                    'NO' => 'Norway',           'PL' => 'Poland',
+                    'PT' => 'Portugal',         'RO' => 'Romania',
+                    'RS' => 'Serbia',           'RU' => 'Russia',
+                    'SE' => 'Sweden',           'SI' => 'Slovenia',
+                    'SK' => 'Slovakia',         'TR' => 'Turkey',
+                    'UA' => 'Ukraine',          'US' => 'United States',
+                    'AU' => 'Australia',        'CA' => 'Canada',
+                    'CN' => 'China',            'IN' => 'India',
+                    'JP' => 'Japan',            'BR' => 'Brazil',
+                    'MX' => 'Mexico',           'ZA' => 'South Africa',
+                    'AE' => 'United Arab Emirates',
                 ];
                 $schema['areaServed'] = [
                     '@type' => 'Country',
-                    'name' => $countryNames[$countryCode] ?? $countryCode
+                    'name' => $countryNames[$countryCode] ?? $countryCode,
                 ];
             }
 
@@ -429,9 +450,10 @@ class SchemaService extends AbstractService
 
         $rating = [
             '@type'       => 'AggregateRating',
-            'ratingValue' => $ratingValue,
-            'bestRating'  => (string) $this->params->get('schema_rating_best', '5'),
-            'worstRating' => (string) $this->params->get('schema_rating_worst', '1'),
+            // Cast to float — schema validators require numeric type (not string)
+            'ratingValue' => (float) $ratingValue,
+            'bestRating'  => (float) $this->params->get('schema_rating_best', '5'),
+            'worstRating' => (float) $this->params->get('schema_rating_worst', '1'),
         ];
 
         if (!empty($ratingCount)) {
