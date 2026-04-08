@@ -1213,6 +1213,22 @@ HTML;
                 $this->logDebug('LlmsTxt generation failed: ' . $e->getMessage());
             }
 
+            // robots.txt — write immediately on admin save (do not wait for frontend request)
+            // autoSyncRobotsFile() is guarded by isClient('site') so it never runs in admin.
+            // Writing directly here ensures robots.txt is up-to-date right after Save.
+            try {
+                if ($this->params->get('enable_robots', 1) && $this->params->get('robots_auto_sync', 1)) {
+                    $robotsPath = JPATH_ROOT . '/robots.txt';
+                    $hashPath   = JPATH_ROOT . '/.robots_hash';
+                    $content    = $this->getProductionRobots();
+                    file_put_contents($robotsPath, $content, LOCK_EX);
+                    file_put_contents($hashPath, md5($content), LOCK_EX);
+                    $this->logDebug('robots.txt written from admin save hook');
+                }
+            } catch (\Throwable $e) {
+                $this->logDebug('robots.txt write on save failed: ' . $e->getMessage());
+            }
+
             $this->logDebug('JoomlaBoost settings auto-saved to persistence storage');
         } catch (\Exception $e) {
             // Silent fail - don't break plugin save
