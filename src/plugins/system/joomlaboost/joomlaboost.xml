@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 8, 2026 13:34</creationDate>
+  <creationDate>April 8, 2026 13:44</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.9.42</version>
+  <version>0.9.43</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -326,6 +326,31 @@
                cols="80"
                showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
         <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- Event Schema                                                       -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <field name="separator_events" type="spacer" label="🎭 Event Schema (Rich Results)" class="text" showon="enable_schema:1" />
+        <field name="schema_events_enabled" type="radio"
+               label="Enable Event Schema"
+               description="Inject Event JSON-LD schema on all pages. Events appear in Google rich results, Google Maps, and AI Overviews. Configure events via JSON below."
+               default="0"
+               class="btn-group btn-group-yesno"
+               showon="enable_schema:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="schema_events"
+               type="textarea"
+               label="Events (JSON)"
+               description="JSON array of events. Each event: name (required), startDate (required, ISO 8601: 2025-12-31T20:00:00+01:00), endDate, description, url, location, price, currency. Example: [{&quot;name&quot;:&quot;New Year Gala&quot;,&quot;startDate&quot;:&quot;2025-12-31T20:00:00+01:00&quot;,&quot;endDate&quot;:&quot;2026-01-01T02:00:00+01:00&quot;,&quot;price&quot;:&quot;150&quot;,&quot;currency&quot;:&quot;EUR&quot;,&quot;description&quot;:&quot;Celebrate New Year at our hotel&quot;}]"
+               rows="8"
+               cols="80"
+               showon="enable_schema:1,schema_events_enabled:1" />
+        <field name="schema_events_help" type="note"
+               label="Event JSON Fields"
+               description="Required per event: name, startDate. Optional: endDate, description, url, location (defaults to organization address), price, currency (default EUR). Dates must be ISO 8601 format."
+               class="alert alert-info"
+               showon="enable_schema:1,schema_events_enabled:1" />
       </fieldset>
       <fieldset name="google" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_GOOGLE">
         <!-- Google Search Console Verification -->

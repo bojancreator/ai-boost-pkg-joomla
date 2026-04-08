@@ -172,6 +172,25 @@ class SchemaService extends AbstractService
             $schema[] = $breadcrumbSchema;
         }
 
+        // FAQ schema — auto-detected from article content (article pages only)
+        if ($option === 'com_content' && $view === 'article' && $perfService->needsHeavyOperations()) {
+            $contentFaqSchema = $this->generateContentFAQSchema();
+            if ($contentFaqSchema) {
+                $schema[] = $contentFaqSchema;
+            }
+        }
+
+        // FAQ schema — manually configured in plugin settings (any page)
+        $manualFaqSchema = $this->generateFAQSchema();
+        if ($manualFaqSchema) {
+            $schema[] = $manualFaqSchema;
+        }
+
+        // Event schema — from plugin configuration (any page)
+        $eventsSchemas = $this->generateEventsSchema();
+        foreach ($eventsSchemas as $eventSchema) {
+            $schema[] = $eventSchema;
+        }
 
         $filteredSchema = array_filter($schema);
 
@@ -180,7 +199,7 @@ class SchemaService extends AbstractService
 
         $this->logDebug('Schema generation completed', [
             'schemas_count' => count($filteredSchema),
-            'page_type' => $option . '/' . $view,
+            'page_type'     => $option . '/' . $view,
             'heavy_ops_used' => $perfService->needsHeavyOperations() && $option === 'com_content'
         ]);
 
@@ -518,9 +537,9 @@ class SchemaService extends AbstractService
 
         try {
             // More efficient DB query - only get needed fields
-            $db = Factory::getDbo();
+            $db    = Factory::getDbo();
             $query = $db->getQuery(true)
-                ->select($db->quoteName(['id', 'title', 'introtext', 'fulltext', 'metadesc', 'metakey', 'created', 'modified', 'created_by_alias', 'images']))
+                ->select($db->quoteName(['id', 'title', 'introtext', 'fulltext', 'metadesc', 'metakey', 'created', 'modified', 'created_by', 'created_by_alias', 'images']))
                 ->from($db->quoteName('#__content'))
                 ->where($db->quoteName('id') . ' = ' . (int) $id)
                 ->where($db->quoteName('published') . ' = 1');
@@ -537,23 +556,27 @@ class SchemaService extends AbstractService
             $dateModified = Factory::getDate($article->modified ?: $article->created)->toISO8601();
 
             $schema = [
-                '@context' => 'https://schema.org',
-                '@type' => 'Article',
-                'headline' => $article->title,
+                '@context'    => 'https://schema.org',
+                '@type'       => 'Article',
+                'headline'    => $article->title,
                 'description' => $article->metadesc ?: $this->extractDescription($article->introtext),
                 'articleBody' => strip_tags($article->fulltext ?: $article->introtext),
-                'url' => Uri::getInstance()->toString(),
+                'url'         => Uri::getInstance()->toString(),
                 'datePublished' => $dateCreated,
-                'dateModified' => $dateModified,
-                'inLanguage' => $this->getLanguageCode(),
-                'author' => [
-                    '@type' => 'Person',
-                    'name' => $article->created_by_alias ?: 'Author'
-                ],
+                'dateModified'  => $dateModified,
+                'inLanguage'    => $this->getLanguageCode(),
+                // Enhanced author for E-E-A-T: try full Joomla user profile first
+                'author'    => $this->getAuthorSchema((int) ($article->created_by ?? 0), $article->created_by_alias),
                 'publisher' => [
                     '@type' => 'Organization',
-                    'name' => $config->get('sitename'),
-                    'url' => $this->getSchemaUrl()
+                    'name'  => $config->get('sitename'),
+                    'url'   => $this->getSchemaUrl()
+                ],
+                // Speakable: help Google Assistant / voice search identify the most
+                // important spoken content on the page (h1 + intro paragraph)
+                'speakable' => [
+                    '@type'       => 'SpeakableSpecification',
+                    'cssSelector' => ['h1', '.article-intro', '.item-intro', '.com-content-article__intro']
                 ]
             ];
 
@@ -565,8 +588,15 @@ class SchemaService extends AbstractService
 
             // Add keywords from meta_keywords
             if (!empty($article->metakey)) {
-                $keywords = array_map('trim', explode(',', $article->metakey));
+                $keywords          = array_map('trim', explode(',', $article->metakey));
                 $schema['keywords'] = array_filter($keywords);
+            }
+
+            // VideoObject: auto-detect YouTube/Vimeo embeds in article content
+            $videoObject = $this->detectVideoObject($article->introtext . ' ' . $article->fulltext);
+            if ($videoObject !== null) {
+                $schema['video'] = $videoObject;
+                $this->logDebug('Article schema: VideoObject detected and added');
             }
 
             // Cache the result if performance service is available
@@ -1490,5 +1520,214 @@ class SchemaService extends AbstractService
     protected function getServiceKey(): string
     {
         return 'enable_schema';
+    }
+
+    // =========================================================================
+    // P2 NEW METHODS — Event, VideoObject, Author (E-E-A-T)
+    // =========================================================================
+
+    /**
+     * Generate Event schema objects from plugin JSON configuration.
+     *
+     * Admin enters events as a JSON array in plugin settings (schema_events field).
+     * Each event object: name, startDate, endDate, url, description, price, location
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function generateEventsSchema(): array
+    {
+        if (!(bool) $this->params->get('schema_events_enabled', 0)) {
+            return [];
+        }
+
+        $json = trim((string) $this->params->get('schema_events', ''));
+        if (empty($json)) {
+            return [];
+        }
+
+        try {
+            $events = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+            if (!is_array($events)) {
+                return [];
+            }
+
+            $baseUrl = $this->getSchemaUrl();
+            $orgName = trim((string) $this->params->get('org_name', ''));
+
+            $schemas = [];
+            foreach ($events as $event) {
+                $name      = trim((string) ($event['name'] ?? ''));
+                $startDate = trim((string) ($event['startDate'] ?? ''));
+
+                // name and startDate are required by Google Rich Results
+                if (empty($name) || empty($startDate)) {
+                    continue;
+                }
+
+                $eventSchema = [
+                    '@context'  => 'https://schema.org',
+                    '@type'     => 'Event',
+                    'name'      => $name,
+                    'startDate' => $startDate,
+                    'eventStatus'      => 'https://schema.org/EventScheduled',
+                    'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+                ];
+
+                if (!empty($event['endDate'])) {
+                    $eventSchema['endDate'] = trim($event['endDate']);
+                }
+
+                if (!empty($event['description'])) {
+                    $eventSchema['description'] = trim($event['description']);
+                }
+
+                if (!empty($event['url'])) {
+                    $url = trim($event['url']);
+                    $eventSchema['url'] = str_starts_with($url, 'http') ? $url : $baseUrl . ltrim($url, '/');
+                }
+
+                // Location: use event-specific location or fallback to organization
+                $locationName = trim((string) ($event['location'] ?? ''));
+                if (!empty($locationName)) {
+                    $eventSchema['location'] = [
+                        '@type' => 'Place',
+                        'name'  => $locationName,
+                    ];
+                } elseif (!empty($orgName)) {
+                    $address = trim((string) $this->params->get('schema_address_street', ''));
+                    $eventSchema['location'] = [
+                        '@type'   => 'Place',
+                        'name'    => $orgName,
+                        'address' => !empty($address) ? $address : $orgName,
+                    ];
+                }
+
+                // Offer/price
+                $price = trim((string) ($event['price'] ?? ''));
+                if (!empty($price)) {
+                    $eventSchema['offers'] = [
+                        '@type'         => 'Offer',
+                        'price'         => $price,
+                        'priceCurrency' => trim((string) ($event['currency'] ?? 'EUR')),
+                        'availability'  => 'https://schema.org/InStock',
+                    ];
+                }
+
+                // Organizer
+                if (!empty($orgName)) {
+                    $eventSchema['organizer'] = [
+                        '@type' => 'Organization',
+                        'name'  => $orgName,
+                        'url'   => $baseUrl,
+                    ];
+                }
+
+                $schemas[] = $eventSchema;
+            }
+
+            $this->logDebug('Event schema: Generated ' . count($schemas) . ' events');
+            return $schemas;
+        } catch (\Throwable $e) {
+            $this->logDebug('Event schema error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Detect YouTube or Vimeo embed in HTML content and return a VideoObject schema.
+     * Only the first video found is returned (primary video for the article).
+     *
+     * @param  string  $content  Raw HTML content (introtext + fulltext)
+     * @return array<string, mixed>|null  VideoObject schema or null if no video found
+     */
+    private function detectVideoObject(string $content): ?array
+    {
+        if (empty($content)) {
+            return null;
+        }
+
+        // ── YouTube ────────────────────────────────────────────────────────────
+        // Matches: youtube.com/embed/{id}, youtube-nocookie.com/embed/{id}
+        if (preg_match('#youtube(?:-nocookie)?\.com/embed/([a-zA-Z0-9_-]{11})#', $content, $m)) {
+            $videoId      = $m[1];
+            $watchUrl     = 'https://www.youtube.com/watch?v=' . $videoId;
+            $thumbnailUrl = 'https://img.youtube.com/vi/' . $videoId . '/maxresdefault.jpg';
+
+            $this->logDebug('VideoObject: YouTube id=' . $videoId);
+
+            return [
+                '@type'        => 'VideoObject',
+                'embedUrl'     => 'https://www.youtube.com/embed/' . $videoId,
+                'url'          => $watchUrl,
+                'thumbnailUrl' => $thumbnailUrl,
+                'description'  => 'Video content',
+            ];
+        }
+
+        // ── Vimeo ─────────────────────────────────────────────────────────────
+        // Matches: player.vimeo.com/video/{id}
+        if (preg_match('#player\.vimeo\.com/video/(\d+)#', $content, $m)) {
+            $videoId  = $m[1];
+            $watchUrl = 'https://vimeo.com/' . $videoId;
+
+            $this->logDebug('VideoObject: Vimeo id=' . $videoId);
+
+            return [
+                '@type'    => 'VideoObject',
+                'embedUrl' => 'https://player.vimeo.com/video/' . $videoId,
+                'url'      => $watchUrl,
+                // Vimeo thumbnail requires API call; omit to avoid empty properties
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Build a Person schema for article author (E-E-A-T signal).
+     * Falls back to alias or generic 'Author' if user not found.
+     *
+     * @param  int     $userId  Joomla user ID (created_by)
+     * @param  string  $alias   created_by_alias from article
+     * @return array<string, mixed>
+     */
+    private function getAuthorSchema(int $userId, string $alias = ''): array
+    {
+        $base = ['@type' => 'Person'];
+
+        if ($userId > 0) {
+            try {
+                $db    = Factory::getDbo();
+                $query = $db->getQuery(true)
+                    ->select('name, email')
+                    ->from('#__users')
+                    ->where('id = ' . $userId);
+
+                $db->setQuery($query);
+                $user = $db->loadObject();
+
+                if ($user) {
+                    // Prefer alias (custom pen name) over real name
+                    $base['name'] = !empty($alias) ? $alias : $user->name;
+
+                    // Build author profile URL if Joomla has registered user articles
+                    $authorRoute = \Joomla\CMS\Router\Route::_(
+                        'index.php?option=com_content&view=articles&filter[author_id]=' . $userId,
+                        false
+                    );
+                    if (!empty($authorRoute) && $authorRoute !== '/') {
+                        $base['url'] = rtrim($this->getSchemaUrl(), '/') . '/' . ltrim($authorRoute, '/');
+                    }
+
+                    return $base;
+                }
+            } catch (\Throwable $e) {
+                $this->logDebug('Author schema fetch failed: ' . $e->getMessage());
+            }
+        }
+
+        // Fallback
+        $base['name'] = !empty($alias) ? $alias : 'Author';
+        return $base;
     }
 }
