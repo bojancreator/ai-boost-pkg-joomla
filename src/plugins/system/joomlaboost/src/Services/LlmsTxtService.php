@@ -79,7 +79,8 @@ class LlmsTxtService extends AbstractService
         // IMPORTANT: use Uri::root() not Uri::base() — base() returns the admin URL
         // when llms.txt is generated from admin context (plugin settings save).
         // root() always returns the frontend site URL regardless of context.
-        $baseUrl    = rtrim((string) Uri::root(), '/');
+        // Uri::root() returns /administrator/ path in admin context — always use scheme+host only
+        $baseUrl    = rtrim(Uri::getInstance()->toString(['scheme', 'host']), '/');
         $orgName    = trim((string) $this->params->get('org_name', $this->params->get('org_name_en', '')));
         $orgDesc    = trim((string) $this->params->get('org_description_en', ''));
         $generated  = date('Y-m-d');
@@ -252,37 +253,34 @@ class LlmsTxtService extends AbstractService
         $pages = [];
 
         try {
-            $app  = Factory::getApplication();
-            $menu = $app->getMenu();
+            // Query #__menu directly — Route::_() in admin context generates
+            // broken /administrator/... URLs. The 'path' column stores the
+            // clean SEF slug (e.g. 'en/accommodation') without admin prefix.
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName(['m.title', 'm.path', 'm.link', 'm.type']))
+                ->from($db->quoteName('#__menu', 'm'))
+                ->where($db->quoteName('m.published') . ' = 1')
+                ->where($db->quoteName('m.client_id') . ' = 0')   // 0 = frontend
+                ->where($db->quoteName('m.parent_id') . ' = 1')   // direct children of root
+                ->order($db->quoteName('m.lft') . ' ASC');
 
-            if (!$menu) {
-                return $pages;
-            }
-
-            $items = $menu->getItems('level', 1);
-
-            if (empty($items)) {
-                return $pages;
-            }
+            $db->setQuery($query);
+            $items = $db->loadObjectList();
 
             foreach ($items as $item) {
-                if (!is_object($item) || empty($item->title)) {
+                if (empty($item->title)) {
                     continue;
                 }
 
-                // Skip unpublished items
-                if (isset($item->published) && (int) $item->published !== 1) {
-                    continue;
-                }
-
-                // Build URL
-                if (isset($item->link) && str_starts_with((string) $item->link, 'http')) {
+                // External links: use as-is
+                if (!empty($item->link) && str_starts_with((string) $item->link, 'http')) {
                     $url = $item->link;
+                } elseif (!empty($item->path)) {
+                    // path contains SEF route slug (e.g. 'en' or 'en/accommodation')
+                    $url = $baseUrl . '/' . ltrim((string) $item->path, '/');
                 } else {
-                    $route = \Joomla\CMS\Router\Route::_(
-                        'index.php?Itemid=' . $item->id
-                    );
-                    $url = $baseUrl . '/' . ltrim((string) $route, '/');
+                    continue; // no usable URL
                 }
 
                 $pages[] = [
@@ -351,7 +349,8 @@ class LlmsTxtService extends AbstractService
             // IMPORTANT: Use Uri::root() for article URLs.
             // Route::_() in admin context generates broken /administrator/... URLs.
             // Building from aliases produces correct SEF frontend URLs.
-            $siteRoot = rtrim((string) Uri::root(), '/');
+            // Same fix: Uri::root() returns admin path — use scheme+host only
+            $siteRoot = rtrim(Uri::getInstance()->toString(['scheme', 'host']), '/');
 
             $result = [];
             foreach ($articles as $article) {
