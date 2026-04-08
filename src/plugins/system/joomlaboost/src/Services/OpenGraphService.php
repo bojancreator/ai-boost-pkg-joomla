@@ -212,6 +212,22 @@ class OpenGraphService extends AbstractService
                 if (!empty($normalizedImage)) {
                     $this->logDebug("Using fallback og:image: $normalizedImage");
                     $perfService->addMetaToBatch('og:image', $normalizedImage, 'property');
+
+                    // og:image:width / og:image:height — required by Facebook, LinkedIn, WhatsApp validators
+                    [$imgWidth, $imgHeight] = $this->getImageDimensions($normalizedImage);
+                    if ($imgWidth > 0) {
+                        $perfService->addMetaToBatch('og:image:width', (string) $imgWidth, 'property');
+                    }
+                    if ($imgHeight > 0) {
+                        $perfService->addMetaToBatch('og:image:height', (string) $imgHeight, 'property');
+                    }
+
+                    // og:image:alt — accessibility requirement + Facebook validation
+                    $siteName = (string) $this->params->get('org_name',
+                        (string) $this->params->get('og_site_name', ''));
+                    if (!empty($siteName)) {
+                        $perfService->addMetaToBatch('og:image:alt', $siteName, 'property');
+                    }
                 }
             }
         }
@@ -235,6 +251,26 @@ class OpenGraphService extends AbstractService
 
         if (!empty($articleImage) && ($override || !$perfService->isMetaTagPresent('og:image', 'property'))) {
             $perfService->addMetaToBatch('og:image', $articleImage, 'property');
+
+            // og:image:width / og:image:height — required by Facebook, LinkedIn validators
+            [$imgWidth, $imgHeight] = $this->getImageDimensions($articleImage);
+            if ($imgWidth > 0) {
+                $perfService->addMetaToBatch('og:image:width', (string) $imgWidth, 'property');
+            }
+            if ($imgHeight > 0) {
+                $perfService->addMetaToBatch('og:image:height', (string) $imgHeight, 'property');
+            }
+
+            // og:image:alt — use article title for accessibility
+            try {
+                $document = $this->app->getDocument();
+                $imgAlt   = method_exists($document, 'getTitle') ? trim($document->getTitle()) : '';
+                if (!empty($imgAlt)) {
+                    $perfService->addMetaToBatch('og:image:alt', $imgAlt, 'property');
+                }
+            } catch (\Throwable $e) {
+                // skip alt if document not available
+            }
         }
 
         // Article-specific type
@@ -299,6 +335,16 @@ class OpenGraphService extends AbstractService
 
         if (!empty($timestamps['modified'])) {
             $perfService->addMetaToBatch('article:modified_time', $timestamps['modified'], 'property');
+        }
+
+        // article:author — helps LinkedIn/Facebook identify content creator
+        if (!empty($timestamps['author'])) {
+            $perfService->addMetaToBatch('article:author', $timestamps['author'], 'property');
+        }
+
+        // article:section — article category (helps social platforms categorize content)
+        if (!empty($timestamps['section'])) {
+            $perfService->addMetaToBatch('article:section', $timestamps['section'], 'property');
         }
     }
 
@@ -385,11 +431,12 @@ class OpenGraphService extends AbstractService
     private function getArticleTimestamps(int $articleId): array
     {
         try {
-            $db = Factory::getDbo();
+            $db    = Factory::getDbo();
             $query = $db->getQuery(true)
-                ->select('created, modified')
-                ->from('#__content')
-                ->where('id = ' . (int) $articleId);
+                ->select('a.created, a.modified, a.created_by_alias, c.title AS cat_title')
+                ->from('#__content AS a')
+                ->leftJoin('#__categories AS c ON c.id = a.catid')
+                ->where('a.id = ' . (int) $articleId);
 
             $db->setQuery($query);
             $result = $db->loadObject();
@@ -406,6 +453,14 @@ class OpenGraphService extends AbstractService
 
             if (!empty($result->modified) && $result->modified !== $db->getNullDate()) {
                 $timestamps['modified'] = (new \DateTime($result->modified))->format('c');
+            }
+
+            // Author and section for article:author / article:section OG tags
+            if (!empty($result->created_by_alias)) {
+                $timestamps['author'] = $result->created_by_alias;
+            }
+            if (!empty($result->cat_title)) {
+                $timestamps['section'] = $result->cat_title;
             }
 
             return $timestamps;
@@ -480,6 +535,50 @@ class OpenGraphService extends AbstractService
 
         // Normalize to absolute URL
         return $this->normalizeImageUrl(trim($imageUrl));
+    }
+
+    /**
+     * Get image dimensions from a URL.
+     * Tries getimagesize() on local file; falls back to configured plugin defaults.
+     *
+     * @param  string  $imageUrl  Absolute image URL
+     * @return array{0: int, 1: int}  [width, height] — both 0 if unknown
+     */
+    private function getImageDimensions(string $imageUrl): array
+    {
+        if (empty($imageUrl)) {
+            return [0, 0];
+        }
+
+        try {
+            $baseUrl   = rtrim($this->getBaseUrl(), '/');
+            $localPath = '';
+
+            if (str_starts_with($imageUrl, $baseUrl)) {
+                $relativePath = ltrim(str_replace($baseUrl, '', $imageUrl), '/');
+                $candidate    = realpath(JPATH_SITE . DIRECTORY_SEPARATOR . $relativePath);
+
+                if ($candidate !== false && is_readable($candidate)) {
+                    $localPath = $candidate;
+                }
+            }
+
+            if (!empty($localPath)) {
+                $size = @getimagesize($localPath);
+                if ($size !== false && $size[0] > 0) {
+                    $this->logDebug("og:image dimensions from file: {$size[0]}x{$size[1]}");
+                    return [(int) $size[0], (int) $size[1]];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fall through to defaults
+        }
+
+        // Configured defaults (admin can set these in plugin params)
+        $w = (int) $this->params->get('og_image_width', 0);
+        $h = (int) $this->params->get('og_image_height', 0);
+
+        return [$w, $h];
     }
 
     /**

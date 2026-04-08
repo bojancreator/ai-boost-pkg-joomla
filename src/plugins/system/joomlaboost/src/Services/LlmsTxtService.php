@@ -205,6 +205,36 @@ class LlmsTxtService extends AbstractService
             $lines[] = '';
         }
 
+        // --- Recent articles (AI citability — fresh content discovery) ---
+        $recentArticles = $this->getRecentArticles($baseUrl);
+        if (!empty($recentArticles)) {
+            $lines[] = '## Recent Content';
+            $lines[] = '';
+            foreach ($recentArticles as $article) {
+                $line = '- [' . $article['title'] . '](' . $article['url'] . ')';
+                if (!empty($article['description'])) {
+                    $line .= ': ' . $article['description'];
+                }
+                $lines[] = $line;
+            }
+            $lines[] = '';
+        }
+
+        // --- FAQ (structured Q&A for AI direct-answer extraction) ---
+        $faqItems = $this->getFaqItems();
+        if (!empty($faqItems)) {
+            $lines[] = '## Frequently Asked Questions';
+            $lines[] = '';
+            foreach ($faqItems as $faq) {
+                if (!empty($faq['question']) && !empty($faq['answer'])) {
+                    $lines[] = '### ' . $faq['question'];
+                    $lines[] = '';
+                    $lines[] = $faq['answer'];
+                    $lines[] = '';
+                }
+            }
+        }
+
         return implode("\n", $lines);
     }
 
@@ -285,6 +315,102 @@ class LlmsTxtService extends AbstractService
             }
             return $data;
         } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Get recent published articles (top 10 by date) for AI discovery.
+     *
+     * @param  string  $baseUrl
+     * @return array<int, array<string, string>>
+     */
+    private function getRecentArticles(string $baseUrl): array
+    {
+        $maxArticles = (int) $this->params->get('llmstxt_recent_articles', 10);
+        if ($maxArticles <= 0) {
+            return [];
+        }
+
+        try {
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('a.id, a.title, a.alias, a.metadesc, a.catid, c.alias AS cat_alias')
+                ->from('#__content AS a')
+                ->leftJoin('#__categories AS c ON c.id = a.catid')
+                ->where('a.state = 1')
+                ->order('a.created DESC')
+                ->setLimit($maxArticles);
+
+            $db->setQuery($query);
+            $articles = $db->loadObjectList();
+
+            $result = [];
+            foreach ($articles as $article) {
+                $route = \Joomla\CMS\Router\Route::_(
+                    "index.php?option=com_content&view=article&id={$article->id}:{$article->alias}&catid={$article->catid}"
+                );
+                $url   = $baseUrl . '/' . ltrim($route, '/');
+
+                $desc = trim((string) $article->metadesc);
+                // Trim to 160 chars to keep llms.txt concise
+                if (strlen($desc) > 160) {
+                    $desc = substr($desc, 0, 157) . '...';
+                }
+
+                $result[] = [
+                    'title'       => $article->title,
+                    'url'         => $url,
+                    'description' => $desc,
+                ];
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            $this->logDebug('LlmsTxt: error getting recent articles: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get FAQ items from plugin settings (EN language).
+     * Returns array of ['question' => ..., 'answer' => ...] pairs.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function getFaqItems(): array
+    {
+        // Try EN FAQ first (most useful for AI systems)
+        $faqJson = trim((string) $this->params->get('manual_faqs_en', ''));
+
+        if (empty($faqJson)) {
+            $faqJson = trim((string) $this->params->get('manual_faqs', ''));
+        }
+
+        if (empty($faqJson)) {
+            return [];
+        }
+
+        try {
+            $data = json_decode($faqJson, true);
+            if (!is_array($data)) {
+                return [];
+            }
+
+            $items = [];
+            foreach ($data as $item) {
+                // Support both {'q':..,'a':..} and {'question':..,'answer':..} formats
+                $question = trim((string) ($item['question'] ?? $item['q'] ?? ''));
+                $answer   = trim(strip_tags((string) ($item['answer'] ?? $item['a'] ?? '')));
+
+                if (!empty($question) && !empty($answer)) {
+                    $items[] = ['question' => $question, 'answer' => $answer];
+                }
+            }
+
+            return $items;
+        } catch (\Throwable $e) {
+            $this->logDebug('LlmsTxt: error parsing FAQ: ' . $e->getMessage());
             return [];
         }
     }
