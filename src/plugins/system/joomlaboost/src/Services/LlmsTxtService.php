@@ -76,7 +76,10 @@ class LlmsTxtService extends AbstractService
      */
     public function generate(): string
     {
-        $baseUrl    = rtrim((string) Uri::base(), '/');
+        // IMPORTANT: use Uri::root() not Uri::base() — base() returns the admin URL
+        // when llms.txt is generated from admin context (plugin settings save).
+        // root() always returns the frontend site URL regardless of context.
+        $baseUrl    = rtrim((string) Uri::root(), '/');
         $orgName    = trim((string) $this->params->get('org_name', $this->params->get('org_name_en', '')));
         $orgDesc    = trim((string) $this->params->get('org_description_en', ''));
         $generated  = date('Y-m-d');
@@ -345,12 +348,22 @@ class LlmsTxtService extends AbstractService
             $db->setQuery($query);
             $articles = $db->loadObjectList();
 
+            // IMPORTANT: Use Uri::root() for article URLs.
+            // Route::_() in admin context generates broken /administrator/... URLs.
+            // Building from aliases produces correct SEF frontend URLs.
+            $siteRoot = rtrim((string) Uri::root(), '/');
+
             $result = [];
             foreach ($articles as $article) {
-                $route = \Joomla\CMS\Router\Route::_(
-                    "index.php?option=com_content&view=article&id={$article->id}:{$article->alias}&catid={$article->catid}"
-                );
-                $url   = $baseUrl . '/' . ltrim($route, '/');
+                // Build SEF URL from category alias + article alias if both available
+                if (!empty($article->cat_alias) && !empty($article->alias)) {
+                    $url = $siteRoot . '/' . $article->cat_alias . '/' . $article->alias;
+                } else {
+                    // Fallback: index.php query string (still a valid absolute URL)
+                    $url = $siteRoot . '/index.php?option=com_content&view=article'
+                        . '&id=' . $article->id . ':' . $article->alias
+                        . '&catid=' . $article->catid;
+                }
 
                 $desc = trim((string) $article->metadesc);
                 // Trim to 160 chars to keep llms.txt concise
