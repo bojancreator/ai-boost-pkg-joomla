@@ -234,6 +234,21 @@ class PlgSystemJoomlaboost extends CMSPlugin
             $this->logDebug('FAQ buffer injection failed: ' . $e->getMessage());
         }
 
+        // ── 1b. OG Image SVG Fix ───────────────────────────────────────────────
+        // YooTheme Pro injects og:image AFTER onBeforeCompileHead, overriding
+        // JoomlaBoost. This step runs post-render and replaces any SVG og:image
+        // (invalid for Facebook/Twitter) with the plugin-configured fallback.
+        try {
+            $ogService = new OpenGraphService($app, $this->params);
+            $newBody   = $ogService->fixSvgOgImageInBuffer($body);
+            if ($newBody !== $body) {
+                $body    = $newBody;
+                $changed = true;
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('OG SVG fix failed: ' . $e->getMessage());
+        }
+
         // ── 2. Hreflang injection (HTML buffer) ───────────────────────────────
         // Runs LAST — after Language Filter / Falang — to guarantee clean output.
         try {

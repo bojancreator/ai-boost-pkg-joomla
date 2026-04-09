@@ -644,4 +644,70 @@ class OpenGraphService extends AbstractService
             return null;
         }
     }
+
+    /**
+     * Fix SVG og:image in fully-rendered HTML buffer.
+     *
+     * YooTheme Pro (and some other builders) injects its own og:image AFTER
+     * JoomlaBoost's onBeforeCompileHead event, so JoomlaBoost cannot override
+     * it through the Document API. This method runs in onAfterRender on the
+     * raw HTML string and replaces any og:image pointing to an SVG/SVGZ file
+     * with the plugin-configured fallback image.
+     *
+     * SVG images are invalid for Open Graph (Facebook, Twitter/X, WhatsApp
+     * require raster formats: JPEG, PNG, WebP).
+     *
+     * @param  string  $body  The fully-rendered page HTML
+     * @return string         HTML with SVG og:image replaced (or unchanged)
+     */
+    public function fixSvgOgImageInBuffer(string $body): string
+    {
+        if (!$this->isEnabled()) {
+            return $body;
+        }
+
+        // Fast pre-check — avoid regex overhead when no og:image present
+        if (stripos($body, 'og:image') === false) {
+            return $body;
+        }
+
+        // Resolve the configured fallback image
+        $fallback = trim((string) $this->params->get('og_image', $this->params->get('org_logo', '')));
+        if (empty($fallback)) {
+            $this->logDebug('OG SVG fix: no fallback image configured, skipping');
+            return $body;
+        }
+
+        $fallbackUrl = $this->normalizeAndCleanImageUrl($fallback);
+        if (empty($fallbackUrl)) {
+            return $body;
+        }
+
+        // Replace any <meta> with property="og:image" whose content ends in .svg or .svgz
+        // Handles both attribute orders:
+        //   <meta property="og:image" content="...svg">
+        //   <meta content="...svg" property="og:image">
+        $newBody = preg_replace_callback(
+            '/<meta\b([^>]*?)>/is',
+            function (array $matches) use ($fallbackUrl): string {
+                $attrs = $matches[1];
+
+                // Must have property="og:image"
+                if (!preg_match('/property\s*=\s*["\']og:image["\']/i', $attrs)) {
+                    return $matches[0];
+                }
+
+                // Must have content pointing to an SVG file
+                if (!preg_match('/content\s*=\s*["\'][^"\']*\.svgz?["\']/i', $attrs)) {
+                    return $matches[0];
+                }
+
+                $this->logDebug('OG SVG fix: replacing SVG og:image with: ' . $fallbackUrl);
+                return '<meta property="og:image" content="' . htmlspecialchars($fallbackUrl, ENT_QUOTES, 'UTF-8') . '">';
+            },
+            $body
+        );
+
+        return ($newBody !== null) ? $newBody : $body;
+    }
 }
