@@ -352,12 +352,22 @@ HTML;
             \Joomla\CMS\Form\FormHelper::addFieldPrefix('JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Field');
             \Joomla\CMS\Form\FormHelper::addFieldPath(__DIR__ . '/src/Field');
 
-            // Load JavaScript for multi-language selector
+            // ── Dynamic multilingual fields ───────────────────────────────────
+            // Inject one standard text/textarea field per installed language for
+            // each multilingual setting (org_name, org_description, etc.).
+            // This matches v0.10.1 behaviour (_en/_sr suffix pattern) but works
+            // for ANY number of installed languages automatically.
+            try {
+                $this->injectMultiLangParamFields($form);
+            } catch (\Throwable $e) {
+                // Never break the plugin edit form
+            }
+
+            // Load JavaScript for admin enhancements
             try {
                 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
 
-                // Inline admin styles — limit input/textarea width for readability.
-                // Selector confirmed via browser inspection: plugin editor uses #style-form.
+                // Inline admin styles
                 Factory::getApplication()->getDocument()->addStyleDeclaration(
                     '#style-form .controls input[type="text"],' .
                     '#style-form .controls input[type="url"],' .
@@ -391,6 +401,7 @@ HTML;
 
             return;
         }
+
 
         // Fix NULL custom field values for articles
         if ($formName !== 'com_content.article') {
@@ -1201,6 +1212,143 @@ HTML;
         } catch (\Exception $e) {
             // Silent fail - don't break plugin save
             $this->logDebug('Failed to auto-save settings: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Inject per-language text/textarea fields into the plugin params form.
+     *
+     * Queries installed languages (Falang + native Joomla, merged and deduplicated)
+     * and adds one standard Joomla field per language for each multilingual setting.
+     *
+     * Field naming: {baseFieldName}_{2charLangCode}  e.g. org_name_en, org_name_sr
+     * This matches getLocalizedParam() pattern used in SchemaService and QAManagementService.
+     *
+     * @param  \Joomla\CMS\Form\Form  $form
+     * @return void
+     */
+    private function injectMultiLangParamFields(\Joomla\CMS\Form\Form $form): void
+    {
+        // ── 1. Get installed languages (Falang + native Joomla, merged) ────────
+        $db     = \Joomla\CMS\Factory::getDbo();
+        $seen   = [];
+        $langs  = [];
+
+        // Try Falang
+        try {
+            $db->setQuery(
+                'SELECT fl.lang_code, COALESCE(l.title, fl.lang_code) AS name'
+                . ' FROM ' . $db->quoteName('#__falang_languages') . ' AS fl'
+                . ' LEFT JOIN ' . $db->quoteName('#__languages') . ' AS l'
+                . '   ON l.lang_id = fl.joomla_lang_id'
+                . ' ORDER BY fl.id ASC'
+            );
+            foreach ((array) $db->loadObjectList() as $row) {
+                $code = strtolower(substr((string) $row->lang_code, 0, 2));
+                if ($code !== '' && !isset($seen[$code])) {
+                    $seen[$code] = true;
+                    $langs[]     = ['code' => $code, 'name' => (string) $row->name];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Falang not installed
+        }
+
+        // Try native Joomla (#__languages)
+        try {
+            $db->setQuery(
+                'SELECT lang_code, title AS name'
+                . ' FROM ' . $db->quoteName('#__languages')
+                . ' WHERE published = 1'
+                . ' ORDER BY ordering ASC'
+            );
+            foreach ((array) $db->loadObjectList() as $row) {
+                $code = strtolower(substr((string) $row->lang_code, 0, 2));
+                if ($code !== '' && !isset($seen[$code])) {
+                    $seen[$code] = true;
+                    $langs[]     = ['code' => $code, 'name' => (string) $row->name];
+                }
+            }
+        } catch (\Throwable $e) {
+            // fall through
+        }
+
+        // Fallback to English only
+        if (empty($langs)) {
+            $langs = [['code' => 'en', 'name' => 'English']];
+        }
+
+        // ── 2. Define multilingual field groups ────────────────────────────────
+        // Each entry: [fieldset, type, baseLabel, hint, showon, extra-attrs]
+        $groups = [
+            // Schema: Organization info
+            'org_name' => [
+                'fieldset' => 'schema',
+                'type'     => 'text',
+                'label'    => 'Organization Name',
+                'hint'     => 'e.g., Vivid Blue Serenity Resort',
+                'showon'   => 'enable_schema:1',
+            ],
+            'org_description' => [
+                'fieldset' => 'schema',
+                'type'     => 'textarea',
+                'label'    => 'Organization Description',
+                'hint'     => 'e.g., Luxury resort on the Adriatic coast.',
+                'showon'   => 'enable_schema:1',
+                'rows'     => '3',
+            ],
+            // Schema: Address
+            'schema_address_locality' => [
+                'fieldset' => 'schema',
+                'type'     => 'text',
+                'label'    => 'City/Locality',
+                'hint'     => 'e.g., Budva',
+                'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
+            ],
+            'schema_address_street' => [
+                'fieldset' => 'schema',
+                'type'     => 'text',
+                'label'    => 'Street Address',
+                'hint'     => 'e.g., Rezevici bb',
+                'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
+            ],
+            // Schema: FAQ
+            'manual_faqs' => [
+                'fieldset' => 'schema',
+                'type'     => 'textarea',
+                'label'    => 'Manual FAQ Items',
+                'hint'     => '',
+                'showon'   => 'enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1',
+                'rows'     => '6',
+                'description' => 'FAQ in JSON format. Example: [{"question":"Q?","answer":"A."}]',
+            ],
+        ];
+
+        // ── 3. Build XML fragment and load into form ───────────────────────────
+        foreach ($groups as $baseField => $cfg) {
+            $xmlParts = ['<form><fields name="params"><fieldset name="' . $cfg['fieldset'] . '">'];
+
+            foreach ($langs as $lang) {
+                $fieldName  = $baseField . '_' . $lang['code'];
+                $fieldLabel = htmlspecialchars($cfg['label'] . ' (' . $lang['name'] . ')', ENT_QUOTES, 'UTF-8');
+                $fieldHint  = htmlspecialchars($cfg['hint'] ?? '', ENT_QUOTES, 'UTF-8');
+                $fieldDesc  = htmlspecialchars($cfg['description'] ?? '', ENT_QUOTES, 'UTF-8');
+                $showOn     = htmlspecialchars($cfg['showon'], ENT_QUOTES, 'UTF-8');
+                $rows       = isset($cfg['rows']) ? ' rows="' . $cfg['rows'] . '"' : '';
+
+                $xmlParts[] = '<field'
+                    . ' name="' . $fieldName . '"'
+                    . ' type="' . $cfg['type'] . '"'
+                    . ' label="' . $fieldLabel . '"'
+                    . ($fieldHint !== '' ? ' hint="' . $fieldHint . '"' : '')
+                    . ($fieldDesc !== '' ? ' description="' . $fieldDesc . '"' : '')
+                    . ' showon="' . $showOn . '"'
+                    . $rows
+                    . ' />';
+            }
+
+            $xmlParts[] = '</fieldset></fields></form>';
+            $form->load(implode('', $xmlParts), false);
         }
     }
 }

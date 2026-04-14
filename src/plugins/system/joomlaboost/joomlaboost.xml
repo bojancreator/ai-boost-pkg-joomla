@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 14, 2026</creationDate>
+  <creationDate>April 14, 2026 10:21</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.10.10</version>
+  <version>0.10.11</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -155,22 +155,8 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- Organization Name (per installed language) -->
-        <field name="org_name"
-               type="MultiLangParamsTextField"
-               label="Organization Name"
-               description="Schema.org organization name - one input per installed site language."
-               hint="e.g., Vivid Blue Serenity Resort"
-               showon="enable_schema:1" />
-
-        <!-- Organization Description (per installed language) -->
-        <field name="org_description"
-               type="MultiLangParamsTextarea"
-               label="Organization Description"
-               description="Short description of your organization (1-2 sentences) - one textarea per installed site language."
-               hint="e.g., Luxury adult-only resort on the Montenegrin Adriatic coast."
-               rows="3"
-               showon="enable_schema:1" />
+        <!-- Organization Name + Description per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: org_name_{code}, org_description_{code} -->
 
         <!-- Organization Logo (shared across all languages) -->
         <field name="org_logo" type="media" label="Organization Logo" description="Logo image used in Schema.org structured data (same for all languages)." default="" directory="images" showon="enable_schema:1" />
@@ -196,20 +182,8 @@
         <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., 21.0059)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="21.0059" />
         <!-- LocalBusiness/Hotel Address -->
         <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., RS, US, GB)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="RS" />
-        <!-- Address: City/Locality (per installed language) -->
-        <field name="schema_address_locality"
-               type="MultiLangParamsTextField"
-               label="City/Locality"
-               description="City name - one input per installed site language."
-               hint="e.g., Budva"
-               showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
-        <!-- Address: Street (per installed language) -->
-        <field name="schema_address_street"
-               type="MultiLangParamsTextField"
-               label="Street Address"
-               description="Street address - one input per installed site language."
-               hint="e.g., Reevii bb"
-               showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
+        <!-- City/Locality + Street per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: schema_address_locality_{code}, schema_address_street_{code} -->
         <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="11000" />
         <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="+381111234567" />
         <field name="schema_email" type="email" label="Email Address" description="Business contact email" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
@@ -296,13 +270,8 @@
           <option value="always_home">Homepage only - always inject global FAQ on homepage, ignore auto-detect</option>
           <option value="disabled">Disabled - global FAQ is saved but never injected into Schema</option>
         </field>
-        <!-- Manual FAQ (per installed language) -->
-        <field name="manual_faqs"
-               type="MultiLangParamsTextarea"
-               label="Manual FAQ Items"
-               description="FAQ items in JSON format - one textarea per installed site language. Format: [{&quot;question&quot;: &quot;Q?&quot;, &quot;answer&quot;: &quot;A.&quot;}]"
-               rows="6"
-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <!-- Manual FAQ per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: manual_faqs_{code} -->
         <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
         <!--  -->
         <!-- Event Schema                                                       -->
