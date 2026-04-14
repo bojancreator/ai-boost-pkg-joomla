@@ -397,16 +397,14 @@ HTML;
             return;
         }
 
-        // Inject dark-mode CSS fix for JoomlaBoost custom field labels in article editor.
-        // In Joomla 4, dark mode class is applied on <html> — use broad selector to
-        // ensure all labels inside adminForm get proper contrast.
+        // Fix Joomla core dark-mode bug: Joomla sets
+        // [data-bs-theme=dark] #content label { color: #212529 }
+        // which makes labels nearly invisible on dark backgrounds.
+        // We override it with the correct light colour.
         try {
             Factory::getApplication()->getDocument()->addStyleDeclaration(
-                'html.color-scheme-dark #adminForm label,' .
-                'html.color-scheme-dark .control-label label,' .
-                'html.color-scheme-dark .control-label .field-label,' .
-                '.color-scheme-dark #adminForm label,' .
-                '.color-scheme-dark .control-label label {' .
+                '[data-bs-theme=dark] #adminForm label,' .
+                '[data-bs-theme=dark] #content label {' .
                     'color: #dee2e6 !important;' .
                 '}'
             );
