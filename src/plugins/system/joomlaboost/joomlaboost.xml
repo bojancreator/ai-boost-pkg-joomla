@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 14, 2026 09:26</creationDate>
+  <creationDate>April 14, 2026 09:39</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.10.7</version>
+  <version>0.10.8</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -147,7 +147,7 @@
         <!-- OpenGraph Default Image -->
         <field name="og_image" type="media" label="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_DESC" default="" directory="images" showon="enable_opengraph:1" />
         <!-- Per-Article OpenGraph Override Notice -->
-        <field name="og_override_note" type="note" label="📝 Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields → Featured Image → Global Config." class="alert alert-info" showon="enable_opengraph:1" />
+        <field name="og_override_note" type="note" label="ðŸ“ Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields â†’ Featured Image â†’ Global Config." class="alert alert-info" showon="enable_opengraph:1" />
       </fieldset>
       <!-- Schema.org Configuration -->
       <fieldset name="schema" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_SCHEMA">
@@ -155,44 +155,25 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- Organization Name (EN) -->
-        <field name="org_name_en"
-               type="text"
-               label="Organization Name (EN)"
-               description="Schema.org organization name — English"
+        <!-- Organization Name (per installed language) -->
+        <field name="org_name"
+               type="MultiLangParamsTextField"
+               label="Organization Name"
+               description="Schema.org organization name â€” one input per installed site language."
                hint="e.g., Vivid Blue Serenity Resort"
                showon="enable_schema:1" />
-        <!-- Organization Name (SR/ME) -->
-        <field name="org_name_sr"
-               type="text"
-               label="Organization Name (SR/ME — Srpski/Crnogorski)"
-               description="Naziv organizacije na srpskom/crnogorskom"
-               hint="npr. Vivid Blue Serenity Resort"
-               showon="enable_schema:1" />
 
-        <!-- Organization Description (EN) -->
-        <field name="org_description_en"
-               type="textarea"
-               label="Organization Description (EN)"
-               description="Short description of your organization — English (1-2 sentences)"
+        <!-- Organization Description (per installed language) -->
+        <field name="org_description"
+               type="MultiLangParamsTextarea"
+               label="Organization Description"
+               description="Short description of your organization (1-2 sentences) â€” one textarea per installed site language."
                hint="e.g., Luxury adult-only resort on the Montenegrin Adriatic coast."
                rows="3"
-               cols="80"
-               showon="enable_schema:1" />
-        <!-- Organization Description (SR/ME) -->
-        <field name="org_description_sr"
-               type="textarea"
-               label="Organization Description (SR/ME — Srpski/Crnogorski)"
-               description="Kratak opis organizacije na srpskom/crnogorskom (1-2 rečenice)"
-               hint="npr. Luksuzni resort za odrasle na crnogorskom Jadranu."
-               rows="3"
-               cols="80"
                showon="enable_schema:1" />
 
-        <!-- Organization Logo (EN) -->
-        <field name="org_logo_en" type="media" label="Organization Logo (EN)" description="Logo for English language pages" default="" directory="images" showon="enable_schema:1" />
-        <!-- Organization Logo (SR/ME) -->
-        <field name="org_logo_sr" type="media" label="Organization Logo (SR/ME)" description="Logo za srpske/crnogorske stranice" default="" directory="images" showon="enable_schema:1" />
+        <!-- Organization Logo (shared across all languages) -->
+        <field name="org_logo" type="media" label="Organization Logo" description="Logo image used in Schema.org structured data (same for all languages)." default="" directory="images" showon="enable_schema:1" />
         <!-- Schema.org Type Selection -->
         <field name="schema_type" type="list" label="Schema.org Organization Type" description="Choose the type of schema for your organization. Auto-detect uses site characteristics, LocalBusiness includes geo/address data, Hotel includes accommodation-specific fields, Organization is generic." default="auto" showon="enable_schema:1">
           <option value="auto">Auto-detect (recommended)</option>
@@ -215,14 +196,20 @@
         <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., 21.0059)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="21.0059" />
         <!-- LocalBusiness/Hotel Address -->
         <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., RS, US, GB)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="RS" />
-        <!-- Address: City/Locality (EN) -->
-        <field name="schema_address_locality_en" type="text" label="City/Locality (EN)" description="City name in English" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="e.g., Budva" />
-        <!-- Address: City/Locality (SR/ME) -->
-        <field name="schema_address_locality_sr" type="text" label="City/Locality (SR/ME)" description="Naziv grada na srpskom/crnogorskom" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="npr. Budva" />
-        <!-- Address: Street (EN) -->
-        <field name="schema_address_street_en" type="text" label="Street Address (EN)" description="Street address in English" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="e.g., Reževići bb" />
-        <!-- Address: Street (SR/ME) -->
-        <field name="schema_address_street_sr" type="text" label="Street Address (SR/ME)" description="Adresa ulice na srpskom/crnogorskom" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="npr. Reževići bb" />
+        <!-- Address: City/Locality (per installed language) -->
+        <field name="schema_address_locality"
+               type="MultiLangParamsTextField"
+               label="City/Locality"
+               description="City name â€” one input per installed site language."
+               hint="e.g., Budva"
+               showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
+        <!-- Address: Street (per installed language) -->
+        <field name="schema_address_street"
+               type="MultiLangParamsTextField"
+               label="Street Address"
+               description="Street address â€” one input per installed site language."
+               hint="e.g., ReÅ¾eviÄ‡i bb"
+               showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
         <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="11000" />
         <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="+381111234567" />
         <field name="schema_email" type="email" label="Email Address" description="Business contact email" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
@@ -249,7 +236,7 @@
           <option value="0">JNO</option>
         </field>
         <!-- AggregateRating (Guest Reviews) -->
-        <field name="separator_rating" type="spacer" label="⭐ Guest Ratings (AggregateRating)" class="text" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
+        <field name="separator_rating" type="spacer" label="â­ Guest Ratings (AggregateRating)" class="text" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
         <field name="schema_rating_value"
                type="text"
                label="Average Rating"
@@ -302,34 +289,25 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="manual_faq_scope" type="list" label="Global FAQ — When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup. Auto-detect always runs first; this setting defines what happens with the global FAQ in relation to it." default="fallback_all" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
-          <option value="fallback_all">Fallback on all pages — show global FAQ on any page without auto-detected FAQ</option>
-          <option value="always_all">All pages — always inject global FAQ, ignore auto-detect</option>
-          <option value="fallback_home">Homepage fallback — show global FAQ on homepage only, if no auto-detected FAQ</option>
-          <option value="always_home">Homepage only — always inject global FAQ on homepage, ignore auto-detect</option>
-          <option value="disabled">Disabled — global FAQ is saved but never injected into Schema</option>
+        <field name="manual_faq_scope" type="list" label="Global FAQ â€” When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup. Auto-detect always runs first; this setting defines what happens with the global FAQ in relation to it." default="fallback_all" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
+          <option value="fallback_all">Fallback on all pages â€” show global FAQ on any page without auto-detected FAQ</option>
+          <option value="always_all">All pages â€” always inject global FAQ, ignore auto-detect</option>
+          <option value="fallback_home">Homepage fallback â€” show global FAQ on homepage only, if no auto-detected FAQ</option>
+          <option value="always_home">Homepage only â€” always inject global FAQ on homepage, ignore auto-detect</option>
+          <option value="disabled">Disabled â€” global FAQ is saved but never injected into Schema</option>
         </field>
-        <!-- Manual FAQ — English -->
-        <field name="manual_faqs_en"
-               type="textarea"
-               label="Manual FAQ Items (EN — English)"
-               description="FAQ items in JSON format for English pages. Format: [{&quot;question&quot;: &quot;Q?&quot;, &quot;answer&quot;: &quot;A.&quot;}]"
+        <!-- Manual FAQ (per installed language) -->
+        <field name="manual_faqs"
+               type="MultiLangParamsTextarea"
+               label="Manual FAQ Items"
+               description="FAQ items in JSON format â€” one textarea per installed site language. Format: [{&quot;question&quot;: &quot;Q?&quot;, &quot;answer&quot;: &quot;A.&quot;}]"
                rows="6"
-               cols="80"
-               showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
-        <!-- Manual FAQ — Serbian/Montenegrin (sr-RS / me) -->
-        <field name="manual_faqs_sr"
-               type="textarea"
-               label="Manual FAQ Items (SR/ME — Srpski/Crnogorski)"
-               description="FAQ u JSON formatu za srpski/crnogorski jezik. Format: [{&quot;question&quot;: &quot;Pitanje?&quot;, &quot;answer&quot;: &quot;Odgovor.&quot;}]"
-               rows="6"
-               cols="80"
                showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
         <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
-        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
         <!-- Event Schema                                                       -->
-        <!-- ═══════════════════════════════════════════════════════════════════ -->
-        <field name="separator_events" type="spacer" label="🎭 Event Schema (Rich Results)" class="text" showon="enable_schema:1" />
+        <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+        <field name="separator_events" type="spacer" label="ðŸŽ­ Event Schema (Rich Results)" class="text" showon="enable_schema:1" />
         <field name="schema_events_enabled" type="radio"
                label="Enable Event Schema"
                description="Inject Event JSON-LD schema on all pages. Events appear in Google rich results, Google Maps, and AI Overviews. Configure events via JSON below."
@@ -359,7 +337,7 @@
           <option value="0">JNO</option>
         </field>
         <field name="gsc_verification_meta" type="text" label="Google Site Verification Code (Primary)" description="Paste only the content value from the meta tag: &lt;meta name='google-site-verification' content='PASTE_THIS_VALUE'/&gt;" default="" showon="enable_google_verification:1" />
-        <field name="gsc_verification_meta_2" type="text" label="Google Site Verification Code (Secondary — optional)" description="Second verification code if you have two Google Search Console properties (e.g. www + non-www, or two organizations). Leave empty if not needed." default="" hint="" showon="enable_google_verification:1" />
+        <field name="gsc_verification_meta_2" type="text" label="Google Site Verification Code (Secondary â€” optional)" description="Second verification code if you have two Google Search Console properties (e.g. www + non-www, or two organizations). Leave empty if not needed." default="" hint="" showon="enable_google_verification:1" />
         <field name="gsc_additional_html" type="textarea" label="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_DESC" default="" rows="5" cols="80" showon="enable_google_verification:1" />
         <!-- Google Analytics 4 -->
         <field name="enable_ga4" type="radio" label="PLG_SYSTEM_JOOMLABOOST_GA4_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_DESC" default="0" class="btn-group btn-group-yesno">
@@ -368,7 +346,7 @@
         </field>
         <field name="ga4_measurement_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_DESC" default="" hint="G-XXXXXXXXXX" showon="enable_ga4:1" />
         <!-- GA4 GDPR Consent Mode -->
-        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="How GA4 is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain) until user accepts Statistics in YooTheme consent banner — REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Google Analytics container (code can stay empty). GTM: skip direct GA4, let GTM handle it with its own consent settings." default="none" showon="enable_ga4:1">
+        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="How GA4 is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain) until user accepts Statistics in YooTheme consent banner â€” REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Google Analytics container (code can stay empty). GTM: skip direct GA4, let GTM handle it with its own consent settings." default="none" showon="enable_ga4:1">
           <option value="none">None (Direct inject - no GDPR)</option>
           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
           <option value="gtm">Via GTM (skip direct GA4)</option>
@@ -379,8 +357,8 @@
           <option value="0">JNO</option>
         </field>
         <field name="gtm_container_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL" description="GTM Container ID (format: GTM-XXXXXXX). NOTE: If YooTheme also has GA4 configured in its own Customizer integrations, disable GA4 here (or use mode Via GTM) to avoid duplicate tracking." default="" hint="GTM-XXXXXXX" showon="enable_gtm:1" />
-        <!-- IndexNow — Instant Indexing -->
-        <field name="separator_indexnow" type="spacer" label="IndexNow — Instant Indexing (Bing, Yandex, Seznam)" class="text" />
+        <!-- IndexNow â€” Instant Indexing -->
+        <field name="separator_indexnow" type="spacer" label="IndexNow â€” Instant Indexing (Bing, Yandex, Seznam)" class="text" />
         <field name="indexnow_enabled" type="radio" label="Enable IndexNow" description="Automatically notify Bing, Yandex and Seznam when content is published or updated. Requires a valid API key." default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
@@ -399,11 +377,11 @@
                hint="e.g. a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4" />
         <field name="indexnow_note" type="note"
                label="How IndexNow Works"
-               description="Save plugin → key file auto-created → every published article is instantly pinged to Bing/Yandex/Seznam. AI search engines discover new content in minutes, not days."
+               description="Save plugin â†’ key file auto-created â†’ every published article is instantly pinged to Bing/Yandex/Seznam. AI search engines discover new content in minutes, not days."
                class="alert alert-info"
                showon="indexnow_enabled:1" />
-        <!-- LLMs.txt — AI Search Visibility -->
-        <field name="separator_llmstxt" type="spacer" label="LLMs.txt — AI Crawler Visibility (ChatGPT, Claude, Perplexity)" class="text" />
+        <!-- LLMs.txt â€” AI Search Visibility -->
+        <field name="separator_llmstxt" type="spacer" label="LLMs.txt â€” AI Crawler Visibility (ChatGPT, Claude, Perplexity)" class="text" />
         <field name="llmstxt_enabled" type="radio" label="Generate /llms.txt" description="Creates a structured /llms.txt file at the site root that helps AI systems (ChatGPT, Claude, Perplexity, Gemini) understand your site's content and structure." default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
@@ -429,9 +407,9 @@
           <option value="0">JNO</option>
         </field>
         <field name="meta_pixel_id" type="text" label="Meta Pixel ID (Primary)" description="Your primary Meta (Facebook) Pixel ID" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
-        <field name="meta_pixel_id_2" type="text" label="Meta Pixel ID (Secondary — optional)" description="Second Pixel ID if you need to track two accounts simultaneously (e.g. agency + client). Leave empty if not needed." default="" hint="784973044476993" showon="enable_meta_pixel:1" />
+        <field name="meta_pixel_id_2" type="text" label="Meta Pixel ID (Secondary â€” optional)" description="Second Pixel ID if you need to track two accounts simultaneously (e.g. agency + client). Leave empty if not needed." default="" hint="784973044476993" showon="enable_meta_pixel:1" />
         <!-- Meta Pixel GDPR Consent Mode -->
-        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain, data-category=marketing.meta-pixel) until user accepts Marketing in YooTheme consent banner — REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Meta Pixel container (code can stay empty)." default="none" showon="enable_meta_pixel:1">
+        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain, data-category=marketing.meta-pixel) until user accepts Marketing in YooTheme consent banner â€” REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Meta Pixel container (code can stay empty)." default="none" showon="enable_meta_pixel:1">
           <option value="none">None (Direct inject - no GDPR)</option>
           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
         </field>
