@@ -354,9 +354,9 @@ class OpenGraphService extends AbstractService
      * Get article image URL (heavy operation - DB query)
      *
      * Priority:
-     *   1. image_intro  — Article intro image (Joomla article editor → Images tab)
-     *   2. image_fulltext — Article fulltext image
-     *   3. custom_og_image — Custom Field (per-article override, media field)
+     *   1. custom_og_image — Custom Field (explicit per-article override)
+     *   2. image_intro     — Article intro image (Joomla article editor → Images tab)
+     *   3. image_fulltext  — Article fulltext image
      *   4. Plugin default image (og_image param) — handled by addFallbackOpenGraphImage()
      *
      * Note: HTML content extraction was removed — it picked up random icons (SVGs etc.)
@@ -371,7 +371,17 @@ class OpenGraphService extends AbstractService
                 return '';
             }
 
-            // Query article images JSON from DB
+            // Priority 1: custom_og_image Custom Field (explicit per-article override)
+            $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
+            if (!empty($customImage)) {
+                $url = $this->normalizeAndCleanImageUrl($customImage);
+                if (!empty($url)) {
+                    $this->logDebug("og:image Priority 1 — custom_og_image field: $url");
+                    return $url;
+                }
+            }
+
+            // Priority 2 & 3: image_intro / image_fulltext from article DB record
             $db    = Factory::getDbo();
             $query = $db->getQuery(true)
                 ->select($db->quoteName('images'))
@@ -387,16 +397,14 @@ class OpenGraphService extends AbstractService
 
             $this->logDebug('Article images raw: ' . ($article->images ?? 'NULL'));
 
-            // Priority 1: image_intro / Priority 2: image_fulltext
             if (!empty($article->images)) {
                 $images = json_decode($article->images, true);
                 $this->logDebug('Article images decoded: ' . json_encode($images));
 
                 if (is_array($images)) {
-                    // Check intro image first, then fulltext image
                     $imageFields = [
-                        'image_intro',    // Priority 1 — Joomla intro image
-                        'image_fulltext', // Priority 2 — Joomla fulltext image
+                        'image_intro',    // Priority 2 — Joomla intro image
+                        'image_fulltext', // Priority 3 — Joomla fulltext image
                         'intro_image',    // Alternative naming (older Joomla)
                         'full_image',     // Alternative naming
                         'introimage',     // No-underscore variant
@@ -413,20 +421,10 @@ class OpenGraphService extends AbstractService
                         }
                     }
 
-                    $this->logDebug('No intro/fulltext image. Available keys: ' . implode(', ', array_keys($images)));
+                    $this->logDebug('No intro/fulltext image. Keys: ' . implode(', ', array_keys($images)));
                 }
             } else {
                 $this->logDebug('Article images field is empty');
-            }
-
-            // Priority 3: custom_og_image Custom Field (media field, per-article)
-            $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
-            if (!empty($customImage)) {
-                $url = $this->normalizeAndCleanImageUrl($customImage);
-                if (!empty($url)) {
-                    $this->logDebug("og:image from custom_og_image field: $url");
-                    return $url;
-                }
             }
 
             // Priority 4: plugin default — handled upstream by addFallbackOpenGraphImage()
