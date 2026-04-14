@@ -82,6 +82,7 @@ class plgSystemJoomlaboostInstallerScript
                 $group = (object) [
                     'title'       => 'JoomlaBoost',
                     'context'     => 'com_content.article',
+                    'description' => '',
                     'note'        => 'Auto-created by JoomlaBoost plugin for per-article SEO overrides.',
                     'state'       => 1,
                     'access'      => 1,
