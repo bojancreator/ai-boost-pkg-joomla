@@ -353,7 +353,14 @@ class OpenGraphService extends AbstractService
     /**
      * Get article image URL (heavy operation - DB query)
      *
-     * Priority: 1. Custom Field (custom_og_image) → 2. Featured Image (intro/fulltext) → 3. Extracted from content
+     * Priority:
+     *   1. image_intro  — Article intro image (Joomla article editor → Images tab)
+     *   2. image_fulltext — Article fulltext image
+     *   3. custom_og_image — Custom Field (per-article override, media field)
+     *   4. Plugin default image (og_image param) — handled by addFallbackOpenGraphImage()
+     *
+     * Note: HTML content extraction was removed — it picked up random icons (SVGs etc.)
+     * from article body which are invalid for social sharing.
      */
     private function getArticleImage(): string
     {
@@ -364,17 +371,10 @@ class OpenGraphService extends AbstractService
                 return '';
             }
 
-            // Priority 1: Custom OG Image (per-article override)
-            $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
-            if (!empty($customImage)) {
-                $this->logDebug("Using custom_og_image from Custom Field for article $articleId");
-                return $this->normalizeAndCleanImageUrl($customImage);
-            }
-
-            // Priority 2 & 3: Featured images from article or extracted from content
-            $db = Factory::getDbo();
+            // Query article images JSON from DB
+            $db    = Factory::getDbo();
             $query = $db->getQuery(true)
-                ->select($db->quoteName(['images', 'introtext', 'fulltext']))
+                ->select($db->quoteName('images'))
                 ->from($db->quoteName('#__content'))
                 ->where($db->quoteName('id') . ' = ' . (int) $articleId);
 
@@ -385,42 +385,52 @@ class OpenGraphService extends AbstractService
                 return '';
             }
 
-            // Try to extract from images JSON (Priority 2)
             $this->logDebug('Article images raw: ' . ($article->images ?? 'NULL'));
 
+            // Priority 1: image_intro / Priority 2: image_fulltext
             if (!empty($article->images)) {
                 $images = json_decode($article->images, true);
                 $this->logDebug('Article images decoded: ' . json_encode($images));
 
                 if (is_array($images)) {
-                    // Try all possible Joomla image field variations
+                    // Check intro image first, then fulltext image
                     $imageFields = [
-                        'image_intro',      // Joomla 3.x/4.x standard
-                        'image_fulltext',   // Joomla 3.x/4.x standard
-                        'intro_image',      // Alternative naming
-                        'full_image',       // Alternative naming
-                        'introimage',       // No underscore variant
-                        'fullimage'         // No underscore variant
+                        'image_intro',    // Priority 1 — Joomla intro image
+                        'image_fulltext', // Priority 2 — Joomla fulltext image
+                        'intro_image',    // Alternative naming (older Joomla)
+                        'full_image',     // Alternative naming
+                        'introimage',     // No-underscore variant
+                        'fullimage',      // No-underscore variant
                     ];
 
                     foreach ($imageFields as $field) {
-                        if (isset($images[$field])) {
-                            $imageValue = trim($images[$field]);
-
-                            if (!empty($imageValue)) {
-                                return $this->normalizeAndCleanImageUrl($imageValue);
+                        if (!empty($images[$field])) {
+                            $url = $this->normalizeAndCleanImageUrl(trim($images[$field]));
+                            if (!empty($url)) {
+                                $this->logDebug("og:image from field '$field': $url");
+                                return $url;
                             }
                         }
                     }
 
-                    $this->logDebug('No valid image found. Available keys: ' . implode(', ', array_keys($images)));
+                    $this->logDebug('No intro/fulltext image. Available keys: ' . implode(', ', array_keys($images)));
                 }
             } else {
                 $this->logDebug('Article images field is empty');
             }
 
-            // Extract from article text as fallback (Priority 3)
-            return $this->extractImageFromContent($article->introtext . ' ' . $article->fulltext);
+            // Priority 3: custom_og_image Custom Field (media field, per-article)
+            $customImage = $this->getArticleCustomField($articleId, 'custom_og_image');
+            if (!empty($customImage)) {
+                $url = $this->normalizeAndCleanImageUrl($customImage);
+                if (!empty($url)) {
+                    $this->logDebug("og:image from custom_og_image field: $url");
+                    return $url;
+                }
+            }
+
+            // Priority 4: plugin default — handled upstream by addFallbackOpenGraphImage()
+            return '';
         } catch (\Throwable $e) {
             $this->logDebug('Article image extraction failed: ' . $e->getMessage());
             return '';

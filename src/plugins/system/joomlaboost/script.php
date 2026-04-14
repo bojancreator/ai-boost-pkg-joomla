@@ -13,6 +13,7 @@ class plgSystemJoomlaboostInstallerScript
     {
         $this->createSettingsTable();
         $this->createTranslationsTable();
+        $this->createJoomlaBoostCustomFields();
         return true;
     }
 
@@ -27,6 +28,9 @@ class plgSystemJoomlaboostInstallerScript
 
         // Migrate existing legacy language fields to database
         $this->migrateLegacyTranslations();
+
+        // Create custom fields if not yet present
+        $this->createJoomlaBoostCustomFields();
 
         return true;
     }
@@ -45,6 +49,129 @@ class plgSystemJoomlaboostInstallerScript
         // User can manually drop table if needed: DROP TABLE IF EXISTS `#__joomlaboost_settings`;
 
         return true;
+    }
+
+    /**
+     * Auto-create JoomlaBoost custom fields for per-article OG overrides.
+     *
+     * Creates (if not existing):
+     *   - Field group : "JoomlaBoost" (context: com_content.article)
+     *   - custom_og_image       : Media field  — per-article OG image
+     *   - custom_og_title       : Text field   — per-article OG title
+     *   - custom_og_description : Textarea     — per-article OG description
+     *
+     * Idempotent: safe to call on every install/update.
+     */
+    private function createJoomlaBoostCustomFields(): void
+    {
+        try {
+            $db  = Factory::getDbo();
+            $now = (new \DateTime())->format('Y-m-d H:i:s');
+
+            // ── 1. Ensure field group exists ──────────────────────────────────
+            $groupQuery = $db->getQuery(true)
+                ->select($db->quoteName('id'))
+                ->from($db->quoteName('#__fields_groups'))
+                ->where($db->quoteName('title') . ' = ' . $db->quote('JoomlaBoost'))
+                ->where($db->quoteName('context') . ' = ' . $db->quote('com_content.article'));
+
+            $db->setQuery($groupQuery);
+            $groupId = (int) $db->loadResult();
+
+            if (!$groupId) {
+                $group = (object) [
+                    'title'       => 'JoomlaBoost',
+                    'context'     => 'com_content.article',
+                    'note'        => 'Auto-created by JoomlaBoost plugin for per-article SEO overrides.',
+                    'state'       => 1,
+                    'access'      => 1,
+                    'language'    => '*',
+                    'params'      => '{}',
+                    'ordering'    => 0,
+                    'created'     => $now,
+                    'created_by'  => 0,
+                    'modified'    => $now,
+                    'modified_by' => 0,
+                ];
+                $db->insertObject('#__fields_groups', $group);
+                $groupId = (int) $db->insertid();
+            }
+
+            // ── 2. Field definitions ──────────────────────────────────────────
+            $fieldsToCreate = [
+                [
+                    'name'        => 'custom_og_image',
+                    'label'       => 'OG Image (JoomlaBoost)',
+                    'type'        => 'media',
+                    'description' => 'Per-article Open Graph image. Overrides plugin default. Recommended: JPEG/PNG, min 1200x630px.',
+                    'note'        => '',
+                ],
+                [
+                    'name'        => 'custom_og_title',
+                    'label'       => 'OG Title (JoomlaBoost)',
+                    'type'        => 'text',
+                    'description' => 'Per-article Open Graph title. Overrides article title for social sharing.',
+                    'note'        => '',
+                ],
+                [
+                    'name'        => 'custom_og_description',
+                    'label'       => 'OG Description (JoomlaBoost)',
+                    'type'        => 'textarea',
+                    'description' => 'Per-article Open Graph description. Overrides meta description for social sharing.',
+                    'note'        => '',
+                ],
+            ];
+
+            foreach ($fieldsToCreate as $index => $fieldDef) {
+                // Check if field with this name already exists
+                $existsQuery = $db->getQuery(true)
+                    ->select($db->quoteName('id'))
+                    ->from($db->quoteName('#__fields'))
+                    ->where($db->quoteName('name') . ' = ' . $db->quote($fieldDef['name']))
+                    ->where($db->quoteName('context') . ' = ' . $db->quote('com_content.article'));
+
+                $db->setQuery($existsQuery);
+                if ($db->loadResult()) {
+                    continue; // Already exists — skip
+                }
+
+                $field = (object) [
+                    'context'      => 'com_content.article',
+                    'group_id'     => $groupId,
+                    'title'        => $fieldDef['label'],
+                    'name'         => $fieldDef['name'],
+                    'label'        => $fieldDef['label'],
+                    'default_value' => '',
+                    'type'         => $fieldDef['type'],
+                    'note'         => $fieldDef['note'],
+                    'description'  => $fieldDef['description'],
+                    'state'        => 1,
+                    'access'       => 1,
+                    'language'     => '*',
+                    'params'       => '{"class":"","hint":"","show_on":"","display":"2","showlabel":"1","label_render_class":"","display_readonly":"2"}',
+                    'fieldparams'  => '{}',
+                    'required'     => 0,
+                    'ordering'     => $index + 1,
+                    'created_time' => $now,
+                    'created_user_id' => 0,
+                    'modified_time'   => $now,
+                    'modified_by'     => 0,
+                    'checked_out'     => 0,
+                    'checked_out_time' => null,
+                ];
+
+                $db->insertObject('#__fields', $field);
+            }
+        } catch (\Throwable $e) {
+            // Non-fatal — log and continue (don't break installation)
+            try {
+                Factory::getApplication()->enqueueMessage(
+                    'JoomlaBoost: Could not auto-create custom fields: ' . $e->getMessage(),
+                    'warning'
+                );
+            } catch (\Throwable $ignored) {
+            }
+        }
     }
 
     /**
