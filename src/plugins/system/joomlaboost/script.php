@@ -72,15 +72,27 @@ class plgSystemJoomlaboostInstallerScript
             $groupQuery = $db->getQuery(true)
                 ->select($db->quoteName('id'))
                 ->from($db->quoteName('#__fields_groups'))
-                ->where($db->quoteName('title') . ' = ' . $db->quote('JoomlaBoost'))
+                ->where(
+                    '(' . $db->quoteName('title') . ' = ' . $db->quote('JB OpenGraph') .
+                    ' OR ' . $db->quoteName('title') . ' = ' . $db->quote('JoomlaBoost') . ')'
+                )
                 ->where($db->quoteName('context') . ' = ' . $db->quote('com_content.article'));
 
             $db->setQuery($groupQuery);
             $groupId = (int) $db->loadResult();
 
-            if (!$groupId) {
+            if ($groupId) {
+                // Rename old 'JoomlaBoost' group to 'JB OpenGraph' if needed
+                $renameQuery = $db->getQuery(true)
+                    ->update($db->quoteName('#__fields_groups'))
+                    ->set($db->quoteName('title') . ' = ' . $db->quote('JB OpenGraph'))
+                    ->where($db->quoteName('id') . ' = ' . $groupId)
+                    ->where($db->quoteName('title') . ' = ' . $db->quote('JoomlaBoost'));
+                $db->setQuery($renameQuery);
+                $db->execute();
+            } else {
                 $group = (object) [
-                    'title'       => 'JoomlaBoost',
+                    'title'       => 'JB OpenGraph',
                     'context'     => 'com_content.article',
                     'description' => '',
                     'note'        => 'Auto-created by JoomlaBoost plugin for per-article SEO overrides.',

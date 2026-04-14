@@ -397,6 +397,19 @@ HTML;
             return;
         }
 
+        // Inject dark-mode CSS fix for JoomlaBoost custom field labels in article editor.
+        // Joomla dark mode sets .color-scheme-dark on <body>; custom field labels
+        // don't inherit the correct contrast colour without this override.
+        try {
+            Factory::getApplication()->getDocument()->addStyleDeclaration(
+                '.color-scheme-dark .control-label label,' .
+                '.color-scheme-dark .control-label .field-label {' .
+                    'color: #dee2e6 !important;' .
+                '}'
+            );
+        } catch (\Throwable $ignored) {
+        }
+
         // Get article ID from data
         $articleId = null;
         if (is_array($data) && isset($data['id'])) {
