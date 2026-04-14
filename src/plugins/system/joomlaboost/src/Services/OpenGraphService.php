@@ -654,19 +654,21 @@ class OpenGraphService extends AbstractService
     }
 
     /**
-     * Fix SVG og:image in fully-rendered HTML buffer.
+     * Enforce JoomlaBoost og:image in fully-rendered HTML buffer.
      *
-     * YooTheme Pro (and some other builders) injects its own og:image AFTER
-     * JoomlaBoost's onBeforeCompileHead event, so JoomlaBoost cannot override
-     * it through the Document API. This method runs in onAfterRender on the
-     * raw HTML string and replaces any og:image pointing to an SVG/SVGZ file
-     * with the plugin-configured fallback image.
+     * Builders like YooTheme Pro inject their own og:image AFTER
+     * JoomlaBoost's onBeforeCompileHead event, overriding the plugin.
+     * This method runs in onAfterRender and replaces ANY og:image
+     * in the rendered HTML with the value JoomlaBoost determined.
      *
-     * SVG images are invalid for Open Graph (Facebook, Twitter/X, WhatsApp
-     * require raster formats: JPEG, PNG, WebP).
+     * Priority (computed by computeBestOgImage):
+     *   Article pages: custom_og_image field → image_intro → image_fulltext → plugin default
+     *   Other pages:   plugin default (og_image param)
+     *
+     * If JoomlaBoost has nothing configured, the builder's value is left intact.
      *
      * @param  string  $body  The fully-rendered page HTML
-     * @return string         HTML with SVG og:image replaced (or unchanged)
+     * @return string         HTML with og:image enforced (or unchanged)
      */
     public function fixSvgOgImageInBuffer(string $body): string
     {
@@ -674,48 +676,73 @@ class OpenGraphService extends AbstractService
             return $body;
         }
 
-        // Fast pre-check — avoid regex overhead when no og:image present
+        // Fast pre-check — skip regex if no og:image in page
         if (stripos($body, 'og:image') === false) {
             return $body;
         }
 
-        // Resolve the configured fallback image
-        $fallback = trim((string) $this->params->get('og_image', $this->params->get('org_logo', '')));
-        if (empty($fallback)) {
-            $this->logDebug('OG SVG fix: no fallback image configured, skipping');
+        // Compute what JoomlaBoost wants as the og:image
+        $targetImage = $this->computeBestOgImage();
+        if (empty($targetImage)) {
+            // Nothing configured — leave builder's image intact
+            $this->logDebug('OG enforce: no image configured, leaving builder value');
             return $body;
         }
 
-        $fallbackUrl = $this->normalizeAndCleanImageUrl($fallback);
-        if (empty($fallbackUrl)) {
+        $targetUrl = $this->normalizeAndCleanImageUrl($targetImage);
+        if (empty($targetUrl)) {
             return $body;
         }
 
-        // Replace any <meta> with property="og:image" whose content ends in .svg or .svgz
-        // Handles both attribute orders:
-        //   <meta property="og:image" content="...svg">
-        //   <meta content="...svg" property="og:image">
+        // Replace whatever og:image the builder set with our determined value
         $newBody = preg_replace_callback(
             '/<meta\b([^>]*?)>/is',
-            function (array $matches) use ($fallbackUrl): string {
+            function (array $matches) use ($targetUrl): string {
                 $attrs = $matches[1];
 
-                // Must have property="og:image"
+                // Only target og:image tags
                 if (!preg_match('/property\s*=\s*["\']og:image["\']/i', $attrs)) {
                     return $matches[0];
                 }
 
-                // Must have content pointing to an SVG file
-                if (!preg_match('/content\s*=\s*["\'][^"\']*\.svgz?["\']/i', $attrs)) {
-                    return $matches[0];
-                }
-
-                $this->logDebug('OG SVG fix: replacing SVG og:image with: ' . $fallbackUrl);
-                return '<meta property="og:image" content="' . htmlspecialchars($fallbackUrl, ENT_QUOTES, 'UTF-8') . '">';
+                $this->logDebug('OG enforce: replacing builder og:image with: ' . $targetUrl);
+                return '<meta property="og:image" content="' . htmlspecialchars($targetUrl, ENT_QUOTES, 'UTF-8') . '">';
             },
             $body
         );
 
         return ($newBody !== null) ? $newBody : $body;
+    }
+
+    /**
+     * Compute the best og:image JoomlaBoost should use for the current page.
+     *
+     * Article pages (com_content/view=article):
+     *   1. custom_og_image Custom Field (explicit per-article override)
+     *   2. image_intro  (article Images tab)
+     *   3. image_fulltext (article Images tab)
+     *   4. Plugin default og_image param
+     *
+     * All other pages:
+     *   Plugin default og_image param
+     *
+     * Returns empty string if nothing is configured.
+     */
+    private function computeBestOgImage(): string
+    {
+        $input  = $this->app->getInput();
+        $option = $input->getCmd('option');
+        $view   = $input->getCmd('view');
+
+        // For article pages: run full priority chain via getArticleImage()
+        if ($option === 'com_content' && $view === 'article') {
+            $articleImage = $this->getArticleImage();
+            if (!empty($articleImage)) {
+                return $articleImage;
+            }
+        }
+
+        // Plugin default for all pages (including article fallthrough)
+        return trim((string) $this->params->get('og_image', $this->params->get('org_logo', '')));
     }
 }
