@@ -32,21 +32,23 @@ trait MultiLangFieldTrait
     /**
      * Get site languages for form field rendering.
      *
-     * Priority:
-     * 1. #__falang_languages — Falang translation overlay (no table-existence pre-check,
-     *    just catch DB error if table missing)
-     * 2. #__languages        — Native Joomla multilingual
-     * 3. English fallback
+     * Merges results from BOTH sources:
+     *   1. #__falang_languages (Falang - if installed)
+     *   2. #__languages        (native Joomla multilingual)
+     *
+     * Both are always queried and deduplicated by 2-char code so that
+     * sites using Falang + native Joomla both see all configured languages.
+     * Falls back to English if neither source returns any data.
      *
      * @return array<int, array{code: string, name: string, tag: string}>
      */
     private function getInstalledLanguages(): array
     {
-        $db = Factory::getDbo();
+        $db     = Factory::getDbo();
+        $seen   = [];
+        $result = [];
 
         // ── 1. Falang ─────────────────────────────────────────────────────────
-        // Do NOT pre-check table existence (getTableList can be case-sensitive).
-        // Simply try the query and fall through on any DB exception.
         try {
             $db->setQuery(
                 'SELECT fl.lang_code,'
@@ -56,31 +58,25 @@ trait MultiLangFieldTrait
                 . '   ON l.lang_id = fl.joomla_lang_id'
                 . ' ORDER BY fl.id ASC'
             );
-            $rows = $db->loadObjectList();
-
-            if (!empty($rows)) {
-                $seen   = [];
-                $result = [];
-                foreach ($rows as $row) {
-                    $code = strtolower(substr((string) $row->lang_code, 0, 2));
-                    if (!isset($seen[$code])) {
-                        $seen[$code] = true;
-                        $result[]    = [
-                            'code' => $code,
-                            'name' => (string) $row->name,
-                            'tag'  => (string) $row->lang_code,
-                        ];
-                    }
-                }
-                if (!empty($result)) {
-                    return $result;
+            foreach ((array) $db->loadObjectList() as $row) {
+                $code = strtolower(substr((string) $row->lang_code, 0, 2));
+                if ($code !== '' && !isset($seen[$code])) {
+                    $seen[$code] = true;
+                    $result[]    = [
+                        'code' => $code,
+                        'name' => (string) $row->name,
+                        'tag'  => (string) $row->lang_code,
+                    ];
                 }
             }
         } catch (\Throwable $e) {
-            // #__falang_languages doesn't exist — fall through to #__languages
+            // #__falang_languages does not exist — not a Falang site
         }
 
         // ── 2. Native Joomla #__languages ────────────────────────────────────
+        // Always query, even when Falang returned results, so native-only
+        // languages are included too (e.g. a language in #__languages that is
+        // not yet in Falang, or a non-Falang site).
         try {
             $db->setQuery(
                 'SELECT lang_code, title AS name'
@@ -88,24 +84,15 @@ trait MultiLangFieldTrait
                 . ' WHERE published = 1'
                 . ' ORDER BY ordering ASC'
             );
-            $rows = $db->loadObjectList();
-
-            if (!empty($rows)) {
-                $seen   = [];
-                $result = [];
-                foreach ($rows as $row) {
-                    $code = strtolower(substr((string) $row->lang_code, 0, 2));
-                    if (!isset($seen[$code])) {
-                        $seen[$code] = true;
-                        $result[]    = [
-                            'code' => $code,
-                            'name' => (string) $row->name,
-                            'tag'  => (string) $row->lang_code,
-                        ];
-                    }
-                }
-                if (!empty($result)) {
-                    return $result;
+            foreach ((array) $db->loadObjectList() as $row) {
+                $code = strtolower(substr((string) $row->lang_code, 0, 2));
+                if ($code !== '' && !isset($seen[$code])) {
+                    $seen[$code] = true;
+                    $result[]    = [
+                        'code' => $code,
+                        'name' => (string) $row->name,
+                        'tag'  => (string) $row->lang_code,
+                    ];
                 }
             }
         } catch (\Throwable $e) {
@@ -113,7 +100,9 @@ trait MultiLangFieldTrait
         }
 
         // ── 3. Fallback ───────────────────────────────────────────────────────
-        return [['code' => 'en', 'name' => 'English', 'tag' => 'en-GB']];
+        return !empty($result)
+            ? $result
+            : [['code' => 'en', 'name' => 'English', 'tag' => 'en-GB']];
     }
 
     /**
@@ -134,14 +123,47 @@ trait MultiLangFieldTrait
      */
     private function getFlag(string $code): string
     {
+        // Using text country codes instead of emoji to avoid encoding issues
+        // across different server/editor environments.
         $map = [
-            'en' => '🇬🇧', 'sr' => '🇷🇸', 'me' => '🇲🇪', 'hr' => '🇭🇷',
-            'bs' => '🇧🇦', 'ru' => '🇷🇺', 'de' => '🇩🇪', 'fr' => '🇫🇷',
-            'it' => '🇮🇹', 'es' => '🇪🇸', 'pt' => '🇵🇹', 'nl' => '🇳🇱',
-            'pl' => '🇵🇱', 'cs' => '🇨🇿', 'sk' => '🇸🇰', 'hu' => '🇭🇺',
-            'ro' => '🇷🇴', 'bg' => '🇧🇬', 'sl' => '🇸🇮', 'uk' => '🇺🇦',
-            'tr' => '🇹🇷', 'ar' => '🇸🇦', 'zh' => '🇨🇳', 'ja' => '🇯🇵',
+            'en' => '[EN]', 'sr' => '[SR]', 'me' => '[ME]', 'hr' => '[HR]',
+            'bs' => '[BS]', 'ru' => '[RU]', 'de' => '[DE]', 'fr' => '[FR]',
+            'it' => '[IT]', 'es' => '[ES]', 'pt' => '[PT]', 'nl' => '[NL]',
+            'pl' => '[PL]', 'cs' => '[CS]', 'sk' => '[SK]', 'hu' => '[HU]',
+            'ro' => '[RO]', 'bg' => '[BG]', 'sl' => '[SL]', 'uk' => '[UK]',
+            'tr' => '[TR]', 'ar' => '[AR]', 'zh' => '[ZH]', 'ja' => '[JA]',
         ];
-        return $map[$code] ?? '🏳️';
+        return $map[$code] ?? '[' . strtoupper($code) . ']';
+    }
+
+    /**
+     * Inline JS that wires the language selector dropdown to
+     * show/hide the corresponding input rows (data-lang attribute).
+     *
+     * Used by MultiLangParamsTextField and MultiLangParamsTextarea.
+     *
+     * @param  string $selectorId  The <select> element ID
+     * @return string              <script> HTML block
+     */
+    private function getSwitcherJs(string $selectorId): string
+    {
+        return <<<JS
+<script>
+(function () {
+    var sel = document.getElementById('{$selectorId}');
+    if (!sel) { return; }
+    function applyLang(lang) {
+        var wrap = sel.closest('.jb-multilang-params-field');
+        if (!wrap) { return; }
+        wrap.querySelectorAll('[data-lang]').forEach(function (el) {
+            el.style.display = (lang === 'all' || el.dataset.lang === lang) ? '' : 'none';
+        });
+    }
+    sel.addEventListener('change', function () { applyLang(sel.value); });
+    // Apply initial state (first language)
+    if (sel.options.length > 1) { applyLang(sel.options[1].value); sel.value = sel.options[1].value; }
+})();
+</script>
+JS;
     }
 }
