@@ -2,7 +2,7 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 15, 2026 11:59</creationDate>
+  <creationDate>April 15, 2026 12:07</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
@@ -142,10 +142,8 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- OpenGraph Site Name -->
-        <field name="og_site_name" type="text" label="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OG_SITE_NAME_DESC" default="" hint="OffRoad Serbia" showon="enable_opengraph:1" />
-        <!-- OpenGraph Default Image -->
-        <field name="og_image" type="media" label="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OG_IMAGE_DESC" default="" directory="images" showon="enable_opengraph:1" />
+        <!-- OpenGraph Site Name + Image per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
         <!-- Per-Article OpenGraph Override Notice -->
         <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields  Featured Image  Global Config." class="alert alert-info" showon="enable_opengraph:1" />
       </fieldset>
@@ -169,7 +167,7 @@
         </field>
         <!-- Organization URL + Contact -->
         <field name="schema_url" type="url" label="Organization URL" description="Official website URL (auto-detected if empty)" default="" showon="enable_schema:1" hint="https://example.com" />
-        <field name="schema_telephone" type="tel" label="Telephone" description="Organization contact telephone number" default="" showon="enable_schema:1" hint="+381 11 1234567" />
+        <field name="schema_telephone" type="tel" label="Telephone" description="Organization contact telephone number" default="" showon="enable_schema:1" hint="+1 212 555 1234" />
         <!-- Social Media Links (sameAs) -->
         <field name="schema_social_spacer" type="spacer" label="Social Media Links" class="text-primary" />
         <field name="schema_social_facebook" type="url" label="Facebook URL" description="Full URL to your Facebook page" default="" hint="https://www.facebook.com/yourpage" />
@@ -178,14 +176,14 @@
         <field name="schema_social_twitter" type="url" label="Twitter/X URL" description="Full URL to your Twitter/X profile" default="" hint="https://twitter.com/yourhandle" />
         <field name="schema_social_linkedin" type="url" label="LinkedIn URL" description="Full URL to your LinkedIn page" default="" hint="https://www.linkedin.com/company/yourcompany" />
         <!-- LocalBusiness/Hotel Geo Coordinates -->
-        <field name="schema_latitude" type="text" label="Latitude" description="Geographic latitude (e.g., 44.0165)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="44.0165" />
-        <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., 21.0059)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="21.0059" />
+        <field name="schema_latitude" type="text" label="Latitude" description="Geographic latitude (e.g., 40.7128)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="40.7128" />
+        <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., -74.0060)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="-74.0060" />
         <!-- LocalBusiness/Hotel Address -->
-        <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., RS, US, GB)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="RS" />
+        <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., US, GB, DE)" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="US" />
         <!-- City/Locality + Street per installed language -->
         <!-- Injected dynamically by onContentPrepareForm: schema_address_locality_{code}, schema_address_street_{code} -->
-        <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="11000" />
-        <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="+381111234567" />
+        <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="10001" />
+        <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="+1 212 555 1234" />
         <field name="schema_email" type="email" label="Email Address" description="Business contact email" default="" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
         <!-- LocalBusiness/Hotel Service Details -->
         <field name="schema_price_range" type="list" label="Price Range" description="Price range indicator for services" default="$$" showon="enable_schema:1[AND]schema_type:localbusiness,hotel">
