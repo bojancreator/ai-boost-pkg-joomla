@@ -985,7 +985,7 @@ HTML;
      * Inject hreflang <link> tags for multilingual pages.
      *
      * Delegates to HreflangService which:
-     * - Uses Falang as primary URL source (vividblue.me setup)
+     * - Uses Falang as primary URL source
      * - Falls back to native Joomla multilingual
      * - Skips if Language Filter plugin already injected hreflang tags
      */
@@ -1430,7 +1430,7 @@ HTML;
                 'fieldset' => 'opengraph',
                 'type'     => 'text',
                 'label'    => 'Site Name',
-                'hint'     => 'e.g., Vivid Blue Serenity Resort',
+                'hint'     => 'e.g., My Awesome Business',
                 'showon'   => 'enable_opengraph:1',
                 'description' => 'Organization/Site name shown on Facebook, Twitter, LinkedIn shares.',
             ],
@@ -1448,14 +1448,14 @@ HTML;
                 'fieldset' => 'schema',
                 'type'     => 'text',
                 'label'    => 'Organization Name',
-                'hint'     => 'e.g., Vivid Blue Serenity Resort',
+                'hint'     => 'e.g., My Company Name',
                 'showon'   => 'enable_schema:1',
             ],
             'org_description' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
                 'label'    => 'Organization Description',
-                'hint'     => 'e.g., Luxury resort on the Adriatic coast.',
+                'hint'     => 'e.g., A short description of your business or organization.',
                 'showon'   => 'enable_schema:1',
                 'rows'     => '3',
             ],
@@ -1464,14 +1464,14 @@ HTML;
                 'fieldset' => 'schema',
                 'type'     => 'text',
                 'label'    => 'City/Locality',
-                'hint'     => 'e.g., Budva',
+                'hint'     => 'e.g., New York',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
             'schema_address_street' => [
                 'fieldset' => 'schema',
                 'type'     => 'text',
                 'label'    => 'Street Address',
-                'hint'     => 'e.g., Rezevici bb',
+                'hint'     => 'e.g., 123 Main Street',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
             // ── Schema: FAQ ───────────────────────────────────────────────────

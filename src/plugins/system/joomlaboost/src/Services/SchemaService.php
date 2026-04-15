@@ -319,8 +319,8 @@ class SchemaService extends AbstractService
                 'description' => $orgDescription,
                 'address' => [
                     '@type' => 'PostalAddress',
-                    'addressCountry'  => $this->params->get('schema_address_country', 'RS'),
-                    'addressLocality' => $this->getLocalizedParam('schema_address_locality', 'Budva'),
+                    'addressCountry'  => $this->params->get('schema_address_country', ''),
+                    'addressLocality' => $this->getLocalizedParam('schema_address_locality', ''),
                     'streetAddress'   => $this->getLocalizedParam('schema_address_street', ''),
                     'postalCode'      => $this->params->get('schema_address_zip', '')
                 ],
@@ -347,7 +347,7 @@ class SchemaService extends AbstractService
                 ];
 
                 // Add areaServed based on country
-                $countryCode = $this->params->get('schema_address_country', 'RS');
+                $countryCode = $this->params->get('schema_address_country', '');
                 // Comprehensive ISO 3166-1 alpha-2 → country name map (extend as needed)
                 $countryNames = [
                     'AD' => 'Andorra',          'AL' => 'Albania',
