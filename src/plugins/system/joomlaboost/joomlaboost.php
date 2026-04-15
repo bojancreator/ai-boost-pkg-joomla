@@ -297,6 +297,76 @@ class PlgSystemJoomlaboost extends CMSPlugin
             $this->logDebug('Twitter entity fix failed: ' . $e->getMessage());
         }
 
+        // ── 1e. NewsArticle schema fallback (extract from rendered OG tags) ───
+        // If onBeforeCompileHead couldn't inject NewsArticle (routing issue,
+        // non-standard template, etc.) but the rendered HTML has og:type=article,
+        // build a NewsArticle JSON-LD block from the OG metadata already present.
+        try {
+            $hasArticleOg = (bool) preg_match('/property=["\']og:type["\'][^>]*content=["\']article["\']/i', $body);
+            $hasNewsArticle = stripos($body, '"NewsArticle"') !== false || stripos($body, 'NewsArticle') !== false;
+
+            if ($hasArticleOg && !$hasNewsArticle && (bool) $this->params->get('enable_schema', 1)) {
+                // Extract values from already-rendered OG tags
+                $ogGet = static function (string $prop, string $buffer): string {
+                    // Handles both attribute orderings: property=... content=... AND content=... property=...
+                    if (preg_match('/property=["\']' . preg_quote($prop, '/') . '["\'][^>]*content=["\']([^"\']+)["\']/i', $buffer, $m)) {
+                        return html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    }
+                    if (preg_match('/content=["\']([^"\']+)["\'][^>]*property=["\']' . preg_quote($prop, '/') . '["\'][^>]*/i', $buffer, $m)) {
+                        return html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    }
+                    return '';
+                };
+
+                $headline     = $ogGet('og:title', $body);
+                $description  = $ogGet('og:description', $body);
+                $imageUrl     = $ogGet('og:image', $body);
+                $articleUrl   = $ogGet('og:url', $body);
+                $siteName     = $ogGet('og:site_name', $body);
+                $datePublished = $ogGet('article:published_time', $body);
+                $dateModified  = $ogGet('article:modified_time', $body) ?: $datePublished;
+
+                if ($headline && $articleUrl) {
+                    $newsArticle = [
+                        '@context'      => 'https://schema.org',
+                        '@type'         => 'NewsArticle',
+                        'headline'      => $headline,
+                        'url'           => $articleUrl,
+                    ];
+                    if ($description) {
+                        $newsArticle['description'] = $description;
+                    }
+                    if ($imageUrl) {
+                        $newsArticle['image'] = $imageUrl;
+                    }
+                    if ($datePublished) {
+                        $newsArticle['datePublished'] = $datePublished;
+                    }
+                    if ($dateModified) {
+                        $newsArticle['dateModified'] = $dateModified;
+                    }
+
+                    if ($siteName) {
+                        $newsArticle['publisher'] = ['@type' => 'Organization', 'name' => $siteName];
+                        $newsArticle['author']    = ['@type' => 'Organization', 'name' => $siteName];
+                    }
+
+                    $jsonBlock = '<script type="application/ld+json">' . "\n"
+                        . json_encode($newsArticle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+                        . "\n</script>";
+
+                    // Inject just before </head>
+                    if (stripos($body, '</head>') !== false) {
+                        $body    = str_ireplace('</head>', $jsonBlock . "\n</head>", $body);
+                        $changed = true;
+                        $this->logDebug('NewsArticle schema injected via OG fallback in onAfterRender');
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('NewsArticle OG fallback failed: ' . $e->getMessage());
+        }
+
         // ── 2. Hreflang injection (HTML buffer) ───────────────────────────────
         // Runs LAST — after Language Filter / Falang — to guarantee clean output.
         try {
