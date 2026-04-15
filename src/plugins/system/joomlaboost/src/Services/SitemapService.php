@@ -312,12 +312,19 @@ class SitemapService extends AbstractService
             $db->setQuery($query);
             $articles = $db->loadObjectList();
 
-            // Build default-language URLs
-            foreach ($articles as $article) {
-                $article->url = $this->getBaseUrl() . Route::_(
-                    "index.php?option=com_content&view=article&id={$article->id}:{$article->alias}&catid={$article->catid}"
-                );
-            }
+            // Build default-language SEF URLs.
+            // Route::_(..., false) returns & instead of &amp; so buildXml()
+            // can safely call htmlspecialchars() once without double-encoding.
+            $articles = array_filter($articles, function ($article) {
+                $route = Route::_("index.php?option=com_content&view=article&id={$article->id}:{$article->alias}&catid={$article->catid}", false);
+                $url   = $this->getBaseUrl() . $route;
+                // Skip if Route could not build a SEF URL (non-SEF = duplicate of menu item)
+                if (str_contains($url, '?view=article')) {
+                    return false;
+                }
+                $article->url = $url;
+                return true;
+            });
 
             $this->logDebug("Loaded {count} articles for sitemap", ['count' => count($articles)]);
             return $articles;
@@ -343,11 +350,17 @@ class SitemapService extends AbstractService
             $db->setQuery($query);
             $categories = $db->loadObjectList();
 
-            foreach ($categories as $category) {
-                $category->url = $this->getBaseUrl() . Route::_(
-                    "index.php?option=com_content&view=category&id={$category->id}:{$category->alias}"
-                );
-            }
+            // Build SEF URLs. Skip categories where Route::_ can't produce a SEF URL
+            // (no matching menu item) — they would appear as ?view=category duplicates.
+            $categories = array_filter($categories, function ($category) {
+                $route = Route::_("index.php?option=com_content&view=category&id={$category->id}:{$category->alias}", false);
+                $url   = $this->getBaseUrl() . $route;
+                if (str_contains($url, '?view=category')) {
+                    return false; // No SEF alias — skip
+                }
+                $category->url = $url;
+                return true;
+            });
 
             $this->logDebug("Loaded {count} categories for sitemap", ['count' => count($categories)]);
             return $categories;
@@ -441,16 +454,23 @@ class SitemapService extends AbstractService
             if ($imagesJson) {
                 $imageData = json_decode($imagesJson);
 
+                // Strip Joomla's internal #joomlaImage://... fragment from image paths.
+                // Joomla stores e.g. "images/photo.jpg#joomlaImage://local-images/..."
+                // in the DB; everything after # must be removed for valid sitemap URLs.
+                $cleanPath = static function (string $path): string {
+                    return (string) strtok($path, '#');
+                };
+
                 if (!empty($imageData->image_intro)) {
                     $images[] = [
-                        'loc'     => Uri::root() . $imageData->image_intro,
+                        'loc'     => Uri::root() . $cleanPath($imageData->image_intro),
                         'caption' => $imageData->image_intro_alt ?? '',
                     ];
                 }
 
                 if (!empty($imageData->image_fulltext) && $imageData->image_fulltext !== $imageData->image_intro) {
                     $images[] = [
-                        'loc'     => Uri::root() . $imageData->image_fulltext,
+                        'loc'     => Uri::root() . $cleanPath($imageData->image_fulltext),
                         'caption' => $imageData->image_fulltext_alt ?? '',
                     ];
                 }
