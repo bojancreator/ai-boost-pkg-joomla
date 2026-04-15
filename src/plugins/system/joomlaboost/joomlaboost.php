@@ -298,10 +298,20 @@ class PlgSystemJoomlaboost extends CMSPlugin
         }
 
         // ── 1e. NewsArticle schema — inject on article pages if not already present ─
-        // Detection uses article:published_time (only present on article pages).
-        // No regex detection — pure stripos. Data from <title> + Uri + simple patterns.
+        // Detection: find og:type in HTML then check if "article" is its content value
+        // within a 200-char window. This is more reliable than regex and avoids false
+        // positives from article:published_time (which templates add on ALL pages).
         try {
-            $isArticlePage  = stripos($body, 'article:published_time') !== false;
+            // Find where og:type appears, then check its value in a small window
+            $ogTypeOffset = stripos($body, 'og:type');
+            $isArticlePage = false;
+
+            if ($ogTypeOffset !== false) {
+                $ogTypeWindow = substr($body, $ogTypeOffset, 200);
+                $isArticlePage = stripos($ogTypeWindow, '"article"') !== false
+                    || stripos($ogTypeWindow, "'article'") !== false;
+            }
+
             $hasNewsArticle = stripos($body, '"NewsArticle"') !== false;
             $schemaEnabled  = (bool) $this->params->get('enable_schema', 1);
 
@@ -315,34 +325,34 @@ class PlgSystemJoomlaboost extends CMSPlugin
                 // Current URL directly from Joomla (no HTML parsing)
                 $articleUrl = Uri::getInstance()->toString();
 
-                // Dates via simple string extraction
+                // Dates via simple string extraction (use \x27 for single-quote in pattern)
                 $datePublished = '';
-                if (preg_match('/article:published_time[^>]+content=["\x27]([^"\x27]+)/i', $body, $dm)) {
+                if (preg_match('/article:published_time[^>]+content=[\x22\x27]([^\x22\x27]+)/i', $body, $dm)) {
                     $datePublished = $dm[1];
-                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+article:published_time/i', $body, $dm)) {
+                } elseif (preg_match('/content=[\x22\x27]([^\x22\x27]+)[\x22\x27][^>]+article:published_time/i', $body, $dm)) {
                     $datePublished = $dm[1];
                 }
 
                 $dateModified = $datePublished;
-                if (preg_match('/article:modified_time[^>]+content=["\x27]([^"\x27]+)/i', $body, $dm)) {
+                if (preg_match('/article:modified_time[^>]+content=[\x22\x27]([^\x22\x27]+)/i', $body, $dm)) {
                     $dateModified = $dm[1];
-                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+article:modified_time/i', $body, $dm)) {
+                } elseif (preg_match('/content=[\x22\x27]([^\x22\x27]+)[\x22\x27][^>]+article:modified_time/i', $body, $dm)) {
                     $dateModified = $dm[1];
                 }
 
                 // Image via og:image
                 $imageUrl = '';
-                if (preg_match('/og:image[^>]+content=["\x27]([^"\x27]+)/i', $body, $im)) {
+                if (preg_match('/og:image[^>]+content=[\x22\x27]([^\x22\x27]+)/i', $body, $im)) {
                     $imageUrl = $im[1];
-                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+og:image/i', $body, $im)) {
+                } elseif (preg_match('/content=[\x22\x27]([^\x22\x27]+)[\x22\x27][^>]+og:image/i', $body, $im)) {
                     $imageUrl = $im[1];
                 }
 
                 // Site name via og:site_name
                 $siteName = '';
-                if (preg_match('/og:site_name[^>]+content=["\x27]([^"\x27]+)/i', $body, $sn)) {
+                if (preg_match('/og:site_name[^>]+content=[\x22\x27]([^\x22\x27]+)/i', $body, $sn)) {
                     $siteName = html_entity_decode($sn[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+og:site_name/i', $body, $sn)) {
+                } elseif (preg_match('/content=[\x22\x27]([^\x22\x27]+)[\x22\x27][^>]+og:site_name/i', $body, $sn)) {
                     $siteName = html_entity_decode($sn[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
                 }
 
