@@ -297,51 +297,71 @@ class PlgSystemJoomlaboost extends CMSPlugin
             $this->logDebug('Twitter entity fix failed: ' . $e->getMessage());
         }
 
-        // ── 1e. NewsArticle schema fallback (extract from rendered OG tags) ───
-        // If onBeforeCompileHead couldn't inject NewsArticle (routing issue,
-        // non-standard template, etc.) but the rendered HTML has og:type=article,
-        // build a NewsArticle JSON-LD block from the OG metadata already present.
+        // ── 1e. NewsArticle schema — inject on article pages if not already present ─
+        // Detection uses article:published_time (only present on article pages).
+        // No regex detection — pure stripos. Data from <title> + Uri + simple patterns.
         try {
-            $hasArticleOg = (bool) preg_match('/property=["\']og:type["\'][^>]*content=["\']article["\']/i', $body);
-            $hasNewsArticle = stripos($body, '"NewsArticle"') !== false || stripos($body, 'NewsArticle') !== false;
+            $isArticlePage  = stripos($body, 'article:published_time') !== false;
+            $hasNewsArticle = stripos($body, '"NewsArticle"') !== false;
+            $schemaEnabled  = (bool) $this->params->get('enable_schema', 1);
 
-            if ($hasArticleOg && !$hasNewsArticle && (bool) $this->params->get('enable_schema', 1)) {
-                // Extract values from already-rendered OG tags
-                $ogGet = static function (string $prop, string $buffer): string {
-                    // Handles both attribute orderings: property=... content=... AND content=... property=...
-                    if (preg_match('/property=["\']' . preg_quote($prop, '/') . '["\'][^>]*content=["\']([^"\']+)["\']/i', $buffer, $m)) {
-                        return html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    }
-                    if (preg_match('/content=["\']([^"\']+)["\'][^>]*property=["\']' . preg_quote($prop, '/') . '["\'][^>]*/i', $buffer, $m)) {
-                        return html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    }
-                    return '';
-                };
+            if ($isArticlePage && !$hasNewsArticle && $schemaEnabled && stripos($body, '</head>') !== false) {
+                // Headline from <title> tag (always reliable)
+                $headline = '';
+                if (preg_match('|<title>(.+?)</title>|is', $body, $tm)) {
+                    $headline = html_entity_decode(trim($tm[1]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                }
 
-                $headline     = $ogGet('og:title', $body);
-                $description  = $ogGet('og:description', $body);
-                $imageUrl     = $ogGet('og:image', $body);
-                $articleUrl   = $ogGet('og:url', $body);
-                $siteName     = $ogGet('og:site_name', $body);
-                $datePublished = $ogGet('article:published_time', $body);
-                $dateModified  = $ogGet('article:modified_time', $body) ?: $datePublished;
+                // Current URL directly from Joomla (no HTML parsing)
+                $articleUrl = Uri::getInstance()->toString();
+
+                // Dates via simple string extraction
+                $datePublished = '';
+                if (preg_match('/article:published_time[^>]+content=["\x27]([^"\x27]+)/i', $body, $dm)) {
+                    $datePublished = $dm[1];
+                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+article:published_time/i', $body, $dm)) {
+                    $datePublished = $dm[1];
+                }
+
+                $dateModified = $datePublished;
+                if (preg_match('/article:modified_time[^>]+content=["\x27]([^"\x27]+)/i', $body, $dm)) {
+                    $dateModified = $dm[1];
+                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+article:modified_time/i', $body, $dm)) {
+                    $dateModified = $dm[1];
+                }
+
+                // Image via og:image
+                $imageUrl = '';
+                if (preg_match('/og:image[^>]+content=["\x27]([^"\x27]+)/i', $body, $im)) {
+                    $imageUrl = $im[1];
+                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+og:image/i', $body, $im)) {
+                    $imageUrl = $im[1];
+                }
+
+                // Site name via og:site_name
+                $siteName = '';
+                if (preg_match('/og:site_name[^>]+content=["\x27]([^"\x27]+)/i', $body, $sn)) {
+                    $siteName = html_entity_decode($sn[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                } elseif (preg_match('/content=["\x27]([^"\x27]+)["\x27][^>]+og:site_name/i', $body, $sn)) {
+                    $siteName = html_entity_decode($sn[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                }
 
                 if ($headline && $articleUrl) {
                     $newsArticle = [
-                        '@context'      => 'https://schema.org',
-                        '@type'         => 'NewsArticle',
-                        'headline'      => $headline,
-                        'url'           => $articleUrl,
+                        '@context' => 'https://schema.org',
+                        '@type'    => 'NewsArticle',
+                        'headline' => $headline,
+                        'url'      => $articleUrl,
                     ];
-                    if ($description) {
-                        $newsArticle['description'] = $description;
-                    }
+
                     if ($imageUrl) {
                         $newsArticle['image'] = $imageUrl;
                     }
+
                     if ($datePublished) {
                         $newsArticle['datePublished'] = $datePublished;
                     }
+
                     if ($dateModified) {
                         $newsArticle['dateModified'] = $dateModified;
                     }
@@ -352,21 +372,17 @@ class PlgSystemJoomlaboost extends CMSPlugin
                     }
 
                     $jsonBlock = '<script type="application/ld+json">' . "\n"
-                        . json_encode($newsArticle, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+                        . json_encode($newsArticle, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_PRETTY_PRINT)
                         . "\n</script>";
 
-                    // Inject just before </head>
-                    if (stripos($body, '</head>') !== false) {
-                        $body    = str_ireplace('</head>', $jsonBlock . "\n</head>", $body);
-                        $changed = true;
-                        $this->logDebug('NewsArticle schema injected via OG fallback in onAfterRender');
-                    }
+                    $body    = str_ireplace('</head>', $jsonBlock . "\n</head>", $body);
+                    $changed = true;
+                    $this->logDebug('NewsArticle schema injected');
                 }
             }
         } catch (\Throwable $e) {
-            $this->logDebug('NewsArticle OG fallback failed: ' . $e->getMessage());
+            $this->logDebug('NewsArticle fallback failed: ' . $e->getMessage());
         }
-
         // ── 2. Hreflang injection (HTML buffer) ───────────────────────────────
         // Runs LAST — after Language Filter / Falang — to guarantee clean output.
         try {
