@@ -92,12 +92,11 @@ class SchemaService extends AbstractService
         if ($option === 'com_content') {
             switch ($view) {
                 case 'article':
-                    if ($perfService->needsHeavyOperations()) {
-                        $perfService->initializeHeavyOperations();
-                        $articleSchema = $this->generateArticleSchema($perfService);
-                        if ($articleSchema) {
-                            $schema[] = $articleSchema;
-                        }
+                    // We already know $option=com_content & $view=article, so
+                    // needsHeavyOperations() is guaranteed true — call directly.
+                    $articleSchema = $this->generateArticleSchema($perfService);
+                    if ($articleSchema) {
+                        $schema[] = $articleSchema;
                     }
                     break;
 
@@ -114,17 +113,30 @@ class SchemaService extends AbstractService
                 case 'featured':
                     $schema[] = $this->generateBlogSchema();
                     break;
+
+                default:
+                    // Fallback: some templates / routers render articles with a
+                    // non-standard view value (e.g. empty, 'default').
+                    // If an integer article ID is in the request, try article schema.
+                    $fallbackId = $this->app->getInput()->getInt('id');
+                    if ($fallbackId > 0) {
+                        $articleSchema = $this->generateArticleSchema($perfService);
+                        if ($articleSchema) {
+                            $schema[] = $articleSchema;
+                        }
+                    }
+                    break;
             }
         }
 
-        // Add BreadcrumbList (lightweight - from existing pathway)
+        // BreadcrumbList (lightweight — from existing pathway)
         $breadcrumbSchema = $this->generateBreadcrumbSchema();
         if ($breadcrumbSchema) {
             $schema[] = $breadcrumbSchema;
         }
 
         // FAQ schema — auto-detected from article content (article pages only)
-        if ($option === 'com_content' && $view === 'article' && $perfService->needsHeavyOperations()) {
+        if ($option === 'com_content' && in_array($view, ['article', '']) && $perfService->needsHeavyOperations()) {
             $contentFaqSchema = $this->generateContentFAQSchema();
             if ($contentFaqSchema) {
                 $schema[] = $contentFaqSchema;
