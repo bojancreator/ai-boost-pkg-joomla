@@ -85,20 +85,8 @@ class SchemaService extends AbstractService
         $view   = $input->getCmd('view');
         $id     = $input->getInt('id');
 
-        // ── TEMPORARY DEBUG — remove after diagnosis ──────────────────────────
-        if ($this->params->get('debug_mode', 0)) {
-            $schema[] = [
-                '@context' => 'https://schema.org',
-                '@type'    => 'Thing',
-                '_jb_debug' => [
-                    'option' => $option,
-                    'view'   => $view,
-                    'id'     => $id,
-                    'event'  => 'onBeforeCompileHead',
-                ],
-            ];
-        }
-        // ── END TEMPORARY DEBUG ───────────────────────────────────────────────
+
+
 
         // Always add lightweight schemas (no DB queries)
         $schema[] = $this->generateWebsiteSchema();
