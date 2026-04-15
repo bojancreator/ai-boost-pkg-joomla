@@ -508,7 +508,7 @@ class SchemaService extends AbstractService
 
             $schema = [
                 '@context'    => 'https://schema.org',
-                '@type'       => 'Article',
+                '@type'       => 'NewsArticle',
                 'headline'    => $article->title,
                 'description' => $article->metadesc ?: $this->extractDescription($article->introtext),
                 'articleBody' => strip_tags($article->fulltext ?: $article->introtext),

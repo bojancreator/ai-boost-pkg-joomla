@@ -249,6 +249,54 @@ class PlgSystemJoomlaboost extends CMSPlugin
             $this->logDebug('OG SVG fix failed: ' . $e->getMessage());
         }
 
+        // ── 1c. Deduplicate og: meta tags ─────────────────────────────────────
+        // Both JoomlaBoost and some templates (e.g. YooTheme, emarket1ng) inject
+        // og:type, og:title etc. independently. Keep only the FIRST occurrence of
+        // each og: property tag; remove any subsequent duplicates.
+        try {
+            $seen    = [];
+            $newBody = (string) preg_replace_callback(
+                '/<meta\s+[^>]*property=["\']og:([^"\']+)["\'][^>]*>/i',
+                static function (array $m) use (&$seen): string {
+                    $prop = strtolower($m[1]);
+                    if (isset($seen[$prop])) {
+                        return ''; // Remove duplicate
+                    }
+                    $seen[$prop] = true;
+                    return $m[0]; // Keep first occurrence
+                },
+                $body
+            );
+            if ($newBody !== $body) {
+                $body    = $newBody;
+                $changed = true;
+                $this->logDebug('Deduplicated duplicate og: meta tags');
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('OG dedup failed: ' . $e->getMessage());
+        }
+
+        // ── 1d. Fix HTML entities in twitter: meta content ────────────────────
+        // twitter:description sometimes contains double-encoded entities (&#039;, &amp;#039;)
+        // because the description goes through htmlspecialchars() twice. Twitter Card
+        // parsers don't decode HTML entities from meta content attributes reliably.
+        try {
+            $newBody = (string) preg_replace_callback(
+                '/(<meta\s+[^>]*name=["\']twitter:[^"\']+["\'][^>]*content=["\'])([^"\']+)(["\'][^>]*>)/i',
+                static function (array $m): string {
+                    $decoded = html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    return $m[1] . htmlspecialchars($decoded, ENT_QUOTES, 'UTF-8') . $m[3];
+                },
+                $body
+            );
+            if ($newBody !== $body) {
+                $body    = $newBody;
+                $changed = true;
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('Twitter entity fix failed: ' . $e->getMessage());
+        }
+
         // ── 2. Hreflang injection (HTML buffer) ───────────────────────────────
         // Runs LAST — after Language Filter / Falang — to guarantee clean output.
         try {
