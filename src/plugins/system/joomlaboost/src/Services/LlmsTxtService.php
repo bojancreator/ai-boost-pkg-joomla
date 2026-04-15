@@ -81,8 +81,8 @@ class LlmsTxtService extends AbstractService
         // root() always returns the frontend site URL regardless of context.
         // Uri::root() returns /administrator/ path in admin context — always use scheme+host only
         $baseUrl    = rtrim(Uri::getInstance()->toString(['scheme', 'host']), '/');
-        $orgName    = trim((string) $this->params->get('org_name', $this->params->get('org_name_en', '')));
-        $orgDesc    = trim((string) $this->params->get('org_description_en', ''));
+        $orgName    = trim((string) $this->getLocalizedParam('org_name', ''));
+        $orgDesc    = trim((string) $this->getLocalizedParam('org_description', ''));
         $generated  = date('Y-m-d');
 
         // --- Header ---
@@ -392,12 +392,8 @@ class LlmsTxtService extends AbstractService
      */
     private function getFaqItems(): array
     {
-        // Try EN FAQ first (most useful for AI systems)
-        $faqJson = trim((string) $this->params->get('manual_faqs_en', ''));
-
-        if (empty($faqJson)) {
-            $faqJson = trim((string) $this->params->get('manual_faqs', ''));
-        }
+        // Language-aware FAQ: manual_faqs_{lang} → manual_faqs_{default} → manual_faqs
+        $faqJson = trim((string) $this->getLocalizedParam('manual_faqs', ''));
 
         if (empty($faqJson)) {
             return [];

@@ -17,6 +17,7 @@ namespace JoomlaBoost\Plugin\System\JoomlaBoost\Services;
 
 use JoomlaBoost\Plugin\System\JoomlaBoost\Enums\EnvironmentType;
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 
@@ -208,6 +209,127 @@ abstract class AbstractService implements ServiceInterface
             } catch (\Throwable $e) {
                 // Ignore logging errors
             }
+        }
+    }
+
+    // ── Multilingual Parameter Resolution ─────────────────────────────────
+
+    /**
+     * Get localized parameter value with smart fallback.
+     *
+     * Resolution chain:
+     *   1. {field}_{currentLang}   (e.g. org_name_sr)
+     *   2. {field}_{defaultLang}   (e.g. org_name_en — Joomla's configured default)
+     *   3. {field}                 (generic / legacy — backward compat with v0.5.x)
+     *   4. DB translations table  (#__joomlaboost_translations)
+     *
+     * @param string $fieldName  Base field name (e.g. 'org_name', 'og_site_name')
+     * @param mixed  $default    Fallback if nothing found
+     * @return mixed
+     */
+    protected function getLocalizedParam(string $fieldName, mixed $default = ''): mixed
+    {
+        $langCode    = $this->getCurrentLangCode();
+        $defaultLang = $this->getDefaultLangCode();
+
+        // 1. Current language param (e.g. org_name_sr)
+        $value = $this->params->get("{$fieldName}_{$langCode}", '');
+        if (!empty($value)) {
+            $this->logDebug("Multilang: using {$fieldName}_{$langCode}");
+            return $value;
+        }
+
+        // 2. Default language param (e.g. org_name_en)
+        if ($langCode !== $defaultLang) {
+            $value = $this->params->get("{$fieldName}_{$defaultLang}", '');
+            if (!empty($value)) {
+                $this->logDebug("Multilang: fallback {$fieldName}_{$langCode} → {$fieldName}_{$defaultLang}");
+                return $value;
+            }
+        }
+
+        // 3. Generic / legacy param (e.g. org_name — backward compat)
+        $value = $this->params->get($fieldName, '');
+        if (!empty($value)) {
+            $this->logDebug("Multilang: using legacy param {$fieldName}");
+            return $value;
+        }
+
+        // 4. Database-backed translations (last resort)
+        try {
+            $translationService = new TranslationService($this->app, $this->params);
+            $value = $translationService->get($fieldName);
+            if (!empty($value)) {
+                $this->logDebug("Multilang: DB translation for {$fieldName} ({$langCode})");
+                return $value;
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug("Multilang: TranslationService error — {$e->getMessage()}");
+        }
+
+        return $default;
+    }
+
+    /**
+     * Get current frontend language as 2-letter ISO code.
+     *
+     * @return string  e.g. 'en', 'sr', 'me'
+     */
+    protected function getCurrentLangCode(): string
+    {
+        try {
+            $lang = Factory::getLanguage();
+            return strtolower(substr($lang->getTag(), 0, 2));
+        } catch (\Throwable $e) {
+            return 'en';
+        }
+    }
+
+    /**
+     * Get Joomla's configured default site language as 2-letter ISO code.
+     *
+     * Reads from #__extensions (element = '*', client_id = 0) — the same
+     * source used by LanguageService::getDefaultLanguageCode(), but returns
+     * the short 2-letter code for parameter matching.
+     *
+     * @return string  e.g. 'en', 'sr', 'me'
+     */
+    protected function getDefaultLangCode(): string
+    {
+        static $code = null;
+        if ($code !== null) {
+            return $code;
+        }
+
+        try {
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('element')
+                ->from('#__extensions')
+                ->where('type = ' . $db->quote('language'))
+                ->where('client_id = 0')
+                ->order('enabled DESC')
+                ->setLimit(1);
+
+            $db->setQuery($query);
+            $tag = $db->loadResult(); // e.g. 'en-GB'
+
+            if (!empty($tag)) {
+                $code = strtolower(substr((string) $tag, 0, 2));
+                return $code;
+            }
+        } catch (\Throwable $e) {
+            // fall through
+        }
+
+        // Fallback: application config
+        try {
+            $tag  = Factory::getApplication()->get('language', 'en-GB');
+            $code = strtolower(substr((string) $tag, 0, 2));
+            return $code;
+        } catch (\Throwable $e) {
+            $code = 'en';
+            return $code;
         }
     }
 

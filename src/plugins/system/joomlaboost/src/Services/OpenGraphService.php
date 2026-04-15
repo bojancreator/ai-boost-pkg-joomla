@@ -129,8 +129,11 @@ class OpenGraphService extends AbstractService
             : (($option === 'com_content' && $view === 'article') ? 'article' : 'website');
         $perfService->addMetaToBatch('og:type', $ogType, 'property');
 
-        // og:site_name - from config, no DB hit
-        $siteName = $this->params->get('og_site_name', $this->params->get('org_name', ''));
+        // og:site_name — language-aware (og_site_name_{lang} → org_name_{lang} → legacy)
+        $siteName = $this->getLocalizedParam('og_site_name', '');
+        if (empty($siteName)) {
+            $siteName = $this->getLocalizedParam('org_name', '');
+        }
         if (!empty($siteName) && ($override || !$perfService->isMetaTagPresent('og:site_name', 'property'))) {
             $perfService->addMetaToBatch('og:site_name', $siteName, 'property');
         }
@@ -206,7 +209,11 @@ class OpenGraphService extends AbstractService
 
         // Only add fallback if no og:image is already set
         if ($override || !$perfService->isMetaTagPresent('og:image', 'property')) {
-            $fallbackImage = $this->params->get('og_image', $this->params->get('org_logo', ''));
+            // Language-aware fallback: og_image_{lang} → org_logo → legacy og_image
+            $fallbackImage = $this->getLocalizedParam('og_image', '');
+            if (empty($fallbackImage)) {
+                $fallbackImage = $this->getLocalizedParam('org_logo', '');
+            }
             if (!empty($fallbackImage)) {
                 $normalizedImage = $this->normalizeAndCleanImageUrl($fallbackImage);
                 if (!empty($normalizedImage)) {
@@ -222,10 +229,10 @@ class OpenGraphService extends AbstractService
                         $perfService->addMetaToBatch('og:image:height', (string) $imgHeight, 'property');
                     }
 
-                    // og:image:alt — accessibility requirement + Facebook validation
-                    $siteName = (string) $this->params->get('org_name', '');
+                    // og:image:alt — language-aware org name
+                    $siteName = (string) $this->getLocalizedParam('org_name', '');
                     if (empty($siteName)) {
-                        $siteName = (string) $this->params->get('og_site_name', '');
+                        $siteName = (string) $this->getLocalizedParam('og_site_name', '');
                     }
                     if (!empty($siteName)) {
                         $perfService->addMetaToBatch('og:image:alt', $siteName, 'property');
@@ -594,6 +601,11 @@ class OpenGraphService extends AbstractService
     /**
      * Get article custom field value (Joomla com_fields integration)
      *
+     * Multilingual support:
+     *   - Joomla Core multilingual: each language article has its own field values (automatic)
+     *   - Falang: translates field values via #__falang_content (reference_table = 'fields_values')
+     *     This method checks Falang first, falls back to original value.
+     *
      * @param int $articleId Article ID
      * @param string $fieldName Custom field name (custom_og_image, custom_og_title, custom_og_description)
      * @return string|null Custom field value or null if not set
@@ -613,7 +625,7 @@ class OpenGraphService extends AbstractService
                 ->from('#__fields')
                 ->where('name = ' . $db->quote($fieldName))
                 ->where('context = ' . $db->quote('com_content.article'))
-                ->where('state = 1');  // Back to checking published state
+                ->where('state = 1');
 
             $db->setQuery($fieldQuery);
             $fieldId = $db->loadResult();
@@ -632,6 +644,18 @@ class OpenGraphService extends AbstractService
             $db->setQuery($valueQuery);
             $value = $db->loadResult();
 
+            // ── Falang translation check ──────────────────────────────────────
+            // Falang stores custom field translations in #__falang_content with
+            // reference_table = 'fields_values'. Try to load translated value
+            // for the current language.
+            if (!empty($value)) {
+                $falangValue = $this->getFalangFieldTranslation($db, $fieldId, $articleId);
+                if ($falangValue !== null) {
+                    $this->logDebug("Using Falang translation for {$fieldName} (article {$articleId})");
+                    $value = $falangValue;
+                }
+            }
+
             // Return value if not empty
             if (empty($value)) {
                 return null;
@@ -649,6 +673,76 @@ class OpenGraphService extends AbstractService
             return (string) $value;
         } catch (\Throwable $e) {
             $this->logDebug("Custom field '$fieldName' read failed: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Try to get Falang-translated value for a custom field.
+     *
+     * Falang stores translations in #__falang_content:
+     *   reference_table = 'fields_values'
+     *   reference_field = 'value'
+     *   reference_id    = the row ID in #__fields_values (NOT the field_id)
+     *
+     * @return string|null  Translated value or null if no Falang translation
+     */
+    private function getFalangFieldTranslation($db, int $fieldId, int $articleId): ?string
+    {
+        try {
+            // Check if Falang is active
+            $langService = new LanguageService($this->app, $this->params);
+            if (!$langService->isFalangActive()) {
+                return null;
+            }
+
+            // Get current language Falang ID
+            $currentLang = Factory::getLanguage()->getTag(); // e.g. 'sr-RS'
+            $defaultLang = $langService->getDefaultLanguageCode(); // e.g. 'en-GB'
+
+            // No translation needed for default language
+            if ($currentLang === $defaultLang) {
+                return null;
+            }
+
+            $falangLangId = $langService->getFalangLanguageId($currentLang);
+            if ($falangLangId === null) {
+                return null;
+            }
+
+            // Get the row ID from #__fields_values (Falang uses this as reference_id)
+            $rowQuery = $db->getQuery(true)
+                ->select('id')
+                ->from('#__fields_values')
+                ->where('field_id = ' . (int) $fieldId)
+                ->where('item_id = ' . (int) $articleId);
+
+            // Note: #__fields_values may not have an `id` column in all Joomla versions
+            // In that case, Falang may use a composite key. Try gracefully.
+            $db->setQuery($rowQuery);
+            $rowId = $db->loadResult();
+
+            if (!$rowId) {
+                return null;
+            }
+
+            // Query Falang translations
+            $falangQuery = $db->getQuery(true)
+                ->select('value')
+                ->from('#__falang_content')
+                ->where('reference_table = ' . $db->quote('fields_values'))
+                ->where('reference_field = ' . $db->quote('value'))
+                ->where('reference_id = ' . (int) $rowId)
+                ->where('language_id = ' . (int) $falangLangId)
+                ->where('published = 1');
+
+            $db->setQuery($falangQuery);
+            $translated = $db->loadResult();
+
+            return !empty($translated) ? (string) $translated : null;
+        } catch (\Throwable $e) {
+            // Falang table may not exist or have different structure — silent fallback
+            $this->logDebug("Falang custom field translation check failed: " . $e->getMessage());
             return null;
         }
     }
@@ -742,7 +836,11 @@ class OpenGraphService extends AbstractService
             }
         }
 
-        // Plugin default for all pages (including article fallthrough)
-        return trim((string) $this->params->get('og_image', $this->params->get('org_logo', '')));
+        // Plugin default for all pages (including article fallthrough) — language-aware
+        $image = trim((string) $this->getLocalizedParam('og_image', ''));
+        if (empty($image)) {
+            $image = trim((string) $this->getLocalizedParam('org_logo', ''));
+        }
+        return $image;
     }
 }

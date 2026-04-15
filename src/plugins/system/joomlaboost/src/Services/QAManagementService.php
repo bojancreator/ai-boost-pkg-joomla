@@ -41,44 +41,14 @@ class QAManagementService extends AbstractService
             return [];
         }
 
-        $lang     = \Joomla\CMS\Factory::getLanguage();
-        $langCode = strtolower(substr($lang->getTag(), 0, 2)); // e.g. sr-RS -> sr
+        $langCode = $this->getCurrentLangCode();
 
-        // 1. Try language-specific param field (e.g. manual_faqs_sr)
-        $manualFAQsJson = $this->params->get("manual_faqs_{$langCode}", '');
+        // Use the central multilingual resolution chain:
+        //   manual_faqs_{currentLang} → manual_faqs_{defaultLang} → manual_faqs → DB
+        $manualFAQsJson = $this->getLocalizedParam('manual_faqs', '');
 
         if (!empty($manualFAQsJson)) {
-            $this->logDebug("FAQ: Using param field manual_faqs_{$langCode}");
             return $this->processFAQJson($manualFAQsJson, $langCode);
-        }
-
-        // 2. Try English param field as fallback
-        if ($langCode !== 'en') {
-            $manualFAQsJson = $this->params->get('manual_faqs_en', '');
-            if (!empty($manualFAQsJson)) {
-                $this->logDebug("FAQ: Fallback to manual_faqs_en");
-                return $this->processFAQJson($manualFAQsJson, $langCode);
-            }
-        }
-
-        // 3. Try generic/legacy param field (backward compatibility with v0.5.x)
-        $manualFAQsJson = $this->params->get('manual_faqs', '');
-        if (!empty($manualFAQsJson)) {
-            $this->logDebug("FAQ: Using legacy manual_faqs param");
-            return $this->processFAQJson($manualFAQsJson, $langCode);
-        }
-
-        // 4. Try database-backed translations (last resort)
-        try {
-            $translationService = new TranslationService($this->app, $this->params);
-            $manualFAQsJson     = $translationService->get('manual_faqs');
-
-            if (!empty($manualFAQsJson)) {
-                $this->logDebug("FAQ: Using database translation ({$langCode})");
-                return $this->processFAQJson($manualFAQsJson, $langCode);
-            }
-        } catch (\Exception $e) {
-            $this->logDebug("FAQ TranslationService error: {$e->getMessage()}");
         }
 
         $this->logDebug("FAQ: No data found for lang={$langCode}");

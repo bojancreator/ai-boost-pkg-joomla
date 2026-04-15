@@ -79,10 +79,11 @@ class TranslationService extends AbstractService
             return $this->cache[$fieldKey][$langCode];
         }
 
-        // Fallback to English
-        if ($langCode !== 'en' && isset($this->cache[$fieldKey]['en'])) {
-            $this->logDebug("Translation fallback: {$fieldKey} ({$langCode} → en)");
-            return $this->cache[$fieldKey]['en'];
+        // Fallback to Joomla's configured default language
+        $defaultLang = $this->getDefaultLangCode();
+        if ($langCode !== $defaultLang && isset($this->cache[$fieldKey][$defaultLang])) {
+            $this->logDebug("Translation fallback: {$fieldKey} ({$langCode} → {$defaultLang})");
+            return $this->cache[$fieldKey][$defaultLang];
         }
 
         // Fallback to any available translation

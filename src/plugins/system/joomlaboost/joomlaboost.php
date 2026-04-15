@@ -1281,7 +1281,25 @@ HTML;
         // ── 2. Define multilingual field groups ────────────────────────────────
         // Each entry: [fieldset, type, baseLabel, hint, showon, extra-attrs]
         $groups = [
-            // Schema: Organization info
+            // ── OpenGraph fields ──────────────────────────────────────────────
+            'og_site_name' => [
+                'fieldset' => 'opengraph',
+                'type'     => 'text',
+                'label'    => 'Site Name',
+                'hint'     => 'e.g., Vivid Blue Serenity Resort',
+                'showon'   => 'enable_opengraph:1',
+                'description' => 'Organization/Site name shown on Facebook, Twitter, LinkedIn shares.',
+            ],
+            'og_image' => [
+                'fieldset'  => 'opengraph',
+                'type'      => 'media',
+                'label'     => 'Default OG Image',
+                'hint'      => '',
+                'showon'    => 'enable_opengraph:1',
+                'directory' => 'images',
+                'description' => 'Default social sharing image. Can differ per language (e.g., hero banner with localized text overlay).',
+            ],
+            // ── Schema: Organization info ─────────────────────────────────────
             'org_name' => [
                 'fieldset' => 'schema',
                 'type'     => 'text',
@@ -1297,7 +1315,7 @@ HTML;
                 'showon'   => 'enable_schema:1',
                 'rows'     => '3',
             ],
-            // Schema: Address
+            // ── Schema: Address ───────────────────────────────────────────────
             'schema_address_locality' => [
                 'fieldset' => 'schema',
                 'type'     => 'text',
@@ -1312,7 +1330,7 @@ HTML;
                 'hint'     => 'e.g., Rezevici bb',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
-            // Schema: FAQ
+            // ── Schema: FAQ ───────────────────────────────────────────────────
             'manual_faqs' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
@@ -1321,6 +1339,16 @@ HTML;
                 'showon'   => 'enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1',
                 'rows'     => '6',
                 'description' => 'FAQ in JSON format. Example: [{"question":"Q?","answer":"A."}]',
+            ],
+            // ── Schema: Events ────────────────────────────────────────────────
+            'schema_events' => [
+                'fieldset' => 'schema',
+                'type'     => 'textarea',
+                'label'    => 'Events (JSON)',
+                'hint'     => '',
+                'showon'   => 'enable_schema:1,schema_events_enabled:1',
+                'rows'     => '8',
+                'description' => 'Events JSON per language. Format: [{"name":"Event","startDate":"2026-12-31T20:00:00+01:00"}]',
             ],
         ];
 
@@ -1335,6 +1363,7 @@ HTML;
                 $fieldDesc  = htmlspecialchars($cfg['description'] ?? '', ENT_QUOTES, 'UTF-8');
                 $showOn     = htmlspecialchars($cfg['showon'], ENT_QUOTES, 'UTF-8');
                 $rows       = isset($cfg['rows']) ? ' rows="' . $cfg['rows'] . '"' : '';
+                $directory  = isset($cfg['directory']) ? ' directory="' . $cfg['directory'] . '"' : '';
 
                 $xmlParts[] = '<field'
                     . ' name="' . $fieldName . '"'
@@ -1344,6 +1373,7 @@ HTML;
                     . ($fieldDesc !== '' ? ' description="' . $fieldDesc . '"' : '')
                     . ' showon="' . $showOn . '"'
                     . $rows
+                    . $directory
                     . ' />';
             }
 

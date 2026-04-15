@@ -55,57 +55,8 @@ class SchemaService extends AbstractService
         return rtrim($baseUrl, '/') . '/';
     }
 
-    /**
-     * Get localized parameter value with language fallback
-     *
-     * Priority: lang-specific param → EN param → generic param → database
-     *
-     * @param string $fieldName Base field name (e.g., 'org_name', 'schema_description')
-     * @param mixed $default Default value if all fields are empty
-     * @return mixed Localized value or fallback
-     */
-    private function getLocalizedParam(string $fieldName, $default = '')
-    {
-        $lang     = Factory::getLanguage();
-        $langCode = strtolower(substr($lang->getTag(), 0, 2)); // e.g. sr-RS -> sr
-
-        // 1. Try current language param (e.g. org_name_sr)
-        $value = $this->params->get("{$fieldName}_{$langCode}", '');
-        if (!empty($value)) {
-            $this->logDebug("Schema: Using param {$fieldName}_{$langCode}");
-            return $value;
-        }
-
-        // 2. Try English param (e.g. org_name_en)
-        if ($langCode !== 'en') {
-            $value = $this->params->get("{$fieldName}_en", '');
-            if (!empty($value)) {
-                $this->logDebug("Schema: Fallback to {$fieldName}_en");
-                return $value;
-            }
-        }
-
-        // 3. Try generic/legacy param (e.g. org_name) - backward compat with v0.5.x
-        $value = $this->params->get($fieldName, '');
-        if (!empty($value)) {
-            $this->logDebug("Schema: Using legacy param {$fieldName}");
-            return $value;
-        }
-
-        // 4. Try database-backed translations (last resort)
-        try {
-            $translationService = new TranslationService($this->app, $this->params);
-            $value = $translationService->get($fieldName);
-            if (!empty($value)) {
-                $this->logDebug("Schema: DB translation for {$fieldName} ({$langCode})");
-                return $value;
-            }
-        } catch (\Exception $e) {
-            $this->logDebug("Schema TranslationService error: {$e->getMessage()}");
-        }
-
-        return $default;
-    }
+    // NOTE: getLocalizedParam() is inherited from AbstractService (v0.20.0+)
+    // Resolution: {field}_{currentLang} → {field}_{defaultLang} → {field} → DB
 
     /**
      * Main schema generation method with performance optimizations
@@ -362,7 +313,7 @@ class SchemaService extends AbstractService
                     'contactType'       => 'customer service',
                     'telephone'         => $this->params->get('schema_phone', ''),
                     'email'             => $this->params->get('schema_email', ''),
-                    'availableLanguage' => [$this->getLanguageCode(), 'en']
+                    'availableLanguage' => $this->getAvailableLanguageCodes()
                 ],
                 'priceRange' => $this->params->get('schema_price_range', '$$'),
                 'openingHours' => $this->params->get('schema_opening_hours', 'Mo-Su 09:00-18:00'),
@@ -437,7 +388,7 @@ class SchemaService extends AbstractService
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'contactType' => 'customer service',
-                    'availableLanguage' => $this->getLanguageCode()
+                    'availableLanguage' => $this->getAvailableLanguageCodes()
                 ],
                 'sameAs' => $this->getSocialMediaProfiles($baseUrl)
             ];
@@ -1056,6 +1007,32 @@ class SchemaService extends AbstractService
     }
 
     /**
+     * Get all active language tags for schema.org availableLanguage.
+     *
+     * Returns an array of BCP-47 language tags (e.g. ['en-GB', 'sr-RS']).
+     * Uses LanguageService for Falang + Joomla core detection.
+     * Falls back to current language only if detection fails.
+     *
+     * @return array<int, string>
+     */
+    private function getAvailableLanguageCodes(): array
+    {
+        try {
+            $langService = new LanguageService($this->app, $this->params);
+            $languages   = $langService->getActiveLanguages();
+
+            if (!empty($languages)) {
+                return array_column($languages, 'lang_code');
+            }
+        } catch (\Throwable $e) {
+            $this->logDebug('Schema: Failed to detect active languages: ' . $e->getMessage());
+        }
+
+        // Fallback: current language only
+        return [$this->getLanguageCode()];
+    }
+
+    /**
      * Extract description from content
      */
     private function extractDescription(string $content): string
@@ -1540,7 +1517,8 @@ class SchemaService extends AbstractService
             return [];
         }
 
-        $json = trim((string) $this->params->get('schema_events', ''));
+        // Language-aware: schema_events_{lang} → schema_events_{default} → schema_events
+        $json = trim((string) $this->getLocalizedParam('schema_events', ''));
         if (empty($json)) {
             return [];
         }
@@ -1552,7 +1530,7 @@ class SchemaService extends AbstractService
             }
 
             $baseUrl = $this->getSchemaUrl();
-            $orgName = trim((string) $this->params->get('org_name', ''));
+            $orgName = trim((string) $this->getLocalizedParam('org_name', ''));
 
             $schemas = [];
             foreach ($events as $event) {
@@ -1594,7 +1572,7 @@ class SchemaService extends AbstractService
                         'name'  => $locationName,
                     ];
                 } elseif (!empty($orgName)) {
-                    $address = trim((string) $this->params->get('schema_address_street', ''));
+                    $address = trim((string) $this->getLocalizedParam('schema_address_street', ''));
                     $eventSchema['location'] = [
                         '@type'   => 'Place',
                         'name'    => $orgName,
