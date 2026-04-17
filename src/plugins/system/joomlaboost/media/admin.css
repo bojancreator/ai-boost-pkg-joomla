@@ -12,3 +12,23 @@
     width: 100%;
     box-sizing: border-box;
 }
+
+/* ── Spacer Separators: prominent section headers ─────────────────────── */
+#adminForm .spacer > label,
+#adminForm .spacer > span {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    margin-top: 12px !important;
+    padding-top: 10px !important;
+    display: block;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    letter-spacing: 0.02em;
+}
+
+/* First spacer in a fieldset doesn't need top border */
+#adminForm .control-group:first-child .spacer > label,
+#adminForm .control-group:first-child .spacer > span {
+    border-top: none;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}

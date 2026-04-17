@@ -1,0 +1,28 @@
+ispravke 17.4.2026.
+
+1. globalno svuda
+    a. separatori da budu malo istaknutiji.  1px veći font i bold slova. iznad njih 6px margina da se odvoje od prethodne celine.
+    b. Na vrhu ili sa leve strane treba da stoji navigacija koja će stranu da pomeri dole gore u zavisnosti od funkcije koju će da manifstuje separator ili podnaslov. Ako je ovo moguće, daj mi neki predlog.
+
+2. Social Media tab
+    a. kad se uključi svičer Enable Open Graph dodatne opcije se pojave na dnu stranice. to bi trebalo da bude zajedno
+    b. Pretpostavljam da polja Site Name se odnose na OG. ako je tako treba u label postaviti Site OG Name da se zna na šta se odnosi
+    c. ovaj tekst treba obrisati - OpenGraph Tags (Facebook, Twitter, LinkedIn) - mislim da se zna na šta se odnosi pa je to višak.
+
+3. Organization tab
+    a. Organization i Organization Identity (per language) jedno od ta dva je višak.
+    b. dinamička polja su na kraju. da li mogu da budu gore posle logo-a ili pre logo-a?
+    c. logo takođe može da bude u više jezika. treba i to predvideti.
+    d. zbog multilanguage opcije takođe se postavlja pitanje Country Code. Da li on odnosi samo na lokaciju gde je organizacija, hotel... ili treba da se menja od jezika do jezika?
+ 
+ 4. Schema.org tab
+    a. Šta tačno radi FAQ Schema Support dugme yes/no da li je potrebno? Zato što sve opcije dole mogu da se izaberu takođe yes/no
+    b. Event Schema (Rich Results). Treba da bude zajedno sa dinamičkim poljima. Kad je no da se ne prikazuju polja za unos, kad je yes da se prikazuju. Takođe da to bude i za manual FAQs.
+    c. Auto-Detect FAQ from Content je posebna priča i on nek ostane kako jeste sad.
+
+5. Ovo je veoma bitno.
+    a. Na osnovu ovoga što sam napisao treba da doneseš zaključak da li je još nešto potrebno da se promeni-doradi-ispravi u pluginu.
+
+
+Za budućnost:
+Plugin (admin deo) treba prevesti na više jezika: Nemački, španski, ruski, italijanski, poljski, turski (ako misliš da postoji još neko dobro tržište za ovo daj predlog

@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 17, 2026 11:14</creationDate>
+  <creationDate>April 17, 2026 11:44</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.21.2</version>
+  <version>0.21.3</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -168,18 +168,7 @@
       <!-- TAB 3: SOCIAL MEDIA (was: OpenGraph + Facebook/Meta)               -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="social" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_SOCIAL">
-        <!-- OpenGraph -->
-        <field name="separator_opengraph" type="spacer" label="OpenGraph Tags (Facebook, Twitter, LinkedIn)" class="text" />
-        <field name="enable_opengraph" type="radio" label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <!-- OpenGraph Site Name + Image per installed language -->
-        <field name="separator_og_multilang" type="spacer" label="OpenGraph Per-Language Settings" class="text-info" showon="enable_opengraph:1" />
-        <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
-        <!-- Per-Article OpenGraph Override Notice -->
-        <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields  Featured Image  Global Config." class="alert alert-info" showon="enable_opengraph:1" />
-        <!-- Meta Pixel (Facebook Pixel) -->
+        <!-- Meta Pixel (Facebook Pixel) — self-contained section first -->
         <field name="separator_meta_pixel" type="spacer" label="Meta Pixel (Facebook Advertising)" class="text" />
         <field name="enable_meta_pixel" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_DESC" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
@@ -210,17 +199,23 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
+        <!-- OpenGraph — at the end so dynamic per-language fields appear right after -->
+        <field name="separator_opengraph" type="spacer" label="OpenGraph" class="text" />
+        <field name="enable_opengraph" type="radio" label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields  Featured Image  Global Config." class="alert alert-info" showon="enable_opengraph:1" />
+        <!-- OG Site Name + Image per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <!-- TAB 4: ORGANIZATION (new — extracted from Schema.org)              -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="organization" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_ORGANIZATION">
-        <!-- Organization Identity (per language) -->
-        <field name="separator_org_identity" type="spacer" label="Organization Identity (per language)" class="text-info" />
-        <!-- Injected dynamically by onContentPrepareForm: org_name_{code}, org_description_{code} -->
-        <!-- Organization Logo (shared across all languages) -->
-        <field name="org_logo" type="media" label="Organization Logo" description="Logo image used in Schema.org structured data (same for all languages)." default="" directory="images" />
+        <!-- Organization Name, Description, Logo per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: org_name_{code}, org_description_{code}, org_logo_{code} -->
         <!-- Organization URL + Contact -->
         <field name="separator_contact" type="spacer" label="Contact Information" class="text" />
         <field name="schema_url" type="url" label="Organization URL" description="Official website URL (auto-detected if empty)" default="" hint="https://example.com" />
@@ -235,7 +230,7 @@
         <field name="schema_social_linkedin" type="url" label="LinkedIn URL" description="Full URL to your LinkedIn page" default="" hint="https://www.linkedin.com/company/yourcompany" />
         <!-- Location (for LocalBusiness/Hotel) -->
         <field name="separator_location" type="spacer" label="Location (for LocalBusiness/Hotel schema)" class="text-warning" />
-        <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., US, GB, DE)" default="" hint="US" />
+        <field name="schema_address_country" type="text" label="Country Code" description="Physical location country code (ISO 3166-1 alpha-2). Same for all languages — a hotel in Montenegro is always ME." default="" hint="US" />
         <!-- City/Locality + Street per installed language -->
         <field name="separator_address_multilang" type="spacer" label="City &amp; Street (per language)" class="text-info" />
         <!-- Injected dynamically by onContentPrepareForm: schema_address_locality_{code}, schema_address_street_{code} -->

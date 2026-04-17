@@ -1429,7 +1429,7 @@ HTML;
             'og_site_name' => [
                 'fieldset' => 'social',
                 'type'     => 'text',
-                'label'    => 'Site Name',
+                'label'    => 'OG Site Name',
                 'hint'     => 'e.g., My Awesome Business',
                 'showon'   => 'enable_opengraph:1',
                 'description' => 'Organization/Site name shown on Facebook, Twitter, LinkedIn shares.',
@@ -1437,7 +1437,7 @@ HTML;
             'og_image' => [
                 'fieldset'  => 'social',
                 'type'      => 'media',
-                'label'     => 'Default OG Image',
+                'label'     => 'OG Default Image',
                 'hint'      => '',
                 'showon'    => 'enable_opengraph:1',
                 'directory' => 'images',
@@ -1449,15 +1449,24 @@ HTML;
                 'type'     => 'text',
                 'label'    => 'Organization Name',
                 'hint'     => 'e.g., My Company Name',
-                'showon'   => 'enable_schema:1',
+                'showon'   => '',
             ],
             'org_description' => [
                 'fieldset' => 'organization',
                 'type'     => 'textarea',
                 'label'    => 'Organization Description',
                 'hint'     => 'e.g., A short description of your business or organization.',
-                'showon'   => 'enable_schema:1',
+                'showon'   => '',
                 'rows'     => '3',
+            ],
+            'org_logo' => [
+                'fieldset'  => 'organization',
+                'type'      => 'media',
+                'label'     => 'Organization Logo',
+                'hint'      => '',
+                'showon'    => '',
+                'directory'  => 'images',
+                'description' => 'Logo for Schema.org and OpenGraph. Can differ per language (e.g., logo with localized text).',
             ],
             // ── Schema: Address ───────────────────────────────────────────────
             'schema_address_locality' => [
