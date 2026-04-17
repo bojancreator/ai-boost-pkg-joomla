@@ -1422,6 +1422,40 @@ HTML;
             $langs = [['code' => 'en', 'name' => 'English']];
         }
 
+        // ── 1b. Sort: default language first, then alphabetically ────────────
+        $defaultLangCode = 'en';
+        try {
+            $defaultTag = \Joomla\CMS\Component\ComponentHelper::getParams('com_languages')->get('site', 'en-GB');
+            $defaultLangCode = strtolower(substr($defaultTag, 0, 2));
+        } catch (\Throwable $e) {
+            // keep 'en'
+        }
+
+        // Separate default from rest, sort rest by name
+        $defaultLang = null;
+        $otherLangs  = [];
+        foreach ($langs as $lang) {
+            if ($lang['code'] === $defaultLangCode) {
+                $defaultLang = $lang;
+            } else {
+                $otherLangs[] = $lang;
+            }
+        }
+        usort($otherLangs, fn($a, $b) => strcmp($a['name'], $b['name']));
+
+        // If default wasn't found (shouldn't happen), use first
+        if ($defaultLang === null) {
+            $defaultLang = array_shift($otherLangs) ?: ['code' => 'en', 'name' => 'English'];
+        }
+
+        // Mark default and rebuild
+        $defaultLang['is_default'] = true;
+        foreach ($otherLangs as &$ol) {
+            $ol['is_default'] = false;
+        }
+        unset($ol);
+        $langs = array_merge([$defaultLang], $otherLangs);
+
         // ── 2. Define multilingual field groups ────────────────────────────────
         // Each entry: [fieldset, type, baseLabel, hint, showon, extra-attrs]
         $groups = [
@@ -1521,12 +1555,19 @@ HTML;
 
             foreach ($langs as $lang) {
                 $fieldName  = $baseField . '_' . $lang['code'];
-                $fieldLabel = htmlspecialchars($cfg['label'] . ' (' . $lang['name'] . ')', ENT_QUOTES, 'UTF-8');
+                $isDefault  = !empty($lang['is_default']);
+                $langSuffix = $isDefault
+                    ? $lang['name'] . ' — ★ Default'
+                    : $lang['name'];
+                $fieldLabel = htmlspecialchars($cfg['label'] . ' (' . $langSuffix . ')', ENT_QUOTES, 'UTF-8');
                 $fieldHint  = htmlspecialchars($cfg['hint'] ?? '', ENT_QUOTES, 'UTF-8');
-                $fieldDesc  = htmlspecialchars($cfg['description'] ?? '', ENT_QUOTES, 'UTF-8');
+                $fieldDesc  = $isDefault
+                    ? htmlspecialchars(($cfg['description'] ?? '') . ' Other languages will use this value as fallback if left empty.', ENT_QUOTES, 'UTF-8')
+                    : htmlspecialchars(($cfg['description'] ?? '') . ' Leave empty to use the Default language value.', ENT_QUOTES, 'UTF-8');
                 $showOn     = htmlspecialchars($cfg['showon'], ENT_QUOTES, 'UTF-8');
                 $rows       = isset($cfg['rows']) ? ' rows="' . $cfg['rows'] . '"' : '';
                 $directory  = isset($cfg['directory']) ? ' directory="' . $cfg['directory'] . '"' : '';
+                $required   = $isDefault ? ' required="true"' : '';
 
                 $xmlParts[] = '<field'
                     . ' name="' . $fieldName . '"'
@@ -1537,6 +1578,7 @@ HTML;
                     . ' showon="' . $showOn . '"'
                     . $rows
                     . $directory
+                    . $required
                     . ' />';
             }
 

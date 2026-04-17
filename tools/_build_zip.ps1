@@ -19,14 +19,15 @@ else {
 # Update creationDate in XML
 $buildDate = Get-Date -Format 'MMMM d, yyyy HH:mm'
 $xmlContent = $xmlContent -replace '<creationDate>[^<]+<\/creationDate>', "<creationDate>$buildDate</creationDate>"
-Set-Content $xmlPath $xmlContent -Encoding UTF8 -NoNewline
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText($xmlPath, $xmlContent, $utf8NoBom)
 
 # Update Version.php to match XML version
 $versionPhpPath = Join-Path $src 'src\Version.php'
 if (Test-Path $versionPhpPath) {
     $versionPhpContent = Get-Content $versionPhpPath -Raw -Encoding UTF8
     $versionPhpContent = $versionPhpContent -replace "const VERSION = '[^']+';", "const VERSION = '$version';"
-    Set-Content $versionPhpPath $versionPhpContent -Encoding UTF8 -NoNewline
+    [System.IO.File]::WriteAllText($versionPhpPath, $versionPhpContent, $utf8NoBom)
     Write-Host "Updated Version.php to $version"
 }
 
