@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 17, 2026 11:44</creationDate>
+  <creationDate>April 17, 2026 12:00</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.21.3</version>
+  <version>0.21.4</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -165,23 +165,33 @@
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 3: SOCIAL MEDIA (was: OpenGraph + Facebook/Meta)               -->
+      <!-- TAB 3: OPENGRAPH                                                    -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <fieldset name="social" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_SOCIAL">
-        <!-- Meta Pixel (Facebook Pixel) — self-contained section first -->
-        <field name="separator_meta_pixel" type="spacer" label="Meta Pixel (Facebook Advertising)" class="text" />
+      <fieldset name="opengraph" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_OPENGRAPH">
+        <field name="enable_opengraph" type="radio" label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields  Featured Image  Global Config." class="alert alert-info" showon="enable_opengraph:1" />
+        <!-- OG Site Name + Image per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
+      </fieldset>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 4: FACEBOOK / META                                             -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <fieldset name="facebook" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_FACEBOOK">
         <field name="enable_meta_pixel" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_DESC" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
         <field name="meta_pixel_id" type="text" label="Meta Pixel ID (Primary)" description="Your primary Meta (Facebook) Pixel ID" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
         <field name="meta_pixel_id_2" type="text" label="Meta Pixel ID (Secondary  optional)" description="Second Pixel ID if you need to track two accounts simultaneously (e.g. agency + client). Leave empty if not needed." default="" hint="784973044476993" showon="enable_meta_pixel:1" />
-        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain, data-category=marketing.meta-pixel) until user accepts Marketing in YooTheme consent banner  REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Meta Pixel container (code can stay empty)." default="none" showon="enable_meta_pixel:1">
+        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent." default="none" showon="enable_meta_pixel:1">
           <option value="none">None (Direct inject - no GDPR)</option>
           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
         </field>
         <field name="fb_domain_verification" type="text" label="Facebook Domain Verification Code" description="Enter the verification code from Facebook Business Manager (without the meta tag markup)" default="" hint="abcdefgh1234567890" showon="enable_meta_pixel:1" />
-        <!-- Meta Pixel Custom Events -->
         <field name="meta_pixel_events_header" type="note" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER_DESC" showon="enable_meta_pixel:1" />
         <field name="meta_pixel_track_purchase" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1">
           <option value="1">JYES</option>
@@ -199,15 +209,7 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- OpenGraph — at the end so dynamic per-language fields appear right after -->
-        <field name="separator_opengraph" type="spacer" label="OpenGraph" class="text" />
-        <field name="enable_opengraph" type="radio" label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields  Featured Image  Global Config." class="alert alert-info" showon="enable_opengraph:1" />
-        <!-- OG Site Name + Image per installed language -->
-        <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
+      </fieldset>
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->

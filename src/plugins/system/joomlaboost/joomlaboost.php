@@ -1427,7 +1427,7 @@ HTML;
         $groups = [
             // ── OpenGraph fields ──────────────────────────────────────────────
             'og_site_name' => [
-                'fieldset' => 'social',
+                'fieldset' => 'opengraph',
                 'type'     => 'text',
                 'label'    => 'OG Site Name',
                 'hint'     => 'e.g., My Awesome Business',
@@ -1435,7 +1435,7 @@ HTML;
                 'description' => 'Organization/Site name shown on Facebook, Twitter, LinkedIn shares.',
             ],
             'og_image' => [
-                'fieldset'  => 'social',
+                'fieldset'  => 'opengraph',
                 'type'      => 'media',
                 'label'     => 'OG Default Image',
                 'hint'      => '',
@@ -1489,7 +1489,7 @@ HTML;
                 'type'     => 'textarea',
                 'label'    => 'Manual FAQ Items',
                 'hint'     => '',
-                'showon'   => 'enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1',
+                'showon'   => 'enable_schema:1[AND]faq_schema_enabled:1[AND]enable_manual_faqs:1',
                 'rows'     => '6',
                 'description' => 'FAQ in JSON format. Example: [{"question":"Q?","answer":"A."}]',
             ],
@@ -1499,7 +1499,7 @@ HTML;
                 'type'     => 'textarea',
                 'label'    => 'Events (JSON)',
                 'hint'     => '',
-                'showon'   => 'enable_schema:1,schema_events_enabled:1',
+                'showon'   => 'enable_schema:1[AND]schema_events_enabled:1',
                 'rows'     => '8',
                 'description' => 'Events JSON per language. Format: [{"name":"Event","startDate":"2026-12-31T20:00:00+01:00"}]',
             ],
