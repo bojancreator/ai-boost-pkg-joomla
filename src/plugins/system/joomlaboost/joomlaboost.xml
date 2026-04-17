@@ -2,7 +2,7 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 17, 2026 12:02</creationDate>
+  <creationDate>April 17, 2026 12:10</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
@@ -313,22 +313,18 @@
         </field>
         <field name="schema_opening_hours" type="text" label="Opening Hours" description="Business opening hours (e.g., Mo-Su 09:00-18:00)" default="Mo-Su 09:00-18:00" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Mo-Su 09:00-18:00" />
         <!-- FAQ Schema -->
-        <field name="separator_faq" type="spacer" label="FAQ Schema Support" class="text" />
-        <field name="faq_schema_enabled" type="radio" label="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_LABEL" description="PLG_SYSTEM_JOOMLABOOST_FAQ_SCHEMA_DESC" default="1" class="btn-group btn-group-yesno" showon="enable_schema:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="faq_auto_detect" type="radio" label="Auto-Detect FAQ from Content" description="Automatically detect Q&amp;A pairs from article content. Looks for description lists (&lt;dl&gt;/&lt;dt&gt;/&lt;dd&gt;) and headings (&lt;h3&gt;/&lt;h4&gt; followed by &lt;p&gt;). Generates FAQPage JSON-LD per page. Recommended: YES." default="1" class="btn-group btn-group-yesno" showon="enable_schema:1,faq_schema_enabled:1">
+        <field name="separator_faq" type="spacer" label="FAQ Schema" class="text" showon="enable_schema:1" />
+        <field name="faq_auto_detect" type="radio" label="Auto-Detect FAQ from Content" description="Automatically detect Q&amp;A pairs from article content. Looks for description lists (&lt;dl&gt;/&lt;dt&gt;/&lt;dd&gt;) and headings (&lt;h3&gt;/&lt;h4&gt; followed by &lt;p&gt;). Generates FAQPage JSON-LD per page. Recommended: YES." default="1" class="btn-group btn-group-yesno" showon="enable_schema:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
         <!-- Q&A Management (Manual FAQ Input) -->
-        <field name="separator_qa_management" type="spacer" label="Q&amp;A Management (Manual FAQ Input)" class="text-primary" showon="enable_schema:1,faq_schema_enabled:1" />
-        <field name="enable_manual_faqs" type="radio" label="Enable Manual FAQs" description="Add custom FAQ items via JSON editor below. These will be merged with auto-detected FAQs." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1,faq_schema_enabled:1">
+        <field name="separator_qa_management" type="spacer" label="Q&amp;A Management (Manual FAQ Input)" class="text-primary" showon="enable_schema:1" />
+        <field name="enable_manual_faqs" type="radio" label="Enable Manual FAQs" description="Add custom FAQ items via JSON editor below. These will be merged with auto-detected FAQs." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="manual_faq_scope" type="list" label="Global FAQ - When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup. Auto-detect always runs first; this setting defines what happens with the global FAQ in relation to it." default="fallback_all" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1">
+        <field name="manual_faq_scope" type="list" label="Global FAQ - When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup." default="fallback_all" showon="enable_schema:1[AND]enable_manual_faqs:1">
           <option value="fallback_all">Fallback on all pages - show global FAQ on any page without auto-detected FAQ</option>
           <option value="always_all">All pages - always inject global FAQ, ignore auto-detect</option>
           <option value="fallback_home">Homepage fallback - show global FAQ on homepage only, if no auto-detected FAQ</option>
@@ -337,7 +333,7 @@
         </field>
         <!-- Manual FAQ per installed language -->
         <!-- Injected dynamically by onContentPrepareForm: manual_faqs_{code} -->
-        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1,faq_schema_enabled:1,enable_manual_faqs:1" />
+        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1[AND]enable_manual_faqs:1" />
         <!-- Event Schema -->
         <field name="separator_events" type="spacer" label="Event Schema (Rich Results)" class="text" showon="enable_schema:1" />
         <field name="schema_events_enabled" type="radio"

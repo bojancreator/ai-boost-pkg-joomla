@@ -1489,7 +1489,7 @@ HTML;
                 'type'     => 'textarea',
                 'label'    => 'Manual FAQ Items',
                 'hint'     => '',
-                'showon'   => 'enable_schema:1[AND]faq_schema_enabled:1[AND]enable_manual_faqs:1',
+                'showon'   => 'enable_schema:1[AND]enable_manual_faqs:1',
                 'rows'     => '6',
                 'description' => 'FAQ in JSON format. Example: [{"question":"Q?","answer":"A."}]',
             ],

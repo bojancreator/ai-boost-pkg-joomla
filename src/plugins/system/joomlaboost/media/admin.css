@@ -14,21 +14,16 @@
 }
 
 /* ── Spacer Separators: prominent section headers ─────────────────────── */
-#adminForm .spacer > label,
-#adminForm .spacer > span {
+/* Target only spacer-type fields (Joomla renders spacer labels as <span class="text*">) */
+#adminForm .control-group .spacer .text,
+#adminForm .control-group .spacer .text-primary,
+#adminForm .control-group .spacer .text-info,
+#adminForm .control-group .spacer .text-warning,
+#adminForm .control-group .spacer .text-success {
     font-size: 1.1rem !important;
     font-weight: 700 !important;
-    margin-top: 12px !important;
-    padding-top: 10px !important;
     display: block;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    letter-spacing: 0.02em;
-}
-
-/* First spacer in a fieldset doesn't need top border */
-#adminForm .control-group:first-child .spacer > label,
-#adminForm .control-group:first-child .spacer > span {
-    border-top: none;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
