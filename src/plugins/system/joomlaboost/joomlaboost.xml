@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 17, 2026 10:58</creationDate>
+  <creationDate>April 17, 2026 11:14</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.21.1</version>
+  <version>0.21.2</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -44,9 +44,9 @@
   <config>
     <fields name="params">
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 1: GENERAL (was: Plugin + Performance + Debug)                 -->
+      <!-- TAB 1: PLUGIN (uses Joomla's built-in 'basic' fieldset)            -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <fieldset name="general" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_GENERAL">
+      <fieldset name="basic" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_BASIC">
         <!-- Domain & Environment -->
         <field name="separator_domain" type="spacer" label="Domain &amp; Environment" class="text" />
         <field name="auto_domain_detection" type="radio" label="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_LABEL" description="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_DESC" default="1" class="btn-group btn-group-yesno">
@@ -175,6 +175,7 @@
           <option value="0">JNO</option>
         </field>
         <!-- OpenGraph Site Name + Image per installed language -->
+        <field name="separator_og_multilang" type="spacer" label="OpenGraph Per-Language Settings" class="text-info" showon="enable_opengraph:1" />
         <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
         <!-- Per-Article OpenGraph Override Notice -->
         <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields  Featured Image  Global Config." class="alert alert-info" showon="enable_opengraph:1" />
@@ -216,6 +217,7 @@
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="organization" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_ORGANIZATION">
         <!-- Organization Identity (per language) -->
+        <field name="separator_org_identity" type="spacer" label="Organization Identity (per language)" class="text-info" />
         <!-- Injected dynamically by onContentPrepareForm: org_name_{code}, org_description_{code} -->
         <!-- Organization Logo (shared across all languages) -->
         <field name="org_logo" type="media" label="Organization Logo" description="Logo image used in Schema.org structured data (same for all languages)." default="" directory="images" />
@@ -235,6 +237,7 @@
         <field name="separator_location" type="spacer" label="Location (for LocalBusiness/Hotel schema)" class="text-warning" />
         <field name="schema_address_country" type="text" label="Country Code" description="ISO 3166-1 alpha-2 country code (e.g., US, GB, DE)" default="" hint="US" />
         <!-- City/Locality + Street per installed language -->
+        <field name="separator_address_multilang" type="spacer" label="City &amp; Street (per language)" class="text-info" />
         <!-- Injected dynamically by onContentPrepareForm: schema_address_locality_{code}, schema_address_street_{code} -->
         <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" hint="10001" />
         <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" hint="+1 212 555 1234" />
