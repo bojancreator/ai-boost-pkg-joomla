@@ -5,6 +5,43 @@ All notable changes to JoomlaBoost will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-04-17
+
+### Added
+- **LlmsTxt custom pages multilingual**: `llmstxt_custom_pages` now supports per-language values — AI crawlers get localized page titles and descriptions
+- **Version.php**: Single source of truth for plugin version constant, auto-updated by build script
+- **Build script archiving**: Old builds automatically moved to `tools/__build/archive/` — only latest ZIP stays in build root
+
+### Changed
+- Build script (`_build_zip.ps1`) now auto-syncs `Version.php` with XML version on every build
+- Removed static `llmstxt_custom_pages` field from XML (now dynamically injected per language)
+
+---
+
+## [0.20.0] - 2026-04-15
+
+### Added
+- **Central multilingual resolver**: `AbstractService::getLocalizedParam()` — unified 4-step resolution chain for all services: `{field}_{currentLang}` → `{field}_{defaultLang}` → `{field}` → DB translations
+- **`getCurrentLangCode()`** and **`getDefaultLangCode()`** helper methods in AbstractService
+- **OpenGraph per-language fields**: `og_site_name` and `og_image` now support per-language values (e.g., different hero banner or site name per language)
+- **Schema Events multilingual**: `schema_events` JSON field now supports per-language event names and descriptions
+- **Dynamic `availableLanguage`**: Schema.org ContactPoint now lists all active site languages instead of hardcoded values
+- **Falang custom field translation**: `custom_og_title`, `custom_og_description`, `custom_og_image` now check Falang's `#__falang_content` table for translations
+
+### Changed
+- **Default language fallback**: All services now use Joomla's configured default language instead of hardcoded `en` — sites with non-English defaults work correctly
+- `SchemaService`: removed 50-line private `getLocalizedParam()` — now inherits from `AbstractService`
+- `QAManagementService`: replaced 30-line manual resolution with single `getLocalizedParam()` call
+- `LlmsTxtService`: `org_name`, `org_description`, `manual_faqs` now use `getLocalizedParam()`
+- `TranslationService`: DB fallback uses `getDefaultLangCode()` instead of hardcoded `'en'`
+- Removed all real-world data from form hints and defaults (Vivid Blue, Budva, Rezevici, OffRoad Serbia, RS country code, Serbian phone numbers)
+- Removed duplicate static `og_site_name`/`og_image` fields from XML (replaced by dynamic per-language injection)
+- All geo/phone/address hints changed to generic fictional values
+
+### Fixed
+- Schema.org `addressCountry` and `addressLocality` no longer have hardcoded defaults — empty if not configured
+
+---
 
 ## [0.8.6] - 2026-03-30
 

@@ -303,7 +303,8 @@ class LlmsTxtService extends AbstractService
      */
     private function getCustomPages(): array
     {
-        $json = trim((string) $this->params->get('llmstxt_custom_pages', ''));
+        // Language-aware: llmstxt_custom_pages_{lang} → default → generic
+        $json = trim((string) $this->getLocalizedParam('llmstxt_custom_pages', ''));
 
         if (empty($json)) {
             return [];

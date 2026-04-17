@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 15, 2026 12:07</creationDate>
+  <creationDate>April 17, 2026 10:09</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.20.6</version>
+  <version>0.21.0</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -353,14 +353,8 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="llmstxt_custom_pages"
-               type="textarea"
-               label="Custom Pages for LLMs.txt"
-               description="Optional extra pages as JSON. Format: [{&quot;title&quot;: &quot;Page Name&quot;, &quot;url&quot;: &quot;/path&quot;, &quot;description&quot;: &quot;Brief description&quot;}]"
-               rows="5"
-               cols="80"
-               default=""
-               showon="llmstxt_enabled:1" />
+        <!-- Custom Pages per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: llmstxt_custom_pages_{code} -->
         <field name="llmstxt_note" type="note"
                label="How LLMs.txt Works"
                description="An emerging AI standard (llmstxt.org). JoomlaBoost auto-fills it with org data, menu pages, ratings, contact &amp; social links. Visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify after saving."

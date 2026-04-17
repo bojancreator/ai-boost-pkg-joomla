@@ -1494,6 +1494,16 @@ HTML;
                 'rows'     => '8',
                 'description' => 'Events JSON per language. Format: [{"name":"Event","startDate":"2026-12-31T20:00:00+01:00"}]',
             ],
+            // ── LlmsTxt: AI Search ────────────────────────────────────────────
+            'llmstxt_custom_pages' => [
+                'fieldset' => 'aisearch',
+                'type'     => 'textarea',
+                'label'    => 'Custom Pages for LLMs.txt',
+                'hint'     => '',
+                'showon'   => 'llmstxt_enabled:1',
+                'rows'     => '5',
+                'description' => 'Extra pages as JSON per language. Format: [{"title":"Page","url":"/path","description":"Brief info"}]',
+            ],
         ];
 
         // ── 3. Build XML fragment and load into form ───────────────────────────

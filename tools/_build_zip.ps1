@@ -1,5 +1,6 @@
 $src = 'c:\POSLOVI\__JoomlaBoost\src\plugins\system\joomlaboost'
 $buildDir = 'c:\POSLOVI\__JoomlaBoost\tools\__build'
+$archiveDir = Join-Path $buildDir 'archive'
 
 # Load ZIP support FIRST
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -15,18 +16,36 @@ else {
     $version = '0.0.0'
 }
 
-# Update creationDate
+# Update creationDate in XML
 $buildDate = Get-Date -Format 'MMMM d, yyyy HH:mm'
 $xmlContent = $xmlContent -replace '<creationDate>[^<]+<\/creationDate>', "<creationDate>$buildDate</creationDate>"
 Set-Content $xmlPath $xmlContent -Encoding UTF8 -NoNewline
+
+# Update Version.php to match XML version
+$versionPhpPath = Join-Path $src 'src\Version.php'
+if (Test-Path $versionPhpPath) {
+    $versionPhpContent = Get-Content $versionPhpPath -Raw -Encoding UTF8
+    $versionPhpContent = $versionPhpContent -replace "const VERSION = '[^']+';", "const VERSION = '$version';"
+    Set-Content $versionPhpPath $versionPhpContent -Encoding UTF8 -NoNewline
+    Write-Host "Updated Version.php to $version"
+}
 
 $zipPath = Join-Path $buildDir "joomlaboost-$version.zip"
 Write-Host "Building version: $version"
 Write-Host "Output: $zipPath"
 
-# Ensure build dir exists, remove old ZIP
+# Ensure build + archive dirs exist
 New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
-if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+New-Item -ItemType Directory -Force -Path $archiveDir | Out-Null
+
+# Archive old builds (move all existing ZIPs to archive/)
+$existingZips = Get-ChildItem -Path $buildDir -Filter "joomlaboost-*.zip" -File
+if ($existingZips.Count -gt 0) {
+    foreach ($oldZip in $existingZips) {
+        Move-Item -Path $oldZip.FullName -Destination $archiveDir -Force
+        Write-Host "  Archived: $($oldZip.Name)"
+    }
+}
 
 # Exclusion patterns
 $excludePatterns = @('*.backup', '*_OLD.php', '*.v0.*', 'AllServices.php')
@@ -59,5 +78,7 @@ finally {
 }
 
 $sizeKB = [math]::Round((Get-Item $zipPath).Length / 1KB, 1)
+$archiveCount = (Get-ChildItem -Path $archiveDir -Filter "*.zip" -File).Count
 Write-Host ""
 Write-Host "Done! $zipPath ($sizeKB KB)"
+Write-Host "Archive: $archiveCount previous build(s) in $archiveDir"
