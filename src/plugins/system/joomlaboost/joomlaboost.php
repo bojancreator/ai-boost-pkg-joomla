@@ -1427,7 +1427,7 @@ HTML;
         $groups = [
             // ── OpenGraph fields ──────────────────────────────────────────────
             'og_site_name' => [
-                'fieldset' => 'opengraph',
+                'fieldset' => 'social',
                 'type'     => 'text',
                 'label'    => 'Site Name',
                 'hint'     => 'e.g., My Awesome Business',
@@ -1435,7 +1435,7 @@ HTML;
                 'description' => 'Organization/Site name shown on Facebook, Twitter, LinkedIn shares.',
             ],
             'og_image' => [
-                'fieldset'  => 'opengraph',
+                'fieldset'  => 'social',
                 'type'      => 'media',
                 'label'     => 'Default OG Image',
                 'hint'      => '',
@@ -1445,14 +1445,14 @@ HTML;
             ],
             // ── Schema: Organization info ─────────────────────────────────────
             'org_name' => [
-                'fieldset' => 'schema',
+                'fieldset' => 'organization',
                 'type'     => 'text',
                 'label'    => 'Organization Name',
                 'hint'     => 'e.g., My Company Name',
                 'showon'   => 'enable_schema:1',
             ],
             'org_description' => [
-                'fieldset' => 'schema',
+                'fieldset' => 'organization',
                 'type'     => 'textarea',
                 'label'    => 'Organization Description',
                 'hint'     => 'e.g., A short description of your business or organization.',
@@ -1461,14 +1461,14 @@ HTML;
             ],
             // ── Schema: Address ───────────────────────────────────────────────
             'schema_address_locality' => [
-                'fieldset' => 'schema',
+                'fieldset' => 'organization',
                 'type'     => 'text',
                 'label'    => 'City/Locality',
                 'hint'     => 'e.g., New York',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
             'schema_address_street' => [
-                'fieldset' => 'schema',
+                'fieldset' => 'organization',
                 'type'     => 'text',
                 'label'    => 'Street Address',
                 'hint'     => 'e.g., 123 Main Street',
@@ -1496,7 +1496,7 @@ HTML;
             ],
             // ── LlmsTxt: AI Search ────────────────────────────────────────────
             'llmstxt_custom_pages' => [
-                'fieldset' => 'google',
+                'fieldset' => 'analytics',
                 'type'     => 'textarea',
                 'label'    => 'Custom Pages for LLMs.txt',
                 'hint'     => '',
