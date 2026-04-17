@@ -1496,7 +1496,7 @@ HTML;
             ],
             // ── LlmsTxt: AI Search ────────────────────────────────────────────
             'llmstxt_custom_pages' => [
-                'fieldset' => 'aisearch',
+                'fieldset' => 'google',
                 'type'     => 'textarea',
                 'label'    => 'Custom Pages for LLMs.txt',
                 'hint'     => '',
