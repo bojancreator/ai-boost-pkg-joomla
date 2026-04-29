@@ -60,3 +60,9 @@ id = "KM9kLk32Ru1sh51F5tpOM"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.1.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.23.1 — manifest fix"
+
+[[outputs]]
+id = "ISw1D6K1zZvO6bonMUoVK"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.2.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.2 — XML entity fix"
