@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.23.0</version>
+  <version>0.23.1</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -74,7 +74,7 @@
           <option value="0">JNO</option>
         </field>
 
-        <!-- ── DOMAIN & ENVIRONMENT ─────────────────────────────────────────── -->
+        <!-- ── DOMAIN AND ENVIRONMENT ─────────────────────────────────────────── -->
         <field name="separator_domain" type="spacer" label="Domain &amp; Environment" class="text" />
         <field name="auto_domain_detection" type="radio" label="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_LABEL" description="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
@@ -317,7 +317,7 @@
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 5: SOCIAL & META — OpenGraph + Meta Pixel (merged)             -->
+      <!-- TAB 5: SOCIAL AND META — OpenGraph + Meta Pixel (merged)             -->
       <!-- NOTE: fieldset name="opengraph" kept — PHP injects og_* fields here -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="opengraph" label="Social &amp; Meta">
@@ -368,7 +368,7 @@
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 6: ANALYTICS & INDEXING — GSC, GA4, GTM, IndexNow, LLMs.txt   -->
+      <!-- TAB 6: ANALYTICS AND INDEXING — GSC, GA4, GTM, IndexNow, LLMs.txt   -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="analytics" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_ANALYTICS">
 
@@ -444,7 +444,7 @@
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 7: DEBUG & PERFORMANCE (always last)                           -->
+      <!-- TAB 7: DEBUG AND PERFORMANCE (always last)                           -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="debug" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_DEBUG">
 
