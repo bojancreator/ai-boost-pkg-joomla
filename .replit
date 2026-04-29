@@ -30,4 +30,4 @@ externalPort = 80
 [userenv]
 
 [userenv.shared]
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
