@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.23.3</version>
+  <version>0.23.4</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -69,7 +69,8 @@
 
         <!-- ── INTERFACE MODE ───────────────────────────────────────────────── -->
         <field name="separator_ui_mode" type="spacer" label="🎛️ Interface Mode" class="text" />
-        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: show all power-user options (sitemap priorities, change frequencies, exclude lists, per-event tracking, ratings, etc.)" default="0" class="btn-group btn-group-yesno">
+        <field name="show_advanced_options_note" type="note" label="" description="&lt;b&gt;Show Advanced Options&lt;/b&gt; reveals power-user fields across &lt;b&gt;all tabs&lt;/b&gt;: sitemap priorities and change frequencies, sitemap exclude lists and limits, multilingual translation fields (other languages besides default), guest ratings (AggregateRating), manual FAQ JSON editor, per-event tracking (Meta Pixel custom events), Search Console additional verification HTML, etc. Turn it &lt;b&gt;ON&lt;/b&gt; only if you need fine-grained control. After toggling, click &lt;b&gt;Save&lt;/b&gt; to refresh the form." class="alert alert-info" />
+        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: show all power-user options. Click Save after toggling to refresh the form." default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
