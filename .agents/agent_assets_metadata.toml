@@ -54,3 +54,9 @@ id = "sULJ9_wlaMUZ7lSLoAYbe"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.0.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.23.0 — UI/UX Reorganization"
+
+[[outputs]]
+id = "KM9kLk32Ru1sh51F5tpOM"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.1.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.1 — manifest fix"
