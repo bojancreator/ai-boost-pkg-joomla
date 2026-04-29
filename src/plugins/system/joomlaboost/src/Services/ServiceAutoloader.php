@@ -49,7 +49,8 @@ class ServiceAutoloader
         'TranslationService' => 'TranslationService.php',
         'LanguageService'    => 'LanguageService.php',
         'IndexNowService'    => 'IndexNowService.php',
-        'LlmsTxtService'     => 'LlmsTxtService.php'
+        'LlmsTxtService'     => 'LlmsTxtService.php',
+        'VerticalPresetService' => 'VerticalPresetService.php'
     ];
 
     /** @var string Base services directory */
