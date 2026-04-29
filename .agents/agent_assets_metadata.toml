@@ -42,3 +42,9 @@ id = "TZdCBEXKYUPGNS0Hgtwlz"
 uri = "file://.local/deliverables/JoomlaBoost-AI-Search-Audit.md"
 type = "text"
 title = "JoomlaBoost AI Search Optimization Audit"
+
+[[outputs]]
+id = "ka034tUaEUxsNCAUeRTT3"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.22.0.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.22.0 — Vertical Presets + Basic/Advanced UI"
