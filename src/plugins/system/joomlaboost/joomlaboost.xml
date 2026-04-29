@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.22.0</version>
+  <version>0.23.0</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -43,14 +43,14 @@
   </languages>
   <config>
     <fields name="params">
+
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 1: PLUGIN (uses Joomla's built-in 'basic' fieldset)            -->
+      <!-- TAB 1: PLUGIN — Quick Setup + Interface Mode + Domain/Robots       -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="basic" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_BASIC">
-        <!-- ──────────────────────────────────────────────────────────────── -->
-        <!-- VERTICAL PRESET (one-click optimal config per site type)        -->
-        <!-- ──────────────────────────────────────────────────────────────── -->
-        <field name="separator_preset" type="spacer" label="🎯 Quick Setup — Site Type Preset" class="text-success" />
+
+        <!-- ── VERTICAL PRESET ─────────────────────────────────────────────── -->
+        <field name="separator_preset" type="spacer" label="🎯 Quick Setup — Site Type" class="text-success" />
         <field name="vertical_preset_note" type="note" label="" description="Choose your site type and tick &lt;b&gt;Apply preset on save&lt;/b&gt; below, then click Save. Optimal SEO defaults will be applied for that vertical (schema type, sitemap priorities, FAQ detection, etc.). Your existing IDs (GA4, Meta Pixel, IndexNow, social URLs, address) are never overwritten." class="alert alert-info" />
         <field name="vertical_preset" type="list" label="Site Type" description="Select the type of website you are building." default="">
           <option value="">— Select preset —</option>
@@ -67,16 +67,14 @@
         <field name="vertical_preset_last" type="hidden" default="" />
         <field name="vertical_preset_last_at" type="hidden" default="" />
 
-        <!-- ──────────────────────────────────────────────────────────────── -->
-        <!-- ADVANCED OPTIONS TOGGLE (hides power-user fields by default)    -->
-        <!-- ──────────────────────────────────────────────────────────────── -->
+        <!-- ── INTERFACE MODE ───────────────────────────────────────────────── -->
         <field name="separator_ui_mode" type="spacer" label="🎛️ Interface Mode" class="text" />
-        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: show all power-user options (sitemap priorities, change frequencies, exclude lists, GTM advanced, per-event tracking, etc.)" default="0" class="btn-group btn-group-yesno">
+        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: show all power-user options (sitemap priorities, change frequencies, exclude lists, per-event tracking, ratings, etc.)" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
 
-        <!-- Domain & Environment -->
+        <!-- ── DOMAIN & ENVIRONMENT ─────────────────────────────────────────── -->
         <field name="separator_domain" type="spacer" label="Domain &amp; Environment" class="text" />
         <field name="auto_domain_detection" type="radio" label="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_LABEL" description="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
@@ -84,6 +82,8 @@
         </field>
         <field name="manual_domain" type="url" label="PLG_SYSTEM_JOOMLABOOST_MANUAL_DOMAIN_LABEL" description="PLG_SYSTEM_JOOMLABOOST_MANUAL_DOMAIN_DESC" default="" showon="auto_domain_detection:0" />
 
+        <!-- ── ROBOTS.TXT ───────────────────────────────────────────────────── -->
+        <field name="separator_robots" type="spacer" label="Robots.txt" class="text" />
         <field name="enable_robots" type="radio" label="PLG_SYSTEM_JOOMLABOOST_ROBOTS_LABEL" description="PLG_SYSTEM_JOOMLABOOST_ROBOTS_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
@@ -92,209 +92,71 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
+
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 2: SITEMAP (unchanged)                                         -->
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <fieldset name="sitemap" label="Sitemap">
-        <field name="enable_sitemap" type="radio" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SITEMAP_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <!-- What to Include -->
-        <field name="sitemap_include_articles" type="radio" label="Include Articles" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="sitemap_include_categories" type="radio" label="Include Categories" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="sitemap_include_menu" type="radio" label="Include Menu Items" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="sitemap_menu_depth" type="list" label="Menu Depth" description="How deep to follow menu items (0 = all levels)" default="0" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
-          <option value="0">All Levels</option>
-          <option value="1">Level 1 Only</option>
-          <option value="2">Levels 1-2</option>
-        </field>
-        <field name="sitemap_menu_types" type="sql" label="Select Menus" description="Choose which menus to include (empty = all menus)" default="" multiple="true" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1" query="SELECT menutype AS value, title FROM #__menu_types ORDER BY title" key_field="value" value_field="title" />
-        <!-- Article Options -->
-        <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <field name="sitemap_article_categories" type="category" extension="com_content" multiple="true" label="Select Categories" description="Choose categories (empty = all)" default="" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated IDs (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1" />
-        <field name="sitemap_max_articles" type="number" label="Max Articles" description="0 = unlimited" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1" />
-        <!-- Multilingual -->
-        <field name="sitemap_spacer_multilang" type="spacer" label="Multilingual (hreflang)" class="text-warning" showon="enable_sitemap:1,show_advanced_options:1" />
-        <field name="sitemap_hreflang" type="radio" label="Multilingual Sitemap" description="Add xhtml:link hreflang alternate tags for each URL in all active languages. Requires Joomla Language Filter plugin active. Works with Falang and native Joomla multilingual. Default: OFF." default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1,show_advanced_options:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <!-- SEO Priority — ADVANCED -->
-        <field name="sitemap_spacer_seo" type="spacer" label="SEO Priority (Advanced)" class="text-success" showon="enable_sitemap:1,show_advanced_options:1" />
-        <field name="sitemap_priority_articles" type="list" label="Articles Priority" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
-          <option value="1.0">1.0 (Highest)</option>
-          <option value="0.8">0.8 (Recommended)</option>
-          <option value="0.5">0.5 (Medium)</option>
-        </field>
-        <field name="sitemap_priority_categories" type="list" label="Categories Priority" default="0.7" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
-          <option value="1.0">1.0</option>
-          <option value="0.7">0.7 (Recommended)</option>
-          <option value="0.5">0.5</option>
-        </field>
-        <field name="sitemap_priority_menu" type="list" label="Menu Priority" default="0.6" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
-          <option value="1.0">1.0</option>
-          <option value="0.6">0.6 (Recommended)</option>
-          <option value="0.5">0.5</option>
-        </field>
-        <!-- Change Frequency — ADVANCED -->
-        <field name="sitemap_spacer_changefreq" type="spacer" label="Update Frequency (Advanced)" class="text-warning" showon="enable_sitemap:1,show_advanced_options:1" />
-        <field name="sitemap_changefreq_articles" type="list" label="Articles Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly (Recommended)</option>
-          <option value="monthly">Monthly</option>
-        </field>
-        <field name="sitemap_changefreq_categories" type="list" label="Categories Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly (Recommended)</option>
-          <option value="monthly">Monthly</option>
-        </field>
-        <field name="sitemap_changefreq_menu" type="list" label="Menu Frequency" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly (Recommended)</option>
-        </field>
-      </fieldset>
-
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 3: OPENGRAPH                                                    -->
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <fieldset name="opengraph" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_OPENGRAPH">
-        <field name="enable_opengraph" type="radio" label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields  Featured Image  Global Config." class="alert alert-info" showon="enable_opengraph:1" />
-        <!-- OG Site Name + Image per installed language -->
-        <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
-      </fieldset>
-
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 4: FACEBOOK / META                                             -->
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <fieldset name="facebook" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_FACEBOOK">
-        <field name="enable_meta_pixel" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_DESC" default="0" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="meta_pixel_id" type="text" label="Meta Pixel ID (Primary)" description="Your primary Meta (Facebook) Pixel ID" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
-        <field name="meta_pixel_id_2" type="text" label="Meta Pixel ID (Secondary  optional)" description="Second Pixel ID if you need to track two accounts simultaneously (e.g. agency + client). Leave empty if not needed." default="" hint="784973044476993" showon="enable_meta_pixel:1" />
-        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent." default="none" showon="enable_meta_pixel:1">
-          <option value="none">None (Direct inject - no GDPR)</option>
-          <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
-        </field>
-        <field name="fb_domain_verification" type="text" label="Facebook Domain Verification Code" description="Enter the verification code from Facebook Business Manager (without the meta tag markup)" default="" hint="abcdefgh1234567890" showon="enable_meta_pixel:1" />
-        <field name="meta_pixel_events_header" type="note" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER_DESC" showon="enable_meta_pixel:1" />
-        <field name="meta_pixel_track_purchase" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="meta_pixel_track_add_to_cart" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_ADD_TO_CART_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_ADD_TO_CART_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="meta_pixel_track_contact" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_CONTACT_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_CONTACT_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="meta_pixel_track_lead" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_LEAD_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_LEAD_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-      </fieldset>
-
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 4: ORGANIZATION (new — extracted from Schema.org)              -->
+      <!-- TAB 2: ORGANIZATION — Identity, Contact, Social, Location          -->
+      <!-- (moved before Schema.org — "who you are" before "how you appear")  -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="organization" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_ORGANIZATION">
+
         <!-- Organization Name, Description, Logo per installed language -->
         <!-- Injected dynamically by onContentPrepareForm: org_name_{code}, org_description_{code}, org_logo_{code} -->
-        <!-- Organization URL + Contact -->
+
+        <!-- ── CONTACT ──────────────────────────────────────────────────────── -->
         <field name="separator_contact" type="spacer" label="Contact Information" class="text" />
         <field name="schema_url" type="url" label="Organization URL" description="Official website URL (auto-detected if empty)" default="" hint="https://example.com" />
         <field name="schema_email" type="email" label="Email Address" description="Business contact email" default="" />
-        <!-- Social Media Links (sameAs) -->
+        <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" hint="+1 212 555 1234" />
+
+        <!-- ── SOCIAL MEDIA LINKS (sameAs schema) ──────────────────────────── -->
         <field name="schema_social_spacer" type="spacer" label="Social Media Links" class="text-primary" />
         <field name="schema_social_facebook" type="url" label="Facebook URL" description="Full URL to your Facebook page" default="" hint="https://www.facebook.com/yourpage" />
         <field name="schema_social_instagram" type="url" label="Instagram URL" description="Full URL to your Instagram profile" default="" hint="https://www.instagram.com/yourprofile" />
         <field name="schema_social_youtube" type="url" label="YouTube URL" description="Full URL to your YouTube channel" default="" hint="https://www.youtube.com/c/yourchannel" />
         <field name="schema_social_twitter" type="url" label="Twitter/X URL" description="Full URL to your Twitter/X profile" default="" hint="https://twitter.com/yourhandle" />
         <field name="schema_social_linkedin" type="url" label="LinkedIn URL" description="Full URL to your LinkedIn page" default="" hint="https://www.linkedin.com/company/yourcompany" />
-        <!-- Location (for LocalBusiness/Hotel) -->
-        <field name="separator_location" type="spacer" label="Location (for LocalBusiness/Hotel schema)" class="text-warning" />
-        <field name="schema_address_country" type="text" label="Country Code" description="Physical location country code (ISO 3166-1 alpha-2). Same for all languages — a hotel in Montenegro is always ME." default="" hint="US" />
+
+        <!-- ── LOCATION ─────────────────────────────────────────────────────── -->
+        <field name="separator_location" type="spacer" label="Location" class="text-warning" />
+        <field name="schema_address_country" type="text" label="Country Code" description="Physical location country code (ISO 3166-1 alpha-2). E.g. RS for Serbia, ME for Montenegro, DE for Germany." default="" hint="RS" />
+        <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" hint="11000" />
         <!-- City/Locality + Street per installed language -->
-        <field name="separator_address_multilang" type="spacer" label="City &amp; Street (per language)" class="text-info" />
         <!-- Injected dynamically by onContentPrepareForm: schema_address_locality_{code}, schema_address_street_{code} -->
-        <field name="schema_address_zip" type="text" label="Postal Code" description="ZIP or postal code" default="" hint="10001" />
-        <field name="schema_phone" type="text" label="Phone Number" description="Business phone in international format" default="" hint="+1 212 555 1234" />
-        <field name="schema_latitude" type="text" label="Latitude" description="Geographic latitude (e.g., 40.7128)" default="" hint="40.7128" />
-        <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude (e.g., -74.0060)" default="" hint="-74.0060" />
-        <!-- Guest Ratings -->
-        <field name="separator_rating" type="spacer" label="Guest Ratings (AggregateRating)" class="text" />
-        <field name="schema_rating_value"
-               type="text"
-               label="Average Rating"
-               description="Average guest rating (e.g., 4.6). Google shows this in search results and AI Overviews."
-               default=""
-               hint="4.6" />
-        <field name="schema_rating_count"
-               type="text"
-               label="Number of Reviews"
-               description="Total number of guest reviews. More reviews = stronger signal for AI search."
-               default=""
-               hint="2341" />
-        <field name="schema_rating_best"
-               type="text"
-               label="Best Rating (Max)"
-               description="Maximum possible rating on the platform (usually 5 or 10)"
-               default="5"
-               hint="5" />
-        <field name="schema_rating_worst"
-               type="text"
-               label="Worst Rating (Min)"
-               description="Minimum possible rating (usually 1)"
-               default="1"
-               hint="1" />
-        <field name="schema_rating_source"
-               type="text"
-               label="Rating Source"
-               description="Platform where reviews are collected (e.g., Booking.com, Google, TripAdvisor)"
-               default=""
-               hint="Booking.com" />
+        <field name="separator_address_multilang" type="spacer" label="City &amp; Street (per language)" class="text-info" />
+        <field name="schema_latitude" type="text" label="Latitude" description="Geographic latitude for map schema (e.g., 44.8178)" default="" hint="44.8178" />
+        <field name="schema_longitude" type="text" label="Longitude" description="Geographic longitude for map schema (e.g., 20.4569)" default="" hint="20.4569" />
+
+        <!-- ── GUEST RATINGS (ADVANCED) ─────────────────────────────────────── -->
+        <field name="separator_rating" type="spacer" label="Guest Ratings (AggregateRating)" class="text" showon="show_advanced_options:1" />
+        <field name="schema_rating_value" type="text" label="Average Rating" description="Average guest rating (e.g., 4.6). Google shows this in search results and AI Overviews." default="" hint="4.6" showon="show_advanced_options:1" />
+        <field name="schema_rating_count" type="text" label="Number of Reviews" description="Total number of guest reviews. More reviews = stronger signal for AI search." default="" hint="2341" showon="show_advanced_options:1" />
+        <field name="schema_rating_best" type="text" label="Best Rating (Max)" description="Maximum possible rating on the platform (usually 5 or 10)" default="5" hint="5" showon="show_advanced_options:1" />
+        <field name="schema_rating_worst" type="text" label="Worst Rating (Min)" description="Minimum possible rating (usually 1)" default="1" hint="1" showon="show_advanced_options:1" />
+        <field name="schema_rating_source" type="text" label="Rating Source" description="Platform where reviews are collected (e.g., Booking.com, Google, TripAdvisor)" default="" hint="Booking.com" showon="show_advanced_options:1" />
+
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 5: SCHEMA.ORG (leaner — identity moved to Organization)        -->
+      <!-- TAB 3: SCHEMA.ORG — Structured Data, FAQ, Events                  -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="schema" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_SCHEMA">
+
         <field name="enable_schema" type="radio" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- Schema.org Type Selection -->
+
+        <!-- ── SCHEMA TYPE ──────────────────────────────────────────────────── -->
         <field name="schema_type" type="list" label="Schema.org Organization Type" description="Choose the type of schema for your organization. Auto-detect uses site characteristics, LocalBusiness includes geo/address data, Hotel includes accommodation-specific fields, Organization is generic." default="auto" showon="enable_schema:1">
           <option value="auto">Auto-detect (recommended)</option>
           <option value="organization">Organization (generic)</option>
           <option value="localbusiness">LocalBusiness (physical location)</option>
           <option value="hotel">Hotel (accommodation)</option>
         </field>
-        <!-- Hotel-Specific Fields -->
+
+        <!-- ── HOTEL-SPECIFIC FIELDS ───────────────────────────────────────── -->
         <field name="separator_hotel" type="spacer" label="Hotel Settings" class="text-info" showon="enable_schema:1[AND]schema_type:hotel" />
         <field name="schema_hotel_star_rating" type="list" label="Star Rating" description="Hotel star rating (1-5 stars)" default="3" showon="enable_schema:1[AND]schema_type:hotel">
           <option value="1">1 Star</option>
@@ -309,7 +171,8 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- LocalBusiness/Hotel Service Details -->
+
+        <!-- ── LOCALBUSINESS / HOTEL SERVICE DETAILS ───────────────────────── -->
         <field name="separator_business" type="spacer" label="Business Details" class="text-info" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
         <field name="schema_price_range" type="list" label="Price Range" description="Price range indicator for services" default="$$" showon="enable_schema:1[AND]schema_type:localbusiness,hotel">
           <option value="$">$ (Budget)</option>
@@ -318,19 +181,21 @@
           <option value="$$$$">$$$$ (Very Expensive)</option>
         </field>
         <field name="schema_opening_hours" type="text" label="Opening Hours" description="Business opening hours (e.g., Mo-Su 09:00-18:00)" default="Mo-Su 09:00-18:00" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Mo-Su 09:00-18:00" />
-        <!-- FAQ Schema -->
+
+        <!-- ── FAQ SCHEMA ───────────────────────────────────────────────────── -->
         <field name="separator_faq" type="spacer" label="FAQ Schema" class="text" showon="enable_schema:1" />
         <field name="faq_auto_detect" type="radio" label="Auto-Detect FAQ from Content" description="Automatically detect Q&amp;A pairs from article content. Looks for description lists (&lt;dl&gt;/&lt;dt&gt;/&lt;dd&gt;) and headings (&lt;h3&gt;/&lt;h4&gt; followed by &lt;p&gt;). Generates FAQPage JSON-LD per page. Recommended: YES." default="1" class="btn-group btn-group-yesno" showon="enable_schema:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- Q&A Management (Manual FAQ Input) -->
-        <field name="separator_qa_management" type="spacer" label="Q&amp;A Management (Manual FAQ Input)" class="text-primary" showon="enable_schema:1" />
-        <field name="enable_manual_faqs" type="radio" label="Enable Manual FAQs" description="Add custom FAQ items via JSON editor below. These will be merged with auto-detected FAQs." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1">
+
+        <!-- ── MANUAL FAQ (ADVANCED) ────────────────────────────────────────── -->
+        <field name="separator_qa_management" type="spacer" label="Manual FAQ Input (Advanced)" class="text-primary" showon="enable_schema:1,show_advanced_options:1" />
+        <field name="enable_manual_faqs" type="radio" label="Enable Manual FAQs" description="Add custom FAQ items via JSON editor below. These will be merged with auto-detected FAQs." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1,show_advanced_options:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="manual_faq_scope" type="list" label="Global FAQ - When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup." default="fallback_all" showon="enable_schema:1[AND]enable_manual_faqs:1">
+        <field name="manual_faq_scope" type="list" label="Global FAQ - When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup." default="fallback_all" showon="enable_schema:1[AND]enable_manual_faqs:1,show_advanced_options:1">
           <option value="fallback_all">Fallback on all pages - show global FAQ on any page without auto-detected FAQ</option>
           <option value="always_all">All pages - always inject global FAQ, ignore auto-detect</option>
           <option value="fallback_home">Homepage fallback - show global FAQ on homepage only, if no auto-detected FAQ</option>
@@ -339,8 +204,9 @@
         </field>
         <!-- Manual FAQ per installed language -->
         <!-- Injected dynamically by onContentPrepareForm: manual_faqs_{code} -->
-        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1[AND]enable_manual_faqs:1" />
-        <!-- Event Schema -->
+        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1[AND]enable_manual_faqs:1,show_advanced_options:1" />
+
+        <!-- ── EVENT SCHEMA ─────────────────────────────────────────────────── -->
         <field name="separator_events" type="spacer" label="Event Schema (Rich Results)" class="text" showon="enable_schema:1" />
         <field name="schema_events_enabled" type="radio"
                label="Enable Event Schema"
@@ -358,42 +224,187 @@
                description="Required per event: name, startDate. Optional: endDate, description, url, location (defaults to organization address), price, currency (default EUR). Dates must be ISO 8601 format."
                class="alert alert-info"
                showon="enable_schema:1,schema_events_enabled:1" />
+
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 6: ANALYTICS & INDEXING (was: Google Services)                 -->
+      <!-- TAB 4: SITEMAP — XML Sitemap + Hreflang (moved here from Plugin)   -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <fieldset name="sitemap" label="Sitemap">
+
+        <!-- ── HREFLANG (moved from Plugin tab — belongs with Sitemap) ───────── -->
+        <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+
+        <field name="separator_sitemap_main" type="spacer" label="XML Sitemap" class="text" />
+        <field name="enable_sitemap" type="radio" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SITEMAP_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+
+        <!-- ── WHAT TO INCLUDE ──────────────────────────────────────────────── -->
+        <field name="sitemap_include_articles" type="radio" label="Include Articles" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="sitemap_include_categories" type="radio" label="Include Categories" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="sitemap_include_menu" type="radio" label="Include Menu Items" default="1" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+
+        <!-- ── MENU OPTIONS (ADVANCED) ──────────────────────────────────────── -->
+        <field name="sitemap_menu_depth" type="list" label="Menu Depth" description="How deep to follow menu items (0 = all levels)" default="0" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
+          <option value="0">All Levels</option>
+          <option value="1">Level 1 Only</option>
+          <option value="2">Levels 1-2</option>
+        </field>
+        <field name="sitemap_menu_types" type="sql" label="Select Menus" description="Choose which menus to include (empty = all menus)" default="" multiple="true" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1" query="SELECT menutype AS value, title FROM #__menu_types ORDER BY title" key_field="value" value_field="title" />
+
+        <!-- ── ARTICLE OPTIONS ──────────────────────────────────────────────── -->
+        <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        <field name="sitemap_article_categories" type="category" extension="com_content" multiple="true" label="Select Categories" description="Choose categories (empty = all)" default="" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated IDs (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1" />
+        <field name="sitemap_max_articles" type="number" label="Max Articles" description="0 = unlimited" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1" />
+
+        <!-- ── MULTILINGUAL SITEMAP (ADVANCED) ─────────────────────────────── -->
+        <field name="sitemap_spacer_multilang" type="spacer" label="Multilingual Sitemap (hreflang)" class="text-warning" showon="enable_sitemap:1,show_advanced_options:1" />
+        <field name="sitemap_hreflang" type="radio" label="Add hreflang to Sitemap" description="Add xhtml:link hreflang alternate tags for each URL in all active languages. Requires Joomla Language Filter plugin active. Works with Falang and native Joomla multilingual. Default: OFF." default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1,show_advanced_options:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+
+        <!-- ── SEO PRIORITY (ADVANCED) ─────────────────────────────────────── -->
+        <field name="sitemap_spacer_seo" type="spacer" label="SEO Priority (Advanced)" class="text-success" showon="enable_sitemap:1,show_advanced_options:1" />
+        <field name="sitemap_priority_articles" type="list" label="Articles Priority" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
+          <option value="1.0">1.0 (Highest)</option>
+          <option value="0.8">0.8 (Recommended)</option>
+          <option value="0.5">0.5 (Medium)</option>
+        </field>
+        <field name="sitemap_priority_categories" type="list" label="Categories Priority" default="0.7" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
+          <option value="1.0">1.0</option>
+          <option value="0.7">0.7 (Recommended)</option>
+          <option value="0.5">0.5</option>
+        </field>
+        <field name="sitemap_priority_menu" type="list" label="Menu Priority" default="0.6" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
+          <option value="1.0">1.0</option>
+          <option value="0.6">0.6 (Recommended)</option>
+          <option value="0.5">0.5</option>
+        </field>
+
+        <!-- ── UPDATE FREQUENCY (ADVANCED) ─────────────────────────────────── -->
+        <field name="sitemap_spacer_changefreq" type="spacer" label="Update Frequency (Advanced)" class="text-warning" showon="enable_sitemap:1,show_advanced_options:1" />
+        <field name="sitemap_changefreq_articles" type="list" label="Articles Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly (Recommended)</option>
+          <option value="monthly">Monthly</option>
+        </field>
+        <field name="sitemap_changefreq_categories" type="list" label="Categories Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly (Recommended)</option>
+          <option value="monthly">Monthly</option>
+        </field>
+        <field name="sitemap_changefreq_menu" type="list" label="Menu Frequency" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly (Recommended)</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 5: SOCIAL & META — OpenGraph + Meta Pixel (merged)             -->
+      <!-- NOTE: fieldset name="opengraph" kept — PHP injects og_* fields here -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <fieldset name="opengraph" label="Social &amp; Meta">
+
+        <!-- ── OPEN GRAPH ───────────────────────────────────────────────────── -->
+        <field name="separator_og" type="spacer" label="Open Graph (Facebook, LinkedIn, WhatsApp previews)" class="text-primary" />
+        <field name="enable_opengraph" type="radio" label="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OPENGRAPH_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="og_override_note" type="note" label=" Per-Article OpenGraph Overrides" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields &rarr; Featured Image &rarr; Global Config." class="alert alert-info" showon="enable_opengraph:1" />
+        <!-- OG Site Name + Image per installed language -->
+        <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
+
+        <!-- ── META PIXEL (FACEBOOK) ────────────────────────────────────────── -->
+        <field name="separator_meta_pixel" type="spacer" label="Meta Pixel (Facebook Ads Tracking)" class="text-primary" />
+        <field name="enable_meta_pixel" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_DESC" default="0" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="meta_pixel_id" type="text" label="Meta Pixel ID (Primary)" description="Your primary Meta (Facebook) Pixel ID" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
+        <field name="meta_pixel_id_2" type="text" label="Meta Pixel ID (Secondary — optional)" description="Second Pixel ID if you need to track two accounts simultaneously (e.g. agency + client). Leave empty if not needed." default="" hint="784973044476993" showon="enable_meta_pixel:1" />
+        <field name="pixel_consent_mode" type="list" label="GDPR Consent Mode" description="How Meta Pixel is injected in relation to GDPR consent." default="none" showon="enable_meta_pixel:1">
+          <option value="none">None (Direct inject - no GDPR)</option>
+          <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
+        </field>
+        <field name="fb_domain_verification" type="text" label="Facebook Domain Verification Code" description="Enter the verification code from Facebook Business Manager (without the meta tag markup)" default="" hint="abcdefgh1234567890" showon="enable_meta_pixel:1" />
+
+        <!-- ── META PIXEL EVENTS (ADVANCED) ────────────────────────────────── -->
+        <field name="meta_pixel_events_header" type="note" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_EVENTS_HEADER_DESC" showon="enable_meta_pixel:1,show_advanced_options:1" />
+        <field name="meta_pixel_track_purchase" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_PURCHASE_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1,show_advanced_options:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="meta_pixel_track_add_to_cart" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_ADD_TO_CART_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_ADD_TO_CART_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1,show_advanced_options:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="meta_pixel_track_contact" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_CONTACT_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_CONTACT_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1,show_advanced_options:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="meta_pixel_track_lead" type="radio" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_LEAD_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_TRACK_LEAD_DESC" default="0" class="btn-group btn-group-yesno" showon="enable_meta_pixel:1,show_advanced_options:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 6: ANALYTICS & INDEXING — GSC, GA4, GTM, IndexNow, LLMs.txt   -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="analytics" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_ANALYTICS">
-        <!-- Google Search Console Verification -->
+
+        <!-- ── GOOGLE SEARCH CONSOLE VERIFICATION ──────────────────────────── -->
         <field name="separator_verification" type="spacer" label="Site Verification" class="text" />
         <field name="enable_google_verification" type="radio" label="PLG_SYSTEM_JOOMLABOOST_GOOGLE_VERIFICATION_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GOOGLE_VERIFICATION_DESC" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
         <field name="gsc_verification_meta" type="text" label="Google Site Verification Code (Primary)" description="Paste only the content value from the meta tag: &lt;meta name='google-site-verification' content='PASTE_THIS_VALUE'/&gt;" default="" showon="enable_google_verification:1" />
-        <field name="gsc_verification_meta_2" type="text" label="Google Site Verification Code (Secondary  optional)" description="Second verification code if you have two Google Search Console properties (e.g. www + non-www, or two organizations). Leave empty if not needed." default="" hint="" showon="enable_google_verification:1" />
-        <field name="gsc_additional_html" type="textarea" label="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_DESC" default="" rows="5" cols="80" showon="enable_google_verification:1" />
-        <!-- Google Analytics 4 -->
+        <field name="gsc_verification_meta_2" type="text" label="Google Site Verification Code (Secondary — optional)" description="Second verification code if you have two Google Search Console properties. Leave empty if not needed." default="" hint="" showon="enable_google_verification:1" />
+        <field name="gsc_additional_html" type="textarea" label="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GSC_ADDITIONAL_HTML_DESC" default="" rows="5" cols="80" showon="enable_google_verification:1,show_advanced_options:1" />
+
+        <!-- ── GOOGLE ANALYTICS 4 ───────────────────────────────────────────── -->
         <field name="separator_ga4" type="spacer" label="Google Analytics 4" class="text" />
         <field name="enable_ga4" type="radio" label="PLG_SYSTEM_JOOMLABOOST_GA4_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_DESC" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
         <field name="ga4_measurement_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_DESC" default="" hint="G-XXXXXXXXXX" showon="enable_ga4:1" />
-        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="How GA4 is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked (type=text/plain) until user accepts Statistics in YooTheme consent banner  REQUIRES one-time setup in YooTheme Customizer: go to Scripts, enable Google Analytics container (code can stay empty). GTM: skip direct GA4, let GTM handle it with its own consent settings." default="none" showon="enable_ga4:1">
+        <field name="ga4_consent_mode" type="list" label="GDPR Consent Mode" description="How GA4 is injected in relation to GDPR consent. NONE: injected immediately, no consent control. YOOTHEME: script is blocked until user accepts Statistics in YooTheme consent banner. GTM: skip direct GA4, let GTM handle it with its own consent settings." default="none" showon="enable_ga4:1">
           <option value="none">None (Direct inject - no GDPR)</option>
           <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
           <option value="gtm">Via GTM (skip direct GA4)</option>
         </field>
-        <!-- Google Tag Manager -->
+
+        <!-- ── GOOGLE TAG MANAGER ───────────────────────────────────────────── -->
         <field name="separator_gtm" type="spacer" label="Google Tag Manager" class="text" />
         <field name="enable_gtm" type="radio" label="PLG_SYSTEM_JOOMLABOOST_GTM_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GTM_DESC" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
         <field name="gtm_container_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GTM_CONTAINER_ID_LABEL" description="GTM Container ID (format: GTM-XXXXXXX). NOTE: If YooTheme also has GA4 configured in its own Customizer integrations, disable GA4 here (or use mode Via GTM) to avoid duplicate tracking." default="" hint="GTM-XXXXXXX" showon="enable_gtm:1" />
-        <!-- IndexNow  Instant Indexing -->
-        <field name="separator_indexnow" type="spacer" label="IndexNow - Instant Indexing (Bing, Yandex, Seznam)" class="text" />
+
+        <!-- ── INDEXNOW ─────────────────────────────────────────────────────── -->
+        <field name="separator_indexnow" type="spacer" label="IndexNow — Instant Indexing (Bing, Yandex, Seznam)" class="text" />
         <field name="indexnow_enabled" type="radio" label="Enable IndexNow" description="Automatically notify Bing, Yandex and Seznam when content is published or updated. Requires a valid API key." default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
@@ -412,11 +423,12 @@
                hint="e.g. a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4" />
         <field name="indexnow_note" type="note"
                label="How IndexNow Works"
-               description="Save plugin  key file auto-created  every published article is instantly pinged to Bing/Yandex/Seznam. AI search engines discover new content in minutes, not days."
+               description="Save plugin → key file auto-created → every published article is instantly pinged to Bing/Yandex/Seznam. AI search engines discover new content in minutes, not days."
                class="alert alert-info"
                showon="indexnow_enabled:1" />
-        <!-- LLMs.txt  AI Search Visibility -->
-        <field name="separator_llmstxt" type="spacer" label="LLMs.txt - AI Crawler Visibility (ChatGPT, Claude, Perplexity)" class="text" />
+
+        <!-- ── LLMS.TXT ─────────────────────────────────────────────────────── -->
+        <field name="separator_llmstxt" type="spacer" label="LLMs.txt — AI Crawler Visibility (ChatGPT, Claude, Perplexity)" class="text" />
         <field name="llmstxt_enabled" type="radio" label="Generate /llms.txt" description="Creates a structured /llms.txt file at the site root that helps AI systems (ChatGPT, Claude, Perplexity, Gemini) understand your site's content and structure." default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
@@ -428,20 +440,23 @@
                description="An emerging AI standard (llmstxt.org). JoomlaBoost auto-fills it with org data, menu pages, ratings, contact &amp; social links. Visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify after saving."
                class="alert alert-info"
                showon="llmstxt_enabled:1" />
+
       </fieldset>
 
       <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 8: DEBUG & PERFORMANCE (last tab)                              -->
+      <!-- TAB 7: DEBUG & PERFORMANCE (always last)                           -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="debug" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_DEBUG">
-        <!-- Performance -->
+
+        <!-- ── PERFORMANCE ──────────────────────────────────────────────────── -->
         <field name="separator_performance" type="spacer" label="Performance" class="text" />
         <field name="enable_caching" type="radio" label="PLG_SYSTEM_JOOMLABOOST_CACHING_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHING_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
         <field name="cache_ttl" type="number" label="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_DESC" default="3600" min="60" max="86400" showon="enable_caching:1" />
-        <!-- Debug -->
+
+        <!-- ── DEBUG ────────────────────────────────────────────────────────── -->
         <field name="separator_debug" type="spacer" label="Debug &amp; Development" class="text" />
         <field name="debug_mode" type="radio" label="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_DESC" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
@@ -451,13 +466,16 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- Staging Badge -->
+
+        <!-- ── STAGING ──────────────────────────────────────────────────────── -->
         <field name="separator_staging" type="spacer" label="Staging" class="text" />
         <field name="show_staging_badge" type="radio" label="PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_DESC" default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
+
       </fieldset>
+
     </fields>
   </config>
   <updateservers>
