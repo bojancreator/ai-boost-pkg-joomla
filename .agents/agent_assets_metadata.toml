@@ -30,3 +30,9 @@ id = "uD3xaNj8XkF7Ip8_l0-U5"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.9.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.21.9 — llms.txt + IndexNow fix"
+
+[[outputs]]
+id = "BFVLfDRWFbs52i2NxxyZD"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.10.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.21.10 — LiteSpeed bypass fix"
