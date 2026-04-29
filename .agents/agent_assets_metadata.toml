@@ -84,3 +84,9 @@ id = "aW0dBYyZvy0bVKUtcysZE"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.5.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.23.5 — Declutter Plugin tab"
+
+[[outputs]]
+id = "mHXYFS3DizDaEFkFboAOc"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.6.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.6 — Compact descriptions"
