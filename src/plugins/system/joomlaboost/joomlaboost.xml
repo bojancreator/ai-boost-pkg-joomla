@@ -2,12 +2,12 @@
 <extension type="plugin" group="system" method="upgrade">
   <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
   <author>JoomlaBoost Team</author>
-  <creationDate>April 29, 2026 10:59</creationDate>
+  <creationDate>April 29, 2026 11:08</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.21.7</version>
+  <version>0.21.8</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -54,12 +54,7 @@
           <option value="0">JNO</option>
         </field>
         <field name="manual_domain" type="url" label="PLG_SYSTEM_JOOMLABOOST_MANUAL_DOMAIN_LABEL" description="PLG_SYSTEM_JOOMLABOOST_MANUAL_DOMAIN_DESC" default="" showon="auto_domain_detection:0" />
-        <field name="show_staging_badge" type="radio" label="PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_DESC" default="0" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <!-- Crawling & Indexing -->
-        <field name="separator_crawling" type="spacer" label="Crawling &amp; Indexing" class="text" />
+
         <field name="enable_robots" type="radio" label="PLG_SYSTEM_JOOMLABOOST_ROBOTS_LABEL" description="PLG_SYSTEM_JOOMLABOOST_ROBOTS_DESC" default="1" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
@@ -69,29 +64,6 @@
           <option value="0">JNO</option>
         </field>
         <field name="enable_hreflang" type="radio" label="PLG_SYSTEM_JOOMLABOOST_HREFLANG_LABEL" description="PLG_SYSTEM_JOOMLABOOST_HREFLANG_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-      </fieldset>
-
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <!-- TAB 2: DEBUG & PERFORMANCE                                         -->
-      <!-- ════════════════════════════════════════════════════════════════════ -->
-      <fieldset name="debug" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_DEBUG">
-        <!-- Performance -->
-        <field name="separator_performance" type="spacer" label="Performance" class="text" />
-        <field name="enable_caching" type="radio" label="PLG_SYSTEM_JOOMLABOOST_CACHING_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHING_DESC" default="1" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="cache_ttl" type="number" label="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_DESC" default="3600" min="60" max="86400" showon="enable_caching:1" />
-        <!-- Debug -->
-        <field name="separator_debug" type="spacer" label="Debug &amp; Development" class="text" />
-        <field name="debug_mode" type="radio" label="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_DESC" default="0" class="btn-group btn-group-yesno">
-          <option value="1">JYES</option>
-          <option value="0">JNO</option>
-        </field>
-        <field name="debug_wrap_markers" type="radio" label="PLG_SYSTEM_JOOMLABOOST_DEBUG_WRAP_MARKERS_LABEL" description="PLG_SYSTEM_JOOMLABOOST_DEBUG_WRAP_MARKERS_DESC" default="0" class="btn-group btn-group-yesno" showon="debug_mode:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
@@ -428,6 +400,35 @@
                description="An emerging AI standard (llmstxt.org). JoomlaBoost auto-fills it with org data, menu pages, ratings, contact &amp; social links. Visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify after saving."
                class="alert alert-info"
                showon="llmstxt_enabled:1" />
+      </fieldset>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- TAB 8: DEBUG & PERFORMANCE (last tab)                              -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <fieldset name="debug" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_DEBUG">
+        <!-- Performance -->
+        <field name="separator_performance" type="spacer" label="Performance" class="text" />
+        <field name="enable_caching" type="radio" label="PLG_SYSTEM_JOOMLABOOST_CACHING_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHING_DESC" default="1" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="cache_ttl" type="number" label="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_LABEL" description="PLG_SYSTEM_JOOMLABOOST_CACHE_TTL_DESC" default="3600" min="60" max="86400" showon="enable_caching:1" />
+        <!-- Debug -->
+        <field name="separator_debug" type="spacer" label="Debug &amp; Development" class="text" />
+        <field name="debug_mode" type="radio" label="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_DEBUG_MODE_DESC" default="0" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="debug_wrap_markers" type="radio" label="PLG_SYSTEM_JOOMLABOOST_DEBUG_WRAP_MARKERS_LABEL" description="PLG_SYSTEM_JOOMLABOOST_DEBUG_WRAP_MARKERS_DESC" default="0" class="btn-group btn-group-yesno" showon="debug_mode:1">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <!-- Staging Badge -->
+        <field name="separator_staging" type="spacer" label="Staging" class="text" />
+        <field name="show_staging_badge" type="radio" label="PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_DESC" default="0" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
       </fieldset>
     </fields>
   </config>
