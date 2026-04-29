@@ -20,7 +20,7 @@ final class Version
      * Plugin version — kept in sync with joomlaboost.xml <version> tag.
      * The build script (_build_zip.ps1) auto-updates this constant.
      */
-    public const VERSION = '0.23.2';
+    public const VERSION = '0.23.3';
 
     /**
      * Get the version string.
