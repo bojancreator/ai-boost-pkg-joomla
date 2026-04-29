@@ -72,3 +72,9 @@ id = "xrNmrSKwjUM3_70X9d6dd"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.3.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.23.3 — Multilingual fields under Advanced"
+
+[[outputs]]
+id = "MnLquUVW8pJUC6JZ5i8t1"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.4.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.4 — Show Advanced info notice"
