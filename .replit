@@ -31,3 +31,6 @@ externalPort = 80
 
 [userenv.shared]
 GITHUB_TOKEN = "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"
+
+[nix]
+channel = "stable-25_05"

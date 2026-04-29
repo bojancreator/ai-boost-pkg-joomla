@@ -18,3 +18,9 @@ id = "WHTIm8xBh4x9TtCgzpFsw"
 uri = "file://.local/deliverables/v0.21.9-fixes/joomlaboost-fixes.tar.gz"
 type = "unspecified"
 title = "joomlaboost ispravke — 2 fajla + patch"
+
+[[outputs]]
+id = "pp0KTL6Hv9M4wavZJReo7"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.8.zip"
+type = "unspecified"
+title = "plg_system_joomlaboost-0.21.8.zip — Joomla instalacioni paket"
