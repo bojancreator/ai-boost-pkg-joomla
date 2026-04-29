@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.23.5</version>
+  <version>0.23.6</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -51,7 +51,7 @@
 
         <!-- ── QUICK SETUP ─────────────────────────────────────────────────── -->
         <field name="separator_preset" type="spacer" label="🎯 Quick Setup" class="text-success" />
-        <field name="vertical_preset" type="list" label="Site Type" description="Pick your site vertical, then tick &lt;b&gt;Apply preset on save&lt;/b&gt; and click Save. Optimal SEO defaults are loaded (schema type, sitemap priorities, FAQ rules). Your IDs (GA4, Meta Pixel, IndexNow), social URLs and address are NEVER overwritten." default="">
+        <field name="vertical_preset" type="list" label="Site Type" description="Pick a vertical, tick Apply on save below, click Save. Existing IDs and addresses are preserved." default="">
           <option value="">— Select preset —</option>
           <option value="hotel">🏨 Hotel / Accommodation</option>
           <option value="restaurant">🍽️ Restaurant / Cafe</option>
@@ -65,7 +65,7 @@
         </field>
         <field name="vertical_preset_last" type="hidden" default="" />
         <field name="vertical_preset_last_at" type="hidden" default="" />
-        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: reveals power-user fields across ALL tabs — sitemap priorities &amp; change-freq, exclude lists, multilingual translations (non-default languages), guest ratings, manual FAQ JSON, per-event Meta Pixel tracking, GSC additional HTML, etc. Click Save after toggling to refresh the form." default="0" class="btn-group btn-group-yesno">
+        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="ON reveals power-user fields across all tabs (multilingual, ratings, FAQ JSON, sitemap details, etc.). Click Save after toggling." default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
