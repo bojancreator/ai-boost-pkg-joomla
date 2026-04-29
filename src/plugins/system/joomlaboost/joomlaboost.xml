@@ -198,7 +198,6 @@
         <!-- Organization URL + Contact -->
         <field name="separator_contact" type="spacer" label="Contact Information" class="text" />
         <field name="schema_url" type="url" label="Organization URL" description="Official website URL (auto-detected if empty)" default="" hint="https://example.com" />
-        <field name="schema_telephone" type="tel" label="Telephone" description="Organization contact telephone number" default="" hint="+1 212 555 1234" />
         <field name="schema_email" type="email" label="Email Address" description="Business contact email" default="" />
         <!-- Social Media Links (sameAs) -->
         <field name="schema_social_spacer" type="spacer" label="Social Media Links" class="text-primary" />
