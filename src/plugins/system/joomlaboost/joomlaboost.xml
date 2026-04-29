@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.21.8</version>
+  <version>0.22.0</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -47,6 +47,35 @@
       <!-- TAB 1: PLUGIN (uses Joomla's built-in 'basic' fieldset)            -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="basic" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_BASIC">
+        <!-- ──────────────────────────────────────────────────────────────── -->
+        <!-- VERTICAL PRESET (one-click optimal config per site type)        -->
+        <!-- ──────────────────────────────────────────────────────────────── -->
+        <field name="separator_preset" type="spacer" label="🎯 Quick Setup — Site Type Preset" class="text-success" />
+        <field name="vertical_preset_note" type="note" label="" description="Choose your site type and tick &lt;b&gt;Apply preset on save&lt;/b&gt; below, then click Save. Optimal SEO defaults will be applied for that vertical (schema type, sitemap priorities, FAQ detection, etc.). Your existing IDs (GA4, Meta Pixel, IndexNow, social URLs, address) are never overwritten." class="alert alert-info" />
+        <field name="vertical_preset" type="list" label="Site Type" description="Select the type of website you are building." default="">
+          <option value="">— Select preset —</option>
+          <option value="hotel">🏨 Hotel / Accommodation</option>
+          <option value="restaurant">🍽️ Restaurant / Cafe</option>
+          <option value="blog">📰 Blog / Magazine</option>
+          <option value="ecommerce">🛍️ E-commerce / Online Shop</option>
+          <option value="generic">🎯 Generic Business / Corporate</option>
+        </field>
+        <field name="vertical_preset_apply" type="radio" label="Apply preset on save" description="ON: when you click Save, the selected preset will be applied (other fields preserved). OFF: preset selection is ignored." default="0" class="btn-group btn-group-yesno" showon="vertical_preset!:">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+        <field name="vertical_preset_last" type="hidden" default="" />
+        <field name="vertical_preset_last_at" type="hidden" default="" />
+
+        <!-- ──────────────────────────────────────────────────────────────── -->
+        <!-- ADVANCED OPTIONS TOGGLE (hides power-user fields by default)    -->
+        <!-- ──────────────────────────────────────────────────────────────── -->
+        <field name="separator_ui_mode" type="spacer" label="🎛️ Interface Mode" class="text" />
+        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: show all power-user options (sitemap priorities, change frequencies, exclude lists, GTM advanced, per-event tracking, etc.)" default="0" class="btn-group btn-group-yesno">
+          <option value="1">JYES</option>
+          <option value="0">JNO</option>
+        </field>
+
         <!-- Domain & Environment -->
         <field name="separator_domain" type="spacer" label="Domain &amp; Environment" class="text" />
         <field name="auto_domain_detection" type="radio" label="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_LABEL" description="PLG_SYSTEM_JOOMLABOOST_AUTO_DOMAIN_DETECTION_DESC" default="1" class="btn-group btn-group-yesno">
@@ -90,53 +119,53 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="sitemap_menu_depth" type="list" label="Menu Depth" description="How deep to follow menu items (0 = all levels)" default="0" showon="enable_sitemap:1,sitemap_include_menu:1">
+        <field name="sitemap_menu_depth" type="list" label="Menu Depth" description="How deep to follow menu items (0 = all levels)" default="0" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
           <option value="0">All Levels</option>
           <option value="1">Level 1 Only</option>
           <option value="2">Levels 1-2</option>
         </field>
-        <field name="sitemap_menu_types" type="sql" label="Select Menus" description="Choose which menus to include (empty = all menus)" default="" multiple="true" showon="enable_sitemap:1,sitemap_include_menu:1" query="SELECT menutype AS value, title FROM #__menu_types ORDER BY title" key_field="value" value_field="title" />
+        <field name="sitemap_menu_types" type="sql" label="Select Menus" description="Choose which menus to include (empty = all menus)" default="" multiple="true" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1" query="SELECT menutype AS value, title FROM #__menu_types ORDER BY title" key_field="value" value_field="title" />
         <!-- Article Options -->
         <field name="sitemap_spacer_articles" type="spacer" label="Article Options" class="text-info" showon="enable_sitemap:1,sitemap_include_articles:1" />
         <field name="sitemap_article_categories" type="category" extension="com_content" multiple="true" label="Select Categories" description="Choose categories (empty = all)" default="" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated IDs (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1" />
-        <field name="sitemap_max_articles" type="number" label="Max Articles" description="0 = unlimited" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1" />
+        <field name="sitemap_exclude_ids" type="textarea" label="Exclude Article IDs" description="Comma-separated IDs (e.g., 1,5,12)" default="" rows="2" cols="40" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1" />
+        <field name="sitemap_max_articles" type="number" label="Max Articles" description="0 = unlimited" default="0" min="0" max="10000" step="10" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1" />
         <!-- Multilingual -->
-        <field name="sitemap_spacer_multilang" type="spacer" label="Multilingual (hreflang)" class="text-warning" showon="enable_sitemap:1" />
-        <field name="sitemap_hreflang" type="radio" label="Multilingual Sitemap" description="Add xhtml:link hreflang alternate tags for each URL in all active languages. Requires Joomla Language Filter plugin active. Works with Falang and native Joomla multilingual. Default: OFF." default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1">
+        <field name="sitemap_spacer_multilang" type="spacer" label="Multilingual (hreflang)" class="text-warning" showon="enable_sitemap:1,show_advanced_options:1" />
+        <field name="sitemap_hreflang" type="radio" label="Multilingual Sitemap" description="Add xhtml:link hreflang alternate tags for each URL in all active languages. Requires Joomla Language Filter plugin active. Works with Falang and native Joomla multilingual. Default: OFF." default="0" class="btn-group btn-group-yesno" showon="enable_sitemap:1,show_advanced_options:1">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <!-- SEO Priority -->
-        <field name="sitemap_spacer_seo" type="spacer" label="SEO Priority" class="text-success" showon="enable_sitemap:1" />
-        <field name="sitemap_priority_articles" type="list" label="Articles Priority" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1">
+        <!-- SEO Priority — ADVANCED -->
+        <field name="sitemap_spacer_seo" type="spacer" label="SEO Priority (Advanced)" class="text-success" showon="enable_sitemap:1,show_advanced_options:1" />
+        <field name="sitemap_priority_articles" type="list" label="Articles Priority" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
           <option value="1.0">1.0 (Highest)</option>
           <option value="0.8">0.8 (Recommended)</option>
           <option value="0.5">0.5 (Medium)</option>
         </field>
-        <field name="sitemap_priority_categories" type="list" label="Categories Priority" default="0.7" showon="enable_sitemap:1,sitemap_include_categories:1">
+        <field name="sitemap_priority_categories" type="list" label="Categories Priority" default="0.7" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
           <option value="1.0">1.0</option>
           <option value="0.7">0.7 (Recommended)</option>
           <option value="0.5">0.5</option>
         </field>
-        <field name="sitemap_priority_menu" type="list" label="Menu Priority" default="0.6" showon="enable_sitemap:1,sitemap_include_menu:1">
+        <field name="sitemap_priority_menu" type="list" label="Menu Priority" default="0.6" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
           <option value="1.0">1.0</option>
           <option value="0.6">0.6 (Recommended)</option>
           <option value="0.5">0.5</option>
         </field>
-        <!-- Change Frequency -->
-        <field name="sitemap_spacer_changefreq" type="spacer" label="Update Frequency" class="text-warning" showon="enable_sitemap:1" />
-        <field name="sitemap_changefreq_articles" type="list" label="Articles Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_articles:1">
+        <!-- Change Frequency — ADVANCED -->
+        <field name="sitemap_spacer_changefreq" type="spacer" label="Update Frequency (Advanced)" class="text-warning" showon="enable_sitemap:1,show_advanced_options:1" />
+        <field name="sitemap_changefreq_articles" type="list" label="Articles Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
           <option value="daily">Daily</option>
           <option value="weekly">Weekly (Recommended)</option>
           <option value="monthly">Monthly</option>
         </field>
-        <field name="sitemap_changefreq_categories" type="list" label="Categories Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_categories:1">
+        <field name="sitemap_changefreq_categories" type="list" label="Categories Frequency" default="weekly" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
           <option value="daily">Daily</option>
           <option value="weekly">Weekly (Recommended)</option>
           <option value="monthly">Monthly</option>
         </field>
-        <field name="sitemap_changefreq_menu" type="list" label="Menu Frequency" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1">
+        <field name="sitemap_changefreq_menu" type="list" label="Menu Frequency" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
           <option value="weekly">Weekly</option>
           <option value="monthly">Monthly (Recommended)</option>
         </field>
