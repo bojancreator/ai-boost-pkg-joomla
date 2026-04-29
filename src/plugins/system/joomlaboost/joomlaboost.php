@@ -1567,7 +1567,6 @@ HTML;
                 $showOn     = htmlspecialchars($cfg['showon'], ENT_QUOTES, 'UTF-8');
                 $rows       = isset($cfg['rows']) ? ' rows="' . $cfg['rows'] . '"' : '';
                 $directory  = isset($cfg['directory']) ? ' directory="' . $cfg['directory'] . '"' : '';
-                $required   = $isDefault ? ' required="true"' : '';
 
                 $xmlParts[] = '<field'
                     . ' name="' . $fieldName . '"'
@@ -1578,7 +1577,6 @@ HTML;
                     . ' showon="' . $showOn . '"'
                     . $rows
                     . $directory
-                    . $required
                     . ' />';
             }
 
