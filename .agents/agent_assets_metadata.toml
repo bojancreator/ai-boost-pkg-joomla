@@ -24,3 +24,9 @@ id = "pp0KTL6Hv9M4wavZJReo7"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.8.zip"
 type = "unspecified"
 title = "plg_system_joomlaboost-0.21.8.zip — Joomla instalacioni paket"
+
+[[outputs]]
+id = "uD3xaNj8XkF7Ip8_l0-U5"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.9.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.21.9 — llms.txt + IndexNow fix"
