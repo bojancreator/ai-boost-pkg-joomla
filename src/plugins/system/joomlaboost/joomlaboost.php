@@ -1713,7 +1713,17 @@ HTML;
                 $fieldDesc  = $isDefault
                     ? htmlspecialchars(($cfg['description'] ?? '') . ' Other languages will use this value as fallback if left empty.', ENT_QUOTES, 'UTF-8')
                     : htmlspecialchars(($cfg['description'] ?? '') . ' Leave empty to use the Default language value.', ENT_QUOTES, 'UTF-8');
-                $showOn     = htmlspecialchars($cfg['showon'], ENT_QUOTES, 'UTF-8');
+
+                // ── Non-default languages = ADVANCED only ──────────────────────
+                // Default language stays visible at all times (basic UI).
+                // Translations only show when "Show Advanced Options" is on.
+                $rawShowon = $cfg['showon'];
+                if (!$isDefault) {
+                    $rawShowon = $rawShowon === ''
+                        ? 'show_advanced_options:1'
+                        : $rawShowon . '[AND]show_advanced_options:1';
+                }
+                $showOn     = htmlspecialchars($rawShowon, ENT_QUOTES, 'UTF-8');
                 $rows       = isset($cfg['rows']) ? ' rows="' . $cfg['rows'] . '"' : '';
                 $directory  = isset($cfg['directory']) ? ' directory="' . $cfg['directory'] . '"' : '';
 
