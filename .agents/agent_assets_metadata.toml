@@ -48,3 +48,9 @@ id = "ka034tUaEUxsNCAUeRTT3"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.22.0.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.22.0 — Vertical Presets + Basic/Advanced UI"
+
+[[outputs]]
+id = "sULJ9_wlaMUZ7lSLoAYbe"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.0.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.0 — UI/UX Reorganization"
