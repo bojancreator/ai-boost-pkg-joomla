@@ -141,6 +141,18 @@ class PlgSystemJoomlaboost extends CMSPlugin
             $this->handleSitemapRequest($app);
             return;
         }
+
+        // llms.txt / llms-full.txt handling (AI search engines)
+        if ($this->isLlmsTxtRequest()) {
+            $this->handleLlmsTxtRequest($app);
+            return;
+        }
+
+        // IndexNow key file handling ({apiKey}.txt)
+        if ($this->isIndexNowKeyRequest()) {
+            $this->handleIndexNowKeyRequest($app);
+            return;
+        }
     }
 
     /**
@@ -963,6 +975,58 @@ HTML;
     {
         $robotService = new RobotService($this->getApp(), $this->params);
         return $robotService->generateRobots();
+    }
+
+    private function isLlmsTxtRequest(): bool
+    {
+        if (!(bool) $this->params->get('llmstxt_enabled', 0)) {
+            return false;
+        }
+
+        $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $cleanUri   = strtok($requestUri, '?') ?: '';
+
+        return preg_match('#/llms(-full)?\.txt$#i', $cleanUri) === 1;
+    }
+
+    private function handleLlmsTxtRequest(CMSApplication $app): void
+    {
+        $llmsTxt = new LlmsTxtService($app, $this->params);
+        $content  = $llmsTxt->generate();
+
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: public, max-age=3600');
+
+        echo $content;
+        $app->close();
+    }
+
+    private function isIndexNowKeyRequest(): bool
+    {
+        if (!(bool) $this->params->get('indexnow_enabled', 0)) {
+            return false;
+        }
+
+        $apiKey = trim((string) $this->params->get('indexnow_api_key', ''));
+        if (empty($apiKey)) {
+            return false;
+        }
+
+        $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '');
+        $cleanUri   = strtok($requestUri, '?') ?: '';
+
+        return preg_match('#/' . preg_quote($apiKey, '#') . '\.txt$#i', $cleanUri) === 1;
+    }
+
+    private function handleIndexNowKeyRequest(CMSApplication $app): void
+    {
+        $apiKey = trim((string) $this->params->get('indexnow_api_key', ''));
+
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Cache-Control: public, max-age=86400');
+
+        echo $apiKey;
+        $app->close();
     }
 
     /**
