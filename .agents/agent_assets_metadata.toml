@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "0Tul7mrFCpmSRw9cSHPyJ"
+uri = "file://.local/tasks/joomlaboost-master-plan.md"
+type = "text"
+title = "JoomlaBoost — Master plan (7 faza)"
