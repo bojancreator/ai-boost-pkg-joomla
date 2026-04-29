@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.23.4</version>
+  <version>0.23.5</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -49,10 +49,9 @@
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="basic" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_BASIC">
 
-        <!-- ── VERTICAL PRESET ─────────────────────────────────────────────── -->
-        <field name="separator_preset" type="spacer" label="🎯 Quick Setup — Site Type" class="text-success" />
-        <field name="vertical_preset_note" type="note" label="" description="Choose your site type and tick &lt;b&gt;Apply preset on save&lt;/b&gt; below, then click Save. Optimal SEO defaults will be applied for that vertical (schema type, sitemap priorities, FAQ detection, etc.). Your existing IDs (GA4, Meta Pixel, IndexNow, social URLs, address) are never overwritten." class="alert alert-info" />
-        <field name="vertical_preset" type="list" label="Site Type" description="Select the type of website you are building." default="">
+        <!-- ── QUICK SETUP ─────────────────────────────────────────────────── -->
+        <field name="separator_preset" type="spacer" label="🎯 Quick Setup" class="text-success" />
+        <field name="vertical_preset" type="list" label="Site Type" description="Pick your site vertical, then tick &lt;b&gt;Apply preset on save&lt;/b&gt; and click Save. Optimal SEO defaults are loaded (schema type, sitemap priorities, FAQ rules). Your IDs (GA4, Meta Pixel, IndexNow), social URLs and address are NEVER overwritten." default="">
           <option value="">— Select preset —</option>
           <option value="hotel">🏨 Hotel / Accommodation</option>
           <option value="restaurant">🍽️ Restaurant / Cafe</option>
@@ -66,11 +65,7 @@
         </field>
         <field name="vertical_preset_last" type="hidden" default="" />
         <field name="vertical_preset_last_at" type="hidden" default="" />
-
-        <!-- ── INTERFACE MODE ───────────────────────────────────────────────── -->
-        <field name="separator_ui_mode" type="spacer" label="🎛️ Interface Mode" class="text" />
-        <field name="show_advanced_options_note" type="note" label="" description="&lt;b&gt;Show Advanced Options&lt;/b&gt; reveals power-user fields across &lt;b&gt;all tabs&lt;/b&gt;: sitemap priorities and change frequencies, sitemap exclude lists and limits, multilingual translation fields (other languages besides default), guest ratings (AggregateRating), manual FAQ JSON editor, per-event tracking (Meta Pixel custom events), Search Console additional verification HTML, etc. Turn it &lt;b&gt;ON&lt;/b&gt; only if you need fine-grained control. After toggling, click &lt;b&gt;Save&lt;/b&gt; to refresh the form." class="alert alert-info" />
-        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: show all power-user options. Click Save after toggling to refresh the form." default="0" class="btn-group btn-group-yesno">
+        <field name="show_advanced_options" type="radio" label="Show Advanced Options" description="OFF (recommended): see only essential fields. ON: reveals power-user fields across ALL tabs — sitemap priorities &amp; change-freq, exclude lists, multilingual translations (non-default languages), guest ratings, manual FAQ JSON, per-event Meta Pixel tracking, GSC additional HTML, etc. Click Save after toggling to refresh the form." default="0" class="btn-group btn-group-yesno">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
