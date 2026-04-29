@@ -36,3 +36,9 @@ id = "BFVLfDRWFbs52i2NxxyZD"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.10.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.21.10 — LiteSpeed bypass fix"
+
+[[outputs]]
+id = "TZdCBEXKYUPGNS0Hgtwlz"
+uri = "file://.local/deliverables/JoomlaBoost-AI-Search-Audit.md"
+type = "text"
+title = "JoomlaBoost AI Search Optimization Audit"
