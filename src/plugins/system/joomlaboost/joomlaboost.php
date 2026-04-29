@@ -31,7 +31,8 @@ use JoomlaBoost\Plugin\System\JoomlaBoost\Services\{
     RobotService,
     SettingsPersistenceService,
     IndexNowService,
-    LlmsTxtService
+    LlmsTxtService,
+    VerticalPresetService
 };
 
 /**
@@ -1417,6 +1418,45 @@ HTML;
             $params = json_decode($table->params, true);
             if (!is_array($params)) {
                 return;
+            }
+
+            // ─── Vertical Preset application ─────────────────────────────────
+            // If user selected a preset and ticked "Apply preset on save",
+            // merge optimal defaults for that vertical into params, then
+            // persist updated params back to #__extensions and reload them.
+            $presetId      = (string) ($params['vertical_preset'] ?? '');
+            $presetApply   = (int) ($params['vertical_preset_apply'] ?? 0);
+            if ($presetId !== '' && $presetApply === 1) {
+                try {
+                    $presetService = new VerticalPresetService($this->getApp(), $this->params);
+                    $params        = $presetService->applyPreset($presetId, $params);
+
+                    // Persist updated params back to the extension row so the next
+                    // page render and onExtensionAfterSave see the merged config.
+                    $extensionId = (int) ($table->extension_id ?? 0);
+                    if ($extensionId > 0) {
+                        $presetService->persistParams($params, $extensionId);
+                        // Update the in-memory $table so subsequent code in this same
+                        // hook (LLMs.txt, robots.txt) uses the new values too.
+                        $table->params = json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                        // Also refresh $this->params so RobotService etc. see new flags.
+                        $this->params->loadArray($params);
+                    }
+
+                    // Surface a flash message to the admin user.
+                    $presetLabels = VerticalPresetService::listPresets();
+                    $label        = $presetLabels[$presetId] ?? $presetId;
+                    $this->getApp()->enqueueMessage(
+                        sprintf('JoomlaBoost: "%s" preset applied successfully.', $label),
+                        'success'
+                    );
+                } catch (\Throwable $e) {
+                    $this->logDebug('VerticalPreset application failed: ' . $e->getMessage());
+                    $this->getApp()->enqueueMessage(
+                        'JoomlaBoost: preset could not be applied — ' . $e->getMessage(),
+                        'warning'
+                    );
+                }
             }
 
             // Save to database
