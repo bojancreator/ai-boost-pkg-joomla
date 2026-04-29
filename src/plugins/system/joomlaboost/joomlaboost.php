@@ -124,6 +124,10 @@ class PlgSystemJoomlaboost extends CMSPlugin
         // Auto-sync robots.txt file (daily check)
         $this->autoSyncRobotsFile();
 
+        // Remove static llms.txt and IndexNow key files — we now serve them
+        // dynamically through PHP so LiteSpeed/AdminTools cannot block them.
+        $this->removeStaticDynamicFiles();
+
         // Diagnostic endpoint handling
         if ($this->isDiagnosticRequest()) {
             $this->handleDiagnosticRequest($app);
@@ -975,6 +979,47 @@ HTML;
     {
         $robotService = new RobotService($this->getApp(), $this->params);
         return $robotService->generateRobots();
+    }
+
+    /**
+     * Remove static llms.txt and IndexNow key files from the site root.
+     * These are now served dynamically via PHP so static copies conflict
+     * with LiteSpeed/AdminTools security rules (403 Forbidden).
+     * Called once per request — uses a session flag to run only once per session.
+     */
+    private function removeStaticDynamicFiles(): void
+    {
+        static $cleaned = false;
+        if ($cleaned) {
+            return;
+        }
+        $cleaned = true;
+
+        // Remove static llms.txt
+        if ((bool) $this->params->get('llmstxt_enabled', 0)) {
+            $llmsFile = JPATH_SITE . DIRECTORY_SEPARATOR . 'llms.txt';
+            if (file_exists($llmsFile)) {
+                @unlink($llmsFile);
+                $this->logDebug('Removed static llms.txt — now served dynamically');
+            }
+
+            $llmsFullFile = JPATH_SITE . DIRECTORY_SEPARATOR . 'llms-full.txt';
+            if (file_exists($llmsFullFile)) {
+                @unlink($llmsFullFile);
+            }
+        }
+
+        // Remove static IndexNow key file
+        if ((bool) $this->params->get('indexnow_enabled', 0)) {
+            $apiKey = trim((string) $this->params->get('indexnow_api_key', ''));
+            if (!empty($apiKey)) {
+                $keyFile = JPATH_SITE . DIRECTORY_SEPARATOR . $apiKey . '.txt';
+                if (file_exists($keyFile)) {
+                    @unlink($keyFile);
+                    $this->logDebug('Removed static IndexNow key file — now served dynamically');
+                }
+            }
+        }
     }
 
     private function isLlmsTxtRequest(): bool
