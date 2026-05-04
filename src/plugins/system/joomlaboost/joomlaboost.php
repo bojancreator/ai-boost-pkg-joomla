@@ -441,16 +441,21 @@ class PlgSystemJoomlaboost extends CMSPlugin
                         $currentTime   = date('H:i:s');
 
                         // Staging badge HTML with inline styles and more info
+                        $badgeTitle        = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_TITLE'), ENT_QUOTES, 'UTF-8');
+                        $badgeEnvLabel     = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_ENV_LABEL'), ENT_QUOTES, 'UTF-8');
+                        $badgePluginLabel  = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_PLUGIN_LABEL'), ENT_QUOTES, 'UTF-8');
+                        $badgeDomainLabel  = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_DOMAIN_LABEL'), ENT_QUOTES, 'UTF-8');
+                        $badgeGenLabel     = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_GENERATED_LABEL'), ENT_QUOTES, 'UTF-8');
                         $badge = <<<HTML
 <!-- JoomlaBoost Staging Badge -->
-<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="Klikni da sakriješ">
+<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="{$badgeTitle}">
 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-    🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">Staging Environment</span>
+    🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">{$badgeEnvLabel}</span>
 </div>
 <div style="font-size: 11px; font-weight: normal; opacity: 0.95; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
-    <div><strong>Plugin:</strong> JoomlaBoost v{$pluginVersion}</div>
-    <div><strong>Domen:</strong> {$domain}</div>
-    <div><strong>Generisano:</strong> {$currentTime}</div>
+    <div><strong>{$badgePluginLabel}:</strong> JoomlaBoost v{$pluginVersion}</div>
+    <div><strong>{$badgeDomainLabel}:</strong> {$domain}</div>
+    <div><strong>{$badgeGenLabel}:</strong> {$currentTime}</div>
 </div>
 </div>
 <!-- /JoomlaBoost Staging Badge -->
@@ -1613,89 +1618,89 @@ HTML;
             'og_site_name' => [
                 'fieldset' => 'opengraph',
                 'type'     => 'text',
-                'label'    => 'OG Site Name',
-                'hint'     => 'e.g., My Awesome Business',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_SITE_NAME_LABEL',
+                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_SITE_NAME_HINT',
                 'showon'   => 'enable_opengraph:1',
-                'description' => 'Organization/Site name shown on Facebook, Twitter, LinkedIn shares.',
+                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_SITE_NAME_DESC',
             ],
             'og_image' => [
                 'fieldset'  => 'opengraph',
                 'type'      => 'media',
-                'label'     => 'OG Default Image',
+                'label'     => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_IMAGE_LABEL',
                 'hint'      => '',
                 'showon'    => 'enable_opengraph:1',
                 'directory' => 'images',
-                'description' => 'Default social sharing image. Can differ per language (e.g., hero banner with localized text overlay).',
+                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_IMAGE_DESC',
             ],
             // ── Schema: Organization info ─────────────────────────────────────
             'org_name' => [
                 'fieldset' => 'organization',
                 'type'     => 'text',
-                'label'    => 'Organization Name',
-                'hint'     => 'e.g., My Company Name',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_NAME_LABEL',
+                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_NAME_HINT',
                 'showon'   => '',
             ],
             'org_description' => [
                 'fieldset' => 'organization',
                 'type'     => 'textarea',
-                'label'    => 'Organization Description',
-                'hint'     => 'e.g., A short description of your business or organization.',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_DESC_LABEL',
+                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_DESC_HINT',
                 'showon'   => '',
                 'rows'     => '3',
             ],
             'org_logo' => [
                 'fieldset'  => 'organization',
                 'type'      => 'media',
-                'label'     => 'Organization Logo',
+                'label'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_LOGO_LABEL',
                 'hint'      => '',
                 'showon'    => '',
                 'directory'  => 'images',
-                'description' => 'Logo for Schema.org and OpenGraph. Can differ per language (e.g., logo with localized text).',
+                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_LOGO_DESC',
             ],
             // ── Schema: Address ───────────────────────────────────────────────
             'schema_address_locality' => [
                 'fieldset' => 'organization',
                 'type'     => 'text',
-                'label'    => 'City/Locality',
-                'hint'     => 'e.g., New York',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_LOCALITY_LABEL',
+                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_LOCALITY_HINT',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
             'schema_address_street' => [
                 'fieldset' => 'organization',
                 'type'     => 'text',
-                'label'    => 'Street Address',
-                'hint'     => 'e.g., 123 Main Street',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_STREET_LABEL',
+                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_STREET_HINT',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
             // ── Schema: FAQ ───────────────────────────────────────────────────
             'manual_faqs' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
-                'label'    => 'Manual FAQ Items',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_MANUAL_FAQS_LABEL',
                 'hint'     => '',
                 'showon'   => 'enable_schema:1[AND]enable_manual_faqs:1',
                 'rows'     => '6',
-                'description' => 'FAQ in JSON format. Example: [{"question":"Q?","answer":"A."}]',
+                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_MANUAL_FAQS_DESC',
             ],
             // ── Schema: Events ────────────────────────────────────────────────
             'schema_events' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
-                'label'    => 'Events (JSON)',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_SCHEMA_EVENTS_LABEL',
                 'hint'     => '',
                 'showon'   => 'enable_schema:1[AND]schema_events_enabled:1',
                 'rows'     => '8',
-                'description' => 'Events JSON per language. Format: [{"name":"Event","startDate":"2026-12-31T20:00:00+01:00"}]',
+                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_SCHEMA_EVENTS_DESC',
             ],
             // ── LlmsTxt: AI Search ────────────────────────────────────────────
             'llmstxt_custom_pages' => [
                 'fieldset' => 'analytics',
                 'type'     => 'textarea',
-                'label'    => 'Custom Pages for LLMs.txt',
+                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_LLMSTXT_PAGES_LABEL',
                 'hint'     => '',
                 'showon'   => 'llmstxt_enabled:1',
                 'rows'     => '5',
-                'description' => 'Extra pages as JSON per language. Format: [{"title":"Page","url":"/path","description":"Brief info"}]',
+                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_LLMSTXT_PAGES_DESC',
             ],
         ];
 
@@ -1706,14 +1711,19 @@ HTML;
             foreach ($langs as $lang) {
                 $fieldName  = $baseField . '_' . $lang['code'];
                 $isDefault  = !empty($lang['is_default']);
-                $langSuffix = $isDefault
-                    ? $lang['name'] . ' — ★ Default'
+                $defaultSuffix = Text::_('PLG_SYSTEM_JOOMLABOOST_ML_FIELD_DEFAULT_SUFFIX');
+                $langSuffix    = $isDefault
+                    ? $lang['name'] . ' — ' . $defaultSuffix
                     : $lang['name'];
-                $fieldLabel = htmlspecialchars($cfg['label'] . ' (' . $langSuffix . ')', ENT_QUOTES, 'UTF-8');
-                $fieldHint  = htmlspecialchars($cfg['hint'] ?? '', ENT_QUOTES, 'UTF-8');
-                $fieldDesc  = $isDefault
-                    ? htmlspecialchars(($cfg['description'] ?? '') . ' Other languages will use this value as fallback if left empty.', ENT_QUOTES, 'UTF-8')
-                    : htmlspecialchars(($cfg['description'] ?? '') . ' Leave empty to use the Default language value.', ENT_QUOTES, 'UTF-8');
+                $fieldLabel = htmlspecialchars(Text::_($cfg['label']) . ' (' . $langSuffix . ')', ENT_QUOTES, 'UTF-8');
+                $fieldHint  = htmlspecialchars($cfg['hint'] !== '' ? Text::_($cfg['hint']) : '', ENT_QUOTES, 'UTF-8');
+                $baseDesc   = $cfg['description'] ?? '';
+                $descSuffix = $isDefault
+                    ? Text::_('PLG_SYSTEM_JOOMLABOOST_ML_FIELD_DEFAULT_FALLBACK_NOTE')
+                    : Text::_('PLG_SYSTEM_JOOMLABOOST_ML_FIELD_TRANSLATION_NOTE');
+                $fieldDesc  = $baseDesc !== ''
+                    ? htmlspecialchars(Text::_($baseDesc) . ' ' . $descSuffix, ENT_QUOTES, 'UTF-8')
+                    : htmlspecialchars($descSuffix, ENT_QUOTES, 'UTF-8');
 
                 // ── Non-default languages = ADVANCED only ──────────────────────
                 // Default language stays visible at all times (basic UI).
