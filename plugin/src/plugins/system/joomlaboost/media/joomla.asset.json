@@ -1,0 +1,38 @@
+{
+    "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+    "name": "plg_system_joomlaboost",
+    "version": "0.6.0",
+    "description": "JoomlaBoost Plugin Assets",
+    "license": "GPL-2.0-or-later",
+    "assets": [
+        {
+            "name": "plg_system_joomlaboost.admin",
+            "type": "style",
+            "uri": "admin.css"
+        },
+        {
+            "name": "plg_system_joomlaboost.multilang-selector",
+            "type": "script",
+            "uri": "js/multilang-selector.js",
+            "attributes": {
+                "defer": true
+            },
+            "dependencies": []
+        },
+        {
+            "name": "plg_system_joomlaboost.multilang-selector-css",
+            "type": "style",
+            "uri": "css/multilang-selector.css",
+            "dependencies": []
+        },
+        {
+            "name": "plg_system_joomlaboost.indexnow-generator",
+            "type": "script",
+            "uri": "js/indexnow-generator.js",
+            "attributes": {
+                "defer": true
+            },
+            "dependencies": []
+        }
+    ]
+}
