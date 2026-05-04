@@ -79,6 +79,39 @@ abstract class AbstractService implements ServiceInterface
     }
 
     /**
+     * Returns the current license tier from params.
+     * Possible values: '' (free/unlicensed), 'starter', 'developer', 'agency'.
+     */
+    protected function getLicenseTier(): string
+    {
+        return strtolower(trim((string) $this->params->get('license_tier', '')));
+    }
+
+    /**
+     * Returns true when the license is both format-valid AND a Pro (Developer or Agency) tier.
+     * A stale tier value stored without a valid key is treated as non-Pro.
+     * Pro features: LLMs.txt, IndexNow, Event Schema, multi-language Manual FAQ.
+     */
+    protected function isProTier(): bool
+    {
+        $key = trim((string) $this->params->get('license_key', ''));
+        if ($key === '') {
+            return false;
+        }
+
+        $validFormat = (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $key
+        );
+        if (!$validFormat) {
+            return false;
+        }
+
+        $tier = $this->getLicenseTier();
+        return $tier === 'developer' || $tier === 'agency';
+    }
+
+    /**
      * Get the current domain (auto-detected or manual)
      */
     public function getCurrentDomain(): string

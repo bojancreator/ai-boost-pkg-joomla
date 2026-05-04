@@ -735,6 +735,11 @@ class SchemaService extends AbstractService
      */
     private function generateFAQSchema(): ?array
     {
+        // Manual FAQ is a Developer/Agency (Pro) feature — skip for Starter and unlicensed
+        if (!$this->isProTier()) {
+            return null;
+        }
+
         // Check if FAQ schema is enabled
         if (!(bool)$this->params->get('faq_schema_enabled', 1)) {
             return null;
@@ -1219,7 +1224,8 @@ class SchemaService extends AbstractService
         }
 
         // ── Step 2: Apply global/manual FAQ based on configured scope ─────────────
-        $enableManual = (bool)$this->params->get('enable_manual_faqs', 0);
+        // Manual FAQ is a Pro (Developer/Agency) feature — never inject for Starter/free
+        $enableManual = $this->isProTier() && (bool)$this->params->get('enable_manual_faqs', 0);
         $scope        = (string)$this->params->get('manual_faq_scope', 'fallback_all');
         $isHomePage   = $this->isHomePage();
         $shouldInject = $enableManual ? $this->shouldInjectManualFAQ($scope, $faqItems) : false;
@@ -1529,6 +1535,11 @@ class SchemaService extends AbstractService
      */
     private function generateEventsSchema(): array
     {
+        // Event Schema is a Developer/Agency (Pro) feature — skip for Starter and unlicensed
+        if (!$this->isProTier()) {
+            return [];
+        }
+
         if (!(bool) $this->params->get('schema_events_enabled', 0)) {
             return [];
         }

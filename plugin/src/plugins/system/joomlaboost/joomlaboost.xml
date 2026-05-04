@@ -61,6 +61,8 @@
                size="42"
                maxlength="36"
                filter="string" />
+        <!-- Tier stored by Gumroad validation (Task #19): '', 'starter', 'developer', 'agency' -->
+        <field name="license_tier" type="hidden" default="" />
 
         <!-- ── QUICK SETUP ─────────────────────────────────────────────────── -->
         <field name="separator_preset" type="spacer" label="🎯 Quick Setup" class="text-success" />
@@ -200,11 +202,19 @@
 
         <!-- ── MANUAL FAQ (ADVANCED) ────────────────────────────────────────── -->
         <field name="separator_qa_management" type="spacer" label="Manual FAQ Input (Advanced)" class="text-primary" showon="enable_schema:1,show_advanced_options:1" />
-        <field name="enable_manual_faqs" type="radio" label="Enable Manual FAQs" description="Add custom FAQ items via JSON editor below. These will be merged with auto-detected FAQs." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1,show_advanced_options:1">
+        <!-- Upgrade CTA: visible for free + starter (not developer or agency) -->
+        <field name="manual_faq_pro_notice"
+               type="note"
+               label="PLG_SYSTEM_JOOMLABOOST_PRO_FEATURE_LABEL"
+               description="PLG_SYSTEM_JOOMLABOOST_MANUAL_FAQ_PRO_DESC"
+               class="alert alert-warning"
+               showon="enable_schema:1[AND]show_advanced_options:1[AND]license_tier!:developer[AND]license_tier!:agency" />
+        <!-- Manual FAQ fields: only shown for developer / agency tiers -->
+        <field name="enable_manual_faqs" type="radio" label="Enable Manual FAQs" description="Add custom FAQ items via JSON editor below. These will be merged with auto-detected FAQs." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]show_advanced_options:1[AND]license_tier:developer,agency">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="manual_faq_scope" type="list" label="Global FAQ - When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup." default="fallback_all" showon="enable_schema:1[AND]enable_manual_faqs:1,show_advanced_options:1">
+        <field name="manual_faq_scope" type="list" label="Global FAQ - When to Apply" description="Controls on which pages the manually entered FAQ (below) is injected as Schema markup." default="fallback_all" showon="enable_schema:1[AND]enable_manual_faqs:1[AND]show_advanced_options:1[AND]license_tier:developer,agency">
           <option value="fallback_all">Fallback on all pages - show global FAQ on any page without auto-detected FAQ</option>
           <option value="always_all">All pages - always inject global FAQ, ignore auto-detect</option>
           <option value="fallback_home">Homepage fallback - show global FAQ on homepage only, if no auto-detected FAQ</option>
@@ -213,16 +223,24 @@
         </field>
         <!-- Manual FAQ per installed language -->
         <!-- Injected dynamically by onContentPrepareForm: manual_faqs_{code} -->
-        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1[AND]enable_manual_faqs:1,show_advanced_options:1" />
+        <field name="faq_json_help" type="note" label="JSON Format Help" description="Format: Array of objects. Example: [{&quot;question&quot;: &quot;What?&quot;, &quot;answer&quot;: &quot;This!&quot;}]. Note: Auto-detected FAQs from article content are already translated by Falang automatically." class="alert alert-info" showon="enable_schema:1[AND]enable_manual_faqs:1[AND]show_advanced_options:1[AND]license_tier:developer,agency" />
 
         <!-- ── EVENT SCHEMA ─────────────────────────────────────────────────── -->
         <field name="separator_events" type="spacer" label="Event Schema (Rich Results)" class="text" showon="enable_schema:1" />
+        <!-- Upgrade CTA: visible for free + starter (not developer or agency) -->
+        <field name="events_pro_notice"
+               type="note"
+               label="PLG_SYSTEM_JOOMLABOOST_PRO_FEATURE_LABEL"
+               description="PLG_SYSTEM_JOOMLABOOST_EVENTS_PRO_DESC"
+               class="alert alert-warning"
+               showon="enable_schema:1[AND]license_tier!:developer[AND]license_tier!:agency" />
+        <!-- Event fields: only shown for developer / agency tiers -->
         <field name="schema_events_enabled" type="radio"
                label="Enable Event Schema"
                description="Inject Event JSON-LD schema on all pages. Events appear in Google rich results, Google Maps, and AI Overviews. Configure events via JSON below."
                default="0"
                class="btn-group btn-group-yesno"
-               showon="enable_schema:1">
+               showon="enable_schema:1[AND]license_tier:developer,agency">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
@@ -232,7 +250,7 @@
                label="Event JSON Fields"
                description="Required per event: name, startDate. Optional: endDate, description, url, location (defaults to organization address), price, currency (default EUR). Dates must be ISO 8601 format."
                class="alert alert-info"
-               showon="enable_schema:1,schema_events_enabled:1" />
+               showon="enable_schema:1[AND]schema_events_enabled:1[AND]license_tier:developer,agency" />
 
       </fieldset>
 
@@ -414,7 +432,15 @@
 
         <!-- ── INDEXNOW ─────────────────────────────────────────────────────── -->
         <field name="separator_indexnow" type="spacer" label="IndexNow — Instant Indexing (Bing, Yandex, Seznam)" class="text" />
-        <field name="indexnow_enabled" type="radio" label="Enable IndexNow" description="Automatically notify Bing, Yandex and Seznam when content is published or updated. Requires a valid API key." default="0" class="btn-group btn-group-yesno">
+        <!-- Upgrade CTA: visible for free + starter (not developer or agency) -->
+        <field name="indexnow_pro_notice"
+               type="note"
+               label="PLG_SYSTEM_JOOMLABOOST_PRO_FEATURE_LABEL"
+               description="PLG_SYSTEM_JOOMLABOOST_INDEXNOW_PRO_DESC"
+               class="alert alert-warning"
+               showon="license_tier!:developer[AND]license_tier!:agency" />
+        <!-- IndexNow fields: only shown for developer / agency tiers -->
+        <field name="indexnow_enabled" type="radio" label="Enable IndexNow" description="Automatically notify Bing, Yandex and Seznam when content is published or updated. Requires a valid API key." default="0" class="btn-group btn-group-yesno" showon="license_tier:developer,agency">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
@@ -422,23 +448,31 @@
                type="note"
                label=" "
                description="&lt;div style='margin:6px 0'&gt;&lt;button type='button' data-jb-indexnow-gen='1' class='btn btn-sm btn-secondary'&gt;&#128273; Generate API Key&lt;/button&gt;&lt;/div&gt;"
-               showon="indexnow_enabled:1" />
+               showon="indexnow_enabled:1[AND]license_tier:developer,agency" />
         <field name="indexnow_api_key"
                type="text"
                label="IndexNow API Key"
                description="Your unique IndexNow key. The plugin will create the required verification file at your site root automatically."
                default=""
-               showon="indexnow_enabled:1"
+               showon="indexnow_enabled:1[AND]license_tier:developer,agency"
                hint="e.g. a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4" />
         <field name="indexnow_note" type="note"
                label="How IndexNow Works"
                description="Save plugin → key file auto-created → every published article is instantly pinged to Bing/Yandex/Seznam. AI search engines discover new content in minutes, not days."
                class="alert alert-info"
-               showon="indexnow_enabled:1" />
+               showon="indexnow_enabled:1[AND]license_tier:developer,agency" />
 
         <!-- ── LLMS.TXT ─────────────────────────────────────────────────────── -->
         <field name="separator_llmstxt" type="spacer" label="LLMs.txt — AI Crawler Visibility (ChatGPT, Claude, Perplexity)" class="text" />
-        <field name="llmstxt_enabled" type="radio" label="Generate /llms.txt" description="Creates a structured /llms.txt file at the site root that helps AI systems (ChatGPT, Claude, Perplexity, Gemini) understand your site's content and structure." default="0" class="btn-group btn-group-yesno">
+        <!-- Upgrade CTA: visible for free + starter (not developer or agency) -->
+        <field name="llmstxt_pro_notice"
+               type="note"
+               label="PLG_SYSTEM_JOOMLABOOST_PRO_FEATURE_LABEL"
+               description="PLG_SYSTEM_JOOMLABOOST_LLMSTXT_PRO_DESC"
+               class="alert alert-warning"
+               showon="license_tier!:developer[AND]license_tier!:agency" />
+        <!-- LLMs.txt fields: only shown for developer / agency tiers -->
+        <field name="llmstxt_enabled" type="radio" label="Generate /llms.txt" description="Creates a structured /llms.txt file at the site root that helps AI systems (ChatGPT, Claude, Perplexity, Gemini) understand your site's content and structure." default="0" class="btn-group btn-group-yesno" showon="license_tier:developer,agency">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
@@ -448,7 +482,7 @@
                label="How LLMs.txt Works"
                description="An emerging AI standard (llmstxt.org). JoomlaBoost auto-fills it with org data, menu pages, ratings, contact &amp; social links. Visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify after saving."
                class="alert alert-info"
-               showon="llmstxt_enabled:1" />
+               showon="llmstxt_enabled:1[AND]license_tier:developer,agency" />
 
       </fieldset>
 

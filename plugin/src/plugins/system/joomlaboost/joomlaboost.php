@@ -147,15 +147,19 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-        // llms.txt / llms-full.txt handling (AI search engines)
+        // llms.txt / llms-full.txt handling (AI search engines) — Developer/Agency only
         if ($this->isLlmsTxtRequest()) {
-            $this->handleLlmsTxtRequest($app);
+            if ($this->isProLicense()) {
+                $this->handleLlmsTxtRequest($app);
+            }
             return;
         }
 
-        // IndexNow key file handling ({apiKey}.txt)
+        // IndexNow key file handling ({apiKey}.txt) — Developer/Agency only
         if ($this->isIndexNowKeyRequest()) {
-            $this->handleIndexNowKeyRequest($app);
+            if ($this->isProLicense()) {
+                $this->handleIndexNowKeyRequest($app);
+            }
             return;
         }
     }
@@ -524,6 +528,14 @@ HTML;
                 // Never break the plugin edit form
             }
 
+            // ── License tier banner ───────────────────────────────────────────
+            // Inject a visible notice in the admin panel depending on license tier.
+            try {
+                $this->injectLicenseBanner();
+            } catch (\Throwable $e) {
+                // Never break the plugin edit form
+            }
+
             // Load JavaScript for admin enhancements
             try {
                 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
@@ -616,10 +628,10 @@ HTML;
 
         $this->fixArticleFieldValues($article->id);
 
-        // IndexNow — ping search engines for published articles
+        // IndexNow — ping search engines for published articles (Developer/Agency only)
         try {
             $indexNow = new IndexNowService($this->getApp(), $this->params);
-            if ($indexNow->isEnabled() && isset($article->state) && (int) $article->state === 1) {
+            if ($this->isProLicense() && $indexNow->isEnabled() && isset($article->state) && (int) $article->state === 1) {
                 $url = $indexNow->buildArticleUrl($article->id);
                 if (!empty($url)) {
                     $indexNow->pingUrl($url);
@@ -1462,9 +1474,9 @@ HTML;
             // Save to database
             $this->settingsPersistenceService->saveSettings($params);
 
-            // IndexNow — create key file when plugin settings are saved
+            // IndexNow — create key file when plugin settings are saved (Developer/Agency only)
             try {
-                if (!empty($params['indexnow_api_key'])) {
+                if ($this->isProLicense() && !empty($params['indexnow_api_key'])) {
                     $indexNow = new IndexNowService($this->getApp(), $this->params);
                     $indexNow->ensureKeyFile();
                 }
@@ -1472,11 +1484,13 @@ HTML;
                 $this->logDebug('IndexNow key file creation failed: ' . $e->getMessage());
             }
 
-            // LLMs.txt — generate file when plugin settings are saved
+            // LLMs.txt — generate file when plugin settings are saved (Developer/Agency only)
             try {
-                $llmsTxt = new LlmsTxtService($this->getApp(), $this->params);
-                if ($llmsTxt->isEnabled()) {
-                    $llmsTxt->generateAndWrite();
+                if ($this->isProLicense()) {
+                    $llmsTxt = new LlmsTxtService($this->getApp(), $this->params);
+                    if ($llmsTxt->isEnabled()) {
+                        $llmsTxt->generateAndWrite();
+                    }
                 }
             } catch (\Throwable $e) {
                 $this->logDebug('LlmsTxt generation failed: ' . $e->getMessage());
@@ -1505,6 +1519,121 @@ HTML;
         } catch (\Exception $e) {
             // Silent fail - don't break plugin save
             $this->logDebug('Failed to auto-save settings: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Returns the current license tier from params.
+     * Values: '' (free/unlicensed), 'starter', 'developer', 'agency'.
+     */
+    private function getLicenseTier(): string
+    {
+        return strtolower(trim((string) $this->params->get('license_tier', '')));
+    }
+
+    /**
+     * Returns true when the current license is both format-valid AND a Pro (Developer or Agency) tier.
+     * A tier value stored without a valid key (e.g. stale config) is treated as non-Pro.
+     */
+    private function isProLicense(): bool
+    {
+        $key = trim((string) $this->params->get('license_key', ''));
+        if ($key === '') {
+            return false;
+        }
+
+        $validFormat = (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $key
+        );
+        if (!$validFormat) {
+            return false;
+        }
+
+        $tier = $this->getLicenseTier();
+        return $tier === 'developer' || $tier === 'agency';
+    }
+
+    /**
+     * Injects a license status / upgrade banner at the top of the plugin admin form
+     * using Joomla's inline style declaration — no external assets required.
+     *
+     * - Free/unlicensed: red/orange danger banner with purchase CTA.
+     * - Starter: info/blue banner with upgrade-to-Pro CTA.
+     * - Developer / Agency: no banner (everything is unlocked).
+     */
+    private function injectLicenseBanner(): void
+    {
+        $licenseKey = trim((string) $this->params->get('license_key', ''));
+        $tier       = $this->getLicenseTier();
+
+        $hasValidKey = $licenseKey !== '' && (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $licenseKey
+        );
+
+        $isFree    = !$hasValidKey || $tier === '';
+        $isStarter = $hasValidKey && $tier === 'starter';
+        $isPro     = $hasValidKey && ($tier === 'developer' || $tier === 'agency');
+
+        if ($isPro) {
+            return;
+        }
+
+        try {
+            $doc = Factory::getApplication()->getDocument();
+
+            if ($isFree) {
+                $title = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_FREE_BANNER_TITLE');
+                $desc  = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_FREE_BANNER_DESC');
+                $color = '#842029';
+                $bg    = '#f8d7da';
+                $border = '#f5c2c7';
+            } else {
+                $title = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STARTER_BANNER_TITLE');
+                $desc  = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STARTER_BANNER_DESC');
+                $color = '#084298';
+                $bg    = '#cfe2ff';
+                $border = '#b6d4fe';
+            }
+
+            $jsTitle  = json_encode('<strong style="display:block;margin-bottom:4px;">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</strong>' . $desc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $jsBorder = json_encode($border);
+            $jsBg     = json_encode($bg);
+            $jsColor  = json_encode($color);
+
+            $bannerJs = <<<JS
+            <script>
+            (function () {
+                var inject = function () {
+                    if (document.getElementById('jb-license-banner')) { return; }
+                    var banner = document.createElement('div');
+                    banner.id = 'jb-license-banner';
+                    banner.style.cssText = 'margin:12px 0 4px;padding:12px 16px;border-radius:6px;border:1px solid '+{$jsBorder}+';background:'+{$jsBg}+';color:'+{$jsColor}+';font-size:0.95em;line-height:1.5;';
+                    banner.innerHTML = {$jsTitle};
+                    /* Insert after the license_key field row */
+                    var anchor = document.getElementById('jform_params_license_key');
+                    if (anchor) {
+                        var row = anchor.closest('.control-group') || anchor.closest('tr') || anchor.parentNode;
+                        row.parentNode.insertBefore(banner, row.nextSibling);
+                    } else {
+                        /* Fallback: prepend to first tab panel */
+                        var panel = document.querySelector('.tab-pane') || document.querySelector('#adminForm');
+                        if (panel) { panel.insertBefore(banner, panel.firstChild); }
+                    }
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', inject);
+                } else {
+                    inject();
+                }
+            })();
+            </script>
+            JS;
+
+            $doc->addCustomTag($bannerJs);
+        } catch (\Throwable $e) {
+            // Silent fail — never break admin
         }
     }
 
@@ -1666,33 +1795,33 @@ HTML;
                 'hint'     => 'e.g., 123 Main Street',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
-            // ── Schema: FAQ ───────────────────────────────────────────────────
+            // ── Schema: FAQ (Developer / Agency only) ────────────────────────
             'manual_faqs' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
                 'label'    => 'Manual FAQ Items',
                 'hint'     => '',
-                'showon'   => 'enable_schema:1[AND]enable_manual_faqs:1',
+                'showon'   => 'enable_schema:1[AND]enable_manual_faqs:1[AND]license_tier:developer,agency',
                 'rows'     => '6',
                 'description' => 'FAQ in JSON format. Example: [{"question":"Q?","answer":"A."}]',
             ],
-            // ── Schema: Events ────────────────────────────────────────────────
+            // ── Schema: Events (Developer / Agency only) ──────────────────────
             'schema_events' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
                 'label'    => 'Events (JSON)',
                 'hint'     => '',
-                'showon'   => 'enable_schema:1[AND]schema_events_enabled:1',
+                'showon'   => 'enable_schema:1[AND]schema_events_enabled:1[AND]license_tier:developer,agency',
                 'rows'     => '8',
                 'description' => 'Events JSON per language. Format: [{"name":"Event","startDate":"2026-12-31T20:00:00+01:00"}]',
             ],
-            // ── LlmsTxt: AI Search ────────────────────────────────────────────
+            // ── LlmsTxt: AI Search (Developer / Agency only) ─────────────────
             'llmstxt_custom_pages' => [
                 'fieldset' => 'analytics',
                 'type'     => 'textarea',
                 'label'    => 'Custom Pages for LLMs.txt',
                 'hint'     => '',
-                'showon'   => 'llmstxt_enabled:1',
+                'showon'   => 'llmstxt_enabled:1[AND]license_tier:developer,agency',
                 'rows'     => '5',
                 'description' => 'Extra pages as JSON per language. Format: [{"title":"Page","url":"/path","description":"Brief info"}]',
             ],
