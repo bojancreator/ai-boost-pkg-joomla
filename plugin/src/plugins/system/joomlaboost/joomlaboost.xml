@@ -28,6 +28,7 @@
     <field>MultiLangFaqField</field>
     <field>MultiLangParamsTextField</field>
     <field>MultiLangParamsTextarea</field>
+    <field>LicenseKeyField</field>
   </addonfields>
   <!-- Media Assets -->
   <media folder="media" destination="plg_system_joomlaboost">
@@ -48,6 +49,18 @@
       <!-- TAB 1: PLUGIN — Quick Setup + Interface Mode + Domain/Robots       -->
       <!-- ════════════════════════════════════════════════════════════════════ -->
       <fieldset name="basic" label="PLG_SYSTEM_JOOMLABOOST_FIELDSET_BASIC">
+
+        <!-- ── LICENSE ─────────────────────────────────────────────────────── -->
+        <field name="separator_license" type="spacer" label="PLG_SYSTEM_JOOMLABOOST_SEP_LICENSE" class="text-primary" />
+        <field name="license_key"
+               type="LicenseKey"
+               label="PLG_SYSTEM_JOOMLABOOST_LICENSE_KEY_LABEL"
+               description="PLG_SYSTEM_JOOMLABOOST_LICENSE_KEY_DESC"
+               default=""
+               hint="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+               size="42"
+               maxlength="36"
+               filter="string" />
 
         <!-- ── QUICK SETUP ─────────────────────────────────────────────────── -->
         <field name="separator_preset" type="spacer" label="🎯 Quick Setup" class="text-success" />
