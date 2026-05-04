@@ -192,9 +192,9 @@
         <field name="separator_business" type="spacer" label="PLG_SYSTEM_JOOMLABOOST_SEP_BUSINESS" class="text-info" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
         <field name="schema_price_range" type="list" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_PRICE_RANGE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_PRICE_RANGE_DESC" default="$$" showon="enable_schema:1[AND]schema_type:localbusiness,hotel">
           <option value="$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_BUDGET</option>
-          <option value="$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_MODERATE</option>
-          <option value="$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_EXPENSIVE</option>
-          <option value="$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_VERY_EXPENSIVE</option>
+          <option value="$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_MODERATE</option>
+          <option value="$$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_EXPENSIVE</option>
+          <option value="$$$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_VERY_EXPENSIVE</option>
         </field>
         <field name="schema_opening_hours" type="text" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_OPENING_HOURS_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_OPENING_HOURS_DESC" default="Mo-Su 09:00-18:00" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Mo-Su 09:00-18:00" />
 
