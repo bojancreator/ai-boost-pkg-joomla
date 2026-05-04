@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
-  <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
+  <name>PLG_SYSTEM_JOOMLABOOST</name>
   <author>JoomlaBoost Team</author>
   <creationDate>April 29, 2026 11:08</creationDate>
   <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
