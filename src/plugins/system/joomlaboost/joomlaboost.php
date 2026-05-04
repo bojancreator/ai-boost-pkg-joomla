@@ -7,6 +7,7 @@
 
 \defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Document\HtmlDocument;
@@ -1447,13 +1448,13 @@ HTML;
                     $presetLabels = VerticalPresetService::listPresets();
                     $label        = $presetLabels[$presetId] ?? $presetId;
                     $this->getApp()->enqueueMessage(
-                        sprintf('JoomlaBoost: "%s" preset applied successfully.', $label),
+                        sprintf(Text::_('PLG_SYSTEM_JOOMLABOOST_PRESET_APPLIED_SUCCESS'), $label),
                         'success'
                     );
                 } catch (\Throwable $e) {
                     $this->logDebug('VerticalPreset application failed: ' . $e->getMessage());
                     $this->getApp()->enqueueMessage(
-                        'JoomlaBoost: preset could not be applied — ' . $e->getMessage(),
+                        sprintf(Text::_('PLG_SYSTEM_JOOMLABOOST_PRESET_APPLY_ERROR'), $e->getMessage()),
                         'warning'
                     );
                 }
