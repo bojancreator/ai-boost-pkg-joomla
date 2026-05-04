@@ -96,3 +96,9 @@ id = "hYO1V5kxgGd_-QpzwpEKn"
 uri = "file://.local/deliverables/JoomlaBoost-Brand-Brief.md"
 type = "text"
 title = "Brand Brief — Naziv i domen analiza"
+
+[[outputs]]
+id = "cDS1fVoEXFhNPaV6EHqPh"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.24.0.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.24.0 — 11 jezika"
