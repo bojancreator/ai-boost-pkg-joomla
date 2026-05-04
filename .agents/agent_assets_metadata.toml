@@ -90,3 +90,9 @@ id = "mHXYFS3DizDaEFkFboAOc"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.6.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.23.6 — Compact descriptions"
+
+[[outputs]]
+id = "hYO1V5kxgGd_-QpzwpEKn"
+uri = "file://.local/deliverables/JoomlaBoost-Brand-Brief.md"
+type = "text"
+title = "Brand Brief — Naziv i domen analiza"
