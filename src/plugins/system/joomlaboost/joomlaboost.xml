@@ -72,12 +72,12 @@
         <!-- ── QUICK SETUP ─────────────────────────────────────────────────── -->
         <field name="separator_preset" type="spacer" label="PLG_SYSTEM_JOOMLABOOST_SEP_PRESET" class="text-success" />
         <field name="vertical_preset" type="list" label="PLG_SYSTEM_JOOMLABOOST_VERTICAL_PRESET_LABEL" description="PLG_SYSTEM_JOOMLABOOST_VERTICAL_PRESET_DESC" default="">
-          <option value="">— Select preset —</option>
-          <option value="hotel">🏨 Hotel / Accommodation</option>
-          <option value="restaurant">🍽️ Restaurant / Cafe</option>
-          <option value="blog">📰 Blog / Magazine</option>
-          <option value="ecommerce">🛍️ E-commerce / Online Shop</option>
-          <option value="generic">🎯 Generic Business / Corporate</option>
+          <option value="">PLG_SYSTEM_JOOMLABOOST_OPT_PRESET_SELECT</option>
+          <option value="hotel">PLG_SYSTEM_JOOMLABOOST_OPT_PRESET_HOTEL</option>
+          <option value="restaurant">PLG_SYSTEM_JOOMLABOOST_OPT_PRESET_RESTAURANT</option>
+          <option value="blog">PLG_SYSTEM_JOOMLABOOST_OPT_PRESET_BLOG</option>
+          <option value="ecommerce">PLG_SYSTEM_JOOMLABOOST_OPT_PRESET_ECOMMERCE</option>
+          <option value="generic">PLG_SYSTEM_JOOMLABOOST_OPT_PRESET_GENERIC</option>
         </field>
         <field name="vertical_preset_apply" type="radio" label="PLG_SYSTEM_JOOMLABOOST_VERTICAL_PRESET_APPLY_LABEL" description="PLG_SYSTEM_JOOMLABOOST_VERTICAL_PRESET_APPLY_DESC" default="0" class="btn-group btn-group-yesno" showon="vertical_preset!:">
           <option value="1">JYES</option>
@@ -166,20 +166,20 @@
 
         <!-- ── SCHEMA TYPE ──────────────────────────────────────────────────── -->
         <field name="schema_type" type="list" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_TYPE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_TYPE_DESC" default="auto" showon="enable_schema:1">
-          <option value="auto">Auto-detect (recommended)</option>
-          <option value="organization">Organization (generic)</option>
-          <option value="localbusiness">LocalBusiness (physical location)</option>
-          <option value="hotel">Hotel (accommodation)</option>
+          <option value="auto">PLG_SYSTEM_JOOMLABOOST_OPT_SCHEMA_AUTO</option>
+          <option value="organization">PLG_SYSTEM_JOOMLABOOST_OPT_SCHEMA_ORGANIZATION</option>
+          <option value="localbusiness">PLG_SYSTEM_JOOMLABOOST_OPT_SCHEMA_LOCALBUSINESS</option>
+          <option value="hotel">PLG_SYSTEM_JOOMLABOOST_OPT_SCHEMA_HOTEL</option>
         </field>
 
         <!-- ── HOTEL-SPECIFIC FIELDS ───────────────────────────────────────── -->
         <field name="separator_hotel" type="spacer" label="PLG_SYSTEM_JOOMLABOOST_SEP_HOTEL" class="text-info" showon="enable_schema:1[AND]schema_type:hotel" />
         <field name="schema_hotel_star_rating" type="list" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_HOTEL_STAR_RATING_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_HOTEL_STAR_RATING_DESC" default="3" showon="enable_schema:1[AND]schema_type:hotel">
-          <option value="1">1 Star</option>
-          <option value="2">2 Stars</option>
-          <option value="3">3 Stars</option>
-          <option value="4">4 Stars</option>
-          <option value="5">5 Stars</option>
+          <option value="1">PLG_SYSTEM_JOOMLABOOST_OPT_STAR_1</option>
+          <option value="2">PLG_SYSTEM_JOOMLABOOST_OPT_STAR_2</option>
+          <option value="3">PLG_SYSTEM_JOOMLABOOST_OPT_STAR_3</option>
+          <option value="4">PLG_SYSTEM_JOOMLABOOST_OPT_STAR_4</option>
+          <option value="5">PLG_SYSTEM_JOOMLABOOST_OPT_STAR_5</option>
         </field>
         <field name="schema_hotel_checkin_time" type="text" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_HOTEL_CHECKIN_TIME_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_HOTEL_CHECKIN_TIME_DESC" default="14:00" showon="enable_schema:1[AND]schema_type:hotel" hint="14:00" />
         <field name="schema_hotel_checkout_time" type="text" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_HOTEL_CHECKOUT_TIME_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_HOTEL_CHECKOUT_TIME_DESC" default="12:00" showon="enable_schema:1[AND]schema_type:hotel" hint="12:00" />
@@ -191,10 +191,10 @@
         <!-- ── LOCALBUSINESS / HOTEL SERVICE DETAILS ───────────────────────── -->
         <field name="separator_business" type="spacer" label="PLG_SYSTEM_JOOMLABOOST_SEP_BUSINESS" class="text-info" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" />
         <field name="schema_price_range" type="list" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_PRICE_RANGE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_PRICE_RANGE_DESC" default="$$" showon="enable_schema:1[AND]schema_type:localbusiness,hotel">
-          <option value="$">$ (Budget)</option>
-          <option value="$$">$$ (Moderate)</option>
-          <option value="$$$">$$$ (Expensive)</option>
-          <option value="$$$$">$$$$ (Very Expensive)</option>
+          <option value="$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_BUDGET</option>
+          <option value="$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_MODERATE</option>
+          <option value="$$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_EXPENSIVE</option>
+          <option value="$$$$">PLG_SYSTEM_JOOMLABOOST_OPT_PRICE_VERY_EXPENSIVE</option>
         </field>
         <field name="schema_opening_hours" type="text" label="PLG_SYSTEM_JOOMLABOOST_SCHEMA_OPENING_HOURS_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SCHEMA_OPENING_HOURS_DESC" default="Mo-Su 09:00-18:00" showon="enable_schema:1[AND]schema_type:localbusiness,hotel" hint="Mo-Su 09:00-18:00" />
 
@@ -212,11 +212,11 @@
           <option value="0">JNO</option>
         </field>
         <field name="manual_faq_scope" type="list" label="PLG_SYSTEM_JOOMLABOOST_MANUAL_FAQ_SCOPE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_MANUAL_FAQ_SCOPE_DESC" default="fallback_all" showon="enable_schema:1[AND]enable_manual_faqs:1,show_advanced_options:1">
-          <option value="fallback_all">Fallback on all pages - show global FAQ on any page without auto-detected FAQ</option>
-          <option value="always_all">All pages - always inject global FAQ, ignore auto-detect</option>
-          <option value="fallback_home">Homepage fallback - show global FAQ on homepage only, if no auto-detected FAQ</option>
-          <option value="always_home">Homepage only - always inject global FAQ on homepage, ignore auto-detect</option>
-          <option value="disabled">Disabled - global FAQ is saved but never injected into Schema</option>
+          <option value="fallback_all">PLG_SYSTEM_JOOMLABOOST_OPT_FAQ_SCOPE_FALLBACK_ALL</option>
+          <option value="always_all">PLG_SYSTEM_JOOMLABOOST_OPT_FAQ_SCOPE_ALWAYS_ALL</option>
+          <option value="fallback_home">PLG_SYSTEM_JOOMLABOOST_OPT_FAQ_SCOPE_FALLBACK_HOME</option>
+          <option value="always_home">PLG_SYSTEM_JOOMLABOOST_OPT_FAQ_SCOPE_ALWAYS_HOME</option>
+          <option value="disabled">PLG_SYSTEM_JOOMLABOOST_OPT_FAQ_SCOPE_DISABLED</option>
         </field>
         <!-- Manual FAQ per installed language -->
         <!-- Injected dynamically by onContentPrepareForm: manual_faqs_{code} -->
@@ -276,9 +276,9 @@
 
         <!-- ── MENU OPTIONS (ADVANCED) ──────────────────────────────────────── -->
         <field name="sitemap_menu_depth" type="list" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_MENU_DEPTH_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SITEMAP_MENU_DEPTH_DESC" default="0" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
-          <option value="0">All Levels</option>
-          <option value="1">Level 1 Only</option>
-          <option value="2">Levels 1-2</option>
+          <option value="0">PLG_SYSTEM_JOOMLABOOST_OPT_MENU_DEPTH_ALL</option>
+          <option value="1">PLG_SYSTEM_JOOMLABOOST_OPT_MENU_DEPTH_1</option>
+          <option value="2">PLG_SYSTEM_JOOMLABOOST_OPT_MENU_DEPTH_2</option>
         </field>
         <field name="sitemap_menu_types" type="sql" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_MENU_TYPES_LABEL" description="PLG_SYSTEM_JOOMLABOOST_SITEMAP_MENU_TYPES_DESC" default="" multiple="true" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1" query="SELECT menutype AS value, title FROM #__menu_types ORDER BY title" key_field="value" value_field="title" />
 
@@ -298,36 +298,36 @@
         <!-- ── SEO PRIORITY (ADVANCED) ─────────────────────────────────────── -->
         <field name="sitemap_spacer_seo" type="spacer" label="PLG_SYSTEM_JOOMLABOOST_SEP_SITEMAP_SEO" class="text-success" showon="enable_sitemap:1,show_advanced_options:1" />
         <field name="sitemap_priority_articles" type="list" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_PRIORITY_ARTICLES_LABEL" default="0.8" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
-          <option value="1.0">1.0 (Highest)</option>
-          <option value="0.8">0.8 (Recommended)</option>
-          <option value="0.5">0.5 (Medium)</option>
+          <option value="1.0">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_10_HIGH</option>
+          <option value="0.8">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_08_REC</option>
+          <option value="0.5">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_05_MED</option>
         </field>
         <field name="sitemap_priority_categories" type="list" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_PRIORITY_CATEGORIES_LABEL" default="0.7" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
-          <option value="1.0">1.0</option>
-          <option value="0.7">0.7 (Recommended)</option>
-          <option value="0.5">0.5</option>
+          <option value="1.0">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_10</option>
+          <option value="0.7">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_07_REC</option>
+          <option value="0.5">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_05</option>
         </field>
         <field name="sitemap_priority_menu" type="list" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_PRIORITY_MENU_LABEL" default="0.6" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
-          <option value="1.0">1.0</option>
-          <option value="0.6">0.6 (Recommended)</option>
-          <option value="0.5">0.5</option>
+          <option value="1.0">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_10</option>
+          <option value="0.6">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_06_REC</option>
+          <option value="0.5">PLG_SYSTEM_JOOMLABOOST_OPT_PRIO_05</option>
         </field>
 
         <!-- ── UPDATE FREQUENCY (ADVANCED) ─────────────────────────────────── -->
         <field name="sitemap_spacer_changefreq" type="spacer" label="PLG_SYSTEM_JOOMLABOOST_SEP_SITEMAP_CHANGEFREQ" class="text-warning" showon="enable_sitemap:1,show_advanced_options:1" />
         <field name="sitemap_changefreq_articles" type="list" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_CHANGEFREQ_ARTICLES_LABEL" default="weekly" showon="enable_sitemap:1,sitemap_include_articles:1,show_advanced_options:1">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly (Recommended)</option>
-          <option value="monthly">Monthly</option>
+          <option value="daily">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_DAILY</option>
+          <option value="weekly">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_WEEKLY_REC</option>
+          <option value="monthly">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_MONTHLY</option>
         </field>
         <field name="sitemap_changefreq_categories" type="list" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_CHANGEFREQ_CATEGORIES_LABEL" default="weekly" showon="enable_sitemap:1,sitemap_include_categories:1,show_advanced_options:1">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly (Recommended)</option>
-          <option value="monthly">Monthly</option>
+          <option value="daily">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_DAILY</option>
+          <option value="weekly">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_WEEKLY_REC</option>
+          <option value="monthly">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_MONTHLY</option>
         </field>
         <field name="sitemap_changefreq_menu" type="list" label="PLG_SYSTEM_JOOMLABOOST_SITEMAP_CHANGEFREQ_MENU_LABEL" default="monthly" showon="enable_sitemap:1,sitemap_include_menu:1,show_advanced_options:1">
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly (Recommended)</option>
+          <option value="weekly">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_WEEKLY</option>
+          <option value="monthly">PLG_SYSTEM_JOOMLABOOST_OPT_FREQ_MONTHLY_REC</option>
         </field>
 
       </fieldset>
@@ -344,7 +344,7 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="og_override_note" type="note" label="PLG_SYSTEM_JOOMLABOOST_OG_OVERRIDE_NOTE_LABEL" description="To override OpenGraph meta tags for specific articles, use Joomla Custom Fields (com_fields). Create fields named: &lt;strong&gt;custom_og_image&lt;/strong&gt;, &lt;strong&gt;custom_og_title&lt;/strong&gt;, &lt;strong&gt;custom_og_description&lt;/strong&gt;. Priority: Custom Fields → Featured Image → Global Config." class="alert alert-info" showon="enable_opengraph:1" />
+        <field name="og_override_note" type="note" label="PLG_SYSTEM_JOOMLABOOST_OG_OVERRIDE_NOTE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_OG_OVERRIDE_NOTE_DESC" class="alert alert-info" showon="enable_opengraph:1" />
         <!-- OG Site Name + Image per installed language -->
         <!-- Injected dynamically by onContentPrepareForm: og_site_name_{code}, og_image_{code} -->
 
@@ -357,8 +357,8 @@
         <field name="meta_pixel_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_PRIMARY_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_PRIMARY_DESC" default="" hint="123456789012345" showon="enable_meta_pixel:1" />
         <field name="meta_pixel_id_2" type="text" label="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_SECONDARY_LABEL" description="PLG_SYSTEM_JOOMLABOOST_META_PIXEL_ID_SECONDARY_DESC" default="" hint="784973044476993" showon="enable_meta_pixel:1" />
         <field name="pixel_consent_mode" type="list" label="PLG_SYSTEM_JOOMLABOOST_PIXEL_CONSENT_MODE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_PIXEL_CONSENT_MODE_DESC" default="none" showon="enable_meta_pixel:1">
-          <option value="none">None (Direct inject - no GDPR)</option>
-          <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
+          <option value="none">PLG_SYSTEM_JOOMLABOOST_OPT_CONSENT_NONE</option>
+          <option value="yootheme">PLG_SYSTEM_JOOMLABOOST_OPT_CONSENT_YOOTHEME</option>
         </field>
         <field name="fb_domain_verification" type="text" label="PLG_SYSTEM_JOOMLABOOST_FB_DOMAIN_VERIFICATION_LABEL" description="PLG_SYSTEM_JOOMLABOOST_FB_DOMAIN_VERIFICATION_DESC" default="" hint="abcdefgh1234567890" showon="enable_meta_pixel:1" />
 
@@ -406,9 +406,9 @@
         </field>
         <field name="ga4_measurement_id" type="text" label="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_MEASUREMENT_ID_DESC" default="" hint="G-XXXXXXXXXX" showon="enable_ga4:1" />
         <field name="ga4_consent_mode" type="list" label="PLG_SYSTEM_JOOMLABOOST_GA4_CONSENT_MODE_LABEL" description="PLG_SYSTEM_JOOMLABOOST_GA4_CONSENT_MODE_DESC" default="none" showon="enable_ga4:1">
-          <option value="none">None (Direct inject - no GDPR)</option>
-          <option value="yootheme">YooTheme Pro 5 Consent Manager</option>
-          <option value="gtm">Via GTM (skip direct GA4)</option>
+          <option value="none">PLG_SYSTEM_JOOMLABOOST_OPT_CONSENT_NONE</option>
+          <option value="yootheme">PLG_SYSTEM_JOOMLABOOST_OPT_CONSENT_YOOTHEME</option>
+          <option value="gtm">PLG_SYSTEM_JOOMLABOOST_OPT_CONSENT_GTM</option>
         </field>
 
         <!-- ── GOOGLE TAG MANAGER ───────────────────────────────────────────── -->
