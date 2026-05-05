@@ -1,280 +1,212 @@
 export default function BrandStyleGuide() {
 
-  // VARIANT A: "AI Boost Now" — AI + Now slate, Boost bold blue
-  const LogoA_Light = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 56" width="260" height="48">
+  // ─────────────────────────────────────────────────────────────
+  // OPTION 1 — Classic Wordmark
+  // "AI" regular slate · "Boost" extra-bold blue · "Now" regular slate
+  // Feel: professional B2B SaaS, trustworthy, clear hierarchy
+  // ─────────────────────────────────────────────────────────────
+  const Logo1Light = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 228 56" width="228" height="56">
       <defs>
-        <linearGradient id="gAL" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#06B6D4" />
-          <stop offset="100%" stopColor="#2563EB" />
+        <linearGradient id="g1L" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#06B6D4" /><stop offset="100%" stopColor="#2563EB" />
         </linearGradient>
       </defs>
-      <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#gAL)" />
-      <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#gAL)" />
-      <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#gAL)" />
-      <text x="52" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="400" letterSpacing="-0.3" fill="#1E293B">AI </text>
-      <text x="82" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="800" letterSpacing="-0.5" fill="#2563EB">Boost</text>
-      <text x="201" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="400" letterSpacing="-0.3" fill="#1E293B"> Now</text>
+      <rect x="2"  y="32" width="9" height="16" rx="4.5" fill="url(#g1L)" />
+      <rect x="15" y="22" width="9" height="26" rx="4.5" fill="url(#g1L)" />
+      <rect x="28" y="10" width="9" height="38" rx="4.5" fill="url(#g1L)" />
+      <text x="50" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="23" fontWeight="400" fill="#1E293B">AI</text>
+      <text x="77" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="23" fontWeight="800" letterSpacing="-0.4" fill="#2563EB"> Boost</text>
+      <text x="174" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="23" fontWeight="400" fill="#1E293B"> Now</text>
+    </svg>
+  );
+  const Logo1Dark = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 228 56" width="228" height="56">
+      <defs>
+        <linearGradient id="g1D" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" />
+        </linearGradient>
+      </defs>
+      <rect x="2"  y="32" width="9" height="16" rx="4.5" fill="url(#g1D)" />
+      <rect x="15" y="22" width="9" height="26" rx="4.5" fill="url(#g1D)" />
+      <rect x="28" y="10" width="9" height="38" rx="4.5" fill="url(#g1D)" />
+      <text x="50" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="23" fontWeight="400" fill="#F1F5F9">AI</text>
+      <text x="77" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="23" fontWeight="800" letterSpacing="-0.4" fill="#60A5FA"> Boost</text>
+      <text x="174" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="23" fontWeight="400" fill="#F1F5F9"> Now</text>
     </svg>
   );
 
-  const LogoA_Dark = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 56" width="260" height="48">
+  // ─────────────────────────────────────────────────────────────
+  // OPTION 2 — Gradient Wordmark
+  // "aiboostnow" single lowercase word with full gradient fill
+  // Feel: modern tech/SaaS, matches domain, youthful, confident
+  // ─────────────────────────────────────────────────────────────
+  const Logo2Light = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 248 56" width="248" height="56">
       <defs>
-        <linearGradient id="gAD" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#22D3EE" />
-          <stop offset="100%" stopColor="#60A5FA" />
+        <linearGradient id="g2L" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#06B6D4" /><stop offset="100%" stopColor="#2563EB" />
+        </linearGradient>
+        <linearGradient id="g2Li" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#06B6D4" /><stop offset="100%" stopColor="#2563EB" />
         </linearGradient>
       </defs>
-      <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#gAD)" />
-      <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#gAD)" />
-      <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#gAD)" />
-      <text x="52" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9">AI </text>
-      <text x="82" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="800" letterSpacing="-0.5" fill="#60A5FA">Boost</text>
-      <text x="201" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9"> Now</text>
+      <rect x="2"  y="32" width="9" height="16" rx="4.5" fill="url(#g2Li)" />
+      <rect x="15" y="22" width="9" height="26" rx="4.5" fill="url(#g2Li)" />
+      <rect x="28" y="10" width="9" height="38" rx="4.5" fill="url(#g2Li)" />
+      <text x="50" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.6" fill="url(#g2L)">aiboostnow</text>
+    </svg>
+  );
+  const Logo2Dark = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 248 56" width="248" height="56">
+      <defs>
+        <linearGradient id="g2D" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" />
+        </linearGradient>
+        <linearGradient id="g2Di" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" />
+        </linearGradient>
+      </defs>
+      <rect x="2"  y="32" width="9" height="16" rx="4.5" fill="url(#g2Di)" />
+      <rect x="15" y="22" width="9" height="26" rx="4.5" fill="url(#g2Di)" />
+      <rect x="28" y="10" width="9" height="38" rx="4.5" fill="url(#g2Di)" />
+      <text x="50" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.6" fill="url(#g2D)">aiboostnow</text>
     </svg>
   );
 
-  // VARIANT B: "aiboost now" — all lowercase, modern/tech, "now" in cyan
-  const LogoB_Light = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 56" width="260" height="48">
+  // ─────────────────────────────────────────────────────────────
+  // OPTION 3 — Stacked Badge
+  // Icon left · "AI BOOST" top line bold blue · "NOW" bottom cyan
+  // Feel: compact, badge-quality, distinctive, works at small sizes
+  // ─────────────────────────────────────────────────────────────
+  const Logo3Light = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 178 52" width="178" height="52">
       <defs>
-        <linearGradient id="gBL" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#06B6D4" />
-          <stop offset="100%" stopColor="#2563EB" />
+        <linearGradient id="g3L" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#06B6D4" /><stop offset="100%" stopColor="#2563EB" />
         </linearGradient>
       </defs>
-      <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#gBL)" />
-      <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#gBL)" />
-      <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#gBL)" />
-      <text x="52" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.8" fill="#1E293B">aiboost</text>
-      <text x="198" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.8" fill="#06B6D4"> now</text>
+      <rect x="2"  y="28" width="11" height="16" rx="5" fill="url(#g3L)" />
+      <rect x="17" y="17" width="11" height="27" rx="5" fill="url(#g3L)" />
+      <rect x="32" y="4"  width="11" height="40" rx="5" fill="url(#g3L)" />
+      <line x1="56" y1="8" x2="56" y2="44" stroke="#E2E8F0" strokeWidth="1.5" />
+      <text x="65" y="27" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="16" fontWeight="800" letterSpacing="1.5" fill="#2563EB">AI BOOST</text>
+      <text x="65" y="44" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="13" fontWeight="600" letterSpacing="3" fill="#06B6D4">NOW</text>
     </svg>
   );
-
-  const LogoB_Dark = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 56" width="260" height="48">
+  const Logo3Dark = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 178 52" width="178" height="52">
       <defs>
-        <linearGradient id="gBD" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#22D3EE" />
-          <stop offset="100%" stopColor="#60A5FA" />
+        <linearGradient id="g3D" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" />
         </linearGradient>
       </defs>
-      <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#gBD)" />
-      <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#gBD)" />
-      <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#gBD)" />
-      <text x="52" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.8" fill="#F1F5F9">aiboost</text>
-      <text x="198" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="700" letterSpacing="-0.8" fill="#22D3EE"> now</text>
-    </svg>
-  );
-
-  // VARIANT C: "AI boost now" — AI uppercase bold blue, rest lowercase slate
-  const LogoC_Light = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 56" width="260" height="48">
-      <defs>
-        <linearGradient id="gCL" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#06B6D4" />
-          <stop offset="100%" stopColor="#2563EB" />
-        </linearGradient>
-      </defs>
-      <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#gCL)" />
-      <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#gCL)" />
-      <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#gCL)" />
-      <text x="52" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="800" letterSpacing="-0.5" fill="#2563EB">AI</text>
-      <text x="86" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="500" letterSpacing="-0.5" fill="#475569"> boost now</text>
-    </svg>
-  );
-
-  const LogoC_Dark = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 56" width="260" height="48">
-      <defs>
-        <linearGradient id="gCD" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#22D3EE" />
-          <stop offset="100%" stopColor="#60A5FA" />
-        </linearGradient>
-      </defs>
-      <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#gCD)" />
-      <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#gCD)" />
-      <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#gCD)" />
-      <text x="52" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="800" letterSpacing="-0.5" fill="#60A5FA">AI</text>
-      <text x="86" y="38" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="26" fontWeight="500" letterSpacing="-0.5" fill="#94A3B8"> boost now</text>
+      <rect x="2"  y="28" width="11" height="16" rx="5" fill="url(#g3D)" />
+      <rect x="17" y="17" width="11" height="27" rx="5" fill="url(#g3D)" />
+      <rect x="32" y="4"  width="11" height="40" rx="5" fill="url(#g3D)" />
+      <line x1="56" y1="8" x2="56" y2="44" stroke="#334155" strokeWidth="1.5" />
+      <text x="65" y="27" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="16" fontWeight="800" letterSpacing="1.5" fill="#60A5FA">AI BOOST</text>
+      <text x="65" y="44" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="13" fontWeight="600" letterSpacing="3" fill="#22D3EE">NOW</text>
     </svg>
   );
 
   const LogoIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="56" height="56">
       <defs>
-        <linearGradient id="gI" x1="0%" y1="100%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#06B6D4" />
-          <stop offset="100%" stopColor="#2563EB" />
+        <linearGradient id="gIcon" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#06B6D4" /><stop offset="100%" stopColor="#2563EB" />
         </linearGradient>
       </defs>
-      <rect x="3"  y="27" width="12" height="18" rx="5" fill="url(#gI)" />
-      <rect x="18" y="15" width="12" height="30" rx="5" fill="url(#gI)" />
-      <rect x="33" y="3"  width="12" height="42" rx="5" fill="url(#gI)" />
+      <rect x="3"  y="27" width="12" height="18" rx="5" fill="url(#gIcon)" />
+      <rect x="18" y="15" width="12" height="30" rx="5" fill="url(#gIcon)" />
+      <rect x="33" y="3"  width="12" height="42" rx="5" fill="url(#gIcon)" />
     </svg>
   );
 
-  const swatches = [
-    { name: "Brand Blue",    hex: "#2563EB", role: "Primary / CTA / links" },
-    { name: "Signal Cyan",   hex: "#06B6D4", role: "Accent / highlights" },
-    { name: "Deep Blue",     hex: "#1D4ED8", role: "Hover states / depth" },
-    { name: "Blue 400",      hex: "#60A5FA", role: "Dark-mode primary" },
-    { name: "Slate 900",     hex: "#0F172A", role: "Dark backgrounds" },
-    { name: "Slate 800",     hex: "#1E293B", role: "Body text (light bg)" },
-    { name: "Slate 600",     hex: "#475569", role: "Secondary text" },
-    { name: "Slate 200",     hex: "#E2E8F0", role: "Borders / dividers" },
-    { name: "Slate 50",      hex: "#F8FAFC", role: "Page backgrounds", border: true },
-    { name: "Success",       hex: "#10B981", role: "Status / positive" },
-    { name: "Warning",       hex: "#F59E0B", role: "Alerts / caution" },
-    { name: "Error",         hex: "#EF4444", role: "Errors / destructive" },
+  const variants = [
+    {
+      id: "1",
+      title: "Classic Wordmark",
+      desc: "\"AI\" + \"Boost\" + \"Now\" — tri reči, jasna hijerarhija. Boost uvek bold plavo. Profesionalan, B2B, čitljiv na svim veličinama.",
+      best: "Navigacija sajta, e-mail potpis, dokumentacija",
+      light: <Logo1Light />,
+      dark: <Logo1Dark />,
+    },
+    {
+      id: "2",
+      title: "Gradient Wordmark",
+      desc: "\"aiboostnow\" — jedno malo slovo, ceo wordmark u gradient-u (cyan→plavo). Moderno, tech-forward, poklapa se sa domenom.",
+      best: "Hero sekcija sajta, social media avatar, dark tema",
+      light: <Logo2Light />,
+      dark: <Logo2Dark />,
+    },
+    {
+      id: "3",
+      title: "Stacked Badge",
+      desc: "Ikonica levo + vertikalna linija + \"AI BOOST\" / \"NOW\" — dva reda, spaced caps. Kompaktan, badge-like, snažan vizualni identitet.",
+      best: "Favicon companion, plugin dashboard header, tiskani materijali",
+      light: <Logo3Light />,
+      dark: <Logo3Dark />,
+    },
   ];
 
   return (
     <div style={{ fontFamily: "'Inter','Segoe UI',sans-serif", background: "#F8FAFC", minHeight: "100vh", color: "#1E293B" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "48px 32px 80px" }}>
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "48px 32px 80px" }}>
 
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 48, paddingBottom: 32, borderBottom: "2px solid #E2E8F0" }}>
           <div>
-            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#94A3B8", marginBottom: 6 }}>Brand Style Guide</p>
-            <h1 style={{ fontSize: 32, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>
-              AI <span style={{ color: "#2563EB" }}>Boost</span> Now
-            </h1>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#94A3B8", marginBottom: 6 }}>AI Boost Now — Logo Exploration</p>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: "#0F172A" }}>3 Logo Candidates</h1>
+            <p style={{ fontSize: 14, color: "#64748B", marginTop: 4 }}>aiboostnow.com · May 2026</p>
           </div>
-          <div style={{ fontSize: 13, color: "#94A3B8", textAlign: "right" }}>
-            <strong style={{ color: "#475569" }}>Version 1.0</strong><br />
-            May 2026<br />
-            aiboostnow.com
+          <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: 8, padding: "12px 16px", fontSize: 13, color: "#1D4ED8", maxWidth: 240 }}>
+            Icon concept unchanged: three ascending signal bars = AI signals sent to search engines.
           </div>
         </div>
 
-        {/* 01 Logo Variants */}
-        <section style={{ marginBottom: 60 }}>
-          <SectionTitle number="01" label="Logo — 3 Variants (pick one)" />
-
-          {/* Variant A */}
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginBottom: 10, letterSpacing: ".04em" }}>
-              VARIANT A — "AI <strong style={{color:"#2563EB"}}>Boost</strong> Now" &nbsp;
-              <span style={{ fontWeight: 400, color: "#94A3B8" }}>Classic wordmark. "Boost" bold blue, AI + Now slate.</span>
+        {/* Variants */}
+        {variants.map(v => (
+          <div key={v.id} style={{ marginBottom: 52, paddingBottom: 52, borderBottom: "1px solid #E2E8F0" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#2563EB", letterSpacing: ".05em" }}>0{v.id}</span>
+              <span style={{ fontSize: 20, fontWeight: 700, color: "#0F172A" }}>{v.title}</span>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <LogoCard bg="#fff" border="1px solid #E2E8F0" label="Light background"><LogoA_Light /></LogoCard>
-              <LogoCard bg="#0F172A" label="Dark background" labelColor="#64748B"><LogoA_Dark /></LogoCard>
-            </div>
-          </div>
-
-          {/* Variant B */}
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginBottom: 10, letterSpacing: ".04em" }}>
-              VARIANT B — "<strong>aiboost</strong> <span style={{color:"#06B6D4"}}>now</span>" &nbsp;
-              <span style={{ fontWeight: 400, color: "#94A3B8" }}>Lowercase, modern/tech. "aiboost" dark bold, "now" cyan.</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <LogoCard bg="#fff" border="1px solid #E2E8F0" label="Light background"><LogoB_Light /></LogoCard>
-              <LogoCard bg="#0F172A" label="Dark background" labelColor="#64748B"><LogoB_Dark /></LogoCard>
+            <p style={{ fontSize: 14, color: "#475569", marginBottom: 4, maxWidth: 680 }}>{v.desc}</p>
+            <p style={{ fontSize: 12, color: "#94A3B8", marginBottom: 20 }}>
+              <strong style={{ color: "#64748B" }}>Best for:</strong> {v.best}
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 140px", gap: 12 }}>
+              <LogoCard bg="#fff" border="1px solid #E2E8F0" label="Light background">
+                {v.light}
+              </LogoCard>
+              <LogoCard bg="#0F172A" label="Dark background" labelColor="#475569">
+                {v.dark}
+              </LogoCard>
+              <LogoCard bg="#F1F5F9" border="1px solid #E2E8F0" label="Icon">
+                <LogoIcon />
+              </LogoCard>
             </div>
           </div>
-
-          {/* Variant C */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginBottom: 10, letterSpacing: ".04em" }}>
-              VARIANT C — "<span style={{color:"#2563EB", fontWeight:800}}>AI</span> boost now" &nbsp;
-              <span style={{ fontWeight: 400, color: "#94A3B8" }}>AI uppercase bold blue, rest lowercase medium slate. Minimal.</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <LogoCard bg="#fff" border="1px solid #E2E8F0" label="Light background"><LogoC_Light /></LogoCard>
-              <LogoCard bg="#0F172A" label="Dark background" labelColor="#64748B"><LogoC_Dark /></LogoCard>
-            </div>
-          </div>
-
-          {/* Icon */}
-          <div style={{ marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#475569", marginBottom: 10 }}>ICON / FAVICON — same across all variants</div>
-            <div style={{ display: "inline-block" }}>
-              <LogoCard bg="#F1F5F9" border="1px solid #E2E8F0" label="Icon / favicon"><LogoIcon /></LogoCard>
-            </div>
-          </div>
-
-          <p style={{ marginTop: 16, fontSize: 13, color: "#64748B" }}>
-            Icon concept: three ascending rounded bars = signal strength + AI boost. Gradient cyan→blue. All three variants share the same icon.
-            Minimum logo width: <strong>160px</strong>.
-          </p>
-        </section>
-
-        {/* 02 Colors */}
-        <section style={{ marginBottom: 52 }}>
-          <SectionTitle number="02" label="Color Palette" />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(140px,1fr))", gap: 12 }}>
-            {swatches.map((s: any) => (
-              <div key={s.hex} style={{ borderRadius: 8, overflow: "hidden", border: s.border ? "1px solid #CBD5E1" : "1px solid rgba(0,0,0,.06)" }}>
-                <div style={{ height: 56, background: s.hex }} />
-                <div style={{ padding: "10px 12px", background: "#fff" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#1E293B" }}>{s.name}</div>
-                  <div style={{ fontSize: 11, fontFamily: "monospace", color: "#64748B" }}>{s.hex}</div>
-                  <div style={{ fontSize: 10, color: "#94A3B8", marginTop: 2 }}>{s.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 03 Typography */}
-        <section style={{ marginBottom: 52 }}>
-          <SectionTitle number="03" label="Typography" />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-            <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "28px 24px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#94A3B8", marginBottom: 12 }}>Display &amp; Headings</div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.2, marginBottom: 8 }}>The AI-era SEO plugin for Joomla.</div>
-              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F1F5F9" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>Plus Jakarta Sans</div>
-                <div style={{ fontSize: 12, color: "#94A3B8" }}>Google Fonts · Free · SIL OFL</div>
-                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 4 }}>
-                  {[["H1","48px / 800 / -1px"],["H2","36px / 700 / -0.5px"],["H3","24px / 700 / -0.3px"],["H4","18px / 600 / 0"]].map(([n,v]) => (
-                    <div key={n} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#64748B" }}>
-                      <span style={{ fontWeight: 600, color: "#475569" }}>{n}</span><span>{v}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div style={{ background: "#fff", border: "1px solid #E2E8F0", borderRadius: 12, padding: "28px 24px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "#94A3B8", marginBottom: 12 }}>Body &amp; UI</div>
-              <div style={{ fontSize: 15, color: "#475569", lineHeight: 1.7 }}>
-                AI Boost Now automatically generates Schema.org structured data, OpenGraph tags, and llms.txt — so AI engines can find, understand, and recommend your clients' sites.
-              </div>
-              <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid #F1F5F9" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>Inter</div>
-                <div style={{ fontSize: 12, color: "#94A3B8" }}>Google Fonts · Free · SIL OFL</div>
-              </div>
-            </div>
-          </div>
-        </section>
+        ))}
 
         {/* Footer */}
-        <div style={{ paddingTop: 24, borderTop: "1px solid #E2E8F0", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, fontSize: 12, color: "#94A3B8" }}>
-          <span>AI Boost Now — Brand Style Guide v1.0 — May 2026</span>
-          <span>aiboostnow.com · Internal use</span>
+        <div style={{ paddingTop: 8, fontSize: 12, color: "#94A3B8" }}>
+          All three variants share the same icon. Pick a variant → we finalize light/dark/icon SVGs and move to the website.
         </div>
       </div>
     </div>
   );
 }
 
-function SectionTitle({ number, label }: { number: string; label: string }) {
+function LogoCard({ bg, border, label, labelColor, children }: {
+  bg: string; border?: string; label: string; labelColor?: string; children: React.ReactNode
+}) {
   return (
-    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: "#94A3B8", marginBottom: 20, paddingLeft: 12, borderLeft: "3px solid #2563EB" }}>
-      {number} — {label}
-    </div>
-  );
-}
-
-function LogoCard({ bg, border, label, labelColor, children }: { bg: string; border?: string; label: string; labelColor?: string; children: React.ReactNode }) {
-  return (
-    <div style={{ background: bg, border: border || "none", borderRadius: 12, padding: "32px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-      <div style={{ display: "flex", alignItems: "center" }}>{children}</div>
-      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: ".06em", textTransform: "uppercase", color: labelColor || "#94A3B8" }}>{label}</span>
+    <div style={{ background: bg, border: border || "none", borderRadius: 12, padding: "28px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>{children}</div>
+      <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: ".08em", textTransform: "uppercase", color: labelColor || "#94A3B8" }}>{label}</span>
     </div>
   );
 }
