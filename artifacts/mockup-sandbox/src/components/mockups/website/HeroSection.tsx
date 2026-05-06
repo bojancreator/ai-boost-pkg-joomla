@@ -2,14 +2,14 @@ export function HeroSection() {
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0F172A", minHeight: "100vh", color: "#fff" }}>
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 48px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="160" height="40">
-            <defs><linearGradient id="hn_g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" /></linearGradient></defs>
-            <path d="M 8 12 Q 8 4, 16 4 L 56 4 Q 64 4, 64 12 L 64 44 Q 64 52, 56 52 L 32 52 L 24 64 L 24 52 L 16 52 Q 8 52, 8 44 Z" fill="url(#hn_g)" />
-            <path d="M 36 16 L 39 26 L 49 28 L 39 30 L 36 40 L 33 30 L 23 28 L 33 26 Z" fill="#0F172A" />
-            <circle cx="50" cy="18" r="2" fill="#0F172A" opacity="0.7" />
-            <text x="84" y="36" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="900" letterSpacing="-0.3" fill="#F1F5F9">AI Boost</text>
-            <text x="84" y="58" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="13" fontWeight="700" letterSpacing="3" fill="#22D3EE">N O W</text>
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 56" width="182" height="40">
+            <defs><linearGradient id="hn_g" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" /></linearGradient></defs>
+            <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#hn_g)" />
+            <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#hn_g)" />
+            <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#hn_g)" />
+            <text x="54" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9">Joomla</text>
+            <text x="130" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="700" letterSpacing="-0.3" fill="#60A5FA">Boost</text>
           </svg>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>

@@ -102,21 +102,3 @@ id = "cDS1fVoEXFhNPaV6EHqPh"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.24.0.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.24.0 — kompletan ZIP"
-
-[[outputs]]
-id = "ll1FFMybI_hGFZrBvAAFQ"
-uri = "file://.local/deliverables/brand/logo-light.svg"
-type = "image"
-title = "Logo — svetla pozadina"
-
-[[outputs]]
-id = "SOlh3Xr0zPrVPyny9Q2P3"
-uri = "file://.local/deliverables/brand/logo-dark.svg"
-type = "image"
-title = "Logo — tamna pozadina"
-
-[[outputs]]
-id = "LwMg8I3XSUt9ecCajUpzd"
-uri = "file://.local/deliverables/brand/logo-icon.svg"
-type = "image"
-title = "Ikonica / favicon"
