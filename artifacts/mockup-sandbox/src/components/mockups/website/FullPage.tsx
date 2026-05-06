@@ -1,15 +1,13 @@
 import logoSrc from "@/assets/logo.png";
 
 const PURPLE = "#7B4FFF";
-const PURPLE_LIGHT = "#A78BFF";
-const PURPLE_SOFT = "#A855F7";
 
 const NavLogo = () => (
-  <img src={logoSrc} style={{ height: 38, width: "auto", display: "block" }} alt="AI Boost" />
+  <img src={logoSrc} style={{ height: 52, width: "auto", display: "block" }} alt="AI Boost" />
 );
 
-const Check = () => (
-  <span style={{ color: PURPLE_SOFT, fontWeight: 900, fontSize: 15, marginTop: 1, flexShrink: 0 }}>✓</span>
+const Check = ({ onPurple = false }) => (
+  <span style={{ color: onPurple ? "rgba(255,255,255,0.8)" : PURPLE, fontWeight: 900, fontSize: 14, marginTop: 1, flexShrink: 0 }}>✓</span>
 );
 
 const plans = [
@@ -50,39 +48,39 @@ const features = [
 
 export function FullPage() {
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0C0B1D", color: "#fff", minWidth: 1280 }}>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#FFFFFF", color: "#0C0B1D", minWidth: 1280 }}>
 
       {/* ─── NAV ─── */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 64px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.12)", position: "sticky", top: 0, background: "#0C0B1D", zIndex: 100 }}>
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 64px", height: "84px", borderBottom: "1px solid #E8E4F4", position: "sticky", top: 0, background: "#FFFFFF", zIndex: 100 }}>
         <NavLogo />
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <a style={{ color: "#C4C4D8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
-          <a style={{ color: "#C4C4D8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Docs</a>
-          <a style={{ color: "#C4C4D8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a style={{ background: PURPLE, color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
+          <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Features</a>
+          <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Docs</a>
+          <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
+          <a style={{ background: PURPLE, color: "#fff", fontSize: 14, fontWeight: 600, padding: "11px 22px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
         </div>
       </nav>
 
       {/* ─── HERO ─── */}
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "110px 64px 80px", textAlign: "center" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid #7B4FFF", borderRadius: 100, padding: "6px 16px", marginBottom: 36 }}>
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: PURPLE_SOFT, display: "inline-block" }} />
-          <span style={{ fontSize: 13, color: "#C084FC", fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 – 8.5</span>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#F3F0FF", border: "1px solid #D4C9FF", borderRadius: 100, padding: "6px 16px", marginBottom: 36 }}>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: PURPLE, display: "inline-block" }} />
+          <span style={{ fontSize: 13, color: PURPLE, fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 – 8.5</span>
         </div>
 
-        <h1 style={{ fontSize: 72, fontWeight: 900, lineHeight: 1.04, letterSpacing: "-2.5px", marginBottom: 28, color: "#FFFFFF" }}>
+        <h1 style={{ fontSize: 72, fontWeight: 900, lineHeight: 1.04, letterSpacing: "-2.5px", marginBottom: 28, color: "#0C0B1D" }}>
           Make your Joomla site<br />
-          <span style={{ color: PURPLE_LIGHT }}>visible to AI search</span>
+          <span style={{ color: PURPLE }}>visible to AI search</span>
         </h1>
-        <p style={{ fontSize: 20, color: "#A0A0C0", lineHeight: 1.7, maxWidth: 640, margin: "0 auto 48px" }}>
+        <p style={{ fontSize: 20, color: "#5A5A7A", lineHeight: 1.7, maxWidth: 640, margin: "0 auto 48px" }}>
           AI Boost for Joomla generates Schema.org, XML sitemap, llms.txt, and AI crawler signals — so ChatGPT, Perplexity, and Google AI Overview recommend your site. Install in 5 minutes. No coding.
         </p>
 
         <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 72 }}>
-          <a style={{ background: PURPLE, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none" }}>
+          <a style={{ background: PURPLE, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 24px rgba(123,79,255,0.35)" }}>
             Buy Developer — €119
           </a>
-          <a style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.25)", color: "#E2E2F0", fontSize: 17, fontWeight: 600, padding: "18px 28px", borderRadius: 12, textDecoration: "none" }}>
+          <a style={{ background: "transparent", border: "1.5px solid #D4C9FF", color: "#5A5A7A", fontSize: 17, fontWeight: 600, padding: "18px 28px", borderRadius: 12, textDecoration: "none" }}>
             View all features ↓
           </a>
         </div>
@@ -90,26 +88,26 @@ export function FullPage() {
         <div style={{ display: "flex", gap: 48, justifyContent: "center" }}>
           {[["20+", "Schema.org types"], ["25+", "AI crawler rules"], ["11", "Language packs"], ["5 min", "Setup time"]].map(([v, l]) => (
             <div key={l} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 36, fontWeight: 900, color: PURPLE_LIGHT }}>{v}</div>
-              <div style={{ fontSize: 13, color: "#6B6B8A" }}>{l}</div>
+              <div style={{ fontSize: 36, fontWeight: 900, color: PURPLE }}>{v}</div>
+              <div style={{ fontSize: 13, color: "#9090B0" }}>{l}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ─── FEATURES ─── */}
-      <section style={{ background: "#100F24", padding: "96px 64px", borderTop: "1px solid rgba(255,255,255,0.08)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+      <section style={{ background: "#F8F7FF", padding: "96px 64px", borderTop: "1px solid #E8E4F4", borderBottom: "1px solid #E8E4F4" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16, color: "#FFFFFF" }}>Everything AI search engines need</h2>
-            <p style={{ fontSize: 17, color: "#A0A0C0", maxWidth: 520, margin: "0 auto" }}>One plugin covers all the signals that get your Joomla site recommended by AI engines in 2026.</p>
+            <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16, color: "#0C0B1D" }}>Everything AI search engines need</h2>
+            <p style={{ fontSize: 17, color: "#5A5A7A", maxWidth: 520, margin: "0 auto" }}>One plugin covers all the signals that get your Joomla site recommended by AI engines in 2026.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
             {feats.map(f => (
-              <div key={f.title} style={{ background: "#13122A", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16, padding: "32px 28px" }}>
+              <div key={f.title} style={{ background: "#FFFFFF", border: "1.5px solid #E8E4F4", borderRadius: 16, padding: "32px 28px" }}>
                 <div style={{ fontSize: 32, marginBottom: 16 }}>{f.icon}</div>
-                <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 10, color: "#FFFFFF" }}>{f.title}</div>
-                <div style={{ fontSize: 14, color: "#A0A0C0", lineHeight: 1.6 }}>{f.desc}</div>
+                <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 10, color: "#0C0B1D" }}>{f.title}</div>
+                <div style={{ fontSize: 14, color: "#5A5A7A", lineHeight: 1.6 }}>{f.desc}</div>
               </div>
             ))}
           </div>
@@ -117,43 +115,44 @@ export function FullPage() {
       </section>
 
       {/* ─── PRICING ─── */}
-      <section style={{ padding: "96px 64px", background: "#0C0B1D" }}>
+      <section style={{ padding: "96px 64px", background: "#FFFFFF" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16, color: "#FFFFFF" }}>Simple pricing. Every feature, every license.</h2>
-            <p style={{ fontSize: 17, color: "#A0A0C0" }}>Pay once, use forever. 30-day money-back guarantee.</p>
+            <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16, color: "#0C0B1D" }}>Simple pricing. Every feature, every license.</h2>
+            <p style={{ fontSize: 17, color: "#5A5A7A" }}>Pay once, use forever. 30-day money-back guarantee.</p>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, alignItems: "start" }}>
             {plans.map(plan => (
               <div key={plan.name} style={{
-                background: plan.highlight ? "#1A1435" : "#13122A",
-                border: plan.highlight ? `2px solid ${PURPLE}` : "1px solid rgba(255,255,255,0.12)",
+                background: plan.highlight ? PURPLE : "#FFFFFF",
+                border: plan.highlight ? "none" : "1.5px solid #E8E4F4",
                 borderRadius: 20, padding: "36px 28px", position: "relative",
                 transform: plan.highlight ? "scale(1.04)" : "scale(1)",
+                boxShadow: plan.highlight ? "0 12px 48px rgba(123,79,255,0.35)" : "0 2px 12px rgba(0,0,0,0.05)",
               }}>
                 {plan.badge && (
-                  <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: PURPLE, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 16px", borderRadius: 100, whiteSpace: "nowrap" }}>
+                  <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "#0C0B1D", color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 16px", borderRadius: 100, whiteSpace: "nowrap" }}>
                     {plan.badge}
                   </div>
                 )}
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#6B6B8A", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{plan.name}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: plan.highlight ? "rgba(255,255,255,0.65)" : "#9090B0", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>{plan.name}</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
-                  <span style={{ fontSize: 48, fontWeight: 900, letterSpacing: "-2px", color: "#FFFFFF" }}>{plan.price}</span>
-                  <span style={{ fontSize: 13, color: "#4A4A6A" }}>one-time</span>
+                  <span style={{ fontSize: 48, fontWeight: 900, letterSpacing: "-2px", color: plan.highlight ? "#FFFFFF" : "#0C0B1D" }}>{plan.price}</span>
+                  <span style={{ fontSize: 13, color: plan.highlight ? "rgba(255,255,255,0.5)" : "#B0B0C8" }}>one-time</span>
                 </div>
-                <div style={{ fontSize: 12, color: "#4A4A6A", marginBottom: 16 }}>+VAT where applicable</div>
-                <div style={{ fontSize: 14, color: "#A0A0C0", marginBottom: 28 }}>{plan.sites} · {plan.support}</div>
-                <a style={{ display: "block", textAlign: "center", padding: "13px 0", background: plan.highlight ? PURPLE : "transparent", border: plan.highlight ? "none" : "1px solid rgba(255,255,255,0.2)", color: "#fff", fontWeight: 700, fontSize: 14, borderRadius: 10, textDecoration: "none" }}>
+                <div style={{ fontSize: 12, color: plan.highlight ? "rgba(255,255,255,0.45)" : "#B0B0C8", marginBottom: 16 }}>+VAT where applicable</div>
+                <div style={{ fontSize: 14, color: plan.highlight ? "rgba(255,255,255,0.75)" : "#5A5A7A", marginBottom: 28 }}>{plan.sites} · {plan.support}</div>
+                <a style={{ display: "block", textAlign: "center", padding: "13px 0", background: plan.highlight ? "#FFFFFF" : PURPLE, color: plan.highlight ? PURPLE : "#FFFFFF", fontWeight: 700, fontSize: 14, borderRadius: 10, textDecoration: "none" }}>
                   Buy {plan.name} — {plan.price}
                 </a>
 
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 24, paddingTop: 24 }}>
+                <div style={{ borderTop: `1px solid ${plan.highlight ? "rgba(255,255,255,0.2)" : "#F0ECF8"}`, marginTop: 24, paddingTop: 24 }}>
                   <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
                     {features.map(f => (
                       <li key={f} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                        <Check />
-                        <span style={{ fontSize: 13, color: "#A0A0C0" }}>{f}</span>
+                        <Check onPurple={plan.highlight} />
+                        <span style={{ fontSize: 13, color: plan.highlight ? "rgba(255,255,255,0.8)" : "#5A5A7A" }}>{f}</span>
                       </li>
                     ))}
                   </ul>
@@ -163,49 +162,49 @@ export function FullPage() {
           </div>
 
           <div style={{ textAlign: "center", marginTop: 40 }}>
-            <div style={{ fontSize: 14, color: "#4A4A6A" }}>🛡️ 30-day money-back guarantee &nbsp;·&nbsp; Payments by Gumroad &nbsp;·&nbsp; EU VAT handled automatically</div>
+            <div style={{ fontSize: 14, color: "#9090B0" }}>🛡️ 30-day money-back guarantee &nbsp;·&nbsp; Payments by Gumroad &nbsp;·&nbsp; EU VAT handled automatically</div>
           </div>
         </div>
       </section>
 
       {/* ─── FAQ ─── */}
-      <section style={{ background: "#100F24", padding: "96px 64px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+      <section style={{ background: "#F8F7FF", padding: "96px 64px", borderTop: "1px solid #E8E4F4" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
-          <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-1.5px", textAlign: "center", marginBottom: 56, color: "#FFFFFF" }}>Frequently asked questions</h2>
+          <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-1.5px", textAlign: "center", marginBottom: 56, color: "#0C0B1D" }}>Frequently asked questions</h2>
           {faqs.map((faq, i) => (
-            <div key={i} style={{ padding: "28px 0", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#FFFFFF" }}>{faq.q}</div>
-              <div style={{ fontSize: 14, color: "#A0A0C0", lineHeight: 1.7 }}>{faq.a}</div>
+            <div key={i} style={{ padding: "28px 0", borderBottom: "1px solid #E8E4F4" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: "#0C0B1D" }}>{faq.q}</div>
+              <div style={{ fontSize: 14, color: "#5A5A7A", lineHeight: 1.7 }}>{faq.a}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ─── BOTTOM CTA ─── */}
-      <section style={{ padding: "96px 64px", textAlign: "center", background: "#0C0B1D" }}>
-        <h2 style={{ fontSize: 52, fontWeight: 900, letterSpacing: "-2px", marginBottom: 20, color: "#FFFFFF" }}>
+      <section style={{ padding: "96px 64px", textAlign: "center", background: "#FFFFFF" }}>
+        <h2 style={{ fontSize: 52, fontWeight: 900, letterSpacing: "-2px", marginBottom: 20, color: "#0C0B1D" }}>
           Ready to make your Joomla site<br />
-          <span style={{ color: PURPLE_LIGHT }}>visible to AI?</span>
+          <span style={{ color: PURPLE }}>visible to AI?</span>
         </h2>
-        <p style={{ fontSize: 18, color: "#A0A0C0", marginBottom: 48 }}>Install in 5 minutes. No coding. No JSON editing.</p>
+        <p style={{ fontSize: 18, color: "#5A5A7A", marginBottom: 48 }}>Install in 5 minutes. No coding. No JSON editing.</p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-          <a style={{ background: PURPLE, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none" }}>
+          <a style={{ background: PURPLE, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 24px rgba(123,79,255,0.35)" }}>
             Buy Developer — €119
           </a>
-          <a style={{ color: "#A0A0C0", fontSize: 17, fontWeight: 500, padding: "18px 0", textDecoration: "underline" }}>
+          <a style={{ color: "#9090B0", fontSize: 17, fontWeight: 500, padding: "18px 0", textDecoration: "underline" }}>
             Or start with Starter for €59
           </a>
         </div>
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.1)", padding: "40px 64px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <footer style={{ borderTop: "1px solid #E8E4F4", padding: "40px 64px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#F8F7FF" }}>
         <NavLogo />
-        <div style={{ fontSize: 13, color: "#4A4A6A" }}>© 2026 AI Boost · support@aiboostnow.com</div>
+        <div style={{ fontSize: 13, color: "#9090B0" }}>© 2026 AI Boost · support@aiboostnow.com</div>
         <div style={{ display: "flex", gap: 24 }}>
-          <a style={{ fontSize: 13, color: "#6B6B8A", textDecoration: "none" }}>Docs</a>
-          <a style={{ fontSize: 13, color: "#6B6B8A", textDecoration: "none" }}>Privacy</a>
-          <a style={{ fontSize: 13, color: "#6B6B8A", textDecoration: "none" }}>Terms</a>
+          <a style={{ fontSize: 13, color: "#9090B0", textDecoration: "none" }}>Docs</a>
+          <a style={{ fontSize: 13, color: "#9090B0", textDecoration: "none" }}>Privacy</a>
+          <a style={{ fontSize: 13, color: "#9090B0", textDecoration: "none" }}>Terms</a>
         </div>
       </footer>
 
