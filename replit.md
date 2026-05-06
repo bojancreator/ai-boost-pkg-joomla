@@ -80,6 +80,20 @@ src/...
 
 ---
 
+## CI/CD Pipeline — aiboostnow.com
+
+**Repo:** `bojancreator/aiboostnow` (GitHub)  
+**Trigger:** push to `main` → auto-deploy  
+**Workflow:** `.github/workflows/deploy.yml`  
+**Flow:** pnpm build → rsync (sudo) → chown lazarenet  
+**Server:** VPS 109.199.99.205, SSH port 2222, user `neimar`  
+**Deploy path:** `/home/lazarenet/public_html/aiboostnow/`  
+**Keys:** `.local/deploy-keys/deploy_key` (private), `.local/deploy-keys/deploy_key.pub` (public, in neimar's authorized_keys)  
+**GitHub Secrets:** `SSH_HOST`, `SSH_USER=neimar`, `SSH_DEPLOY_PATH`, `SSH_PRIVATE_KEY`  
+**Gotcha:** rsync runs via `sudo rsync` — neimar mora imati passwordless sudo za rsync. Sudoers entry: `/etc/sudoers.d/neimar-rsync`
+
+---
+
 ## Completed Tasks
 
 | Task | What |
@@ -92,6 +106,7 @@ src/...
 | #7 | JED listing, forum posts, Product Hunt, marketplace materials |
 | #8 | Pricing strategy (Starter €59 / Developer €119 / Agency €199) + Gumroad setup guide |
 | #17 | License key field in plugin admin (LicenseKeyField.php, all 11 lang files) |
+| #CI | GitHub Actions CI/CD pipeline → aiboostnow.com (deploy kao neimar, sudo rsync) |
 
 ## Pending / Proposed Tasks
 
