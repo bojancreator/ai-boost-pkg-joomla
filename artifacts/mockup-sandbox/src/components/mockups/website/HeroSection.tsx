@@ -1,7 +1,11 @@
 import logoSrc from "@/assets/logo.png";
 import videoSrc from "@/assets/hero-video.mp4";
 
-const BUY_URL = "https://aiboostnow.gumroad.com/l/joomla";
+const GUMROAD = {
+  starter:   "https://aiboostnow.gumroad.com/l/joomlaboost-starter",
+  developer: "https://aiboostnow.gumroad.com/l/joomlaboost",
+  agency:    "https://aiboostnow.gumroad.com/l/joomlaboost-agency",
+};
 
 export function HeroSection() {
   return (
@@ -14,7 +18,7 @@ export function HeroSection() {
           <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Features</a>
           <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Docs</a>
           <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a href={BUY_URL} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 14, fontWeight: 600, padding: "11px 22px", borderRadius: 8, textDecoration: "none" }}>
+          <a href={GUMROAD.developer} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 14, fontWeight: 600, padding: "11px 22px", borderRadius: 8, textDecoration: "none" }}>
             Get AI Boost →
           </a>
         </div>
@@ -40,7 +44,7 @@ export function HeroSection() {
           </p>
 
           <div style={{ display: "flex", gap: 14, marginBottom: 48 }}>
-            <a href={BUY_URL} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 16, fontWeight: 700, padding: "15px 28px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 20px rgba(123,79,255,0.3)" }}>
+            <a href={GUMROAD.developer} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 16, fontWeight: 700, padding: "15px 28px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 20px rgba(123,79,255,0.3)" }}>
               Buy Developer — €119
             </a>
             <a href="#features" style={{ background: "transparent", border: "1.5px solid #D4C9FF", color: "#5A5A7A", fontSize: 16, fontWeight: 600, padding: "15px 24px", borderRadius: 10, textDecoration: "none" }}>
