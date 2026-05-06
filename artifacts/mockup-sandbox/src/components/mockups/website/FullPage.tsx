@@ -1,5 +1,6 @@
-import logoSrc from "@/assets/logo.png";
-import videoSrc from "@/assets/hero-video.mp4";
+import { logoDataUrl as logoSrc } from "@/assets/logo-data";
+
+const videoSrc = import.meta.env.BASE_URL + "hero-video.mp4";
 
 const PURPLE = "#7B4FFF";
 
