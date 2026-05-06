@@ -1,3 +1,5 @@
+const BUY_URL = "https://aiboostnow.gumroad.com/l/joomla";
+
 const features = [
   "All plugin features included",
   "Schema.org JSON-LD (all types)",
@@ -88,7 +90,7 @@ export function PricingSection() {
               <div style={{ fontSize: 12, color: plan.highlight ? "rgba(255,255,255,0.5)" : "#B0B0C8", marginBottom: 20 }}>+VAT where applicable</div>
               <p style={{ fontSize: 14, color: plan.highlight ? "rgba(255,255,255,0.8)" : "#5A5A7A", marginBottom: 28, lineHeight: 1.5 }}>{plan.tagline}</p>
 
-              <a style={{
+              <a href={BUY_URL} target="_blank" rel="noopener noreferrer" style={{
                 display: "block", textAlign: "center", padding: "14px 0",
                 background: plan.highlight ? "#FFFFFF" : "#7B4FFF",
                 color: plan.highlight ? "#7B4FFF" : "#FFFFFF",
