@@ -3,6 +3,12 @@ import videoSrc from "@/assets/hero-video.mp4";
 
 const PURPLE = "#7B4FFF";
 
+const GUMROAD = {
+  starter:   "https://aiboostnow.gumroad.com/l/joomlaboost-starter",
+  developer: "https://aiboostnow.gumroad.com/l/joomlaboost",
+  agency:    "https://aiboostnow.gumroad.com/l/joomlaboost-agency",
+};
+
 const NavLogo = () => (
   <img src={logoSrc} style={{ height: 68, width: "auto", display: "block" }} alt="AI Boost" />
 );
@@ -12,9 +18,9 @@ const Check = ({ onPurple = false }) => (
 );
 
 const plans = [
-  { name: "Starter",   price: "€59",  sites: "1 site",         badge: null,           highlight: false, support: "Email support" },
-  { name: "Developer", price: "€119", sites: "5 sites",        badge: "Most Popular", highlight: true,  support: "Priority email support" },
-  { name: "Agency",    price: "€199", sites: "Unlimited sites", badge: null,           highlight: false, support: "Priority email support" },
+  { name: "Starter",   price: "€59",  sites: "1 site",          badge: null,           highlight: false, support: "Email support",          url: GUMROAD.starter },
+  { name: "Developer", price: "€119", sites: "5 sites",         badge: "Most Popular", highlight: true,  support: "Priority email support", url: GUMROAD.developer },
+  { name: "Agency",    price: "€199", sites: "Unlimited sites",  badge: null,           highlight: false, support: "Priority email support", url: GUMROAD.agency },
 ];
 
 const feats = [
@@ -55,16 +61,15 @@ export function FullPage() {
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 64px", height: "92px", borderBottom: "1px solid #E8E4F4", position: "sticky", top: 0, background: "#FFFFFF", zIndex: 100 }}>
         <NavLogo />
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Features</a>
-          <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Docs</a>
-          <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a style={{ background: PURPLE, color: "#fff", fontSize: 14, fontWeight: 600, padding: "11px 22px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
+          <a href="#features" style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Features</a>
+          <a href="#docs"     style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Docs</a>
+          <a href="#pricing"  style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
+          <a href={GUMROAD.developer} target="_blank" rel="noopener noreferrer" style={{ background: PURPLE, color: "#fff", fontSize: 14, fontWeight: 600, padding: "11px 22px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
         </div>
       </nav>
 
       {/* ─── HERO (split) ─── */}
       <section style={{ maxWidth: 1200, margin: "0 auto", padding: "90px 64px 72px", display: "flex", alignItems: "center", gap: 64 }}>
-        {/* Left */}
         <div style={{ flex: "0 0 48%" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#F3F0FF", border: "1px solid #D4C9FF", borderRadius: 100, padding: "6px 16px", marginBottom: 32 }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: PURPLE, display: "inline-block" }} />
@@ -78,10 +83,10 @@ export function FullPage() {
             AI Boost for Joomla generates Schema.org, XML sitemap, llms.txt, and AI crawler signals — so ChatGPT, Perplexity, and Google AI Overview recommend your site. Install in 5 minutes. No coding.
           </p>
           <div style={{ display: "flex", gap: 14, marginBottom: 44 }}>
-            <a style={{ background: PURPLE, color: "#fff", fontSize: 16, fontWeight: 700, padding: "15px 28px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 20px rgba(123,79,255,0.3)" }}>
+            <a href={GUMROAD.developer} target="_blank" rel="noopener noreferrer" style={{ background: PURPLE, color: "#fff", fontSize: 16, fontWeight: 700, padding: "15px 28px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 20px rgba(123,79,255,0.3)" }}>
               Buy Developer — €119
             </a>
-            <a style={{ background: "transparent", border: "1.5px solid #D4C9FF", color: "#5A5A7A", fontSize: 16, fontWeight: 600, padding: "15px 24px", borderRadius: 10, textDecoration: "none" }}>
+            <a href="#features" style={{ background: "transparent", border: "1.5px solid #D4C9FF", color: "#5A5A7A", fontSize: 16, fontWeight: 600, padding: "15px 24px", borderRadius: 10, textDecoration: "none" }}>
               View all features ↓
             </a>
           </div>
@@ -96,16 +101,13 @@ export function FullPage() {
           </div>
         </div>
 
-        {/* Right — video */}
         <div style={{ flex: 1 }}>
           <div style={{ background: "#F8F7FF", borderRadius: 16, border: "1.5px solid #E8E4F4", overflow: "hidden", boxShadow: "0 24px 64px rgba(123,79,255,0.15), 0 4px 16px rgba(0,0,0,0.08)" }}>
             <div style={{ background: "#F0ECF8", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid #E8E4F4" }}>
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF6B6B", display: "inline-block" }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FFD93D", display: "inline-block" }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#6BCB77", display: "inline-block" }} />
-              <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 11, color: "#9090B0", marginLeft: 8, border: "1px solid #E8E4F4" }}>
-                aiboostnow.com
-              </div>
+              <div style={{ flex: 1, background: "#fff", borderRadius: 6, padding: "4px 12px", fontSize: 11, color: "#9090B0", marginLeft: 8, border: "1px solid #E8E4F4" }}>aiboostnow.com</div>
             </div>
             <video src={videoSrc} autoPlay muted loop playsInline style={{ width: "100%", display: "block" }} />
           </div>
@@ -125,7 +127,7 @@ export function FullPage() {
       </div>
 
       {/* ─── FEATURES ─── */}
-      <section style={{ background: "#F8F7FF", padding: "96px 64px", borderTop: "1px solid #E8E4F4", borderBottom: "1px solid #E8E4F4" }}>
+      <section id="features" style={{ background: "#F8F7FF", padding: "96px 64px", borderTop: "1px solid #E8E4F4", borderBottom: "1px solid #E8E4F4" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16, color: "#0C0B1D" }}>Everything AI search engines need</h2>
@@ -144,7 +146,7 @@ export function FullPage() {
       </section>
 
       {/* ─── PRICING ─── */}
-      <section style={{ padding: "96px 64px", background: "#FFFFFF" }}>
+      <section id="pricing" style={{ padding: "96px 64px", background: "#FFFFFF" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16, color: "#0C0B1D" }}>Simple pricing. Every feature, every license.</h2>
@@ -171,7 +173,7 @@ export function FullPage() {
                 </div>
                 <div style={{ fontSize: 12, color: plan.highlight ? "rgba(255,255,255,0.4)" : "#B0B0C8", marginBottom: 16 }}>+VAT where applicable</div>
                 <div style={{ fontSize: 14, color: plan.highlight ? "rgba(255,255,255,0.75)" : "#5A5A7A", marginBottom: 28 }}>{plan.sites} · {plan.support}</div>
-                <a style={{ display: "block", textAlign: "center", padding: "13px 0", background: plan.highlight ? "#FFFFFF" : PURPLE, color: plan.highlight ? PURPLE : "#fff", fontWeight: 700, fontSize: 14, borderRadius: 10, textDecoration: "none" }}>
+                <a href={plan.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", textAlign: "center", padding: "13px 0", background: plan.highlight ? "#FFFFFF" : PURPLE, color: plan.highlight ? PURPLE : "#fff", fontWeight: 700, fontSize: 14, borderRadius: 10, textDecoration: "none" }}>
                   Buy {plan.name} — {plan.price}
                 </a>
                 <div style={{ borderTop: `1px solid ${plan.highlight ? "rgba(255,255,255,0.2)" : "#F0ECF8"}`, marginTop: 24, paddingTop: 24 }}>
@@ -194,7 +196,7 @@ export function FullPage() {
       </section>
 
       {/* ─── FAQ ─── */}
-      <section style={{ background: "#F8F7FF", padding: "96px 64px", borderTop: "1px solid #E8E4F4" }}>
+      <section id="docs" style={{ background: "#F8F7FF", padding: "96px 64px", borderTop: "1px solid #E8E4F4" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-1.5px", textAlign: "center", marginBottom: 56, color: "#0C0B1D" }}>Frequently asked questions</h2>
           {faqs.map((faq, i) => (
@@ -214,10 +216,10 @@ export function FullPage() {
         </h2>
         <p style={{ fontSize: 18, color: "#5A5A7A", marginBottom: 48 }}>Install in 5 minutes. No coding. No JSON editing.</p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-          <a style={{ background: PURPLE, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 24px rgba(123,79,255,0.35)" }}>
+          <a href={GUMROAD.developer} target="_blank" rel="noopener noreferrer" style={{ background: PURPLE, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 24px rgba(123,79,255,0.35)" }}>
             Buy Developer — €119
           </a>
-          <a style={{ color: "#9090B0", fontSize: 17, fontWeight: 500, padding: "18px 0", textDecoration: "underline" }}>
+          <a href={GUMROAD.starter} target="_blank" rel="noopener noreferrer" style={{ color: "#9090B0", fontSize: 17, fontWeight: 500, padding: "18px 0", textDecoration: "underline" }}>
             Or start with Starter for €59
           </a>
         </div>
@@ -228,9 +230,9 @@ export function FullPage() {
         <NavLogo />
         <div style={{ fontSize: 13, color: "#9090B0" }}>© 2026 AI Boost · support@aiboostnow.com</div>
         <div style={{ display: "flex", gap: 24 }}>
-          {["Docs","Privacy","Terms"].map(l => (
-            <a key={l} style={{ fontSize: 13, color: "#9090B0", textDecoration: "none" }}>{l}</a>
-          ))}
+          <a href="#docs"    style={{ fontSize: 13, color: "#9090B0", textDecoration: "none" }}>Docs</a>
+          <a href="#privacy" style={{ fontSize: 13, color: "#9090B0", textDecoration: "none" }}>Privacy</a>
+          <a href="#terms"   style={{ fontSize: 13, color: "#9090B0", textDecoration: "none" }}>Terms</a>
         </div>
       </footer>
 

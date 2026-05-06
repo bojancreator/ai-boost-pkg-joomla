@@ -1,4 +1,8 @@
-const BUY_URL = "https://aiboostnow.gumroad.com/l/joomla";
+const GUMROAD = {
+  starter:   "https://aiboostnow.gumroad.com/l/joomlaboost-starter",
+  developer: "https://aiboostnow.gumroad.com/l/joomlaboost",
+  agency:    "https://aiboostnow.gumroad.com/l/joomlaboost-agency",
+};
 
 const features = [
   "All plugin features included",
@@ -24,6 +28,7 @@ const plans = [
     support: "Email support",
     cta: "Buy Starter — €59",
     highlight: false,
+    url: GUMROAD.starter,
   },
   {
     name: "Developer",
@@ -34,6 +39,7 @@ const plans = [
     support: "Priority email support",
     cta: "Buy Developer — €119",
     highlight: true,
+    url: GUMROAD.developer,
   },
   {
     name: "Agency",
@@ -44,6 +50,7 @@ const plans = [
     support: "Priority email support",
     cta: "Buy Agency — €199",
     highlight: false,
+    url: GUMROAD.agency,
   },
 ];
 
@@ -52,7 +59,6 @@ export function PricingSection() {
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#F8F7FF", minHeight: "100vh", padding: "80px 48px", color: "#0C0B1D" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
-        {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 64 }}>
           <h2 style={{ fontSize: 48, fontWeight: 900, color: "#0C0B1D", letterSpacing: "-1.5px", marginBottom: 16 }}>
             Simple pricing. Every feature, every license.
@@ -62,7 +68,6 @@ export function PricingSection() {
           </p>
         </div>
 
-        {/* Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, alignItems: "start" }}>
           {plans.map(plan => (
             <div key={plan.name} style={{
@@ -90,7 +95,7 @@ export function PricingSection() {
               <div style={{ fontSize: 12, color: plan.highlight ? "rgba(255,255,255,0.5)" : "#B0B0C8", marginBottom: 20 }}>+VAT where applicable</div>
               <p style={{ fontSize: 14, color: plan.highlight ? "rgba(255,255,255,0.8)" : "#5A5A7A", marginBottom: 28, lineHeight: 1.5 }}>{plan.tagline}</p>
 
-              <a href={BUY_URL} target="_blank" rel="noopener noreferrer" style={{
+              <a href={plan.url} target="_blank" rel="noopener noreferrer" style={{
                 display: "block", textAlign: "center", padding: "14px 0",
                 background: plan.highlight ? "#FFFFFF" : "#7B4FFF",
                 color: plan.highlight ? "#7B4FFF" : "#FFFFFF",
@@ -122,7 +127,6 @@ export function PricingSection() {
           ))}
         </div>
 
-        {/* Money back */}
         <div style={{ textAlign: "center", marginTop: 48, padding: "28px 32px", background: "#FFFFFF", borderRadius: 16, border: "1.5px solid #E8E4F4" }}>
           <span style={{ fontSize: 26 }}>🛡️</span>
           <div style={{ fontSize: 17, fontWeight: 800, color: "#0C0B1D", marginTop: 8 }}>30-day money-back guarantee</div>

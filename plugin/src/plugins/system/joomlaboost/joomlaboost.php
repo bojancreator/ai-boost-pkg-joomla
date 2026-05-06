@@ -444,16 +444,19 @@ class PlgSystemJoomlaboost extends CMSPlugin
                         $currentTime   = date('H:i:s');
 
                         // Staging badge HTML with inline styles and more info
+                        $stagingClickHide = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_CLICK_HIDE');
+                        $stagingDomain    = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_DOMAIN');
+                        $stagingGenerated = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_GENERATED');
                         $badge = <<<HTML
 <!-- JoomlaBoost Staging Badge -->
-<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="Klikni da sakriješ">
+<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="{$stagingClickHide}">
 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
     🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">Staging Environment</span>
 </div>
 <div style="font-size: 11px; font-weight: normal; opacity: 0.95; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
     <div><strong>Plugin:</strong> JoomlaBoost v{$pluginVersion}</div>
-    <div><strong>Domen:</strong> {$domain}</div>
-    <div><strong>Generisano:</strong> {$currentTime}</div>
+    <div><strong>{$stagingDomain}:</strong> {$domain}</div>
+    <div><strong>{$stagingGenerated}:</strong> {$currentTime}</div>
 </div>
 </div>
 <!-- /JoomlaBoost Staging Badge -->
