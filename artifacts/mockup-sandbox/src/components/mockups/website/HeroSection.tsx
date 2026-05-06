@@ -1,41 +1,29 @@
-const Logo = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="165" height="36">
-    <defs>
-      <linearGradient id="hs_g" x1="0%" y1="100%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#22D3EE" />
-        <stop offset="100%" stopColor="#60A5FA" />
-      </linearGradient>
-    </defs>
-    <rect x="2"  y="28" width="8" height="16" rx="4" fill="url(#hs_g)" />
-    <rect x="14" y="18" width="8" height="26" rx="4" fill="url(#hs_g)" />
-    <rect x="26" y="6"  width="8" height="38" rx="4" fill="url(#hs_g)" />
-    <text x="46" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9">AI</text>
-    <text x="70" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="700" letterSpacing="-0.3" fill="#60A5FA"> Boost</text>
-  </svg>
-);
+import logoSrc from "@/assets/logo.png";
+
+const NAV_LOGO_HEIGHT = 44;
 
 export function HeroSection() {
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0F172A", minHeight: "100vh", color: "#fff" }}>
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 48px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <Logo />
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0D0D1A", minHeight: "100vh", color: "#fff" }}>
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 48px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <img src={logoSrc} style={{ height: 44, width: "auto", display: "block" }} alt="AI Boost" />
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Docs</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
+          <a style={{ background: "linear-gradient(135deg, #1A3FF0, #BB00FF)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
         </div>
       </nav>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "100px 48px 80px" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 32 }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#06B6D4", display: "inline-block" }} />
-          <span style={{ fontSize: 13, color: "#06B6D4", fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 – 8.5</span>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(187,0,255,0.1)", border: "1px solid rgba(187,0,255,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 32 }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#BB00FF", display: "inline-block" }} />
+          <span style={{ fontSize: 13, color: "#BB00FF", fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 – 8.5</span>
         </div>
 
         <h1 style={{ fontSize: 68, fontWeight: 900, lineHeight: 1.05, letterSpacing: "-2px", marginBottom: 28, maxWidth: 780 }}>
           Make your Joomla site{" "}
-          <span style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <span style={{ background: "linear-gradient(135deg, #1A3FF0, #BB00FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             visible to AI search
           </span>
         </h1>
@@ -45,7 +33,7 @@ export function HeroSection() {
         </p>
 
         <div style={{ display: "flex", gap: 16, marginBottom: 64 }}>
-          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 16, fontWeight: 700, padding: "16px 32px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 24px rgba(37,99,235,0.35)" }}>
+          <a style={{ background: "linear-gradient(135deg, #1A3FF0, #BB00FF)", color: "#fff", fontSize: 16, fontWeight: 700, padding: "16px 32px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 28px rgba(26,63,240,0.4)" }}>
             Buy Developer — €119
           </a>
           <a style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#e2e8f0", fontSize: 16, fontWeight: 600, padding: "16px 28px", borderRadius: 10, textDecoration: "none" }}>
@@ -61,7 +49,7 @@ export function HeroSection() {
             { n: "11 languages", d: "Full multilingual support" },
           ].map(f => (
             <div key={f.n} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ color: "#06B6D4", fontSize: 18 }}>✓</span>
+              <span style={{ background: "linear-gradient(135deg, #1A3FF0, #BB00FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontSize: 18, fontWeight: 900 }}>✓</span>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>{f.n}</div>
                 <div style={{ fontSize: 12, color: "#64748b" }}>{f.d}</div>
@@ -72,7 +60,7 @@ export function HeroSection() {
       </div>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 48px 80px" }}>
-        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "40px 48px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32, textAlign: "center" }}>
+        <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: "40px 48px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32, textAlign: "center" }}>
           {[
             { v: "20+", l: "Schema.org types" },
             { v: "25+", l: "AI crawler rules" },
@@ -80,7 +68,7 @@ export function HeroSection() {
             { v: "5 min", l: "Setup time" },
           ].map(s => (
             <div key={s.l}>
-              <div style={{ fontSize: 40, fontWeight: 900, background: "linear-gradient(135deg, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{s.v}</div>
+              <div style={{ fontSize: 40, fontWeight: 900, background: "linear-gradient(135deg, #1A3FF0, #BB00FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{s.v}</div>
               <div style={{ fontSize: 14, color: "#64748b", marginTop: 4 }}>{s.l}</div>
             </div>
           ))}

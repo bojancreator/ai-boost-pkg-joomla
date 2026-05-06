@@ -1,65 +1,61 @@
-const Logo = ({ size = 1 }: { size?: number }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width={165 * size} height={36 * size}>
-    <defs>
-      <linearGradient id={`fp_g_${size}`} x1="0%" y1="100%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#22D3EE" />
-        <stop offset="100%" stopColor="#60A5FA" />
-      </linearGradient>
-    </defs>
-    <rect x="2"  y="28" width="8" height="16" rx="4" fill={`url(#fp_g_${size})`} />
-    <rect x="14" y="18" width="8" height="26" rx="4" fill={`url(#fp_g_${size})`} />
-    <rect x="26" y="6"  width="8" height="38" rx="4" fill={`url(#fp_g_${size})`} />
-    <text x="46" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9">AI</text>
-    <text x="70" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="700" letterSpacing="-0.3" fill="#60A5FA"> Boost</text>
-  </svg>
+import logoSrc from "@/assets/logo.png";
+
+const GRAD = "linear-gradient(135deg, #1A3FF0, #BB00FF)";
+
+const NavLogo = () => (
+  <img src={logoSrc} style={{ height: 40, width: "auto", display: "block" }} alt="AI Boost" />
+);
+
+const FooterLogo = () => (
+  <img src={logoSrc} style={{ height: 28, width: "auto", display: "block", filter: "brightness(10)" }} alt="AI Boost" />
 );
 
 const plans = [
-  { name: "Starter", price: "€59", sites: "1 site", badge: null, highlight: false, support: "Email support" },
-  { name: "Developer", price: "€119", sites: "5 sites", badge: "Most Popular", highlight: true, support: "Priority email support" },
-  { name: "Agency", price: "€199", sites: "Unlimited sites", badge: null, highlight: false, support: "Priority email support" },
+  { name: "Starter",   price: "€59",  sites: "1 site",         badge: null,           highlight: false, support: "Email support" },
+  { name: "Developer", price: "€119", sites: "5 sites",        badge: "Most Popular", highlight: true,  support: "Priority email support" },
+  { name: "Agency",    price: "€199", sites: "Unlimited sites", badge: null,           highlight: false, support: "Priority email support" },
 ];
 
 const feats = [
-  { icon: "🧠", title: "Schema.org JSON-LD", desc: "All 20+ types: LocalBusiness, Hotel, Event, FAQPage, Article, Person, Product, BreadcrumbList and more." },
+  { icon: "🧠", title: "Schema.org JSON-LD",    desc: "All 20+ types: LocalBusiness, Hotel, Event, FAQPage, Article, Person, Product, BreadcrumbList and more." },
   { icon: "🗺️", title: "XML Sitemap + Hreflang", desc: "Dynamic sitemap auto-generated. Multilingual hreflang tags for all installed Joomla languages." },
-  { icon: "🤖", title: "robots.txt + llms.txt", desc: "Block or allow 25+ AI crawlers. Generate llms.txt so ChatGPT and Perplexity can index your content." },
-  { icon: "⚡", title: "IndexNow", desc: "Instant URL submission to Bing, Yandex, and Seznam the moment you publish new content." },
-  { icon: "📊", title: "Analytics Suite", desc: "GA4, Google Tag Manager, Google Search Console verification, Meta Pixel — all from one panel." },
-  { icon: "🌍", title: "11 Language Packs", desc: "Full admin UI in EN, DE, FR, ES, IT, RU, PT, ZH, AR, JA, SR. Multilingual custom fields too." },
+  { icon: "🤖", title: "robots.txt + llms.txt",  desc: "Block or allow 25+ AI crawlers. Generate llms.txt so ChatGPT and Perplexity can index your content." },
+  { icon: "⚡", title: "IndexNow",               desc: "Instant URL submission to Bing, Yandex, and Seznam the moment you publish new content." },
+  { icon: "📊", title: "Analytics Suite",        desc: "GA4, Google Tag Manager, Google Search Console verification, Meta Pixel — all from one panel." },
+  { icon: "🌍", title: "11 Language Packs",      desc: "Full admin UI in EN, DE, FR, ES, IT, RU, PT, ZH, AR, JA, SR. Multilingual custom fields too." },
 ];
 
 const faqs = [
-  { q: "What does \"one-time payment\" mean?", a: "You pay once and own the plugin forever. Updates are included for 1 year. After that, the plugin keeps working — renewal is optional." },
+  { q: 'What does "one-time payment" mean?',    a: 'You pay once and own the plugin forever. Updates are included for 1 year. After that, the plugin keeps working — renewal is optional.' },
   { q: "Is it compatible with Joomla 4, 5, and 6?", a: "Yes. AI Boost for Joomla supports Joomla 4.0 through 6.x with PHP 8.1 through 8.5." },
-  { q: "Is there a free trial?", a: "No free trial, but every purchase has a 30-day money-back guarantee. If it doesn't work, we refund you in full." },
-  { q: "Can I upgrade my license later?", a: "Yes. Contact support@aiboostnow.com and we'll arrange an upgrade at the price difference." },
+  { q: "Is there a free trial?",                a: "No free trial, but every purchase has a 30-day money-back guarantee. If it doesn't work, we refund you in full." },
+  { q: "Can I upgrade my license later?",       a: "Yes. Contact support@aiboostnow.com and we'll arrange an upgrade at the price difference." },
 ];
 
 export function FullPage() {
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0F172A", color: "#fff", minWidth: 1280 }}>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0D0D1A", color: "#fff", minWidth: 1280 }}>
 
       {/* NAV */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 64px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.07)", position: "sticky", top: 0, background: "rgba(15,23,42,0.95)", backdropFilter: "blur(12px)", zIndex: 100 }}>
-        <Logo />
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 64px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.07)", position: "sticky", top: 0, background: "rgba(13,13,26,0.95)", backdropFilter: "blur(12px)", zIndex: 100 }}>
+        <NavLogo />
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Docs</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
+          <a style={{ background: GRAD, color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
         </div>
       </nav>
 
       {/* HERO */}
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "110px 64px 80px", textAlign: "center" }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 36 }}>
-          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#06B6D4", display: "inline-block" }} />
-          <span style={{ fontSize: 13, color: "#06B6D4", fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 – 8.5</span>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(187,0,255,0.1)", border: "1px solid rgba(187,0,255,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 36 }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#BB00FF", display: "inline-block" }} />
+          <span style={{ fontSize: 13, color: "#BB00FF", fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 – 8.5</span>
         </div>
         <h1 style={{ fontSize: 72, fontWeight: 900, lineHeight: 1.04, letterSpacing: "-2.5px", marginBottom: 28 }}>
           Make your Joomla site<br />
-          <span style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <span style={{ background: GRAD, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             visible to AI search
           </span>
         </h1>
@@ -67,7 +63,7 @@ export function FullPage() {
           AI Boost for Joomla generates Schema.org, XML sitemap, llms.txt, and AI crawler signals — so ChatGPT, Perplexity, and Google AI Overview recommend your site. Install in 5 minutes. No coding.
         </p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 72 }}>
-          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 28px rgba(37,99,235,0.4)" }}>
+          <a style={{ background: GRAD, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 28px rgba(26,63,240,0.4)" }}>
             Buy Developer — €119
           </a>
           <a style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "#e2e8f0", fontSize: 17, fontWeight: 600, padding: "18px 28px", borderRadius: 12, textDecoration: "none" }}>
@@ -77,7 +73,7 @@ export function FullPage() {
         <div style={{ display: "flex", gap: 48, justifyContent: "center" }}>
           {[["20+", "Schema.org types"], ["25+", "AI crawler rules"], ["11", "Language packs"], ["5 min", "Setup time"]].map(([v, l]) => (
             <div key={l} style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 36, fontWeight: 900, background: "linear-gradient(135deg, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{v}</div>
+              <div style={{ fontSize: 36, fontWeight: 900, background: GRAD, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{v}</div>
               <div style={{ fontSize: 13, color: "#64748b" }}>{l}</div>
             </div>
           ))}
@@ -85,7 +81,7 @@ export function FullPage() {
       </section>
 
       {/* FEATURES */}
-      <section style={{ background: "#0B1120", padding: "96px 64px" }}>
+      <section style={{ background: "#0A0A18", padding: "96px 64px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16 }}>Everything AI search engines need</h2>
@@ -104,7 +100,7 @@ export function FullPage() {
       </section>
 
       {/* PRICING */}
-      <section style={{ padding: "96px 64px", background: "#0F172A" }}>
+      <section style={{ padding: "96px 64px", background: "#0D0D1A" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 64 }}>
             <h2 style={{ fontSize: 44, fontWeight: 900, letterSpacing: "-1.5px", marginBottom: 16 }}>Simple pricing. Every feature, every license.</h2>
@@ -113,13 +109,14 @@ export function FullPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, alignItems: "start" }}>
             {plans.map(plan => (
               <div key={plan.name} style={{
-                background: plan.highlight ? "rgba(37,99,235,0.12)" : "rgba(255,255,255,0.03)",
-                border: plan.highlight ? "1.5px solid #2563EB" : "1px solid rgba(255,255,255,0.08)",
+                background: plan.highlight ? "rgba(26,63,240,0.1)" : "rgba(255,255,255,0.03)",
+                border: plan.highlight ? "1.5px solid #1A3FF0" : "1px solid rgba(255,255,255,0.08)",
                 borderRadius: 20, padding: "36px 28px", position: "relative",
                 transform: plan.highlight ? "scale(1.04)" : "scale(1)",
+                boxShadow: plan.highlight ? "0 8px 40px rgba(26,63,240,0.2)" : "none",
               }}>
                 {plan.badge && (
-                  <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 16px", borderRadius: 100, whiteSpace: "nowrap" }}>
+                  <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: GRAD, color: "#fff", fontSize: 11, fontWeight: 700, padding: "4px 16px", borderRadius: 100, whiteSpace: "nowrap" }}>
                     {plan.badge}
                   </div>
                 )}
@@ -130,7 +127,7 @@ export function FullPage() {
                 </div>
                 <div style={{ fontSize: 12, color: "#475569", marginBottom: 16 }}>+VAT where applicable</div>
                 <div style={{ fontSize: 14, color: "#94a3b8", marginBottom: 28 }}>{plan.sites} · {plan.support}</div>
-                <a style={{ display: "block", textAlign: "center", padding: "13px 0", background: plan.highlight ? "linear-gradient(135deg, #2563EB, #06B6D4)" : "rgba(255,255,255,0.06)", color: "#fff", fontWeight: 700, fontSize: 14, borderRadius: 10, textDecoration: "none" }}>
+                <a style={{ display: "block", textAlign: "center", padding: "13px 0", background: plan.highlight ? GRAD : "rgba(255,255,255,0.06)", color: "#fff", fontWeight: 700, fontSize: 14, borderRadius: 10, textDecoration: "none" }}>
                   Buy {plan.name} — {plan.price}
                 </a>
               </div>
@@ -143,7 +140,7 @@ export function FullPage() {
       </section>
 
       {/* FAQ */}
-      <section style={{ background: "#0B1120", padding: "96px 64px" }}>
+      <section style={{ background: "#0A0A18", padding: "96px 64px" }}>
         <div style={{ maxWidth: 720, margin: "0 auto" }}>
           <h2 style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-1.5px", textAlign: "center", marginBottom: 56 }}>Frequently asked questions</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
@@ -161,11 +158,11 @@ export function FullPage() {
       <section style={{ padding: "96px 64px", textAlign: "center" }}>
         <h2 style={{ fontSize: 52, fontWeight: 900, letterSpacing: "-2px", marginBottom: 20 }}>
           Ready to make your Joomla site<br />
-          <span style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>visible to AI?</span>
+          <span style={{ background: GRAD, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>visible to AI?</span>
         </h2>
         <p style={{ fontSize: 18, color: "#64748b", marginBottom: 48 }}>Install in 5 minutes. No coding. No JSON editing.</p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 28px rgba(37,99,235,0.4)" }}>
+          <a style={{ background: GRAD, color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 28px rgba(26,63,240,0.4)" }}>
             Buy Developer — €119
           </a>
           <a style={{ color: "#94a3b8", fontSize: 17, fontWeight: 500, padding: "18px 0", textDecoration: "underline" }}>
@@ -176,7 +173,7 @@ export function FullPage() {
 
       {/* FOOTER */}
       <footer style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "40px 64px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Logo size={0.8} />
+        <FooterLogo />
         <div style={{ fontSize: 13, color: "#475569" }}>© 2026 AI Boost · support@aiboostnow.com</div>
         <div style={{ display: "flex", gap: 24 }}>
           <a style={{ fontSize: 13, color: "#475569", textDecoration: "none" }}>Docs</a>
