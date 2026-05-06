@@ -119,7 +119,7 @@ export function PricingSection() {
         <div style={{ textAlign: "center", marginTop: 48, padding: "32px", background: "#fff", borderRadius: 16, border: "1.5px solid #e2e8f0" }}>
           <span style={{ fontSize: 28 }}>🛡️</span>
           <div style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", marginTop: 8 }}>30-day money-back guarantee</div>
-          <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>If JoomlaBoost doesn't work as expected, contact us within 30 days and we'll refund you in full — no questions asked.</div>
+          <div style={{ fontSize: 14, color: "#64748b", marginTop: 6 }}>If AI Boost for Joomla doesn't work as expected, contact us within 30 days and we'll refund you in full — no questions asked.</div>
         </div>
       </div>
     </div>

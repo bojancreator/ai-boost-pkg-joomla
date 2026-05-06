@@ -3,9 +3,18 @@
 ## Project Overview
 
 **Owner:** Bojan (bojancreator)  
-**Brand:** AI Boost Now (aiboostnow.com)  
-**Product:** JoomlaBoost — commercial Joomla 4–6 SEO & AEO system plugin (PHP 8.1+)  
+**Brand:** AI Boost (aiboostnow.com) — ⚠️ see `.local/tasks/BRANDING.md` for naming rules  
+**Product:** AI Boost for Joomla — commercial Joomla 4–6 SEO & AEO system plugin (PHP 8.1–8.5)  
 **Mission:** All-in-one Joomla plugin that generates Schema.org, XML sitemap, OpenGraph, robots.txt, llms.txt, and AI search signals so that AI engines (ChatGPT, Perplexity, Google AI Overview, Bing Copilot) recommend the site.
+
+**⚠️ BRANDING (single source of truth: `.local/tasks/BRANDING.md`)**  
+| Element | Correct name |  
+|---|---|  
+| Website / Brand | **AI Boost** |  
+| Joomla plugin | **AI Boost for Joomla** |  
+| WordPress plugin | **AI Boost for WordPress** |  
+| Domain | aiboostnow.com |  
+| NEVER use | ~~JoomlaBoost~~, ~~AI Boost Now~~ |
 
 **Plugin slug:** `plg_system_joomlaboost`  
 **Plugin source:** `plugin/src/plugins/system/joomlaboost/`  

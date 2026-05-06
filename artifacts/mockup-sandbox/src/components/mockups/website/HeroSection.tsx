@@ -1,22 +1,29 @@
+const Logo = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width="165" height="36">
+    <defs>
+      <linearGradient id="hs_g" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#22D3EE" />
+        <stop offset="100%" stopColor="#60A5FA" />
+      </linearGradient>
+    </defs>
+    <rect x="2"  y="28" width="8" height="16" rx="4" fill="url(#hs_g)" />
+    <rect x="14" y="18" width="8" height="26" rx="4" fill="url(#hs_g)" />
+    <rect x="26" y="6"  width="8" height="38" rx="4" fill="url(#hs_g)" />
+    <text x="46" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9">AI</text>
+    <text x="70" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="700" letterSpacing="-0.3" fill="#60A5FA"> Boost</text>
+  </svg>
+);
+
 export function HeroSection() {
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0F172A", minHeight: "100vh", color: "#fff" }}>
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 48px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 56" width="182" height="40">
-            <defs><linearGradient id="hn_g" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" /></linearGradient></defs>
-            <rect x="4"  y="30" width="9" height="18" rx="4.5" fill="url(#hn_g)" />
-            <rect x="17" y="20" width="9" height="28" rx="4.5" fill="url(#hn_g)" />
-            <rect x="30" y="8"  width="9" height="40" rx="4.5" fill="url(#hn_g)" />
-            <text x="54" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9">Joomla</text>
-            <text x="130" y="37" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="24" fontWeight="700" letterSpacing="-0.3" fill="#60A5FA">Boost</text>
-          </svg>
-        </div>
+        <Logo />
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Docs</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get JoomlaBoost →</a>
+          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
         </div>
       </nav>
 
@@ -34,7 +41,7 @@ export function HeroSection() {
         </h1>
 
         <p style={{ fontSize: 20, color: "#94a3b8", lineHeight: 1.7, maxWidth: 620, marginBottom: 48 }}>
-          JoomlaBoost generates Schema.org, XML sitemap, llms.txt, and AI crawler signals — so ChatGPT, Perplexity, and Google AI Overview recommend your site. Install in 5 minutes. No coding.
+          AI Boost for Joomla generates Schema.org, XML sitemap, llms.txt, and AI crawler signals — so ChatGPT, Perplexity, and Google AI Overview recommend your site. Install in 5 minutes. No coding.
         </p>
 
         <div style={{ display: "flex", gap: 16, marginBottom: 64 }}>

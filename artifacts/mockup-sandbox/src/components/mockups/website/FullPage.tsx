@@ -1,3 +1,19 @@
+const Logo = ({ size = 1 }: { size?: number }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48" width={165 * size} height={36 * size}>
+    <defs>
+      <linearGradient id={`fp_g_${size}`} x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#22D3EE" />
+        <stop offset="100%" stopColor="#60A5FA" />
+      </linearGradient>
+    </defs>
+    <rect x="2"  y="28" width="8" height="16" rx="4" fill={`url(#fp_g_${size})`} />
+    <rect x="14" y="18" width="8" height="26" rx="4" fill={`url(#fp_g_${size})`} />
+    <rect x="26" y="6"  width="8" height="38" rx="4" fill={`url(#fp_g_${size})`} />
+    <text x="46" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="400" letterSpacing="-0.3" fill="#F1F5F9">AI</text>
+    <text x="70" y="32" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="700" letterSpacing="-0.3" fill="#60A5FA"> Boost</text>
+  </svg>
+);
+
 const plans = [
   { name: "Starter", price: "€59", sites: "1 site", badge: null, highlight: false, support: "Email support" },
   { name: "Developer", price: "€119", sites: "5 sites", badge: "Most Popular", highlight: true, support: "Priority email support" },
@@ -15,7 +31,7 @@ const feats = [
 
 const faqs = [
   { q: "What does \"one-time payment\" mean?", a: "You pay once and own the plugin forever. Updates are included for 1 year. After that, the plugin keeps working — renewal is optional." },
-  { q: "Is it compatible with Joomla 4, 5, and 6?", a: "Yes. JoomlaBoost supports Joomla 4.0 through 6.x with PHP 8.1, 8.2, and 8.3." },
+  { q: "Is it compatible with Joomla 4, 5, and 6?", a: "Yes. AI Boost for Joomla supports Joomla 4.0 through 6.x with PHP 8.1 through 8.5." },
   { q: "Is there a free trial?", a: "No free trial, but every purchase has a 30-day money-back guarantee. If it doesn't work, we refund you in full." },
   { q: "Can I upgrade my license later?", a: "Yes. Contact support@aiboostnow.com and we'll arrange an upgrade at the price difference." },
 ];
@@ -26,21 +42,12 @@ export function FullPage() {
 
       {/* NAV */}
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 64px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.07)", position: "sticky", top: 0, background: "rgba(15,23,42,0.95)", backdropFilter: "blur(12px)", zIndex: 100 }}>
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="160" height="40">
-            <defs><linearGradient id="fp_g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" /></linearGradient></defs>
-            <path d="M 8 12 Q 8 4, 16 4 L 56 4 Q 64 4, 64 12 L 64 44 Q 64 52, 56 52 L 32 52 L 24 64 L 24 52 L 16 52 Q 8 52, 8 44 Z" fill="url(#fp_g)" />
-            <path d="M 36 16 L 39 26 L 49 28 L 39 30 L 36 40 L 33 30 L 23 28 L 33 26 Z" fill="#0F172A" />
-            <circle cx="50" cy="18" r="2" fill="#0F172A" opacity="0.7" />
-            <text x="84" y="36" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="900" letterSpacing="-0.3" fill="#F1F5F9">AI Boost</text>
-            <text x="84" y="58" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="13" fontWeight="700" letterSpacing="3" fill="#22D3EE">N O W</text>
-          </svg>
-        </div>
+        <Logo />
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Docs</a>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get JoomlaBoost →</a>
+          <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "10px 20px", borderRadius: 8, textDecoration: "none" }}>Get AI Boost →</a>
         </div>
       </nav>
 
@@ -57,7 +64,7 @@ export function FullPage() {
           </span>
         </h1>
         <p style={{ fontSize: 20, color: "#94a3b8", lineHeight: 1.7, maxWidth: 640, margin: "0 auto 48px" }}>
-          JoomlaBoost generates Schema.org, XML sitemap, llms.txt, and AI crawler signals — so ChatGPT, Perplexity, and Google AI Overview recommend your site. Install in 5 minutes. No coding.
+          AI Boost for Joomla generates Schema.org, XML sitemap, llms.txt, and AI crawler signals — so ChatGPT, Perplexity, and Google AI Overview recommend your site. Install in 5 minutes. No coding.
         </p>
         <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 72 }}>
           <a style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", color: "#fff", fontSize: 17, fontWeight: 700, padding: "18px 36px", borderRadius: 12, textDecoration: "none", boxShadow: "0 4px 28px rgba(37,99,235,0.4)" }}>
@@ -151,7 +158,7 @@ export function FullPage() {
       </section>
 
       {/* BOTTOM CTA */}
-      <section style={{ padding: "96px 64px", textAlign: "center", background: "linear-gradient(180deg, #0F172A 0%, #0B1120 100%)" }}>
+      <section style={{ padding: "96px 64px", textAlign: "center" }}>
         <h2 style={{ fontSize: 52, fontWeight: 900, letterSpacing: "-2px", marginBottom: 20 }}>
           Ready to make your Joomla site<br />
           <span style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>visible to AI?</span>
@@ -169,17 +176,8 @@ export function FullPage() {
 
       {/* FOOTER */}
       <footer style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "40px 64px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="130" height="32">
-            <defs><linearGradient id="ft_g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" /></linearGradient></defs>
-            <path d="M 8 12 Q 8 4, 16 4 L 56 4 Q 64 4, 64 12 L 64 44 Q 64 52, 56 52 L 32 52 L 24 64 L 24 52 L 16 52 Q 8 52, 8 44 Z" fill="url(#ft_g)" />
-            <path d="M 36 16 L 39 26 L 49 28 L 39 30 L 36 40 L 33 30 L 23 28 L 33 26 Z" fill="#0F172A" />
-            <circle cx="50" cy="18" r="2" fill="#0F172A" opacity="0.7" />
-            <text x="84" y="36" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="900" letterSpacing="-0.3" fill="#F1F5F9">AI Boost</text>
-            <text x="84" y="58" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="13" fontWeight="700" letterSpacing="3" fill="#22D3EE">N O W</text>
-          </svg>
-        </div>
-        <div style={{ fontSize: 13, color: "#475569" }}>© 2026 AI Boost Now · support@aiboostnow.com</div>
+        <Logo size={0.8} />
+        <div style={{ fontSize: 13, color: "#475569" }}>© 2026 AI Boost · support@aiboostnow.com</div>
         <div style={{ display: "flex", gap: 24 }}>
           <a style={{ fontSize: 13, color: "#475569", textDecoration: "none" }}>Docs</a>
           <a style={{ fontSize: 13, color: "#475569", textDecoration: "none" }}>Privacy</a>
