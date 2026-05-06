@@ -2,10 +2,15 @@ export function HeroSection() {
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#0F172A", minHeight: "100vh", color: "#fff" }}>
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 48px", height: "72px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #2563EB, #06B6D4)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: 18 }}>J</div>
-          <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: "-0.5px" }}>JoomlaBoost</span>
-          <span style={{ fontSize: 12, color: "#64748b", marginLeft: 2 }}>by AI Boost Now</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="160" height="40">
+            <defs><linearGradient id="hn_g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#22D3EE" /><stop offset="100%" stopColor="#60A5FA" /></linearGradient></defs>
+            <path d="M 8 12 Q 8 4, 16 4 L 56 4 Q 64 4, 64 12 L 64 44 Q 64 52, 56 52 L 32 52 L 24 64 L 24 52 L 16 52 Q 8 52, 8 44 Z" fill="url(#hn_g)" />
+            <path d="M 36 16 L 39 26 L 49 28 L 39 30 L 36 40 L 33 30 L 23 28 L 33 26 Z" fill="#0F172A" />
+            <circle cx="50" cy="18" r="2" fill="#0F172A" opacity="0.7" />
+            <text x="84" y="36" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="22" fontWeight="900" letterSpacing="-0.3" fill="#F1F5F9">AI Boost</text>
+            <text x="84" y="58" fontFamily="'Inter','Segoe UI',sans-serif" fontSize="13" fontWeight="700" letterSpacing="3" fill="#22D3EE">N O W</text>
+          </svg>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
           <a style={{ color: "#94a3b8", fontSize: 14, fontWeight: 500, textDecoration: "none" }}>Features</a>
@@ -18,7 +23,7 @@ export function HeroSection() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "100px 48px 80px" }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 32 }}>
           <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#06B6D4", display: "inline-block" }} />
-          <span style={{ fontSize: 13, color: "#06B6D4", fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 / 8.2 / 8.3</span>
+          <span style={{ fontSize: 13, color: "#06B6D4", fontWeight: 600 }}>Joomla 4 · 5 · 6 — PHP 8.1 – 8.5</span>
         </div>
 
         <h1 style={{ fontSize: 68, fontWeight: 900, lineHeight: 1.05, letterSpacing: "-2px", marginBottom: 28, maxWidth: 780 }}>
