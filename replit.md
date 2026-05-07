@@ -31,15 +31,14 @@
 | **Website (aiboostnow.com)** | 🇬🇧 English ONLY | Serbian/other website versions: after English is fully done |
 | **Documentation** (user guide, getting started, API docs) | 🇬🇧 English ONLY | Translations: after English is fully done |
 | **Marketing materials** (JED, forum, Product Hunt, LinkedIn, email) | 🇬🇧 English ONLY | SR/other versions: after English is fully done |
-| **Plugin UI (`.ini` files)** | 🇬🇧 EN + all 10 others SIMULTANEOUSLY | Every new/changed string must be translated into all 11 languages immediately |
+| **Plugin UI (`.ini` files)** | 🇬🇧 English ONLY | Other 10 languages: after final English version is done |
 | **Our conversation** | 🇷🇸 Serbian | Only for communication between Bojan and agent |
 
-### Plugin Translation Rule (CRITICAL)
+### Plugin Translation Rule (UPDATED)
 
-Every task that adds or changes strings in plugin `.ini` files MUST:
-1. Define the constant in `en-GB` (primary)
-2. Immediately add the same constant with translation in all 10 other language packs: `de-DE`, `fr-FR`, `es-ES`, `it-IT`, `ru-RU`, `pt-BR`, `zh-CN`, `ar-AA`, `ja-JP`, `sr-RS`
-3. **No exceptions** — never leave "TODO: translate" for any constant
+Work only in `en-GB` until the final version of both plugin and website is complete.
+**Do NOT touch other language `.ini` files** until Bojan explicitly asks for translations.
+The 10 other language packs (`de-DE`, `fr-FR`, `es-ES`, `it-IT`, `ru-RU`, `pt-BR`, `zh-CN`, `ar-AA`, `ja-JP`, `sr-RS`) will be updated in a single dedicated translation task at the end.
 
 ---
 
