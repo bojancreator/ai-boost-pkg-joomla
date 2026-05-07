@@ -102,3 +102,9 @@ id = "cDS1fVoEXFhNPaV6EHqPh"
 uri = "file://.local/deliverables/plg_system_joomlaboost-0.24.0.zip"
 type = "unspecified"
 title = "JoomlaBoost v0.24.0 — kompletan ZIP"
+
+[[outputs]]
+id = "9t1CQDYlicQzZNcnOgpUX"
+uri = "file://.local/deliverables/docs/site-types-test-protocol.md"
+type = "text"
+title = "Site Types — Test Protocol (v0.25.0)"
