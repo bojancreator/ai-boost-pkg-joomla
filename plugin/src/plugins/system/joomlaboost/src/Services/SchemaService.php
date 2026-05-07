@@ -309,6 +309,7 @@ class SchemaService extends AbstractService
             if ($aggregateRating !== null) {
                 $schema['aggregateRating'] = $aggregateRating;
             }
+            $this->applyOpeningHoursToSchema($schema);
         } elseif ($schemaType === 'localbusiness') {
             // LocalBusiness schema with geo and address data
             $schema = [
@@ -332,9 +333,9 @@ class SchemaService extends AbstractService
                     'availableLanguage' => $this->getAvailableLanguageCodes()
                 ],
                 'priceRange' => $this->params->get('schema_price_range', '$$'),
-                'openingHours' => $this->params->get('schema_opening_hours', 'Mo-Su 09:00-18:00'),
                 'sameAs' => $this->getSocialMediaProfiles($baseUrl)
             ];
+            $this->applyOpeningHoursToSchema($schema);
 
             // Add geo coordinates if configured
             $latitude = $this->params->get('schema_latitude', '');
@@ -393,6 +394,199 @@ class SchemaService extends AbstractService
             if ($aggregateRating !== null) {
                 $schema['aggregateRating'] = $aggregateRating;
             }
+
+        } elseif ($schemaType === 'medical') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'MedicalClinic',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $specialty = trim((string) $this->params->get('schema_medical_specialty', ''));
+            if (!empty($specialty)) {
+                $schema['medicalSpecialty'] = $specialty;
+            }
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+            $aggregateRating = $this->buildAggregateRating();
+            if ($aggregateRating !== null) {
+                $schema['aggregateRating'] = $aggregateRating;
+            }
+
+        } elseif ($schemaType === 'lawyer') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'LegalService',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $legalArea = trim((string) $this->params->get('schema_legal_area', ''));
+            if (!empty($legalArea)) {
+                $schema['serviceType'] = $legalArea;
+            }
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+
+        } elseif ($schemaType === 'school') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'EducationalOrganization',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $eduLevel = trim((string) $this->params->get('schema_edu_level', ''));
+            if (!empty($eduLevel)) {
+                $schema['educationalLevel'] = $eduLevel;
+            }
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+
+        } elseif ($schemaType === 'gym') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'HealthClub',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'priceRange'  => $this->params->get('schema_price_range', '$$'),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+            $aggregateRating = $this->buildAggregateRating();
+            if ($aggregateRating !== null) {
+                $schema['aggregateRating'] = $aggregateRating;
+            }
+
+        } elseif ($schemaType === 'dentist') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'Dentist',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+            $aggregateRating = $this->buildAggregateRating();
+            if ($aggregateRating !== null) {
+                $schema['aggregateRating'] = $aggregateRating;
+            }
+
+        } elseif ($schemaType === 'realestate') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'RealEstateAgent',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+
+        } elseif ($schemaType === 'portfolio') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'Person',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $jobTitle = trim((string) $this->params->get('schema_job_title', ''));
+            if (!empty($jobTitle)) {
+                $schema['jobTitle'] = $jobTitle;
+            }
+            $portfolioUrl = trim((string) $this->params->get('schema_portfolio_url', ''));
+            if (!empty($portfolioUrl)) {
+                $schema['url'] = $portfolioUrl;
+            }
+            if (!empty($orgLogo)) {
+                $schema['image'] = $orgLogo;
+            }
+
+        } elseif ($schemaType === 'news') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'NewsMediaOrganization',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+
         } else {
             // Standard Organization schema for other sites
             $schema = [
@@ -417,6 +611,188 @@ class SchemaService extends AbstractService
         }
 
         return $schema;
+    }
+
+    /**
+     * Build a PostalAddress block from plugin settings.
+     *
+     * @return array<string, string>
+     */
+    private function buildAddressBlock(): array
+    {
+        return [
+            '@type'           => 'PostalAddress',
+            'addressCountry'  => $this->params->get('schema_address_country', ''),
+            'addressLocality' => $this->getLocalizedParam('schema_address_locality', ''),
+            'streetAddress'   => $this->getLocalizedParam('schema_address_street', ''),
+            'postalCode'      => $this->params->get('schema_address_zip', ''),
+        ];
+    }
+
+    /**
+     * Build a GeoCoordinates block from plugin settings, or null if not configured.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function buildGeoBlock(): ?array
+    {
+        $lat = trim((string) $this->params->get('schema_latitude', ''));
+        $lng = trim((string) $this->params->get('schema_longitude', ''));
+        if (empty($lat) || empty($lng)) {
+            return null;
+        }
+        return [
+            '@type'     => 'GeoCoordinates',
+            'latitude'  => (float) $lat,
+            'longitude' => (float) $lng,
+        ];
+    }
+
+    /**
+     * Build opening hours data based on current settings.
+     * Returns an array with 'type' key and relevant data.
+     *
+     * Modes:
+     *   'simple'      — plain openingHours string
+     *   'appointment' — "By Appointment"
+     *   'temp_closed' — business is temporarily closed
+     *   'advanced'    — openingHoursSpecification array (per-day, optionally seasonal)
+     *
+     * @return array<string, mixed>
+     */
+    private function buildOpeningHoursData(): array
+    {
+        $mode = $this->params->get('schema_hours_mode', 'simple');
+
+        if ($mode !== 'advanced') {
+            return [
+                'type'  => 'simple',
+                'value' => $this->params->get('schema_opening_hours', 'Mo-Su 09:00-18:00'),
+            ];
+        }
+
+        if ((bool) $this->params->get('schema_hours_temp_closed', 0)) {
+            return ['type' => 'temp_closed'];
+        }
+
+        if ((bool) $this->params->get('schema_hours_appointment_only', 0)) {
+            return ['type' => 'appointment'];
+        }
+
+        $days = [
+            'mon' => 'Monday',
+            'tue' => 'Tuesday',
+            'wed' => 'Wednesday',
+            'thu' => 'Thursday',
+            'fri' => 'Friday',
+            'sat' => 'Saturday',
+            'sun' => 'Sunday',
+        ];
+
+        // Group days with identical hours to minimize JSON-LD output
+        $groups = [];
+        foreach ($days as $abbr => $dayName) {
+            if ((bool) $this->params->get('schema_hours_' . $abbr . '_closed', 0)) {
+                continue;
+            }
+            $open  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open', ''));
+            $close = trim((string) $this->params->get('schema_hours_' . $abbr . '_close', ''));
+            if (empty($open) || empty($close)) {
+                continue;
+            }
+            $key = $open . '|' . $close;
+            if (!isset($groups[$key])) {
+                $groups[$key] = ['dayOfWeek' => [], 'opens' => $open, 'closes' => $close];
+            }
+            $groups[$key]['dayOfWeek'][] = 'https://schema.org/' . $dayName;
+        }
+
+        // Read optional seasonal validity dates (MM-DD format, e.g. 06-01)
+        $seasonFrom = trim((string) $this->params->get('schema_season_from', ''));
+        $seasonTo   = trim((string) $this->params->get('schema_season_to', ''));
+
+        $specs = [];
+        foreach ($groups as $group) {
+            $spec = [
+                '@type'     => 'OpeningHoursSpecification',
+                'dayOfWeek' => $group['dayOfWeek'],
+                'opens'     => $group['opens'],
+                'closes'    => $group['closes'],
+            ];
+            if (!empty($seasonFrom) && !empty($seasonTo)) {
+                $spec['validFrom']    = '--' . $seasonFrom;
+                $spec['validThrough'] = '--' . $seasonTo;
+            }
+            $specs[] = $spec;
+        }
+
+        return ['type' => 'advanced', 'specs' => $specs];
+    }
+
+    /**
+     * Build specialOpeningHoursSpecification from holiday closure dates.
+     * Format: one YYYY-MM-DD date per line in schema_holiday_closed param.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function buildSpecialOpeningHours(): array
+    {
+        $raw = trim((string) $this->params->get('schema_holiday_closed', ''));
+        if (empty($raw)) {
+            return [];
+        }
+
+        $specs = [];
+        foreach (array_filter(array_map('trim', explode("\n", $raw))) as $date) {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                continue;
+            }
+            $specs[] = [
+                '@type'        => 'OpeningHoursSpecification',
+                'opens'        => '00:00',
+                'closes'       => '00:00',
+                'validFrom'    => $date,
+                'validThrough' => $date,
+            ];
+        }
+
+        return $specs;
+    }
+
+    /**
+     * Apply opening hours data to a schema array in-place.
+     * Handles simple text, advanced per-day specs, appointment-only, and temp-closed modes.
+     *
+     * @param array<string, mixed> $schema         Schema array to mutate
+     * @param bool                 $includeSpecial Whether to include holiday closures
+     */
+    private function applyOpeningHoursToSchema(array &$schema, bool $includeSpecial = true): void
+    {
+        $data = $this->buildOpeningHoursData();
+
+        switch ($data['type']) {
+            case 'simple':
+                $schema['openingHours'] = $data['value'];
+                break;
+            case 'appointment':
+                $schema['openingHours'] = 'By Appointment';
+                break;
+            case 'temp_closed':
+                $schema['temporarilyClosed'] = true;
+                break;
+            case 'advanced':
+                if (!empty($data['specs'])) {
+                    $schema['openingHoursSpecification'] = $data['specs'];
+                }
+                break;
+        }
+
+        if ($includeSpecial) {
+            $special = $this->buildSpecialOpeningHours();
+            if (!empty($special)) {
+                $schema['specialOpeningHoursSpecification'] = $special;
+            }
+        }
     }
 
     /**

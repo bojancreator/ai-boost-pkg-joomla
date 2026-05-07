@@ -115,6 +115,7 @@ src/...
 | #8 | Pricing strategy (Starter €59 / Developer €119 / Agency €199) + Gumroad setup guide |
 | #17 | License key field in plugin admin (LicenseKeyField.php, all 11 lang files) |
 | #CI | GitHub Actions CI/CD pipeline → aiboostnow.com (deploy kao neimar, sudo rsync) |
+| #30 | 8 novih Site Type presets + napredno radno vrijeme (v0.24.0) — MedicalClinic, LegalService, EducationalOrganization, HealthClub, Dentist, RealEstateAgent, Person, NewsMediaOrganization |
 
 ## Pending / Proposed Tasks
 
