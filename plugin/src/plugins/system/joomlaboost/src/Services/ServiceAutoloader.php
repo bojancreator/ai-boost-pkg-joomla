@@ -81,6 +81,21 @@ class ServiceAutoloader
     {
         $servicesPrefix = 'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\';
         $enumsPrefix    = 'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Enums\\';
+        $fieldPrefix    = 'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Field\\';
+
+        // Handle Field namespace — load from src/Field/ relative to Services dir
+        if (strpos($className, $fieldPrefix) === 0) {
+            $relativeClass = substr($className, strlen($fieldPrefix));
+            $fieldDir      = dirname(self::$baseDir) . DIRECTORY_SEPARATOR . 'Field' . DIRECTORY_SEPARATOR;
+            $file          = $fieldDir . $relativeClass . '.php';
+
+            if (file_exists($file)) {
+                require_once $file;
+                return true;
+            }
+
+            return false;
+        }
 
         // Handle Services namespace
         if (strpos($className, $servicesPrefix) === 0) {
