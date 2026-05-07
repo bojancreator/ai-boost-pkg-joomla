@@ -1,6 +1,6 @@
 # Troubleshooting — Common Issues & Solutions
 
-This page covers the most frequently reported issues with JoomlaBoost and their solutions.
+This page covers the most frequently reported issues with AI Boost for Joomla and their solutions.
 
 ---
 
@@ -15,14 +15,14 @@ This page covers the most frequently reported issues with JoomlaBoost and their 
 1. **Static file conflict** — A physical `sitemap.xml` file in your Joomla root takes precedence.  
    *Fix:* Log in via FTP or your hosting File Manager. Check if `sitemap.xml` exists in the root directory. If yes, delete or rename it.
 
-2. **SEF URLs not enabled** — JoomlaBoost uses Joomla's routing to serve the sitemap.  
+2. **SEF URLs not enabled** — AI Boost for Joomla uses Joomla's routing to serve the sitemap.  
    *Fix:* Go to **System → Global Configuration → Site → Search Engine Friendly URLs** and set it to **Yes**.
 
 3. **Plugin not enabled** — The plugin is installed but not active.  
-   *Fix:* Go to **System → Manage → Plugins** → search `JoomlaBoost` → enable it (green circle).
+   *Fix:* Go to **System → Manage → Plugins** → search `AI Boost for Joomla` → enable it (green circle).
 
 4. **Plugin order conflict** — Another system plugin handles the same URL first.  
-   *Fix:* In the Plugins list, set JoomlaBoost's ordering to a lower number (earlier execution).
+   *Fix:* In the Plugins list, set AI Boost for Joomla's ordering to a lower number (earlier execution).
 
 ---
 
@@ -50,13 +50,13 @@ This page covers the most frequently reported issues with JoomlaBoost and their 
 
 ### robots.txt still shows the default Joomla content
 
-**Cause:** A physical `robots.txt` file in the Joomla root overrides JoomlaBoost's dynamic version. Joomla creates this file by default.
+**Cause:** A physical `robots.txt` file in the Joomla root overrides AI Boost for Joomla's dynamic version. Joomla creates this file by default.
 
 **Fix:**
 1. Connect via FTP or your hosting File Manager.
 2. Navigate to your Joomla root directory.
 3. Delete or rename `robots.txt`.
-4. Visit `yoursite.com/robots.txt` — JoomlaBoost's version now serves.
+4. Visit `yoursite.com/robots.txt` — AI Boost for Joomla's version now serves.
 
 ---
 
@@ -65,9 +65,9 @@ This page covers the most frequently reported issues with JoomlaBoost and their 
 ### Schema.org JSON-LD is not appearing in page source
 
 **Diagnosis steps:**
-1. Open JoomlaBoost settings → **Schema.org tab** → confirm **Enable Schema Markup = Yes**.
+1. Open AI Boost for Joomla settings → **Schema.org tab** → confirm **Enable Schema Markup = Yes**.
 2. Enable **Debug Mode** and **HTML Wrap Markers** in the **Debug tab** → Save.
-3. Visit the affected page → View Page Source → search for `JoomlaBoost`.
+3. Visit the affected page → View Page Source → search for `AI Boost for Joomla`.
 4. If marked blocks appear with empty content, check the Organization Name is filled in.
 5. If no blocks appear at all, a conflicting plugin may be stripping `<script>` tags.
 
@@ -121,16 +121,16 @@ This page covers the most frequently reported issues with JoomlaBoost and their 
 
 ---
 
-### Duplicate OpenGraph tags (from JoomlaBoost and another plugin)
+### Duplicate OpenGraph tags (from AI Boost for Joomla and another plugin)
 
 **Cause:** Another SEO or template plugin is also generating `og:` meta tags.
 
 **Fix:**
 1. Identify the other plugin (Sh404SEF, YooSEO, Helix template SEO settings, etc.)
 2. Disable the OpenGraph feature in that plugin (not the plugin itself)
-3. Let JoomlaBoost be the sole OG generator
+3. Let AI Boost for Joomla be the sole OG generator
 
-JoomlaBoost deduplicates its own output but cannot remove tags added by other plugins.
+AI Boost for Joomla deduplicates its own output but cannot remove tags added by other plugins.
 
 ---
 
@@ -152,11 +152,11 @@ JoomlaBoost deduplicates its own output but cannot remove tags added by other pl
 
 ### Duplicate GA4 tracking (double-counting pageviews)
 
-**Cause:** GA4 is configured both in JoomlaBoost AND in another location (YooTheme Customizer, GTM, or another plugin).
+**Cause:** GA4 is configured both in AI Boost for Joomla AND in another location (YooTheme Customizer, GTM, or another plugin).
 
 **Fix:**
-- If using GTM: set **GA4 Consent Mode** in JoomlaBoost to **Via GTM** and leave the Measurement ID empty. Configure GA4 only inside your GTM container.
-- If using YooTheme's Customizer GA4: disable it in YooTheme and use JoomlaBoost instead (or vice versa).
+- If using GTM: set **GA4 Consent Mode** in AI Boost for Joomla to **Via GTM** and leave the Measurement ID empty. Configure GA4 only inside your GTM container.
+- If using YooTheme's Customizer GA4: disable it in YooTheme and use AI Boost for Joomla instead (or vice versa).
 
 ---
 
@@ -198,7 +198,7 @@ IndexNow requires a Developer or Agency license. Verify your license tier is sho
 1. Go to **System → Manage → Languages**.
 2. Ensure at least 2 languages are **Published** (green status).
 3. Clear Joomla cache: **System → Clear Cache → All**.
-4. Reopen JoomlaBoost settings — language fields should now appear per language.
+4. Reopen AI Boost for Joomla settings — language fields should now appear per language.
 
 ---
 
@@ -229,7 +229,7 @@ If your issue is not listed here:
 | Response time | 1–3 business days |
 
 When contacting support, include:
-- JoomlaBoost version (visible in Plugin tab)
+- AI Boost for Joomla version (visible in Plugin tab)
 - Joomla version (`yoursite.com/administrator` → bottom right corner)
 - PHP version (System → System Information)
 - Description of the issue and steps to reproduce
@@ -238,4 +238,4 @@ When contacting support, include:
 
 *← [Multilingual Sites](multilingual.md) | [Documentation Index](index.md) | [Compatibility Matrix →](compatibility.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla v0.24.0 — © 2025–2026 AI Boost Now.*

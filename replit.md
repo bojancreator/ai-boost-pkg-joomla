@@ -1,4 +1,4 @@
-# Workspace — AI Boost Now / JoomlaBoost
+# Workspace — AI Boost for Joomla
 
 ## Project Overview
 
@@ -42,24 +42,48 @@ The 10 other language packs (`de-DE`, `fr-FR`, `es-ES`, `it-IT`, `ru-RU`, `pt-BR
 
 ---
 
+## GitHub Repositories
+
+| Repo | Visibility | Purpose |
+|------|-----------|---------|
+| `bojancreator/aiboost-joomla` | 🔒 Private | Plugin source code (AI Boost for Joomla) |
+| `bojancreator/aiboostnow` | 🌐 Public | Marketing website CI/CD (aiboostnow.com) |
+
+**Note on plugin slug:** Internal Joomla slug remains `plg_system_joomlaboost` permanently — changing it would break existing installations. The display name "AI Boost for Joomla" is what users see.
+
+---
+
 ## Plugin Architecture
 
 - **Type:** Joomla System Plugin (group: system)
 - **Entry point:** `joomlaboost.php` — extends `CMSPlugin`, loads services via autoloader
-- **Services:** `src/Services/` — 20 PHP classes (SchemaService, OpenGraphService, SitemapService, RobotService, LlmsTxtService, IndexNowService, AnalyticsService, MetaPixelService, HreflangService, VerticalPresetService, SettingsPersistenceService, PerformanceService, TranslationService, LanguageService, CustomFieldsService, DomainDetectionService, HealthService, InjectionService, ServiceContainer, ServiceAutoloader, ServiceManager, QAManagementService...)
+- **Services:** `src/Services/` — PHP classes: SchemaService, OpenGraphService, SitemapService, RobotService, LlmsTxtService, IndexNowService, AnalyticsService, MetaPixelService, HreflangService, VerticalPresetService, SettingsPersistenceService, PerformanceService, TranslationService, LanguageService, CustomFieldsService, DomainDetectionService, HealthService, InjectionService, ServiceContainer, ServiceAutoloader, ServiceManager, QAManagementService
 - **Custom Fields:** `src/Field/` — MultiLangTextField, MultiLangTextarea, MultiLangFaqField, MultiLangParamsTextField, MultiLangParamsTextarea, IndexNowKeyField, LicenseKeyField
 - **Media:** `media/` — admin.css, multilang-fields.css, js/multilang-selector.js, js/indexnow-generator.js
 - **SQL:** `sql/install.sql`, `sql/uninstall.sql`
 - **Installer:** `script.php`
 
 ### Plugin Tabs (7)
-1. **Plugin** — Quick Setup, Vertical Presets, Domain, robots.txt, License Key
+1. **Plugin** — Quick Setup, Vertical Presets (13 presets), Domain, robots.txt, License Key
 2. **Organization** — Identity, Contact, Social links, Location (multilingual fields)
-3. **Schema.org** — Structured data types, Hotel fields, FAQ auto-detect, Manual FAQ, Events
+3. **Schema.org** — 13 schema types, Hotel fields, FAQ auto-detect, Manual FAQ, Events, Advanced Opening Hours
 4. **Sitemap** — XML sitemap, hreflang, article/category/menu include options
 5. **Social & Meta** — OpenGraph, Twitter Cards, per-article overrides
 6. **Analytics** — GA4, GTM, GSC verification, Meta Pixel, IndexNow, llms.txt
 7. **Debug** — Flash messages, HTML markers, staging mode
+
+### 13 Site Type Presets (v0.24.0)
+`generic`, `hotel`, `restaurant`, `blog`, `ecommerce`, `medical`, `lawyer`, `school`, `gym`, `dentist`, `realestate`, `portfolio`, `news`
+
+### 8 Schema.org Types Added in v0.24.0
+`MedicalClinic`, `LegalService`, `EducationalOrganization`, `HealthClub`, `Dentist`, `RealEstateAgent`, `Person`, `NewsMediaOrganization`
+
+### Advanced Opening Hours System (v0.24.0)
+- Simple mode (single string) or Advanced mode (per-day)
+- Per-day: 2 time slots (split shift / lunch break), closed toggle
+- Seasonal validity (`validFrom` / `validThrough`)
+- Holiday closures (`specialOpeningHoursSpecification`)
+- Appointment-only mode, temporary-closed mode
 
 ### 11 Language Packs
 `en-GB` (primary), `sr-RS`, `de-DE`, `es-ES`, `fr-FR`, `it-IT`, `ru-RU`, `pt-BR`, `zh-CN`, `ar-AA`, `ja-JP`
@@ -72,7 +96,7 @@ Always build from the workspace source — never from a partial extracted state:
 
 ```bash
 python3 scripts/build-plugin-zip.py
-# Output: .local/deliverables/plg_system_joomlaboost-{version}.zip
+# Output: .local/deliverables/plugin/plg_system_joomlaboost-{version}.zip
 ```
 
 **ZIP structure** (flat, no subfolder — Joomla requires this):
@@ -90,7 +114,7 @@ src/...
 
 ## CI/CD Pipeline — aiboostnow.com
 
-**Repo:** `bojancreator/aiboostnow` (GitHub)  
+**Repo:** `bojancreator/aiboostnow` (GitHub, public)  
 **Trigger:** push to `main` → auto-deploy  
 **Workflow:** `.github/workflows/deploy.yml`  
 **Flow:** pnpm build → rsync (sudo) → chown lazarenet  
@@ -98,7 +122,8 @@ src/...
 **Deploy path:** `/home/lazarenet/public_html/aiboostnow/`  
 **Keys:** `.local/deploy-keys/deploy_key` (private), `.local/deploy-keys/deploy_key.pub` (public, in neimar's authorized_keys)  
 **GitHub Secrets:** `SSH_HOST`, `SSH_USER=neimar`, `SSH_DEPLOY_PATH`, `SSH_PRIVATE_KEY`  
-**Gotcha:** rsync runs via `sudo rsync` — neimar mora imati passwordless sudo za rsync. Sudoers entry: `/etc/sudoers.d/neimar-rsync`
+**Gotcha:** rsync runs via `sudo rsync` — neimar mora imati passwordless sudo za rsync. Sudoers entry: `/etc/sudoers.d/neimar-rsync`  
+**Security:** deploy.yml uses only `${{ secrets.* }}` — no hardcoded IPs, passwords, or SSH keys in public repo ✅
 
 ---
 
@@ -108,30 +133,35 @@ src/...
 |------|------|
 | #1 | Technical analysis and spec |
 | #2 | Plugin refactor + new AEO features |
-| #3 | Brand name decision → JoomlaBoost / AI Boost Now |
+| #3 | Brand name decision → AI Boost / AI Boost for Joomla (retired: JoomlaBoost) |
 | #5 | i18n — 11 languages, 319 constants, 22 INI files |
 | #6 | EN user documentation (17 sections), Getting Started PDF |
 | #7 | JED listing, forum posts, Product Hunt, marketplace materials |
 | #8 | Pricing strategy (Starter €59 / Developer €119 / Agency €199) + Gumroad setup guide |
 | #17 | License key field in plugin admin (LicenseKeyField.php, all 11 lang files) |
-| #CI | GitHub Actions CI/CD pipeline → aiboostnow.com (deploy kao neimar, sudo rsync) |
-| #30 | 8 novih Site Type presets + napredno radno vrijeme (v0.24.0) — MedicalClinic, LegalService, EducationalOrganization, HealthClub, Dentist, RealEstateAgent, Person, NewsMediaOrganization |
+| #CI | GitHub Actions CI/CD pipeline → aiboostnow.com (deploy as neimar, sudo rsync) |
+| #30 | 8 new Site Type presets + Advanced Opening Hours system (v0.24.0) |
+| #34 | GitHub repo rename: JoomlaBoost → aiboost-joomla; updated descriptions; security scan ✅ |
 
-## Pending / Proposed Tasks
+## Active / Proposed Tasks
 
 | Task | What | Status |
 |------|------|--------|
-| #9 | Logo & visual identity | PENDING |
-| #10 | Marketing website (aiboostnow.com) | PENDING |
-| #11 | Machine translation review (10 languages) | PENDING |
-| #12 | Serbian user guide | PENDING |
-| #13 | Styled PDFs for all docs | PENDING |
-| #14 | Docs section on marketing website | PENDING |
-| #15 | LinkedIn + email campaign copy | PROPOSED |
-| #16 | AEO lead magnet PDF "Joomla AI Search Checklist 2026" | PROPOSED |
-| #18 | Pricing page on marketing website | PROPOSED |
-| #19 | Server-side Gumroad license validation | PROPOSED |
-| #20 | Feature gating by license tier | PROPOSED |
+| #35 | Project files cleanup + master plan update | Active |
+| #31 | Test all 13 Site Types on live Joomla instance | Proposed |
+| #32 | Show 13 Site Types on marketing website | Proposed |
+| #33 | Pro feature gating for new Site Types + Advanced Hours | Proposed |
+| #9 | Logo & visual identity | Pending |
+| #10 | Marketing website (aiboostnow.com) | Pending |
+| #11 | Machine translation review (10 languages) | Pending |
+| #12 | Serbian user guide | Pending |
+| #13 | Styled PDFs for all docs | Pending |
+| #14 | Docs section on marketing website | Pending |
+| #15 | LinkedIn + email campaign copy | Proposed |
+| #16 | AEO lead magnet PDF | Proposed |
+| #18 | Pricing page on marketing website | Proposed |
+| #19 | Server-side Gumroad license validation | Proposed |
+| #20 | Feature gating by license tier | Proposed |
 
 ---
 
@@ -153,16 +183,17 @@ src/...
 
 | File | What |
 |------|------|
-| `.local/deliverables/plg_system_joomlaboost-0.24.0.zip` | Latest installable plugin ZIP |
+| `.local/deliverables/plugin/plg_system_joomlaboost-0.24.0.zip` | Latest installable plugin ZIP |
 | `.local/deliverables/docs/joomlaboost-user-guide.md` | EN user guide (17 sections) |
-| `.local/deliverables/docs/getting-started-en.md` | EN getting started guide |
+| `.local/deliverables/docs/joomlaboost-getting-started.md` | EN getting started guide |
+| `.local/deliverables/docs/JoomlaBoost-GettingStarted-Guide.pdf` | Getting started PDF |
 | `.local/deliverables/marketplace/JED-listing.md` | JED listing copy (EN) |
 | `.local/deliverables/marketplace/forum-posts.md` | Forum & Facebook posts (EN + SR) |
 | `.local/deliverables/marketplace/product-hunt.md` | Product Hunt listing (EN) |
 | `.local/deliverables/pricing/pricing-strategy.md` | Pricing strategy & Gumroad comparison |
 | `.local/deliverables/pricing/pricing-page-content.md` | Pricing page copy (EN, ready to implement) |
 | `.local/deliverables/pricing/gumroad-setup-guide.md` | Step-by-step Gumroad setup |
-| `.local/deliverables/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision |
+| `.local/deliverables/brand/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision history |
 
 ---
 
