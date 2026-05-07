@@ -46,6 +46,13 @@ def build_zip(version: str) -> Path:
     return zip_path
 
 
+def prune_old_zips(keep: Path) -> None:
+    for old_zip in OUTPUT_DIR.glob("plg_system_joomlaboost-*.zip"):
+        if old_zip != keep:
+            old_zip.unlink()
+            print(f"Removed old ZIP: {old_zip.name}")
+
+
 def main() -> None:
     if not PLUGIN_SRC.exists():
         print(f"ERROR: Plugin source not found: {PLUGIN_SRC}", file=sys.stderr)
@@ -55,6 +62,7 @@ def main() -> None:
     print(f"Building AI Boost for Joomla v{version}...")
 
     zip_path = build_zip(version)
+    prune_old_zips(keep=zip_path)
     size_kb = zip_path.stat().st_size // 1024
 
     print(f"Done: {zip_path.relative_to(WORKSPACE_ROOT)}  ({size_kb} KB)")
