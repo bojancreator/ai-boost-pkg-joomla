@@ -164,25 +164,28 @@ src/...
 | Renewals | 50% of original/year | Optional — plugin works without renewal |
 
 **Payment processor:** Gumroad (Merchant of Record, handles EU VAT automatically)  
-**Setup guide:** `.local/deliverables/pricing/gumroad-setup-guide.md`
+**Setup guide:** `deliverables/pricing/gumroad-setup-guide.md`
 
 ---
 
 ## Key Deliverable Locations
 
+Svi deliverables su u vidljivom folderu `deliverables/` u root-u projekta (gitignored).
+
 | File | What |
 |------|------|
-| `.local/deliverables/plugin/plg_system_joomlaboost-0.25.1.zip` | Latest installable plugin ZIP |
-| `.local/deliverables/docs/joomlaboost-user-guide.md` | EN user guide (17 sections) |
-| `.local/deliverables/docs/joomlaboost-getting-started.md` | EN getting started guide |
-| `.local/deliverables/docs/JoomlaBoost-GettingStarted-Guide.pdf` | Getting started PDF |
-| `.local/deliverables/marketplace/JED-listing.md` | JED listing copy (EN) |
-| `.local/deliverables/marketplace/forum-posts.md` | Forum & Facebook posts (EN + SR) |
-| `.local/deliverables/marketplace/product-hunt.md` | Product Hunt listing (EN) |
-| `.local/deliverables/pricing/pricing-strategy.md` | Pricing strategy & Gumroad comparison |
-| `.local/deliverables/pricing/pricing-page-content.md` | Pricing page copy (EN, ready to implement) |
-| `.local/deliverables/pricing/gumroad-setup-guide.md` | Step-by-step Gumroad setup |
-| `.local/deliverables/brand/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision history |
+| `deliverables/plugin/plg_system_joomlaboost-0.25.1.zip` | Latest installable plugin ZIP |
+| `deliverables/docs/joomlaboost-user-guide.md` | EN user guide (17 sections) |
+| `deliverables/docs/joomlaboost-getting-started.md` | EN getting started guide |
+| `deliverables/docs/JoomlaBoost-GettingStarted-Guide.pdf` | Getting started PDF |
+| `deliverables/docs/site-types-test-report.md` | Live test report — 13/13 ✅ |
+| `deliverables/marketplace/JED-listing.md` | JED listing copy (EN) |
+| `deliverables/marketplace/forum-posts.md` | Forum & Facebook posts (EN + SR) |
+| `deliverables/marketplace/product-hunt.md` | Product Hunt listing (EN) |
+| `deliverables/pricing/pricing-strategy.md` | Pricing strategy & Gumroad comparison |
+| `deliverables/pricing/pricing-page-content.md` | Pricing page copy (EN, ready to implement) |
+| `deliverables/pricing/gumroad-setup-guide.md` | Step-by-step Gumroad setup |
+| `deliverables/brand/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision history |
 
 ---
 

@@ -6,7 +6,7 @@ Usage:
     python3 scripts/build-plugin-zip.py
 
 Output:
-    .local/deliverables/plugin/plg_system_joomlaboost-{version}.zip
+    deliverables/plugin/plg_system_joomlaboost-{version}.zip
 
 ZIP structure is flat (no subfolder) as required by Joomla installer.
 """
@@ -19,7 +19,7 @@ from pathlib import Path
 
 WORKSPACE_ROOT = Path(__file__).parent.parent
 PLUGIN_SRC = WORKSPACE_ROOT / "plugin" / "src" / "plugins" / "system" / "joomlaboost"
-OUTPUT_DIR = WORKSPACE_ROOT / ".local" / "deliverables" / "plugin"
+OUTPUT_DIR = WORKSPACE_ROOT / "deliverables" / "plugin"
 MANIFEST = PLUGIN_SRC / "joomlaboost.xml"
 
 

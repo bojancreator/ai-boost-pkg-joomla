@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Deliverables (ZIP-ovi, PDF-ovi, marketing materijali — ne idu u git)
+/deliverables/
