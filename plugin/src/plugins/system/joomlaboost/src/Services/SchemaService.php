@@ -603,6 +603,60 @@ class SchemaService extends AbstractService
                 $schema['image'] = $orgLogo;
             }
 
+        } elseif ($schemaType === 'restaurant') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'Restaurant',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'priceRange'  => $this->params->get('schema_price_range', '$$'),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+            $aggregateRating = $this->buildAggregateRating();
+            if ($aggregateRating !== null) {
+                $schema['aggregateRating'] = $aggregateRating;
+            }
+
+        } elseif ($schemaType === 'ecommerce') {
+            $schema = [
+                '@context'    => 'https://schema.org',
+                '@type'       => 'Store',
+                'name'        => $orgName,
+                'url'         => $baseUrl,
+                'description' => $orgDescription,
+                'address'     => $this->buildAddressBlock(),
+                'telephone'   => $this->params->get('schema_phone', ''),
+                'email'       => $this->params->get('schema_email', ''),
+                'priceRange'  => $this->params->get('schema_price_range', '$$'),
+                'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
+            ];
+            $geo = $this->buildGeoBlock();
+            if ($geo !== null) {
+                $schema['geo'] = $geo;
+            }
+            if (!empty($orgLogo)) {
+                $schema['logo']  = $orgLogo;
+                $schema['image'] = $orgLogo;
+            }
+            $this->applyOpeningHoursToSchema($schema);
+            $aggregateRating = $this->buildAggregateRating();
+            if ($aggregateRating !== null) {
+                $schema['aggregateRating'] = $aggregateRating;
+            }
+
         } elseif ($schemaType === 'news') {
             $schema = [
                 '@context'    => 'https://schema.org',

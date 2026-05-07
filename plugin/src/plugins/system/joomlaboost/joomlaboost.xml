@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@joomlaboost.com</authorEmail>
   <authorUrl>https://joomlaboost.com</authorUrl>
-  <version>0.25.0</version>
+  <version>0.25.1</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -183,6 +183,8 @@
           <option value="organization">Organization (generic)</option>
           <option value="localbusiness">LocalBusiness (physical location)</option>
           <option value="hotel">Hotel / LodgingBusiness</option>
+          <option value="restaurant">Restaurant / Cafe</option>
+          <option value="ecommerce">Store / E-commerce</option>
           <option value="medical">MedicalClinic / Healthcare</option>
           <option value="lawyer">LegalService / Law Firm</option>
           <option value="school">EducationalOrganization</option>
@@ -210,8 +212,8 @@
         </field>
 
         <!-- ── LOCALBUSINESS / HOTEL / GYM SERVICE DETAILS ─────────────────── -->
-        <field name="separator_business" type="spacer" label="Business Details" class="text-info" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,gym" />
-        <field name="schema_price_range" type="list" label="Price Range" description="Price range indicator for services" default="$$" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,gym">
+        <field name="separator_business" type="spacer" label="Business Details" class="text-info" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,gym" />
+        <field name="schema_price_range" type="list" label="Price Range" description="Price range indicator for services" default="$$" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,gym">
           <option value="$">$ (Budget)</option>
           <option value="$$">$$ (Moderate)</option>
           <option value="$$$">$$$ (Expensive)</option>
@@ -264,22 +266,22 @@
         <field name="schema_news_principles" type="url" label="Publishing Principles URL" description="URL to your editorial standards, ethics policy, or about page. Used in publishingPrinciples Schema.org field — signals editorial transparency to AI engines and Google News." default="" hint="https://yoursite.com/about" showon="enable_schema:1[AND]schema_type:news" />
 
         <!-- ── OPENING HOURS MODE ────────────────────────────────────────────── -->
-        <field name="separator_hours" type="spacer" label="Opening Hours" class="text-warning" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate" />
-        <field name="schema_hours_mode" type="radio" label="Opening Hours Mode" description="Simple: enter a plain text string (e.g. Mo-Fr 09:00-17:00). Advanced: configure day-by-day schedule, seasonal hours, and holiday closures — generates proper openingHoursSpecification Schema.org markup." default="simple" class="btn-group" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate">
+        <field name="separator_hours" type="spacer" label="Opening Hours" class="text-warning" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,medical,lawyer,school,gym,dentist,realestate" />
+        <field name="schema_hours_mode" type="radio" label="Opening Hours Mode" description="Simple: enter a plain text string (e.g. Mo-Fr 09:00-17:00). Advanced: configure day-by-day schedule, seasonal hours, and holiday closures — generates proper openingHoursSpecification Schema.org markup." default="simple" class="btn-group" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,medical,lawyer,school,gym,dentist,realestate">
           <option value="simple">Simple</option>
           <option value="advanced">Advanced (day-by-day)</option>
         </field>
 
         <!-- Simple mode: plain text field -->
-        <field name="schema_opening_hours" type="text" label="Opening Hours" description="Business opening hours in Schema.org format. Examples: Mo-Fr 09:00-17:00 | Mo-Su 00:00-24:00 (24/7) | Mo 08:00-12:00, Tu-Fr 08:00-16:00" default="Mo-Su 09:00-18:00" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:simple" hint="Mo-Fr 09:00-17:00" />
+        <field name="schema_opening_hours" type="text" label="Opening Hours" description="Business opening hours in Schema.org format. Examples: Mo-Fr 09:00-17:00 | Mo-Su 00:00-24:00 (24/7) | Mo 08:00-12:00, Tu-Fr 08:00-16:00" default="Mo-Su 09:00-18:00" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:simple" hint="Mo-Fr 09:00-17:00" />
 
         <!-- Advanced mode: per-day schedule -->
-        <field name="separator_adv_hours" type="spacer" label="Advanced Schedule" class="text-info" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:advanced" />
-        <field name="schema_hours_appointment_only" type="radio" label="By Appointment Only" description="Mark as appointment-only — outputs openingHours: By Appointment in Schema.org. Hides day-by-day schedule below." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:advanced">
+        <field name="separator_adv_hours" type="spacer" label="Advanced Schedule" class="text-info" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:advanced" />
+        <field name="schema_hours_appointment_only" type="radio" label="By Appointment Only" description="Mark as appointment-only — outputs openingHours: By Appointment in Schema.org. Hides day-by-day schedule below." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:advanced">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_temp_closed" type="radio" label="Temporarily Closed" description="Mark business as temporarily closed — outputs temporarilyClosed: true. Removes all opening hours from Schema." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:advanced">
+        <field name="schema_hours_temp_closed" type="radio" label="Temporarily Closed" description="Mark business as temporarily closed — outputs temporarilyClosed: true. Removes all opening hours from Schema." default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,restaurant,ecommerce,medical,lawyer,school,gym,dentist,realestate[AND]schema_hours_mode:advanced">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>

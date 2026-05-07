@@ -159,7 +159,7 @@ class VerticalPresetService extends AbstractService
 
             case self::PRESET_RESTAURANT:
                 return array_merge($common, [
-                    'schema_type'        => 'localbusiness',
+                    'schema_type'        => 'restaurant',
                     'schema_price_range' => '$$',
                     'schema_hours_mode'  => 'simple',
                     'schema_opening_hours' => 'Mo-Su 11:00-23:00',
@@ -184,7 +184,7 @@ class VerticalPresetService extends AbstractService
 
             case self::PRESET_ECOMMERCE:
                 return array_merge($common, [
-                    'schema_type'                  => 'organization',
+                    'schema_type'                  => 'ecommerce',
                     'sitemap_priority_articles'    => '0.8',
                     'sitemap_priority_categories'  => '0.9',
                     'sitemap_priority_menu'        => '0.7',
