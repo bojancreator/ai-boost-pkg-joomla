@@ -96,7 +96,7 @@ Always build from the workspace source — never from a partial extracted state:
 
 ```bash
 python3 scripts/build-plugin-zip.py
-# Output: .local/deliverables/plugin/plg_system_joomlaboost-{version}.zip
+# Output: .local/deliverables/plg_system_joomlaboost-{version}.zip
 ```
 
 **ZIP structure** (flat, no subfolder — Joomla requires this):
@@ -183,7 +183,7 @@ src/...
 
 | File | What |
 |------|------|
-| `.local/deliverables/plugin/plg_system_joomlaboost-0.24.0.zip` | Latest installable plugin ZIP |
+| `.local/deliverables/plg_system_joomlaboost-0.24.0.zip` | Latest installable plugin ZIP |
 | `.local/deliverables/docs/joomlaboost-user-guide.md` | EN user guide (17 sections) |
 | `.local/deliverables/docs/joomlaboost-getting-started.md` | EN getting started guide |
 | `.local/deliverables/docs/JoomlaBoost-GettingStarted-Guide.pdf` | Getting started PDF |
@@ -193,7 +193,7 @@ src/...
 | `.local/deliverables/pricing/pricing-strategy.md` | Pricing strategy & Gumroad comparison |
 | `.local/deliverables/pricing/pricing-page-content.md` | Pricing page copy (EN, ready to implement) |
 | `.local/deliverables/pricing/gumroad-setup-guide.md` | Step-by-step Gumroad setup |
-| `.local/deliverables/brand/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision history |
+| `.local/deliverables/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision history |
 
 ---
 
