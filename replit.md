@@ -85,7 +85,7 @@ Always build from the workspace source — never from a partial extracted state:
 
 ```bash
 python3 scripts/build-plugin-zip.py
-# Output: .local/deliverables/plg_system_joomlaboost-{version}.zip
+# Output: .local/deliverables/plugin/plg_system_joomlaboost-{version}.zip
 ```
 
 **ZIP structure** (flat, no subfolder — Joomla requires this):
@@ -128,14 +128,14 @@ src/...
 | #8 | Pricing strategy (Starter €59 / Developer €119 / Agency €199) + Gumroad setup guide |
 | #17 | License key field in plugin admin (LicenseKeyField.php, all 11 lang files) |
 | #CI | GitHub Actions CI/CD pipeline → aiboostnow.com (deploy kao neimar, sudo rsync) |
-| #30 | 8 novih Site Type presets + napredno radno vrijeme (v0.24.0) — MedicalClinic, LegalService, EducationalOrganization, HealthClub, Dentist, RealEstateAgent, Person, NewsMediaOrganization |
+| #30 | 8 new Site Type presets + Advanced Hours system (v0.24.0) — MedicalClinic, LegalService, EducationalOrganization, HealthClub, Dentist, RealEstateAgent, Person, NewsMediaOrganization |
 | #34 | GitHub repo rename: JoomlaBoost → aiboost-joomla; descriptions updated; security scan ✅ |
+| #35 | Project files cleanup: deliverables reorganized into subfolders, old ZIPs removed, 12 stale task files deleted, master plan rewritten ✅ |
 
 ## Pending / Proposed Tasks
 
 | Task | What | Status |
 |------|------|--------|
-| #35 | Project files cleanup + master plan update | Active |
 | #9 | Logo & visual identity | PENDING |
 | #10 | Marketing website (aiboostnow.com) | PENDING |
 | #11 | Machine translation review (10 languages) | PENDING |
@@ -171,7 +171,7 @@ src/...
 
 | File | What |
 |------|------|
-| `.local/deliverables/plg_system_joomlaboost-0.24.0.zip` | Latest installable plugin ZIP |
+| `.local/deliverables/plugin/plg_system_joomlaboost-0.24.0.zip` | Latest installable plugin ZIP |
 | `.local/deliverables/docs/joomlaboost-user-guide.md` | EN user guide (17 sections) |
 | `.local/deliverables/docs/joomlaboost-getting-started.md` | EN getting started guide |
 | `.local/deliverables/docs/JoomlaBoost-GettingStarted-Guide.pdf` | Getting started PDF |
@@ -181,7 +181,7 @@ src/...
 | `.local/deliverables/pricing/pricing-strategy.md` | Pricing strategy & Gumroad comparison |
 | `.local/deliverables/pricing/pricing-page-content.md` | Pricing page copy (EN, ready to implement) |
 | `.local/deliverables/pricing/gumroad-setup-guide.md` | Step-by-step Gumroad setup |
-| `.local/deliverables/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision |
+| `.local/deliverables/brand/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision history |
 
 ---
 
