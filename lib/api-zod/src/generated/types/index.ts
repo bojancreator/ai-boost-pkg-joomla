@@ -7,3 +7,6 @@
  */
 
 export * from "./healthStatus";
+export * from "./licenseValidateRequest";
+export * from "./licenseValidateResponse";
+export * from "./licenseValidateResponseStatus";

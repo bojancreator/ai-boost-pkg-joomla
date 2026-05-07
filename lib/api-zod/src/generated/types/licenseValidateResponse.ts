@@ -5,29 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface LicenseValidateRequest {
-  /** UUID-format license key from Gumroad */
-  license_key: string;
-  /** URL of the site being activated (stored for display purposes) */
-  site_url?: string;
-}
-
-/**
- * Precise license state — active, expiring_soon (subscription ending within 30 days), deactivated (refunded/chargebacked), or invalid (key not found/bad format)
- */
-export type LicenseValidateResponseStatus =
-  (typeof LicenseValidateResponseStatus)[keyof typeof LicenseValidateResponseStatus];
-
-export const LicenseValidateResponseStatus = {
-  active: "active",
-  expiring_soon: "expiring_soon",
-  invalid: "invalid",
-  deactivated: "deactivated",
-} as const;
+import type { LicenseValidateResponseStatus } from "./licenseValidateResponseStatus";
 
 export interface LicenseValidateResponse {
   /** Whether the license key is valid and active */

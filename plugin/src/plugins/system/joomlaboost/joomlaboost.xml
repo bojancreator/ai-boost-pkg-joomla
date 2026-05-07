@@ -63,6 +63,16 @@
                filter="string" />
         <!-- Tier stored by Gumroad validation (Task #19): '', 'starter', 'developer', 'agency' -->
         <field name="license_tier" type="hidden" default="" />
+        <!-- Activation metadata stored by license verify (Task #21) -->
+        <field name="license_email" type="hidden" default="" />
+        <field name="license_activated_at" type="hidden" default="" />
+        <field name="license_uses" type="hidden" default="" />
+        <field name="license_max_uses" type="hidden" default="" />
+        <field name="license_remaining_activations" type="hidden" default="" />
+        <field name="license_site_url" type="hidden" default="" />
+        <!-- Stored by LicenseKeyField JS after verify: active | expiring_soon | invalid | deactivated -->
+        <field name="license_status" type="hidden" default="" />
+        <!-- site_url is caller-supplied (window.location.origin) and stored for display only; not authoritative Gumroad data -->
 
         <!-- ── QUICK SETUP ─────────────────────────────────────────────────── -->
         <field name="separator_preset" type="spacer" label="🎯 Quick Setup" class="text-success" />
