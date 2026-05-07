@@ -288,7 +288,7 @@
         </field>
 
         <!-- Compact widget — replaces 35 individual day-by-day fields (v0.26.0+) -->
-        <field name="schema_business_hours" type="businesshours" label="Weekly Schedule" description="Set opening hours for each day. Use the + Split button to add a second time slot (e.g. lunch break). Data is stored as JSON and generates proper openingHoursSpecification Schema.org markup." default="" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_business_hours" type="BusinessHours" label="Weekly Schedule" description="Set opening hours for each day. Use the + Split button to add a second time slot (e.g. lunch break). Data is stored as JSON and generates proper openingHoursSpecification Schema.org markup." default="" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <!-- Seasonal hours: show when advanced mode is active (non appointment, non temp-closed) -->
         <field name="separator_seasonal" type="spacer" label="Seasonal Hours (Optional)" class="text-muted" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
