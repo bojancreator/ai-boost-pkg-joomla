@@ -198,7 +198,7 @@ class VerticalPresetService extends AbstractService
 
             case self::PRESET_MEDICAL:
                 return array_merge($common,
-                    $this->weekdayHours('08:00', '16:00', '09:00', '12:00'),
+                    $this->weekdayHours('08:00', '16:00'),
                     [
                         'schema_type'                  => 'medical',
                         'sitemap_priority_articles'    => '0.8',
@@ -255,7 +255,7 @@ class VerticalPresetService extends AbstractService
 
             case self::PRESET_DENTIST:
                 return array_merge($common,
-                    $this->weekdayHours('08:00', '16:00', '09:00', '13:00'),
+                    $this->weekdayHours('08:00', '16:00'),
                     [
                         'schema_type'                  => 'dentist',
                         'sitemap_priority_articles'    => '0.8',

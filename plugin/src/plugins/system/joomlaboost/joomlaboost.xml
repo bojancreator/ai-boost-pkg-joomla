@@ -244,6 +244,25 @@
         <field name="schema_job_title" type="text" label="Job Title / Profession" description="Your professional title (e.g., Graphic Designer, Full-Stack Developer, Photographer). Used in jobTitle Schema.org field." default="" hint="Graphic Designer" showon="enable_schema:1[AND]schema_type:portfolio" />
         <field name="schema_portfolio_url" type="url" label="Portfolio URL" description="Direct URL to your portfolio or main work page (overrides the site URL in Person schema)." default="" hint="https://yourportfolio.com" showon="enable_schema:1[AND]schema_type:portfolio" />
 
+        <!-- ── DENTIST-SPECIFIC FIELDS ──────────────────────────────────────── -->
+        <field name="separator_dentist" type="spacer" label="Dental Practice Settings" class="text-info" showon="enable_schema:1[AND]schema_type:dentist" />
+        <field name="schema_dental_specialty" type="text" label="Dental Specialty / Services" description="Primary dental specialties or procedures offered (e.g., General Dentistry, Orthodontics, Cosmetic Dentistry). Comma-separated list. Mapped to medicalSpecialty in Schema.org — helps AI engines understand what services you offer." default="" hint="General Dentistry, Orthodontics" showon="enable_schema:1[AND]schema_type:dentist" />
+
+        <!-- ── REAL ESTATE-SPECIFIC FIELDS ─────────────────────────────────── -->
+        <field name="separator_realestate" type="spacer" label="Real Estate Agency Settings" class="text-info" showon="enable_schema:1[AND]schema_type:realestate" />
+        <field name="schema_realestate_area_served" type="text" label="Area Served" description="Geographic area(s) where the agency operates (e.g., London, Central London, Westminster). Used in areaServed Schema.org field — tells AI engines your geographic coverage." default="" hint="London, Westminster" showon="enable_schema:1[AND]schema_type:realestate" />
+        <field name="schema_realestate_property_types" type="text" label="Property Types" description="Types of properties the agency handles (e.g., Residential, Commercial, Luxury Villas). Comma-separated. Shown in hasOfferCatalog Schema.org field." default="" hint="Residential, Commercial" showon="enable_schema:1[AND]schema_type:realestate" />
+
+        <!-- ── GYM-SPECIFIC FIELDS ──────────────────────────────────────────── -->
+        <field name="separator_gym" type="spacer" label="Gym / Sports Club Settings" class="text-info" showon="enable_schema:1[AND]schema_type:gym" />
+        <field name="schema_gym_sport" type="text" label="Primary Sport / Activity" description="Main sport or activity offered (e.g., CrossFit, Boxing, Yoga, Mixed Martial Arts). Used in the sport Schema.org field — helps AI engines surface your club in activity-specific queries." default="" hint="CrossFit, Boxing, Yoga" showon="enable_schema:1[AND]schema_type:gym" />
+        <field name="schema_gym_amenities" type="text" label="Amenities" description="Available facilities and equipment (e.g., Pool, Sauna, Showers, Lockers, Parking). Comma-separated. Generates amenityFeature entries (LocationFeatureSpecification) in Schema.org." default="" hint="Pool, Sauna, Showers, Parking" showon="enable_schema:1[AND]schema_type:gym" />
+
+        <!-- ── NEWS-SPECIFIC FIELDS ─────────────────────────────────────────── -->
+        <field name="separator_news" type="spacer" label="News / Media Settings" class="text-info" showon="enable_schema:1[AND]schema_type:news" />
+        <field name="schema_news_topics" type="text" label="Editorial Topics" description="Main topics covered (e.g., Politics, Technology, Sports). Comma-separated. Used in the about Schema.org field — helps AI engines understand what your publication covers and when to recommend it." default="" hint="Technology, Business, Lifestyle" showon="enable_schema:1[AND]schema_type:news" />
+        <field name="schema_news_principles" type="url" label="Publishing Principles URL" description="URL to your editorial standards, ethics policy, or about page. Used in publishingPrinciples Schema.org field — signals editorial transparency to AI engines and Google News." default="" hint="https://yoursite.com/about" showon="enable_schema:1[AND]schema_type:news" />
+
         <!-- ── OPENING HOURS MODE ────────────────────────────────────────────── -->
         <field name="separator_hours" type="spacer" label="Opening Hours" class="text-warning" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate" />
         <field name="schema_hours_mode" type="radio" label="Opening Hours Mode" description="Simple: enter a plain text string (e.g. Mo-Fr 09:00-17:00). Advanced: configure day-by-day schedule, seasonal hours, and holiday closures — generates proper openingHoursSpecification Schema.org markup." default="simple" class="btn-group" showon="enable_schema:1[AND]schema_type:localbusiness,hotel,medical,lawyer,school,gym,dentist,realestate">
@@ -272,50 +291,64 @@
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_mon_open"  type="text" label="Monday Open"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_mon_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
-        <field name="schema_hours_mon_close" type="text" label="Monday Close" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_mon_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_mon_open"   type="text" label="Monday Open (1st slot)"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_mon_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_mon_close"  type="text" label="Monday Close (1st slot)" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_mon_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_mon_open2"  type="text" label="Monday Open (2nd slot — optional split shift)" description="Add a second time slot for this day (e.g. afternoon/evening). Leave empty if not needed." default="" hint="14:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_mon_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_mon_close2" type="text" label="Monday Close (2nd slot)" default="" hint="18:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_mon_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <field name="schema_hours_tue_closed" type="radio" label="Tuesday — Closed" default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_tue_open"  type="text" label="Tuesday Open"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_tue_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
-        <field name="schema_hours_tue_close" type="text" label="Tuesday Close" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_tue_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_tue_open"   type="text" label="Tuesday Open (1st slot)"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_tue_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_tue_close"  type="text" label="Tuesday Close (1st slot)" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_tue_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_tue_open2"  type="text" label="Tuesday Open (2nd slot — optional split shift)" description="Add a second time slot for this day. Leave empty if not needed." default="" hint="14:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_tue_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_tue_close2" type="text" label="Tuesday Close (2nd slot)" default="" hint="18:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_tue_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <field name="schema_hours_wed_closed" type="radio" label="Wednesday — Closed" default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_wed_open"  type="text" label="Wednesday Open"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_wed_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
-        <field name="schema_hours_wed_close" type="text" label="Wednesday Close" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_wed_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_wed_open"   type="text" label="Wednesday Open (1st slot)"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_wed_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_wed_close"  type="text" label="Wednesday Close (1st slot)" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_wed_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_wed_open2"  type="text" label="Wednesday Open (2nd slot — optional split shift)" description="Add a second time slot for this day. Leave empty if not needed." default="" hint="14:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_wed_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_wed_close2" type="text" label="Wednesday Close (2nd slot)" default="" hint="18:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_wed_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <field name="schema_hours_thu_closed" type="radio" label="Thursday — Closed" default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_thu_open"  type="text" label="Thursday Open"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_thu_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
-        <field name="schema_hours_thu_close" type="text" label="Thursday Close" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_thu_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_thu_open"   type="text" label="Thursday Open (1st slot)"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_thu_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_thu_close"  type="text" label="Thursday Close (1st slot)" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_thu_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_thu_open2"  type="text" label="Thursday Open (2nd slot — optional split shift)" description="Add a second time slot for this day. Leave empty if not needed." default="" hint="14:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_thu_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_thu_close2" type="text" label="Thursday Close (2nd slot)" default="" hint="18:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_thu_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <field name="schema_hours_fri_closed" type="radio" label="Friday — Closed" default="0" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_fri_open"  type="text" label="Friday Open"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_fri_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
-        <field name="schema_hours_fri_close" type="text" label="Friday Close" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_fri_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_fri_open"   type="text" label="Friday Open (1st slot)"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_fri_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_fri_close"  type="text" label="Friday Close (1st slot)" default="17:00" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_fri_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_fri_open2"  type="text" label="Friday Open (2nd slot — optional split shift)" description="Add a second time slot for this day. Leave empty if not needed." default="" hint="14:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_fri_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_fri_close2" type="text" label="Friday Close (2nd slot)" default="" hint="18:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_fri_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <field name="schema_hours_sat_closed" type="radio" label="Saturday — Closed" default="1" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_sat_open"  type="text" label="Saturday Open"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sat_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
-        <field name="schema_hours_sat_close" type="text" label="Saturday Close" default="13:00" hint="13:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sat_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sat_open"   type="text" label="Saturday Open (1st slot)"  default="09:00" hint="09:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sat_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sat_close"  type="text" label="Saturday Close (1st slot)" default="13:00" hint="13:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sat_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sat_open2"  type="text" label="Saturday Open (2nd slot — optional split shift)" description="Add a second time slot for Saturday. Leave empty if not needed." default="" hint="15:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sat_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sat_close2" type="text" label="Saturday Close (2nd slot)" default="" hint="18:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sat_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <field name="schema_hours_sun_closed" type="radio" label="Sunday — Closed" default="1" class="btn-group btn-group-yesno" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0">
           <option value="1">JYES</option>
           <option value="0">JNO</option>
         </field>
-        <field name="schema_hours_sun_open"  type="text" label="Sunday Open"  default="10:00" hint="10:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sun_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
-        <field name="schema_hours_sun_close" type="text" label="Sunday Close" default="14:00" hint="14:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sun_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sun_open"   type="text" label="Sunday Open (1st slot)"  default="10:00" hint="10:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sun_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sun_close"  type="text" label="Sunday Close (1st slot)" default="14:00" hint="14:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sun_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sun_open2"  type="text" label="Sunday Open (2nd slot — optional split shift)" description="Add a second time slot for Sunday. Leave empty if not needed." default="" hint="17:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sun_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
+        <field name="schema_hours_sun_close2" type="text" label="Sunday Close (2nd slot)" default="" hint="20:00" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_sun_closed:0[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />
 
         <!-- Seasonal hours: show when advanced mode is active (non appointment, non temp-closed) -->
         <field name="separator_seasonal" type="spacer" label="Seasonal Hours (Optional)" class="text-muted" showon="enable_schema:1[AND]schema_hours_mode:advanced[AND]schema_hours_appointment_only:0[AND]schema_hours_temp_closed:0" />

@@ -490,6 +490,21 @@ class SchemaService extends AbstractService
                 'priceRange'  => $this->params->get('schema_price_range', '$$'),
                 'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
             ];
+            $gymSport = trim((string) $this->params->get('schema_gym_sport', ''));
+            if (!empty($gymSport)) {
+                $schema['sport'] = $gymSport;
+            }
+            $gymAmenities = trim((string) $this->params->get('schema_gym_amenities', ''));
+            if (!empty($gymAmenities)) {
+                $amenities = array_values(array_filter(array_map('trim', explode(',', $gymAmenities))));
+                if (!empty($amenities)) {
+                    $schema['amenityFeature'] = array_map(static fn(string $a) => [
+                        '@type' => 'LocationFeatureSpecification',
+                        'name'  => $a,
+                        'value' => true,
+                    ], $amenities);
+                }
+            }
             $geo = $this->buildGeoBlock();
             if ($geo !== null) {
                 $schema['geo'] = $geo;
@@ -516,6 +531,10 @@ class SchemaService extends AbstractService
                 'email'       => $this->params->get('schema_email', ''),
                 'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
             ];
+            $dentalSpecialty = trim((string) $this->params->get('schema_dental_specialty', ''));
+            if (!empty($dentalSpecialty)) {
+                $schema['medicalSpecialty'] = $dentalSpecialty;
+            }
             $geo = $this->buildGeoBlock();
             if ($geo !== null) {
                 $schema['geo'] = $geo;
@@ -542,6 +561,17 @@ class SchemaService extends AbstractService
                 'email'       => $this->params->get('schema_email', ''),
                 'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
             ];
+            $areaServed = trim((string) $this->params->get('schema_realestate_area_served', ''));
+            if (!empty($areaServed)) {
+                $schema['areaServed'] = $areaServed;
+            }
+            $propertyTypes = trim((string) $this->params->get('schema_realestate_property_types', ''));
+            if (!empty($propertyTypes)) {
+                $schema['hasOfferCatalog'] = [
+                    '@type' => 'OfferCatalog',
+                    'name'  => $propertyTypes,
+                ];
+            }
             $geo = $this->buildGeoBlock();
             if ($geo !== null) {
                 $schema['geo'] = $geo;
@@ -582,6 +612,14 @@ class SchemaService extends AbstractService
                 'description' => $orgDescription,
                 'sameAs'      => $this->getSocialMediaProfiles($baseUrl),
             ];
+            $newsTopics = trim((string) $this->params->get('schema_news_topics', ''));
+            if (!empty($newsTopics)) {
+                $schema['about'] = $newsTopics;
+            }
+            $newsPrinciples = trim((string) $this->params->get('schema_news_principles', ''));
+            if (!empty($newsPrinciples)) {
+                $schema['publishingPrinciples'] = $newsPrinciples;
+            }
             if (!empty($orgLogo)) {
                 $schema['logo']  = $orgLogo;
                 $schema['image'] = $orgLogo;
@@ -689,35 +727,64 @@ class SchemaService extends AbstractService
             'sun' => 'Sunday',
         ];
 
-        // Group days with identical hours to minimize JSON-LD output
-        $groups = [];
-        foreach ($days as $abbr => $dayName) {
-            if ((bool) $this->params->get('schema_hours_' . $abbr . '_closed', 0)) {
-                continue;
-            }
-            $open  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open', ''));
-            $close = trim((string) $this->params->get('schema_hours_' . $abbr . '_close', ''));
-            if (empty($open) || empty($close)) {
-                continue;
-            }
-            $key = $open . '|' . $close;
-            if (!isset($groups[$key])) {
-                $groups[$key] = ['dayOfWeek' => [], 'opens' => $open, 'closes' => $close];
-            }
-            $groups[$key]['dayOfWeek'][] = 'https://schema.org/' . $dayName;
-        }
-
         // Read optional seasonal validity dates (MM-DD format, e.g. 06-01)
         $seasonFrom = trim((string) $this->params->get('schema_season_from', ''));
         $seasonTo   = trim((string) $this->params->get('schema_season_to', ''));
 
+        // Slot 1: group days with identical first-slot hours to produce compact JSON-LD
+        // (e.g. Mon-Fri 09:00-17:00 becomes a single grouped entry)
+        $groups = [];
+        // Slot 2: always per-day because split-shift times differ across days
+        $secondSlots = [];
+
+        foreach ($days as $abbr => $dayName) {
+            if ((bool) $this->params->get('schema_hours_' . $abbr . '_closed', 0)) {
+                continue;
+            }
+            $dayUri = 'https://schema.org/' . $dayName;
+
+            $open  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open', ''));
+            $close = trim((string) $this->params->get('schema_hours_' . $abbr . '_close', ''));
+            if (!empty($open) && !empty($close)) {
+                $key = $open . '|' . $close;
+                if (!isset($groups[$key])) {
+                    $groups[$key] = ['dayOfWeek' => [], 'opens' => $open, 'closes' => $close];
+                }
+                $groups[$key]['dayOfWeek'][] = $dayUri;
+            }
+
+            // Optional second slot: split shift (e.g. morning 08:00-12:00 + afternoon 14:00-17:00)
+            $open2  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open2', ''));
+            $close2 = trim((string) $this->params->get('schema_hours_' . $abbr . '_close2', ''));
+            if (!empty($open2) && !empty($close2)) {
+                $secondSlots[] = ['dayOfWeek' => [$dayUri], 'opens' => $open2, 'closes' => $close2];
+            }
+        }
+
         $specs = [];
+
+        // Emit grouped first-slot entries
         foreach ($groups as $group) {
             $spec = [
                 '@type'     => 'OpeningHoursSpecification',
                 'dayOfWeek' => $group['dayOfWeek'],
                 'opens'     => $group['opens'],
                 'closes'    => $group['closes'],
+            ];
+            if (!empty($seasonFrom) && !empty($seasonTo)) {
+                $spec['validFrom']    = '--' . $seasonFrom;
+                $spec['validThrough'] = '--' . $seasonTo;
+            }
+            $specs[] = $spec;
+        }
+
+        // Emit per-day second-slot entries
+        foreach ($secondSlots as $slot) {
+            $spec = [
+                '@type'     => 'OpeningHoursSpecification',
+                'dayOfWeek' => $slot['dayOfWeek'],
+                'opens'     => $slot['opens'],
+                'closes'    => $slot['closes'],
             ];
             if (!empty($seasonFrom) && !empty($seasonTo)) {
                 $spec['validFrom']    = '--' . $seasonFrom;
