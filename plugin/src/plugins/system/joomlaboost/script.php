@@ -29,6 +29,9 @@ class plgSystemJoomlaboostInstallerScript
         // Migrate existing legacy language fields to database
         $this->migrateLegacyTranslations();
 
+        // Migrate legacy day-by-day hours params → compact JSON widget (v0.26.0)
+        $this->migrateBusinessHoursParams();
+
         // Create custom fields if not yet present
         $this->createJoomlaBoostCustomFields();
 
@@ -270,6 +273,99 @@ class plgSystemJoomlaboostInstallerScript
                 'warning'
             );
             return false;
+        }
+    }
+
+    /**
+     * Migrate legacy day-by-day Business Hours params to compact JSON widget (v0.26.0).
+     *
+     * Reads schema_hours_{day}_{field} params and converts them to the new
+     * schema_business_hours JSON format consumed by BusinessHoursField.
+     * Safe to run multiple times — skips if schema_business_hours already set.
+     */
+    private function migrateBusinessHoursParams(): void
+    {
+        try {
+            $db = Factory::getDbo();
+
+            $query = $db->getQuery(true)
+                ->select(['extension_id', 'params'])
+                ->from('#__extensions')
+                ->where($db->quoteName('element') . ' = ' . $db->quote('joomlaboost'))
+                ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                ->where($db->quoteName('folder') . ' = ' . $db->quote('system'));
+
+            $db->setQuery($query);
+            $row = $db->loadObject();
+
+            if (!$row || !$row->extension_id) {
+                return;
+            }
+
+            $params = json_decode($row->params ?? '{}', true);
+            if (!is_array($params)) {
+                return;
+            }
+
+            // Already migrated — skip
+            if (!empty($params['schema_business_hours']) && $params['schema_business_hours'] !== '{}') {
+                return;
+            }
+
+            $days = [
+                'mon' => ['defaultOpen' => '09:00', 'defaultClose' => '17:00', 'defaultClosed' => false],
+                'tue' => ['defaultOpen' => '09:00', 'defaultClose' => '17:00', 'defaultClosed' => false],
+                'wed' => ['defaultOpen' => '09:00', 'defaultClose' => '17:00', 'defaultClosed' => false],
+                'thu' => ['defaultOpen' => '09:00', 'defaultClose' => '17:00', 'defaultClosed' => false],
+                'fri' => ['defaultOpen' => '09:00', 'defaultClose' => '17:00', 'defaultClosed' => false],
+                'sat' => ['defaultOpen' => '09:00', 'defaultClose' => '13:00', 'defaultClosed' => true],
+                'sun' => ['defaultOpen' => '10:00', 'defaultClose' => '14:00', 'defaultClosed' => true],
+            ];
+
+            $hasLegacyData = false;
+            $schedule      = [];
+
+            foreach ($days as $abbr => $def) {
+                $closedKey = 'schema_hours_' . $abbr . '_closed';
+                $openKey   = 'schema_hours_' . $abbr . '_open';
+                $closeKey  = 'schema_hours_' . $abbr . '_close';
+                $open2Key  = 'schema_hours_' . $abbr . '_open2';
+                $close2Key = 'schema_hours_' . $abbr . '_close2';
+
+                if (array_key_exists($closedKey, $params) || array_key_exists($openKey, $params)) {
+                    $hasLegacyData = true;
+                }
+
+                $isClosed = (bool) ($params[$closedKey] ?? $def['defaultClosed']);
+                $schedule[$abbr] = [
+                    'open'   => (string) ($params[$openKey]   ?? $def['defaultOpen']),
+                    'close'  => (string) ($params[$closeKey]  ?? $def['defaultClose']),
+                    'open2'  => (string) ($params[$open2Key]  ?? ''),
+                    'close2' => (string) ($params[$close2Key] ?? ''),
+                    'closed' => $isClosed,
+                ];
+            }
+
+            if (!$hasLegacyData) {
+                return;
+            }
+
+            $params['schema_business_hours'] = json_encode($schedule, JSON_UNESCAPED_UNICODE);
+
+            $updateQuery = $db->getQuery(true)
+                ->update('#__extensions')
+                ->set($db->quoteName('params') . ' = ' . $db->quote(json_encode($params)))
+                ->where($db->quoteName('extension_id') . ' = ' . (int) $row->extension_id);
+
+            $db->setQuery($updateQuery);
+            $db->execute();
+
+            Factory::getApplication()->enqueueMessage(
+                '✅ AI Boost: Business hours migrated to compact widget format (v0.26.0).',
+                'success'
+            );
+        } catch (\Throwable $e) {
+            // Silent fail — don't break update
         }
     }
 

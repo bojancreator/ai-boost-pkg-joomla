@@ -771,7 +771,7 @@ class SchemaService extends AbstractService
             return ['type' => 'appointment'];
         }
 
-        $days = [
+        $dayNames = [
             'mon' => 'Monday',
             'tue' => 'Tuesday',
             'wed' => 'Wednesday',
@@ -791,27 +791,58 @@ class SchemaService extends AbstractService
         // Slot 2: always per-day because split-shift times differ across days
         $secondSlots = [];
 
-        foreach ($days as $abbr => $dayName) {
-            if ((bool) $this->params->get('schema_hours_' . $abbr . '_closed', 0)) {
-                continue;
-            }
-            $dayUri = 'https://schema.org/' . $dayName;
+        // ── v0.26.0+: try compact JSON widget param first ─────────────────────
+        $jsonRaw = trim((string) $this->params->get('schema_business_hours', ''));
+        $schedule = (!empty($jsonRaw) && $jsonRaw !== '{}') ? json_decode($jsonRaw, true) : null;
 
-            $open  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open', ''));
-            $close = trim((string) $this->params->get('schema_hours_' . $abbr . '_close', ''));
-            if (!empty($open) && !empty($close)) {
-                $key = $open . '|' . $close;
-                if (!isset($groups[$key])) {
-                    $groups[$key] = ['dayOfWeek' => [], 'opens' => $open, 'closes' => $close];
+        if (is_array($schedule) && !empty($schedule)) {
+            // New format: read from BusinessHoursField JSON
+            foreach ($dayNames as $abbr => $dayName) {
+                $day = $schedule[$abbr] ?? null;
+                if (!is_array($day) || !empty($day['closed'])) {
+                    continue;
                 }
-                $groups[$key]['dayOfWeek'][] = $dayUri;
-            }
+                $dayUri = 'https://schema.org/' . $dayName;
 
-            // Optional second slot: split shift (e.g. morning 08:00-12:00 + afternoon 14:00-17:00)
-            $open2  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open2', ''));
-            $close2 = trim((string) $this->params->get('schema_hours_' . $abbr . '_close2', ''));
-            if (!empty($open2) && !empty($close2)) {
-                $secondSlots[] = ['dayOfWeek' => [$dayUri], 'opens' => $open2, 'closes' => $close2];
+                $open  = trim((string) ($day['open']  ?? ''));
+                $close = trim((string) ($day['close'] ?? ''));
+                if (!empty($open) && !empty($close)) {
+                    $key = $open . '|' . $close;
+                    if (!isset($groups[$key])) {
+                        $groups[$key] = ['dayOfWeek' => [], 'opens' => $open, 'closes' => $close];
+                    }
+                    $groups[$key]['dayOfWeek'][] = $dayUri;
+                }
+
+                $open2  = trim((string) ($day['open2']  ?? ''));
+                $close2 = trim((string) ($day['close2'] ?? ''));
+                if (!empty($open2) && !empty($close2)) {
+                    $secondSlots[] = ['dayOfWeek' => [$dayUri], 'opens' => $open2, 'closes' => $close2];
+                }
+            }
+        } else {
+            // Legacy format: individual schema_hours_{day}_{field} params (backward compat)
+            foreach ($dayNames as $abbr => $dayName) {
+                if ((bool) $this->params->get('schema_hours_' . $abbr . '_closed', 0)) {
+                    continue;
+                }
+                $dayUri = 'https://schema.org/' . $dayName;
+
+                $open  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open', ''));
+                $close = trim((string) $this->params->get('schema_hours_' . $abbr . '_close', ''));
+                if (!empty($open) && !empty($close)) {
+                    $key = $open . '|' . $close;
+                    if (!isset($groups[$key])) {
+                        $groups[$key] = ['dayOfWeek' => [], 'opens' => $open, 'closes' => $close];
+                    }
+                    $groups[$key]['dayOfWeek'][] = $dayUri;
+                }
+
+                $open2  = trim((string) $this->params->get('schema_hours_' . $abbr . '_open2', ''));
+                $close2 = trim((string) $this->params->get('schema_hours_' . $abbr . '_close2', ''));
+                if (!empty($open2) && !empty($close2)) {
+                    $secondSlots[] = ['dayOfWeek' => [$dayUri], 'opens' => $open2, 'closes' => $close2];
+                }
             }
         }
 
