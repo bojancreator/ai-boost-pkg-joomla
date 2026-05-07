@@ -108,3 +108,9 @@ id = "9t1CQDYlicQzZNcnOgpUX"
 uri = "file://.local/deliverables/docs/site-types-test-protocol.md"
 type = "text"
 title = "Site Types — Test Protocol (v0.25.0)"
+
+[[outputs]]
+id = "Ke6Qin_NMKC4A9SvZwwq3"
+uri = "file://.local/deliverables/docs/site-types-test-report.md"
+type = "text"
+title = "Site Types Test Report — 13/13 ✅"
