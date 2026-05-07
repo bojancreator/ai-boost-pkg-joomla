@@ -131,7 +131,7 @@ src/...
 | #30 | 8 new Site Type presets + Advanced Hours system (v0.24.0) — MedicalClinic, LegalService, EducationalOrganization, HealthClub, Dentist, RealEstateAgent, Person, NewsMediaOrganization |
 | #34 | GitHub repo rename: JoomlaBoost → aiboost-joomla; descriptions updated; security scan ✅ |
 | #35 | Project files cleanup: deliverables reorganized into subfolders, old ZIPs removed, 12 stale task files deleted, master plan rewritten ✅ |
-| #31 | Site Types live test (partial): hotel→LodgingBusiness confirmed ✅; found restaurant/ecommerce bug → fixed in v0.25.1; admin 500 error documented |
+| #31 | Site Types live test COMPLETE: v0.25.1 installed on Joomla 6.1 staging; all 13 schema types confirmed live ✅ (13/13); restaurant+ecommerce bug fixed; admin 500 = 3rd-party plugin incompatibility (not our bug) |
 
 ## Pending / Proposed Tasks
 
