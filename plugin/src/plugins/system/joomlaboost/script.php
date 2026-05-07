@@ -98,7 +98,7 @@ class plgSystemJoomlaboostInstallerScript
                     'title'       => 'JB OpenGraph',
                     'context'     => 'com_content.article',
                     'description' => '',
-                    'note'        => 'Auto-created by JoomlaBoost plugin for per-article SEO overrides.',
+                    'note'        => 'Auto-created by AI Boost for Joomla plugin for per-article SEO overrides.',
                     'state'       => 1,
                     'access'      => 1,
                     'language'    => '*',
@@ -117,21 +117,21 @@ class plgSystemJoomlaboostInstallerScript
             $fieldsToCreate = [
                 [
                     'name'        => 'custom_og_image',
-                    'label'       => 'OG Image (JoomlaBoost)',
+                    'label'       => 'OG Image (AI Boost)',
                     'type'        => 'media',
                     'description' => 'Per-article Open Graph image. Overrides plugin default. Recommended: JPEG/PNG, min 1200x630px.',
                     'note'        => '',
                 ],
                 [
                     'name'        => 'custom_og_title',
-                    'label'       => 'OG Title (JoomlaBoost)',
+                    'label'       => 'OG Title (AI Boost)',
                     'type'        => 'text',
                     'description' => 'Per-article Open Graph title. Overrides article title for social sharing.',
                     'note'        => '',
                 ],
                 [
                     'name'        => 'custom_og_description',
-                    'label'       => 'OG Description (JoomlaBoost)',
+                    'label'       => 'OG Description (AI Boost)',
                     'type'        => 'textarea',
                     'description' => 'Per-article Open Graph description. Overrides meta description for social sharing.',
                     'note'        => '',
@@ -182,7 +182,7 @@ class plgSystemJoomlaboostInstallerScript
             // Non-fatal — log and continue (don't break installation)
             try {
                 Factory::getApplication()->enqueueMessage(
-                    'JoomlaBoost: Could not auto-create custom fields: ' . $e->getMessage(),
+                    'AI Boost for Joomla: Could not auto-create custom fields: ' . $e->getMessage(),
                     'warning'
                 );
             } catch (\Throwable $ignored) {
@@ -224,7 +224,7 @@ class plgSystemJoomlaboostInstallerScript
         } catch (Exception $e) {
             // Log error but don't fail installation
             Factory::getApplication()->enqueueMessage(
-                'JoomlaBoost: Could not create settings table: ' . $e->getMessage(),
+                'AI Boost for Joomla: Could not create settings table: ' . $e->getMessage(),
                 'warning'
             );
             return false;
@@ -260,7 +260,7 @@ class plgSystemJoomlaboostInstallerScript
             KEY `idx_field_key` (`field_key`),
             KEY `idx_lang_code` (`lang_code`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-          COMMENT='Multi-language translations for JoomlaBoost Schema.org fields';";
+          COMMENT='Multi-language translations for AI Boost for Joomla Schema.org fields';";
 
         try {
             $db->setQuery($query);
@@ -269,7 +269,7 @@ class plgSystemJoomlaboostInstallerScript
         } catch (Exception $e) {
             // Log error but don't fail installation
             Factory::getApplication()->enqueueMessage(
-                'JoomlaBoost: Could not create translations table: ' . $e->getMessage(),
+                'AI Boost for Joomla: Could not create translations table: ' . $e->getMessage(),
                 'warning'
             );
             return false;
@@ -444,7 +444,7 @@ class plgSystemJoomlaboostInstallerScript
 
             if ($migrated > 0) {
                 Factory::getApplication()->enqueueMessage(
-                    "✅ JoomlaBoost: Migrated {$migrated} language-specific fields to new database system!",
+                    "✅ AI Boost for Joomla: Migrated {$migrated} language-specific fields to new database system!",
                     'success'
                 );
             }
@@ -464,7 +464,7 @@ class plgSystemJoomlaboostInstallerScript
         if ($type === 'install' || $type === 'update') {
             echo '
             <div style="padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; font-family: system-ui, -apple-system, sans-serif; margin: 20px 0; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-                <h2 style="margin: 0 0 20px 0; font-size: 28px; font-weight: 700;">🚀 JoomlaBoost Successfully ' . ($type === 'install' ? 'Installed' : 'Updated') . '!</h2>
+                <h2 style="margin: 0 0 20px 0; font-size: 28px; font-weight: 700;">🚀 AI Boost for Joomla Successfully ' . ($type === 'install' ? 'Installed' : 'Updated') . '!</h2>
                 
                 <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin-bottom: 20px; backdrop-filter: blur(10px);">
                     <p style="margin: 0 0 10px 0; font-size: 16px; line-height: 1.6;">Universal SEO & Performance plugin that automatically optimizes your Joomla site for search engines and social media.</p>
@@ -504,7 +504,7 @@ class plgSystemJoomlaboostInstallerScript
                 </div>
                 
                 <div style="margin-top: 20px; font-size: 12px; opacity: 0.8; text-align: center;">
-                    <strong>Version ' . $this->getPluginVersion() . '</strong> | Joomla 4.0+ / 5.0+ / 6.0+ | PHP 8.1+ | Built with ❤️ by JoomlaBoost Team
+                    <strong>Version ' . $this->getPluginVersion() . '</strong> | Joomla 4.0+ / 5.0+ / 6.0+ | PHP 8.1+ | Built with ❤️ by AI Boost Team
                 </div>
             </div>
             ';
@@ -627,7 +627,7 @@ class plgSystemJoomlaboostInstallerScript
             $db->execute();
 
             Factory::getApplication()->enqueueMessage(
-                '✅ JoomlaBoost: Your previous settings have been restored!',
+                '✅ AI Boost for Joomla: Your previous settings have been restored!',
                 'success'
             );
         } catch (Exception $e) {

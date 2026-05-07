@@ -1,7 +1,7 @@
 <?php
 
 /**
- * JoomlaBoost - Business Hours Field
+ * AI Boost for Joomla - Business Hours Field
  *
  * Compact JS widget that replaces 35 individual day-by-day XML fields with a
  * single 7-row table (Mon–Sun). Each row has: Closed checkbox | Open time |
@@ -16,7 +16,7 @@
  *     "sun": {"open":"10:00","close":"14:00","open2":"","close2":"","closed":true}
  *   }
  *
- * @copyright   (C) 2025 JoomlaBoost Team
+ * @copyright   (C) 2025 AI Boost Team (aiboostnow.com)
  * @license     GNU General Public License version 2 or later
  */
 
@@ -72,7 +72,6 @@ class BusinessHoursField extends FormField
             $close2  = htmlspecialchars((string) ($day['close2'] ?? ''), ENT_QUOTES, 'UTF-8');
             $hasSplit = $open2 !== '' && $close2 !== '';
 
-            // Pre-compute values that cannot be interpolated as method calls in heredoc
             $disAttr       = $closed ? ' disabled' : '';
             $closedChk     = $closed ? ' checked' : '';
             $splitVis      = $hasSplit ? '' : ' style="display:none;"';
@@ -80,27 +79,27 @@ class BusinessHoursField extends FormField
             $closedLblDisp = $closed   ? '' : 'display:none;';
             $openFldsDisp  = $closed   ? 'display:none;' : '';
 
-            $idMon    = $id . '_' . $abbr;
+            $idDay = $id . '_' . $abbr;
 
             $rows .= '<tr data-day="' . $abbr . '" class="jb-hours-row">' . "\n";
-            $rows .= '  <td class="jb-day-label fw-semibold" style="width:90px;white-space:nowrap;">' . $label . '</td>' . "\n";
-            $rows .= '  <td style="width:70px;text-align:center;">' . "\n";
+            $rows .= '  <td class="jb-day-label fw-semibold" style="width:90px;white-space:nowrap;vertical-align:middle;">' . $label . '</td>' . "\n";
+            $rows .= '  <td style="width:60px;text-align:center;vertical-align:middle;">' . "\n";
             $rows .= '    <div class="form-check form-switch d-flex justify-content-center mb-0">' . "\n";
-            $rows .= '      <input class="form-check-input jb-closed-chk" type="checkbox" id="' . $idMon . '_closed" value="1"' . $closedChk . ' title="Closed all day">' . "\n";
+            $rows .= '      <input class="form-check-input jb-closed-chk" type="checkbox" id="' . $idDay . '_closed" value="1"' . $closedChk . ' title="Closed all day">' . "\n";
             $rows .= '    </div>' . "\n";
             $rows .= '  </td>' . "\n";
-            $rows .= '  <td>' . "\n";
+            $rows .= '  <td style="vertical-align:middle;">' . "\n";
             $rows .= '    <div class="jb-open-fields" style="' . $openFldsDisp . '">' . "\n";
             $rows .= '      <div class="d-flex align-items-center gap-2 flex-wrap">' . "\n";
-            $rows .= '        <input type="time" class="form-control form-control-sm jb-open" id="' . $idMon . '_open" value="' . $open . '" style="width:110px;"' . $disAttr . '>' . "\n";
+            $rows .= '        <input type="text" class="form-control form-control-sm jb-open" id="' . $idDay . '_open" value="' . $open . '" placeholder="09:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
             $rows .= '        <span class="text-muted jb-separator">&ndash;</span>' . "\n";
-            $rows .= '        <input type="time" class="form-control form-control-sm jb-close" id="' . $idMon . '_close" value="' . $close . '" style="width:110px;"' . $disAttr . '>' . "\n";
-            $rows .= '        <button type="button" class="btn btn-sm btn-outline-secondary jb-split-btn" style="font-size:0.75em;padding:2px 7px;"' . $disAttr . '>' . $splitBtnLbl . '</button>' . "\n";
+            $rows .= '        <input type="text" class="form-control form-control-sm jb-close" id="' . $idDay . '_close" value="' . $close . '" placeholder="17:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
+            $rows .= '        <button type="button" class="btn btn-sm btn-outline-secondary jb-split-btn" style="font-size:0.75em;padding:2px 8px;"' . $disAttr . '>' . $splitBtnLbl . '</button>' . "\n";
             $rows .= '      </div>' . "\n";
             $rows .= '      <div class="d-flex align-items-center gap-2 flex-wrap mt-1 jb-split-row"' . $splitVis . '>' . "\n";
-            $rows .= '        <input type="time" class="form-control form-control-sm jb-open2" id="' . $idMon . '_open2" value="' . $open2 . '" style="width:110px;"' . $disAttr . '>' . "\n";
+            $rows .= '        <input type="text" class="form-control form-control-sm jb-open2" id="' . $idDay . '_open2" value="' . $open2 . '" placeholder="12:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
             $rows .= '        <span class="text-muted">&ndash;</span>' . "\n";
-            $rows .= '        <input type="time" class="form-control form-control-sm jb-close2" id="' . $idMon . '_close2" value="' . $close2 . '" style="width:110px;"' . $disAttr . '>' . "\n";
+            $rows .= '        <input type="text" class="form-control form-control-sm jb-close2" id="' . $idDay . '_close2" value="' . $close2 . '" placeholder="13:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
             $rows .= '        <span class="text-muted small" style="font-size:0.75em;">(2nd slot)</span>' . "\n";
             $rows .= '      </div>' . "\n";
             $rows .= '    </div>' . "\n";
@@ -111,13 +110,13 @@ class BusinessHoursField extends FormField
 
         $script = $this->buildScript($id);
 
-        return '<div class="jb-business-hours" id="' . $id . '_widget" style="max-width:600px;">'
+        return '<div class="jb-business-hours" id="' . $id . '_widget" style="max-width:560px;">'
             . '<input type="hidden" id="' . $id . '" name="' . $name . '" value="' . $jsonVal . '">'
             . '<table class="table table-sm table-bordered mb-0" style="font-size:0.9em;">'
-            . '<thead><tr class="table-light">'
+            . '<thead><tr>'
             . '<th style="width:90px;">Day</th>'
-            . '<th style="width:70px;text-align:center;">Closed</th>'
-            . '<th>Hours</th>'
+            . '<th style="width:60px;text-align:center;">Closed</th>'
+            . '<th>Hours <span class="text-muted fw-normal" style="font-size:0.8em;">(24h, e.g. 09:00)</span></th>'
             . '</tr></thead>'
             . '<tbody>' . $rows . '</tbody>'
             . '</table>'
@@ -162,7 +161,6 @@ class BusinessHoursField extends FormField
 
     private function buildScript(string $id): string
     {
-        // Pre-compute JS-safe string so no method call is needed inside the heredoc
         $jsId = json_encode($id, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);
 
         return <<<JS
@@ -170,6 +168,18 @@ class BusinessHoursField extends FormField
 (function () {
     var DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
     var id   = {$jsId};
+
+    function normaliseTime(val) {
+        val = val.replace(/[^\d:]/g, '').trim();
+        if (!val) { return ''; }
+        var parts = val.split(':');
+        var h = parseInt(parts[0] || '0', 10);
+        var m = parseInt(parts[1] || '0', 10);
+        if (isNaN(h) || isNaN(m)) { return val; }
+        if (h > 23) { h = 23; }
+        if (m > 59) { m = 59; }
+        return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
 
     function collect() {
         var out = {};
@@ -197,7 +207,6 @@ class BusinessHoursField extends FormField
     }
 
     function initRow(row) {
-        var day       = row.getAttribute('data-day');
         var closedEl  = row.querySelector('.jb-closed-chk');
         var openFlds  = row.querySelector('.jb-open-fields');
         var closedLbl = row.querySelector('.jb-closed-label');
@@ -240,7 +249,11 @@ class BusinessHoursField extends FormField
             });
         }
 
-        row.querySelectorAll('input[type="time"]').forEach(function (inp) {
+        row.querySelectorAll('input[type="text"].jb-open, input[type="text"].jb-close, input[type="text"].jb-open2, input[type="text"].jb-close2').forEach(function (inp) {
+            inp.addEventListener('blur', function () {
+                this.value = normaliseTime(this.value);
+                save();
+            });
             inp.addEventListener('change', save);
         });
     }

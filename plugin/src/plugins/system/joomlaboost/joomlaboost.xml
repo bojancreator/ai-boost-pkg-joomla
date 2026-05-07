@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
-  <name>JoomlaBoost - Universal SEO &amp; Performance Plugin</name>
-  <author>JoomlaBoost Team</author>
+  <name>AI Boost for Joomla - Universal SEO &amp; AEO Plugin</name>
+  <author>AI Boost Team</author>
   <creationDate>April 29, 2026 11:08</creationDate>
-  <copyright>(C) 2025 JoomlaBoost. All rights reserved.</copyright>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later</license>
-  <authorEmail>info@joomlaboost.com</authorEmail>
-  <authorUrl>https://joomlaboost.com</authorUrl>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
   <version>0.26.0</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
@@ -586,7 +586,7 @@
         <!-- Injected dynamically by onContentPrepareForm: llmstxt_custom_pages_{code} -->
         <field name="llmstxt_note" type="note"
                label="How LLMs.txt Works"
-               description="An emerging AI standard (llmstxt.org). JoomlaBoost auto-fills it with org data, menu pages, ratings, contact &amp; social links. Visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify after saving."
+               description="An emerging AI standard (llmstxt.org). AI Boost auto-fills it with org data, menu pages, ratings, contact &amp; social links. Visit &lt;strong&gt;yourdomain.com/llms.txt&lt;/strong&gt; to verify after saving."
                class="alert alert-info"
                showon="llmstxt_enabled:1[AND]license_tier:developer,agency" />
 

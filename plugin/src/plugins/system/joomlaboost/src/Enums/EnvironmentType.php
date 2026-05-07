@@ -78,7 +78,7 @@ enum EnvironmentType: string
     {
         if (!$this->isProduction()) {
             return [
-                '# JoomlaBoost Robots.txt - ' . strtoupper($this->value) . ' ENVIRONMENT',
+                '# AI Boost for Joomla - Robots.txt - ' . strtoupper($this->value) . ' ENVIRONMENT',
                 '',
                 'User-agent: *',
                 'Disallow: /',
@@ -86,7 +86,7 @@ enum EnvironmentType: string
         }
 
         return [
-            '# JoomlaBoost Robots.txt - PRODUCTION ENVIRONMENT',
+            '# AI Boost for Joomla - Robots.txt - PRODUCTION ENVIRONMENT',
             '',
             'User-agent: *',
             'Allow: /',
