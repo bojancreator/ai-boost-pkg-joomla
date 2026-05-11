@@ -1,0 +1,29 @@
+/* JoomlaBoost Plugin Admin Styles
+ * Loaded only when editing plugin params (com_plugins.plugin context)
+ */
+
+/* Limit text input/textarea width for better readability on wide screens */
+#adminForm .controls input[type="text"],
+#adminForm .controls input[type="url"],
+#adminForm .controls input[type="email"],
+#adminForm .controls input[type="number"],
+#adminForm .controls textarea {
+    max-width: 800px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── Spacer Separators: prominent section headers ─────────────────────── */
+/* Target only spacer-type fields (Joomla renders spacer labels as <span class="text*">) */
+#adminForm .control-group .spacer .text,
+#adminForm .control-group .spacer .text-primary,
+#adminForm .control-group .spacer .text-info,
+#adminForm .control-group .spacer .text-warning,
+#adminForm .control-group .spacer .text-success {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    display: block;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}

@@ -1,0 +1,116 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "0Tul7mrFCpmSRw9cSHPyJ"
+uri = "file://.local/tasks/joomlaboost-master-plan.md"
+type = "text"
+title = "JoomlaBoost — Master plan (7 faza)"
+
+[[outputs]]
+id = "FMD-gj_GbRFLQ3Un9pJZV"
+uri = "file://.local/tasks/phase-1-analysis.md"
+type = "text"
+title = "Faza 1 — Tehnička analiza JoomlaBoost-a"
+
+[[outputs]]
+id = "WHTIm8xBh4x9TtCgzpFsw"
+uri = "file://.local/deliverables/v0.21.9-fixes/joomlaboost-fixes.tar.gz"
+type = "unspecified"
+title = "joomlaboost ispravke — 2 fajla + patch"
+
+[[outputs]]
+id = "pp0KTL6Hv9M4wavZJReo7"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.8.zip"
+type = "unspecified"
+title = "plg_system_joomlaboost-0.21.8.zip — Joomla instalacioni paket"
+
+[[outputs]]
+id = "uD3xaNj8XkF7Ip8_l0-U5"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.9.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.21.9 — llms.txt + IndexNow fix"
+
+[[outputs]]
+id = "BFVLfDRWFbs52i2NxxyZD"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.21.10.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.21.10 — LiteSpeed bypass fix"
+
+[[outputs]]
+id = "TZdCBEXKYUPGNS0Hgtwlz"
+uri = "file://.local/deliverables/JoomlaBoost-AI-Search-Audit.md"
+type = "text"
+title = "JoomlaBoost AI Search Optimization Audit"
+
+[[outputs]]
+id = "ka034tUaEUxsNCAUeRTT3"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.22.0.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.22.0 — Vertical Presets + Basic/Advanced UI"
+
+[[outputs]]
+id = "sULJ9_wlaMUZ7lSLoAYbe"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.0.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.0 — UI/UX Reorganization"
+
+[[outputs]]
+id = "KM9kLk32Ru1sh51F5tpOM"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.1.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.1 — manifest fix"
+
+[[outputs]]
+id = "ISw1D6K1zZvO6bonMUoVK"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.2.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.2 — XML entity fix"
+
+[[outputs]]
+id = "xrNmrSKwjUM3_70X9d6dd"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.3.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.3 — Multilingual fields under Advanced"
+
+[[outputs]]
+id = "MnLquUVW8pJUC6JZ5i8t1"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.4.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.4 — Show Advanced info notice"
+
+[[outputs]]
+id = "aW0dBYyZvy0bVKUtcysZE"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.5.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.5 — Declutter Plugin tab"
+
+[[outputs]]
+id = "mHXYFS3DizDaEFkFboAOc"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.23.6.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.23.6 — Compact descriptions"
+
+[[outputs]]
+id = "hYO1V5kxgGd_-QpzwpEKn"
+uri = "file://.local/deliverables/JoomlaBoost-Brand-Brief.md"
+type = "text"
+title = "Brand Brief — Naziv i domen analiza"
+
+[[outputs]]
+id = "cDS1fVoEXFhNPaV6EHqPh"
+uri = "file://.local/deliverables/plg_system_joomlaboost-0.24.0.zip"
+type = "unspecified"
+title = "JoomlaBoost v0.24.0 — kompletan ZIP"
+
+[[outputs]]
+id = "9t1CQDYlicQzZNcnOgpUX"
+uri = "file://.local/deliverables/docs/site-types-test-protocol.md"
+type = "text"
+title = "Site Types — Test Protocol (v0.25.0)"
+
+[[outputs]]
+id = "Ke6Qin_NMKC4A9SvZwwq3"
+uri = "file://.local/deliverables/docs/site-types-test-report.md"
+type = "text"
+title = "Site Types Test Report — 13/13 ✅"

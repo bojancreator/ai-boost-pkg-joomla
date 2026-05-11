@@ -1,0 +1,79 @@
+/**
+ * Multi-Language Selector Styles
+ * 
+ * @package     JoomlaBoost
+ * @since       0.6.0
+ */
+
+.multilang-selector-wrapper {
+    margin-bottom: 20px;
+}
+
+.multilang-selector-group {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.multilang-selector-group .control-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.multilang-selector-group .control-label .icon-language {
+    margin-right: 5px;
+    color: #0d6efd;
+}
+
+.multilang-selector {
+    width: 100%;
+    max-width: 300px;
+    font-size: 14px;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.multilang-selector:focus {
+    border-color: #0d6efd;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.multilang-selector option {
+    padding: 8px;
+}
+
+.form-text.text-muted {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .multilang-selector-group {
+        background: #2b3035;
+        border-color: #495057;
+    }
+
+    .multilang-selector-group .control-label {
+        color: #e9ecef;
+    }
+
+    .multilang-selector {
+        background-color: #343a40;
+        border-color: #495057;
+        color: #e9ecef;
+    }
+
+    .form-text.text-muted {
+        color: #adb5bd;
+    }
+}
