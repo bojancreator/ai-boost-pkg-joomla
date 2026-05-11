@@ -3,8 +3,13 @@
 /**
  * AI Boost for Joomla - Business Hours Field
  *
- * Compact JS widget: 7-row table (Mon–Sun) with Closed toggle, open/close
- * inputs, and optional break slot — all inline per row. Data stored as JSON.
+ * Compact 3-row widget: Mon–Fri (shared), Saturday, Sunday.
+ * Each row: Closed toggle | Open time | Close time.
+ * Internally expands Mon–Fri to all 5 weekdays in the stored JSON so that
+ * SchemaService continues to receive the full 7-day structure.
+ *
+ * Stored JSON (7 days, backward-compatible):
+ *   { "mon": {"open":"09:00","close":"17:00","closed":false}, ... }
  *
  * @copyright   (C) 2025 AI Boost Team (aiboostnow.com)
  * @license     GNU General Public License version 2 or later
@@ -20,158 +25,142 @@ class BusinessHoursField extends FormField
 {
     protected $type = 'BusinessHours';
 
-    private const DEFAULTS = [
-        'mon' => ['open' => '09:00', 'close' => '17:00', 'open2' => '', 'close2' => '', 'closed' => false],
-        'tue' => ['open' => '09:00', 'close' => '17:00', 'open2' => '', 'close2' => '', 'closed' => false],
-        'wed' => ['open' => '09:00', 'close' => '17:00', 'open2' => '', 'close2' => '', 'closed' => false],
-        'thu' => ['open' => '09:00', 'close' => '17:00', 'open2' => '', 'close2' => '', 'closed' => false],
-        'fri' => ['open' => '09:00', 'close' => '17:00', 'open2' => '', 'close2' => '', 'closed' => false],
-        'sat' => ['open' => '09:00', 'close' => '13:00', 'open2' => '', 'close2' => '', 'closed' => true],
-        'sun' => ['open' => '10:00', 'close' => '14:00', 'open2' => '', 'close2' => '', 'closed' => true],
-    ];
+    /** Weekday keys that share a single UI row */
+    private const WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri'];
 
-    private const DAY_LABELS = [
-        'mon' => 'Monday',
-        'tue' => 'Tuesday',
-        'wed' => 'Wednesday',
-        'thu' => 'Thursday',
-        'fri' => 'Friday',
-        'sat' => 'Saturday',
-        'sun' => 'Sunday',
+    private const DEFAULTS = [
+        'weekdays' => ['open' => '09:00', 'close' => '17:00', 'closed' => false],
+        'sat'      => ['open' => '09:00', 'close' => '13:00', 'closed' => true],
+        'sun'      => ['open' => '10:00', 'close' => '14:00', 'closed' => true],
     ];
 
     protected function getInput(): string
     {
-        $schedule = $this->parseValue();
+        $schedule = $this->parseValue();   // keys: weekdays, sat, sun
         $id       = $this->id;
         $name     = $this->name;
         $jsonVal  = htmlspecialchars(
-            json_encode($schedule, JSON_UNESCAPED_UNICODE),
+            json_encode($this->expandToFull($schedule), JSON_UNESCAPED_UNICODE),
             ENT_QUOTES,
             'UTF-8'
         );
 
-        $rows = '';
-        $groupHeaderStyle = 'font-size:0.75em;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;padding:6px 8px 3px;border-bottom:none;';
+        $rows = [
+            'weekdays' => 'Mon – Fri',
+            'sat'      => 'Saturday',
+            'sun'      => 'Sunday',
+        ];
 
-        // Weekdays group header
-        $rows .= '<tr><td colspan="3" style="' . $groupHeaderStyle . '">Weekdays</td></tr>' . "\n";
+        $inputStyle = 'width:76px;font-variant-numeric:tabular-nums;text-align:center;flex-shrink:0;';
+        $timeAttrs  = 'type="text" class="form-control form-control-sm" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]"'
+                    . ' style="' . $inputStyle . '"';
 
-        foreach (self::DAY_LABELS as $abbr => $label) {
+        $html = '';
+        foreach ($rows as $key => $label) {
+            $day      = $schedule[$key] ?? self::DEFAULTS[$key];
+            $closed   = !empty($day['closed']);
+            $open     = htmlspecialchars((string) ($day['open']  ?? ''), ENT_QUOTES, 'UTF-8');
+            $close    = htmlspecialchars((string) ($day['close'] ?? ''), ENT_QUOTES, 'UTF-8');
 
-            // Weekend group header before Saturday
-            if ($abbr === 'sat') {
-                $rows .= '<tr><td colspan="3" style="' . $groupHeaderStyle . 'border-top:2px solid rgba(128,128,128,0.25);">Weekend</td></tr>' . "\n";
-            }
-
-            $day     = $schedule[$abbr] ?? self::DEFAULTS[$abbr];
-            $closed  = !empty($day['closed']);
-            $open    = htmlspecialchars((string) ($day['open']   ?? ''), ENT_QUOTES, 'UTF-8');
-            $close   = htmlspecialchars((string) ($day['close']  ?? ''), ENT_QUOTES, 'UTF-8');
-            $open2   = htmlspecialchars((string) ($day['open2']  ?? ''), ENT_QUOTES, 'UTF-8');
-            $close2  = htmlspecialchars((string) ($day['close2'] ?? ''), ENT_QUOTES, 'UTF-8');
-            $hasSplit = $open2 !== '' && $close2 !== '';
-
-            $disAttr       = $closed ? ' disabled' : '';
             $closedChk     = $closed ? ' checked' : '';
-            $splitVis      = $hasSplit ? '' : 'display:none;';
-            $closedLblDisp = $closed   ? '' : 'display:none;';
-            $openFldsDisp  = $closed   ? 'display:none;' : '';
+            $disAttr       = $closed ? ' disabled' : '';
+            $openFldsDisp  = $closed ? 'display:none;' : '';
+            $closedLblDisp = $closed ? '' : 'display:none;';
 
-            $idDay = $id . '_' . $abbr;
+            $idRow = $id . '_' . $key;
 
-            $inputStyle = 'width:72px;font-variant-numeric:tabular-nums;text-align:center;';
-            $timeInput  = 'type="text" class="form-control form-control-sm" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="' . $inputStyle . '"';
+            $html .= '<tr data-day="' . $key . '" class="jb-hours-row">' . "\n";
 
-            $rows .= '<tr data-day="' . $abbr . '" class="jb-hours-row">' . "\n";
-
-            // Day name
-            $rows .= '  <td class="fw-semibold" style="width:88px;white-space:nowrap;vertical-align:middle;padding:5px 8px;">' . $label . '</td>' . "\n";
+            // Day label
+            $html .= '  <td class="fw-semibold" style="white-space:nowrap;vertical-align:middle;padding:6px 10px;width:110px;">' . $label . '</td>' . "\n";
 
             // Closed toggle
-            $rows .= '  <td style="width:52px;text-align:center;vertical-align:middle;padding:5px 4px;">' . "\n";
-            $rows .= '    <div class="form-check form-switch d-flex justify-content-center mb-0">' . "\n";
-            $rows .= '      <input class="form-check-input jb-closed-chk" type="checkbox" id="' . $idDay . '_closed" value="1"' . $closedChk . ' title="Closed all day" style="cursor:pointer;">' . "\n";
-            $rows .= '    </div>' . "\n";
-            $rows .= '  </td>' . "\n";
+            $html .= '  <td style="width:52px;text-align:center;vertical-align:middle;padding:6px 4px;">'
+                   . '<div class="form-check form-switch d-flex justify-content-center mb-0">'
+                   . '<input class="form-check-input jb-closed-chk" type="checkbox" id="' . $idRow . '_closed"'
+                   . ' value="1"' . $closedChk . ' title="Mark as closed" style="cursor:pointer;">'
+                   . '</div></td>' . "\n";
 
-            // Hours — all inline
-            $rows .= '  <td style="vertical-align:middle;padding:5px 8px;">' . "\n";
-
-            // Open fields wrapper
-            $rows .= '    <div class="jb-open-fields d-flex align-items-center gap-2 flex-wrap" style="' . $openFldsDisp . '">' . "\n";
-
-            // Primary slot
-            $rows .= '      <input ' . $timeInput . ' class="jb-open" id="' . $idDay . '_open" value="' . $open . '" placeholder="09:00"' . $disAttr . '>' . "\n";
-            $rows .= '      <span class="text-muted" style="font-size:0.9em;">–</span>' . "\n";
-            $rows .= '      <input ' . $timeInput . ' class="jb-close" id="' . $idDay . '_close" value="' . $close . '" placeholder="17:00"' . $disAttr . '>' . "\n";
-
-            // Add-break button (hidden when split is active)
-            $rows .= '      <button type="button" class="btn btn-sm jb-split-btn" style="font-size:0.75em;padding:2px 9px;border-radius:20px;background:rgba(13,110,253,0.1);color:#0d6efd;border:1px solid rgba(13,110,253,0.3);" title="Add a lunch break or second working slot"' . $disAttr . ($hasSplit ? ' style="display:none;"' : '') . '>+ Add break</button>' . "\n";
-
-            // Break slot (inline, shown when active)
-            $rows .= '      <span class="jb-split-row d-flex align-items-center gap-2" style="' . $splitVis . '">' . "\n";
-            $rows .= '        <span class="text-muted" style="font-size:0.75em;white-space:nowrap;">Break:</span>' . "\n";
-            $rows .= '        <input ' . $timeInput . ' class="jb-open2" id="' . $idDay . '_open2" value="' . $open2 . '" placeholder="12:00"' . $disAttr . '>' . "\n";
-            $rows .= '        <span class="text-muted" style="font-size:0.9em;">–</span>' . "\n";
-            $rows .= '        <input ' . $timeInput . ' class="jb-close2" id="' . $idDay . '_close2" value="' . $close2 . '" placeholder="13:00"' . $disAttr . '>' . "\n";
-            $rows .= '        <button type="button" class="jb-remove-split" title="Remove break" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1em;padding:0 2px;line-height:1;" tabindex="-1">✕</button>' . "\n";
-            $rows .= '      </span>' . "\n";
-
-            $rows .= '    </div>' . "\n";
-            $rows .= '    <div class="jb-closed-label text-muted small fst-italic" style="' . $closedLblDisp . '">Closed</div>' . "\n";
-            $rows .= '  </td>' . "\n";
-            $rows .= '</tr>' . "\n";
+            // Hours
+            $html .= '  <td style="vertical-align:middle;padding:6px 10px;">' . "\n";
+            $html .= '    <div class="jb-open-fields" style="display:flex;align-items:center;gap:8px;' . $openFldsDisp . '">' . "\n";
+            $html .= '      <input ' . $timeAttrs . ' class="jb-open" id="' . $idRow . '_open"'
+                   . ' value="' . $open . '" placeholder="09:00"' . $disAttr . '>' . "\n";
+            $html .= '      <span style="flex-shrink:0;opacity:0.5;">–</span>' . "\n";
+            $html .= '      <input ' . $timeAttrs . ' class="jb-close" id="' . $idRow . '_close"'
+                   . ' value="' . $close . '" placeholder="17:00"' . $disAttr . '>' . "\n";
+            $html .= '    </div>' . "\n";
+            $html .= '    <div class="jb-closed-label text-muted small fst-italic" style="' . $closedLblDisp . '">Closed</div>' . "\n";
+            $html .= '  </td>' . "\n";
+            $html .= '</tr>' . "\n";
         }
 
         $script = $this->buildScript($id);
 
-        return '<div class="jb-business-hours" id="' . $id . '_widget" style="max-width:640px;">'
+        return '<div class="jb-business-hours" id="' . $id . '_widget" style="max-width:480px;">'
             . '<input type="hidden" id="' . $id . '" name="' . $name . '" value="' . $jsonVal . '">'
             . '<table class="table table-sm table-bordered mb-0" style="font-size:0.9em;">'
             . '<thead><tr>'
-            . '<th style="width:88px;">Day</th>'
-            . '<th style="width:52px;text-align:center;" title="Toggle to mark day as closed">Closed</th>'
-            . '<th>Hours <span class="text-muted fw-normal" style="font-size:0.8em;">(24h — e.g. 09:00)</span></th>'
+            . '<th style="width:110px;">Day</th>'
+            . '<th style="width:52px;text-align:center;">Closed</th>'
+            . '<th>Hours <span class="text-muted fw-normal" style="font-size:0.8em;">(24h)</span></th>'
             . '</tr></thead>'
-            . '<tbody>' . $rows . '</tbody>'
+            . '<tbody>' . $html . '</tbody>'
             . '</table>'
             . '</div>'
             . $script;
     }
 
     /**
+     * Parse stored 7-day JSON into the 3-group structure (weekdays, sat, sun).
+     * Uses Monday as the representative for Mon–Fri.
+     *
      * @return array<string, array<string, string|bool>>
      */
     private function parseValue(): array
     {
-        $raw = trim((string) $this->value);
-        if ($raw === '' || $raw === '{}') {
-            return self::DEFAULTS;
-        }
+        $raw     = trim((string) $this->value);
+        $decoded = ($raw !== '' && $raw !== '{}') ? json_decode($raw, true) : null;
 
-        $decoded = json_decode($raw, true);
-        if (!is_array($decoded)) {
-            return self::DEFAULTS;
-        }
-
-        $result = [];
-        foreach (self::DAY_LABELS as $abbr => $label) {
-            if (isset($decoded[$abbr]) && is_array($decoded[$abbr])) {
-                $d             = $decoded[$abbr];
-                $result[$abbr] = [
-                    'open'   => (string) ($d['open']   ?? ''),
-                    'close'  => (string) ($d['close']  ?? ''),
-                    'open2'  => (string) ($d['open2']  ?? ''),
-                    'close2' => (string) ($d['close2'] ?? ''),
+        $get = function (string $abbr) use ($decoded): array {
+            if (is_array($decoded) && isset($decoded[$abbr]) && is_array($decoded[$abbr])) {
+                $d = $decoded[$abbr];
+                return [
+                    'open'   => (string) ($d['open']  ?? ''),
+                    'close'  => (string) ($d['close'] ?? ''),
                     'closed' => !empty($d['closed']),
                 ];
-            } else {
-                $result[$abbr] = self::DEFAULTS[$abbr];
             }
-        }
+            return self::DEFAULTS['weekdays'];
+        };
 
-        return $result;
+        return [
+            'weekdays' => isset($decoded['mon']) ? $get('mon') : self::DEFAULTS['weekdays'],
+            'sat'      => $get('sat') + self::DEFAULTS['sat'],
+            'sun'      => $get('sun') + self::DEFAULTS['sun'],
+        ];
+    }
+
+    /**
+     * Expand 3-group schedule to full 7-day JSON for SchemaService.
+     *
+     * @param array<string, array<string, string|bool>> $schedule
+     * @return array<string, array<string, string|bool>>
+     */
+    private function expandToFull(array $schedule): array
+    {
+        $wk  = $schedule['weekdays'] ?? self::DEFAULTS['weekdays'];
+        $sat = $schedule['sat']      ?? self::DEFAULTS['sat'];
+        $sun = $schedule['sun']      ?? self::DEFAULTS['sun'];
+
+        $full = [];
+        foreach (self::WEEKDAYS as $abbr) {
+            $full[$abbr] = ['open' => $wk['open'], 'close' => $wk['close'], 'open2' => '', 'close2' => '', 'closed' => $wk['closed']];
+        }
+        $full['sat'] = ['open' => $sat['open'], 'close' => $sat['close'], 'open2' => '', 'close2' => '', 'closed' => $sat['closed']];
+        $full['sun'] = ['open' => $sun['open'], 'close' => $sun['close'], 'open2' => '', 'close2' => '', 'closed' => $sun['closed']];
+
+        return $full;
     }
 
     private function buildScript(string $id): string
@@ -181,11 +170,12 @@ class BusinessHoursField extends FormField
         return <<<JS
 <script>
 (function () {
-    var DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
-    var id   = {$jsId};
+    var GROUPS   = ['weekdays', 'sat', 'sun'];
+    var WEEKDAYS = ['mon', 'tue', 'wed', 'thu', 'fri'];
+    var id = {$jsId};
 
     function normaliseTime(val) {
-        val = val.replace(/[^\d:]/g, '').trim();
+        val = (val || '').replace(/[^\d:]/g, '').trim();
         if (!val) { return ''; }
         var parts = val.split(':');
         var h = parseInt(parts[0] || '0', 10);
@@ -198,20 +188,23 @@ class BusinessHoursField extends FormField
 
     function collect() {
         var out = {};
-        DAYS.forEach(function (day) {
-            var closed = document.getElementById(id + '_' + day + '_closed');
-            var open   = document.getElementById(id + '_' + day + '_open');
-            var close  = document.getElementById(id + '_' + day + '_close');
-            var open2  = document.getElementById(id + '_' + day + '_open2');
-            var close2 = document.getElementById(id + '_' + day + '_close2');
+        GROUPS.forEach(function (group) {
+            var closed = document.getElementById(id + '_' + group + '_closed');
+            var open   = document.getElementById(id + '_' + group + '_open');
+            var close  = document.getElementById(id + '_' + group + '_close');
             if (!closed) { return; }
-            out[day] = {
+            var entry = {
                 open:   open   ? open.value   : '',
                 close:  close  ? close.value  : '',
-                open2:  open2  ? open2.value  : '',
-                close2: close2 ? close2.value : '',
+                open2:  '',
+                close2: '',
                 closed: closed.checked
             };
+            if (group === 'weekdays') {
+                WEEKDAYS.forEach(function (day) { out[day] = entry; });
+            } else {
+                out[group] = entry;
+            }
         });
         return out;
     }
@@ -225,54 +218,23 @@ class BusinessHoursField extends FormField
         var closedEl  = row.querySelector('.jb-closed-chk');
         var openFlds  = row.querySelector('.jb-open-fields');
         var closedLbl = row.querySelector('.jb-closed-label');
-        var splitBtn  = row.querySelector('.jb-split-btn');
-        var splitRow  = row.querySelector('.jb-split-row');
-        var removeBtn = row.querySelector('.jb-remove-split');
 
         function applyClosedState() {
             var isClosed = closedEl.checked;
             if (openFlds) {
-                openFlds.querySelectorAll('input, button').forEach(function (el) {
-                    el.disabled = isClosed;
-                });
-                openFlds.style.display = isClosed ? 'none' : '';
+                openFlds.querySelectorAll('input').forEach(function (el) { el.disabled = isClosed; });
+                openFlds.style.display = isClosed ? 'none' : 'flex';
             }
             if (closedLbl) { closedLbl.style.display = isClosed ? '' : 'none'; }
         }
 
         if (closedEl) {
-            closedEl.addEventListener('change', function () {
-                applyClosedState();
-                save();
-            });
+            closedEl.addEventListener('change', function () { applyClosedState(); save(); });
             applyClosedState();
         }
 
-        if (splitBtn && splitRow) {
-            splitBtn.addEventListener('click', function () {
-                splitRow.style.display = '';
-                splitBtn.style.display = 'none';
-                save();
-            });
-        }
-
-        if (removeBtn && splitRow) {
-            removeBtn.addEventListener('click', function () {
-                splitRow.style.display = 'none';
-                if (splitBtn) { splitBtn.style.display = ''; }
-                var open2  = splitRow.querySelector('.jb-open2');
-                var close2 = splitRow.querySelector('.jb-close2');
-                if (open2)  { open2.value  = ''; }
-                if (close2) { close2.value = ''; }
-                save();
-            });
-        }
-
         row.querySelectorAll('input[type="text"]').forEach(function (inp) {
-            inp.addEventListener('blur', function () {
-                this.value = normaliseTime(this.value);
-                save();
-            });
+            inp.addEventListener('blur', function () { this.value = normaliseTime(this.value); save(); });
             inp.addEventListener('change', save);
         });
     }
@@ -281,11 +243,8 @@ class BusinessHoursField extends FormField
         var widget = document.getElementById(id + '_widget');
         if (!widget) { return; }
         widget.querySelectorAll('tr[data-day]').forEach(initRow);
-
         var form = widget.closest('form');
-        if (form) {
-            form.addEventListener('submit', save, true);
-        }
+        if (form) { form.addEventListener('submit', save, true); }
     }
 
     if (document.readyState === 'loading') {
