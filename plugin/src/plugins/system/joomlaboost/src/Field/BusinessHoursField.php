@@ -51,7 +51,7 @@ class BusinessHoursField extends FormField
             'sun'      => 'Sunday',
         ];
 
-        $inputStyle = 'width:76px;font-variant-numeric:tabular-nums;text-align:center;flex-shrink:0;';
+        $inputStyle = 'width:64px;min-width:0;font-variant-numeric:tabular-nums;text-align:center;';
         $timeAttrs  = 'type="text" class="form-control form-control-sm" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]"'
                     . ' style="' . $inputStyle . '"';
 
@@ -72,21 +72,21 @@ class BusinessHoursField extends FormField
             $html .= '<tr data-day="' . $key . '" class="jb-hours-row">' . "\n";
 
             // Day label
-            $html .= '  <td class="fw-semibold" style="white-space:nowrap;vertical-align:middle;padding:6px 10px;width:110px;">' . $label . '</td>' . "\n";
+            $html .= '  <td class="fw-semibold" style="white-space:nowrap;vertical-align:middle;padding:5px 8px;width:86px;">' . $label . '</td>' . "\n";
 
             // Closed toggle
-            $html .= '  <td style="width:52px;text-align:center;vertical-align:middle;padding:6px 4px;">'
+            $html .= '  <td style="width:44px;text-align:center;vertical-align:middle;padding:5px 2px;">'
                    . '<div class="form-check form-switch d-flex justify-content-center mb-0">'
                    . '<input class="form-check-input jb-closed-chk" type="checkbox" id="' . $idRow . '_closed"'
                    . ' value="1"' . $closedChk . ' title="Mark as closed" style="cursor:pointer;">'
                    . '</div></td>' . "\n";
 
             // Hours
-            $html .= '  <td style="vertical-align:middle;padding:6px 10px;">' . "\n";
-            $html .= '    <div class="jb-open-fields" style="display:flex;align-items:center;gap:8px;' . $openFldsDisp . '">' . "\n";
+            $html .= '  <td style="vertical-align:middle;padding:5px 8px;">' . "\n";
+            $html .= '    <div class="jb-open-fields" style="display:flex;align-items:center;gap:5px;' . $openFldsDisp . '">' . "\n";
             $html .= '      <input ' . $timeAttrs . ' class="jb-open" id="' . $idRow . '_open"'
                    . ' value="' . $open . '" placeholder="09:00"' . $disAttr . '>' . "\n";
-            $html .= '      <span style="flex-shrink:0;opacity:0.5;">–</span>' . "\n";
+            $html .= '      <span style="opacity:0.45;font-size:0.9em;">–</span>' . "\n";
             $html .= '      <input ' . $timeAttrs . ' class="jb-close" id="' . $idRow . '_close"'
                    . ' value="' . $close . '" placeholder="17:00"' . $disAttr . '>' . "\n";
             $html .= '    </div>' . "\n";
@@ -97,12 +97,12 @@ class BusinessHoursField extends FormField
 
         $script = $this->buildScript($id);
 
-        return '<div class="jb-business-hours" id="' . $id . '_widget" style="max-width:480px;">'
+        return '<div class="jb-business-hours" id="' . $id . '_widget" style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">'
             . '<input type="hidden" id="' . $id . '" name="' . $name . '" value="' . $jsonVal . '">'
-            . '<table class="table table-sm table-bordered mb-0" style="font-size:0.9em;">'
+            . '<table class="table table-sm table-bordered mb-0" style="font-size:0.9em;min-width:280px;max-width:420px;">'
             . '<thead><tr>'
-            . '<th style="width:110px;">Day</th>'
-            . '<th style="width:52px;text-align:center;">Closed</th>'
+            . '<th style="width:86px;">Day</th>'
+            . '<th style="width:44px;text-align:center;">Closed</th>'
             . '<th>Hours <span class="text-muted fw-normal" style="font-size:0.8em;">(24h)</span></th>'
             . '</tr></thead>'
             . '<tbody>' . $html . '</tbody>'
