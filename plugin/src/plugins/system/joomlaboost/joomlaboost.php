@@ -443,25 +443,10 @@ class PlgSystemJoomlaboost extends CMSPlugin
                         $pluginVersion = $this->getPluginVersion();
                         $currentTime   = date('H:i:s');
 
-                        // Ensure plugin language file is loaded for frontend context
-                        $this->getApplication()->getLanguage()->load(
-                            'plg_system_joomlaboost',
-                            JPATH_PLUGINS . '/system/joomlaboost'
-                        );
-
-                        // Staging badge labels (fall back to English if language not loaded)
-                        $stagingClickHide = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_CLICK_HIDE');
-                        $stagingDomain    = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_DOMAIN');
-                        $stagingGenerated = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_GENERATED');
-                        if ($stagingClickHide === 'PLG_SYSTEM_JOOMLABOOST_STAGING_CLICK_HIDE') {
-                            $stagingClickHide = 'Click to hide';
-                        }
-                        if ($stagingDomain === 'PLG_SYSTEM_JOOMLABOOST_STAGING_DOMAIN') {
-                            $stagingDomain = 'Domain';
-                        }
-                        if ($stagingGenerated === 'PLG_SYSTEM_JOOMLABOOST_STAGING_GENERATED') {
-                            $stagingGenerated = 'Generated';
-                        }
+                        // Staging badge labels — hardcoded EN (developer-only widget, no i18n needed)
+                        $stagingClickHide = 'Click to hide';
+                        $stagingDomain    = 'Domain';
+                        $stagingGenerated = 'Generated';
 
                         $badge = <<<HTML
 <!-- AI Boost Staging Badge -->
