@@ -3,18 +3,8 @@
 /**
  * AI Boost for Joomla - Business Hours Field
  *
- * Compact JS widget that replaces 35 individual day-by-day XML fields with a
- * single 7-row table (Mon–Sun). Each row has: Closed checkbox | Open time |
- * Close time | optional split-shift second slot. All data is serialised as a
- * single JSON string stored in one hidden <input>.
- *
- * JSON format (saved to param `schema_business_hours`):
- *   {
- *     "mon": {"open":"09:00","close":"17:00","open2":"","close2":"","closed":false},
- *     ...
- *     "sat": {"open":"09:00","close":"13:00","open2":"","close2":"","closed":true},
- *     "sun": {"open":"10:00","close":"14:00","open2":"","close2":"","closed":true}
- *   }
+ * Compact JS widget: 7-row table (Mon–Sun) with Closed toggle, open/close
+ * inputs, and optional break slot — all inline per row. Data stored as JSON.
  *
  * @copyright   (C) 2025 AI Boost Team (aiboostnow.com)
  * @license     GNU General Public License version 2 or later
@@ -30,7 +20,6 @@ class BusinessHoursField extends FormField
 {
     protected $type = 'BusinessHours';
 
-    /** @var array<string, array<string, string|bool>> Default hours for a typical Mon–Fri business */
     private const DEFAULTS = [
         'mon' => ['open' => '09:00', 'close' => '17:00', 'open2' => '', 'close2' => '', 'closed' => false],
         'tue' => ['open' => '09:00', 'close' => '17:00', 'open2' => '', 'close2' => '', 'closed' => false],
@@ -63,7 +52,18 @@ class BusinessHoursField extends FormField
         );
 
         $rows = '';
+        $groupHeaderStyle = 'font-size:0.75em;text-transform:uppercase;letter-spacing:0.06em;opacity:0.55;padding:6px 8px 3px;border-bottom:none;';
+
+        // Weekdays group header
+        $rows .= '<tr><td colspan="3" style="' . $groupHeaderStyle . '">Weekdays</td></tr>' . "\n";
+
         foreach (self::DAY_LABELS as $abbr => $label) {
+
+            // Weekend group header before Saturday
+            if ($abbr === 'sat') {
+                $rows .= '<tr><td colspan="3" style="' . $groupHeaderStyle . 'border-top:2px solid rgba(128,128,128,0.25);">Weekend</td></tr>' . "\n";
+            }
+
             $day     = $schedule[$abbr] ?? self::DEFAULTS[$abbr];
             $closed  = !empty($day['closed']);
             $open    = htmlspecialchars((string) ($day['open']   ?? ''), ENT_QUOTES, 'UTF-8');
@@ -74,53 +74,68 @@ class BusinessHoursField extends FormField
 
             $disAttr       = $closed ? ' disabled' : '';
             $closedChk     = $closed ? ' checked' : '';
-            $splitVis      = $hasSplit ? '' : ' style="display:none;"';
-            $splitBtnLbl   = $hasSplit ? '&minus; Split' : '&plus; Split';
+            $splitVis      = $hasSplit ? '' : 'display:none;';
             $closedLblDisp = $closed   ? '' : 'display:none;';
             $openFldsDisp  = $closed   ? 'display:none;' : '';
 
             $idDay = $id . '_' . $abbr;
 
+            $inputStyle = 'width:72px;font-variant-numeric:tabular-nums;text-align:center;';
+            $timeInput  = 'type="text" class="form-control form-control-sm" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="' . $inputStyle . '"';
+
             $rows .= '<tr data-day="' . $abbr . '" class="jb-hours-row">' . "\n";
-            $rows .= '  <td class="jb-day-label fw-semibold" style="width:90px;white-space:nowrap;vertical-align:middle;">' . $label . '</td>' . "\n";
-            $rows .= '  <td style="width:60px;text-align:center;vertical-align:middle;">' . "\n";
+
+            // Day name
+            $rows .= '  <td class="fw-semibold" style="width:88px;white-space:nowrap;vertical-align:middle;padding:5px 8px;">' . $label . '</td>' . "\n";
+
+            // Closed toggle
+            $rows .= '  <td style="width:52px;text-align:center;vertical-align:middle;padding:5px 4px;">' . "\n";
             $rows .= '    <div class="form-check form-switch d-flex justify-content-center mb-0">' . "\n";
-            $rows .= '      <input class="form-check-input jb-closed-chk" type="checkbox" id="' . $idDay . '_closed" value="1"' . $closedChk . ' title="Closed all day">' . "\n";
+            $rows .= '      <input class="form-check-input jb-closed-chk" type="checkbox" id="' . $idDay . '_closed" value="1"' . $closedChk . ' title="Closed all day" style="cursor:pointer;">' . "\n";
             $rows .= '    </div>' . "\n";
             $rows .= '  </td>' . "\n";
-            $rows .= '  <td style="vertical-align:middle;">' . "\n";
-            $rows .= '    <div class="jb-open-fields" style="' . $openFldsDisp . '">' . "\n";
-            $rows .= '      <div class="d-flex align-items-center gap-2 flex-wrap">' . "\n";
-            $rows .= '        <input type="text" class="form-control form-control-sm jb-open" id="' . $idDay . '_open" value="' . $open . '" placeholder="09:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
-            $rows .= '        <span class="text-muted jb-separator">&ndash;</span>' . "\n";
-            $rows .= '        <input type="text" class="form-control form-control-sm jb-close" id="' . $idDay . '_close" value="' . $close . '" placeholder="17:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
-            $rows .= '        <button type="button" class="btn btn-sm btn-outline-secondary jb-split-btn" style="font-size:0.75em;padding:2px 8px;"' . $disAttr . '>' . $splitBtnLbl . '</button>' . "\n";
-            $rows .= '      </div>' . "\n";
-            $rows .= '      <div class="d-flex align-items-center gap-2 flex-wrap mt-1 jb-split-row"' . $splitVis . '>' . "\n";
-            $rows .= '        <input type="text" class="form-control form-control-sm jb-open2" id="' . $idDay . '_open2" value="' . $open2 . '" placeholder="12:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
-            $rows .= '        <span class="text-muted">&ndash;</span>' . "\n";
-            $rows .= '        <input type="text" class="form-control form-control-sm jb-close2" id="' . $idDay . '_close2" value="' . $close2 . '" placeholder="13:00" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" style="width:80px;font-variant-numeric:tabular-nums;text-align:center;"' . $disAttr . '>' . "\n";
-            $rows .= '        <span class="text-muted small" style="font-size:0.75em;">(2nd slot)</span>' . "\n";
-            $rows .= '      </div>' . "\n";
+
+            // Hours — all inline
+            $rows .= '  <td style="vertical-align:middle;padding:5px 8px;">' . "\n";
+
+            // Open fields wrapper
+            $rows .= '    <div class="jb-open-fields d-flex align-items-center gap-2 flex-wrap" style="' . $openFldsDisp . '">' . "\n";
+
+            // Primary slot
+            $rows .= '      <input ' . $timeInput . ' class="jb-open" id="' . $idDay . '_open" value="' . $open . '" placeholder="09:00"' . $disAttr . '>' . "\n";
+            $rows .= '      <span class="text-muted" style="font-size:0.9em;">–</span>' . "\n";
+            $rows .= '      <input ' . $timeInput . ' class="jb-close" id="' . $idDay . '_close" value="' . $close . '" placeholder="17:00"' . $disAttr . '>' . "\n";
+
+            // Add-break button (hidden when split is active)
+            $rows .= '      <button type="button" class="btn btn-sm jb-split-btn" style="font-size:0.75em;padding:2px 9px;border-radius:20px;background:rgba(13,110,253,0.1);color:#0d6efd;border:1px solid rgba(13,110,253,0.3);" title="Add a lunch break or second working slot"' . $disAttr . ($hasSplit ? ' style="display:none;"' : '') . '>+ Add break</button>' . "\n";
+
+            // Break slot (inline, shown when active)
+            $rows .= '      <span class="jb-split-row d-flex align-items-center gap-2" style="' . $splitVis . '">' . "\n";
+            $rows .= '        <span class="text-muted" style="font-size:0.75em;white-space:nowrap;">Break:</span>' . "\n";
+            $rows .= '        <input ' . $timeInput . ' class="jb-open2" id="' . $idDay . '_open2" value="' . $open2 . '" placeholder="12:00"' . $disAttr . '>' . "\n";
+            $rows .= '        <span class="text-muted" style="font-size:0.9em;">–</span>' . "\n";
+            $rows .= '        <input ' . $timeInput . ' class="jb-close2" id="' . $idDay . '_close2" value="' . $close2 . '" placeholder="13:00"' . $disAttr . '>' . "\n";
+            $rows .= '        <button type="button" class="jb-remove-split" title="Remove break" style="background:none;border:none;color:#dc3545;cursor:pointer;font-size:1em;padding:0 2px;line-height:1;" tabindex="-1">✕</button>' . "\n";
+            $rows .= '      </span>' . "\n";
+
             $rows .= '    </div>' . "\n";
-            $rows .= '    <div class="jb-closed-label text-muted small fst-italic" style="padding:4px 0;' . $closedLblDisp . '">Closed</div>' . "\n";
+            $rows .= '    <div class="jb-closed-label text-muted small fst-italic" style="' . $closedLblDisp . '">Closed</div>' . "\n";
             $rows .= '  </td>' . "\n";
             $rows .= '</tr>' . "\n";
         }
 
         $script = $this->buildScript($id);
 
-        return '<div class="jb-business-hours" id="' . $id . '_widget" style="max-width:560px;">'
+        return '<div class="jb-business-hours" id="' . $id . '_widget" style="max-width:640px;">'
             . '<input type="hidden" id="' . $id . '" name="' . $name . '" value="' . $jsonVal . '">'
             . '<table class="table table-sm table-bordered mb-0" style="font-size:0.9em;">'
             . '<thead><tr>'
-            . '<th style="width:90px;">Day</th>'
-            . '<th style="width:60px;text-align:center;">Closed</th>'
-            . '<th>Hours <span class="text-muted fw-normal" style="font-size:0.8em;">(24h, e.g. 09:00)</span></th>'
+            . '<th style="width:88px;">Day</th>'
+            . '<th style="width:52px;text-align:center;" title="Toggle to mark day as closed">Closed</th>'
+            . '<th>Hours <span class="text-muted fw-normal" style="font-size:0.8em;">(24h — e.g. 09:00)</span></th>'
             . '</tr></thead>'
             . '<tbody>' . $rows . '</tbody>'
             . '</table>'
-            . '<div class="small text-muted mt-1">Use the <strong>+ Split</strong> button to add a second time slot (e.g. lunch break).</div>'
             . '</div>'
             . $script;
     }
@@ -143,7 +158,7 @@ class BusinessHoursField extends FormField
         $result = [];
         foreach (self::DAY_LABELS as $abbr => $label) {
             if (isset($decoded[$abbr]) && is_array($decoded[$abbr])) {
-                $d            = $decoded[$abbr];
+                $d             = $decoded[$abbr];
                 $result[$abbr] = [
                     'open'   => (string) ($d['open']   ?? ''),
                     'close'  => (string) ($d['close']  ?? ''),
@@ -212,6 +227,7 @@ class BusinessHoursField extends FormField
         var closedLbl = row.querySelector('.jb-closed-label');
         var splitBtn  = row.querySelector('.jb-split-btn');
         var splitRow  = row.querySelector('.jb-split-row');
+        var removeBtn = row.querySelector('.jb-remove-split');
 
         function applyClosedState() {
             var isClosed = closedEl.checked;
@@ -234,22 +250,25 @@ class BusinessHoursField extends FormField
 
         if (splitBtn && splitRow) {
             splitBtn.addEventListener('click', function () {
-                if (splitRow.style.display === 'none') {
-                    splitRow.style.display = '';
-                    splitBtn.innerHTML = '&minus; Split';
-                } else {
-                    splitRow.style.display = 'none';
-                    splitBtn.innerHTML = '&plus; Split';
-                    var open2  = splitRow.querySelector('.jb-open2');
-                    var close2 = splitRow.querySelector('.jb-close2');
-                    if (open2)  { open2.value  = ''; }
-                    if (close2) { close2.value = ''; }
-                }
+                splitRow.style.display = '';
+                splitBtn.style.display = 'none';
                 save();
             });
         }
 
-        row.querySelectorAll('input[type="text"].jb-open, input[type="text"].jb-close, input[type="text"].jb-open2, input[type="text"].jb-close2').forEach(function (inp) {
+        if (removeBtn && splitRow) {
+            removeBtn.addEventListener('click', function () {
+                splitRow.style.display = 'none';
+                if (splitBtn) { splitBtn.style.display = ''; }
+                var open2  = splitRow.querySelector('.jb-open2');
+                var close2 = splitRow.querySelector('.jb-close2');
+                if (open2)  { open2.value  = ''; }
+                if (close2) { close2.value = ''; }
+                save();
+            });
+        }
+
+        row.querySelectorAll('input[type="text"]').forEach(function (inp) {
             inp.addEventListener('blur', function () {
                 this.value = normaliseTime(this.value);
                 save();
