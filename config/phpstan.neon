@@ -11,7 +11,6 @@ parameters:
     - '#Constant JPATH_#'
     - '#Call to an undefined (static )?method Joomla\\#'
     - '#Static method Joomla\\CMS\\Factory::getUser\(\) invoked with 0 parameters#'
-    - '#Access to an undefined property object#'
     - '#Template type T.*is not referenced in a parameter#'
     - '#is unused#'
   excludePaths:
