@@ -96,7 +96,7 @@ class CrawlerBlockerField extends FormField
             }
 
             $allowed = (int) ($values[$key] ?? 1);
-            $checked = $allowed ? '' : ' checked';
+            $checked = $allowed ? ' checked' : '';   // ON = allowed (plav), OFF = blokiran
 
             $tbody .= '<tr data-bot="' . $key . '" class="jb-crawler-row">' . "\n";
             $tbody .= '  <td class="fw-semibold" style="white-space:nowrap;vertical-align:middle;'
@@ -109,7 +109,7 @@ class CrawlerBlockerField extends FormField
                 . '<div class="form-check form-switch d-flex justify-content-center mb-0">'
                 . '<input class="form-check-input jb-crawler-chk" type="checkbox"'
                 . ' id="' . $id . '_' . $key . '" value="1"' . $checked
-                . ' title="Block this crawler" style="cursor:pointer;">'
+                . ' title="Allow this crawler" style="cursor:pointer;">'
                 . '</div></td>' . "\n";
             $tbody .= '</tr>' . "\n";
         }
@@ -118,7 +118,7 @@ class CrawlerBlockerField extends FormField
             . ' style="font-size:0.9em;min-width:280px;max-width:520px;">'
             . '<thead><tr>'
             . '<th>Crawler / Bot</th>'
-            . '<th style="width:60px;text-align:center;">Block</th>'
+            . '<th style="width:60px;text-align:center;">Allow</th>'
             . '</tr></thead>'
             . '<tbody>' . $tbody . '</tbody>'
             . '</table>';
@@ -178,7 +178,7 @@ class CrawlerBlockerField extends FormField
         var out = {};
         KEYS.forEach(function (k) {
             var el = document.getElementById(id + '_' + k);
-            out[k] = (el && el.checked) ? 0 : 1;
+            out[k] = (el && el.checked) ? 1 : 0;  // ON (checked, plav) = 1 (Allow), OFF = 0 (Block)
         });
         return out;
     }
