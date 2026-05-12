@@ -7,7 +7,6 @@
 
 \defined('_JEXEC') or die;
 
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Document\HtmlDocument;
@@ -148,15 +147,19 @@ class PlgSystemJoomlaboost extends CMSPlugin
             return;
         }
 
-        // llms.txt / llms-full.txt handling (AI search engines)
+        // llms.txt / llms-full.txt handling (AI search engines) — Developer/Agency only
         if ($this->isLlmsTxtRequest()) {
-            $this->handleLlmsTxtRequest($app);
+            if ($this->isProLicense()) {
+                $this->handleLlmsTxtRequest($app);
+            }
             return;
         }
 
-        // IndexNow key file handling ({apiKey}.txt)
+        // IndexNow key file handling ({apiKey}.txt) — Developer/Agency only
         if ($this->isIndexNowKeyRequest()) {
-            $this->handleIndexNowKeyRequest($app);
+            if ($this->isProLicense()) {
+                $this->handleIndexNowKeyRequest($app);
+            }
             return;
         }
     }
@@ -440,25 +443,24 @@ class PlgSystemJoomlaboost extends CMSPlugin
                         $pluginVersion = $this->getPluginVersion();
                         $currentTime   = date('H:i:s');
 
-                        // Staging badge HTML with inline styles and more info
-                        $badgeTitle        = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_BADGE_TITLE'), ENT_QUOTES, 'UTF-8');
-                        $badgeEnvLabel     = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_ENV_LABEL'), ENT_QUOTES, 'UTF-8');
-                        $badgePluginLabel  = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_PLUGIN_LABEL'), ENT_QUOTES, 'UTF-8');
-                        $badgeDomainLabel  = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_DOMAIN_LABEL'), ENT_QUOTES, 'UTF-8');
-                        $badgeGenLabel     = htmlspecialchars(Text::_('PLG_SYSTEM_JOOMLABOOST_STAGING_GENERATED_LABEL'), ENT_QUOTES, 'UTF-8');
+                        // Staging badge labels — hardcoded EN (developer-only widget, no i18n needed)
+                        $stagingClickHide = 'Click to hide';
+                        $stagingDomain    = 'Domain';
+                        $stagingGenerated = 'Generated';
+
                         $badge = <<<HTML
-<!-- JoomlaBoost Staging Badge -->
-<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="{$badgeTitle}">
+<!-- AI Boost Staging Badge -->
+<div style="position: fixed; bottom: 20px; right: 20px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 15px 20px; border-radius: 10px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.3); z-index: 999999; cursor: pointer; border: 2px solid rgba(255,255,255,0.3);" onclick="this.style.display='none';" title="{$stagingClickHide}">
 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-    🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">{$badgeEnvLabel}</span>
+    🚧 <span style="text-transform: uppercase; letter-spacing: 0.5px;">Staging Environment</span>
 </div>
 <div style="font-size: 11px; font-weight: normal; opacity: 0.95; line-height: 1.6; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
-    <div><strong>{$badgePluginLabel}:</strong> JoomlaBoost v{$pluginVersion}</div>
-    <div><strong>{$badgeDomainLabel}:</strong> {$domain}</div>
-    <div><strong>{$badgeGenLabel}:</strong> {$currentTime}</div>
+    <div><strong>Plugin:</strong> AI Boost for Joomla v{$pluginVersion}</div>
+    <div><strong>{$stagingDomain}:</strong> {$domain}</div>
+    <div><strong>{$stagingGenerated}:</strong> {$currentTime}</div>
 </div>
 </div>
-<!-- /JoomlaBoost Staging Badge -->
+<!-- /AI Boost Staging Badge -->
 
 HTML;
 
@@ -516,6 +518,22 @@ HTML;
 
         // Register custom fields for plugin configuration
         if ($formName === 'com_plugins.plugin') {
+            // Only act on our own plugin edit form — not on every other plugin's form.
+            // $data may be an object (stdClass) or an associative array depending on Joomla version.
+            $element = '';
+            if (is_object($data) && isset($data->element)) {
+                $element = (string) $data->element;
+            } elseif (is_array($data) && isset($data['element'])) {
+                $element = (string) $data['element'];
+            }
+            // Fallback: read from the request (covers edge cases where $data is empty on first load)
+            if ($element === '') {
+                $element = (string) Factory::getApplication()->input->get('element', '', 'cmd');
+            }
+            if ($element !== 'joomlaboost') {
+                return;
+            }
+
             \Joomla\CMS\Form\FormHelper::addFieldPrefix('JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Field');
             \Joomla\CMS\Form\FormHelper::addFieldPath(__DIR__ . '/src/Field');
 
@@ -526,6 +544,14 @@ HTML;
             // for ANY number of installed languages automatically.
             try {
                 $this->injectMultiLangParamFields($form);
+            } catch (\Throwable $e) {
+                // Never break the plugin edit form
+            }
+
+            // ── License tier banner ───────────────────────────────────────────
+            // Inject a visible notice in the admin panel depending on license tier.
+            try {
+                $this->injectLicenseBanner();
             } catch (\Throwable $e) {
                 // Never break the plugin edit form
             }
@@ -622,10 +648,10 @@ HTML;
 
         $this->fixArticleFieldValues($article->id);
 
-        // IndexNow — ping search engines for published articles
+        // IndexNow — ping search engines for published articles (Developer/Agency only)
         try {
             $indexNow = new IndexNowService($this->getApp(), $this->params);
-            if ($indexNow->isEnabled() && isset($article->state) && (int) $article->state === 1) {
+            if ($this->isProLicense() && $indexNow->isEnabled() && isset($article->state) && (int) $article->state === 1) {
                 $url = $indexNow->buildArticleUrl($article->id);
                 if (!empty($url)) {
                     $indexNow->pingUrl($url);
@@ -1453,13 +1479,13 @@ HTML;
                     $presetLabels = VerticalPresetService::listPresets();
                     $label        = $presetLabels[$presetId] ?? $presetId;
                     $this->getApp()->enqueueMessage(
-                        sprintf(Text::_('PLG_SYSTEM_JOOMLABOOST_PRESET_APPLIED_SUCCESS'), $label),
+                        sprintf('JoomlaBoost: "%s" preset applied successfully.', $label),
                         'success'
                     );
                 } catch (\Throwable $e) {
                     $this->logDebug('VerticalPreset application failed: ' . $e->getMessage());
                     $this->getApp()->enqueueMessage(
-                        sprintf(Text::_('PLG_SYSTEM_JOOMLABOOST_PRESET_APPLY_ERROR'), $e->getMessage()),
+                        'JoomlaBoost: preset could not be applied — ' . $e->getMessage(),
                         'warning'
                     );
                 }
@@ -1468,9 +1494,9 @@ HTML;
             // Save to database
             $this->settingsPersistenceService->saveSettings($params);
 
-            // IndexNow — create key file when plugin settings are saved
+            // IndexNow — create key file when plugin settings are saved (Developer/Agency only)
             try {
-                if (!empty($params['indexnow_api_key'])) {
+                if ($this->isProLicense() && !empty($params['indexnow_api_key'])) {
                     $indexNow = new IndexNowService($this->getApp(), $this->params);
                     $indexNow->ensureKeyFile();
                 }
@@ -1478,11 +1504,13 @@ HTML;
                 $this->logDebug('IndexNow key file creation failed: ' . $e->getMessage());
             }
 
-            // LLMs.txt — generate file when plugin settings are saved
+            // LLMs.txt — generate file when plugin settings are saved (Developer/Agency only)
             try {
-                $llmsTxt = new LlmsTxtService($this->getApp(), $this->params);
-                if ($llmsTxt->isEnabled()) {
-                    $llmsTxt->generateAndWrite();
+                if ($this->isProLicense()) {
+                    $llmsTxt = new LlmsTxtService($this->getApp(), $this->params);
+                    if ($llmsTxt->isEnabled()) {
+                        $llmsTxt->generateAndWrite();
+                    }
                 }
             } catch (\Throwable $e) {
                 $this->logDebug('LlmsTxt generation failed: ' . $e->getMessage());
@@ -1511,6 +1539,121 @@ HTML;
         } catch (\Exception $e) {
             // Silent fail - don't break plugin save
             $this->logDebug('Failed to auto-save settings: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Returns the current license tier from params.
+     * Values: '' (free/unlicensed), 'starter', 'developer', 'agency'.
+     */
+    private function getLicenseTier(): string
+    {
+        return strtolower(trim((string) $this->params->get('license_tier', '')));
+    }
+
+    /**
+     * Returns true when the current license is both format-valid AND a Pro (Developer or Agency) tier.
+     * A tier value stored without a valid key (e.g. stale config) is treated as non-Pro.
+     */
+    private function isProLicense(): bool
+    {
+        $key = trim((string) $this->params->get('license_key', ''));
+        if ($key === '') {
+            return false;
+        }
+
+        $validFormat = (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $key
+        );
+        if (!$validFormat) {
+            return false;
+        }
+
+        $tier = $this->getLicenseTier();
+        return $tier === 'developer' || $tier === 'agency';
+    }
+
+    /**
+     * Injects a license status / upgrade banner at the top of the plugin admin form
+     * using Joomla's inline style declaration — no external assets required.
+     *
+     * - Free/unlicensed: red/orange danger banner with purchase CTA.
+     * - Starter: info/blue banner with upgrade-to-Pro CTA.
+     * - Developer / Agency: no banner (everything is unlocked).
+     */
+    private function injectLicenseBanner(): void
+    {
+        $licenseKey = trim((string) $this->params->get('license_key', ''));
+        $tier       = $this->getLicenseTier();
+
+        $hasValidKey = $licenseKey !== '' && (bool) preg_match(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
+            $licenseKey
+        );
+
+        $isFree    = !$hasValidKey || $tier === '';
+        $isStarter = $hasValidKey && $tier === 'starter';
+        $isPro     = $hasValidKey && ($tier === 'developer' || $tier === 'agency');
+
+        if ($isPro) {
+            return;
+        }
+
+        try {
+            $doc = Factory::getApplication()->getDocument();
+
+            if ($isFree) {
+                $title = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_FREE_BANNER_TITLE');
+                $desc  = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_FREE_BANNER_DESC');
+                $color = '#842029';
+                $bg    = '#f8d7da';
+                $border = '#f5c2c7';
+            } else {
+                $title = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STARTER_BANNER_TITLE');
+                $desc  = \Joomla\CMS\Language\Text::_('PLG_SYSTEM_JOOMLABOOST_STARTER_BANNER_DESC');
+                $color = '#084298';
+                $bg    = '#cfe2ff';
+                $border = '#b6d4fe';
+            }
+
+            $jsTitle  = json_encode('<strong style="display:block;margin-bottom:4px;">' . htmlspecialchars($title, ENT_QUOTES, 'UTF-8') . '</strong>' . $desc, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $jsBorder = json_encode($border);
+            $jsBg     = json_encode($bg);
+            $jsColor  = json_encode($color);
+
+            $bannerJs = <<<JS
+            <script>
+            (function () {
+                var inject = function () {
+                    if (document.getElementById('jb-license-banner')) { return; }
+                    var banner = document.createElement('div');
+                    banner.id = 'jb-license-banner';
+                    banner.style.cssText = 'margin:12px 0 4px;padding:12px 16px;border-radius:6px;border:1px solid '+{$jsBorder}+';background:'+{$jsBg}+';color:'+{$jsColor}+';font-size:0.95em;line-height:1.5;';
+                    banner.innerHTML = {$jsTitle};
+                    /* Insert after the license_key field row */
+                    var anchor = document.getElementById('jform_params_license_key');
+                    if (anchor) {
+                        var row = anchor.closest('.control-group') || anchor.closest('tr') || anchor.parentNode;
+                        row.parentNode.insertBefore(banner, row.nextSibling);
+                    } else {
+                        /* Fallback: prepend to first tab panel */
+                        var panel = document.querySelector('.tab-pane') || document.querySelector('#adminForm');
+                        if (panel) { panel.insertBefore(banner, panel.firstChild); }
+                    }
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', inject);
+                } else {
+                    inject();
+                }
+            })();
+            </script>
+            JS;
+
+            $doc->addCustomTag($bannerJs);
+        } catch (\Throwable $e) {
+            // Silent fail — never break admin
         }
     }
 
@@ -1618,89 +1761,89 @@ HTML;
             'og_site_name' => [
                 'fieldset' => 'opengraph',
                 'type'     => 'text',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_SITE_NAME_LABEL',
-                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_SITE_NAME_HINT',
+                'label'    => 'OG Site Name',
+                'hint'     => 'e.g., My Awesome Business',
                 'showon'   => 'enable_opengraph:1',
-                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_SITE_NAME_DESC',
+                'description' => 'Organization/Site name shown on Facebook, Twitter, LinkedIn shares.',
             ],
             'og_image' => [
                 'fieldset'  => 'opengraph',
                 'type'      => 'media',
-                'label'     => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_IMAGE_LABEL',
+                'label'     => 'OG Default Image',
                 'hint'      => '',
                 'showon'    => 'enable_opengraph:1',
                 'directory' => 'images',
-                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_OG_IMAGE_DESC',
+                'description' => 'Default social sharing image. Can differ per language (e.g., hero banner with localized text overlay).',
             ],
             // ── Schema: Organization info ─────────────────────────────────────
             'org_name' => [
                 'fieldset' => 'organization',
                 'type'     => 'text',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_NAME_LABEL',
-                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_NAME_HINT',
+                'label'    => 'Organization Name',
+                'hint'     => 'e.g., My Company Name',
                 'showon'   => '',
             ],
             'org_description' => [
                 'fieldset' => 'organization',
                 'type'     => 'textarea',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_DESC_LABEL',
-                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_DESC_HINT',
+                'label'    => 'Organization Description',
+                'hint'     => 'e.g., A short description of your business or organization.',
                 'showon'   => '',
                 'rows'     => '3',
             ],
             'org_logo' => [
                 'fieldset'  => 'organization',
                 'type'      => 'media',
-                'label'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_LOGO_LABEL',
+                'label'     => 'Organization Logo',
                 'hint'      => '',
                 'showon'    => '',
                 'directory'  => 'images',
-                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_ORG_LOGO_DESC',
+                'description' => 'Logo for Schema.org and OpenGraph. Can differ per language (e.g., logo with localized text).',
             ],
             // ── Schema: Address ───────────────────────────────────────────────
             'schema_address_locality' => [
                 'fieldset' => 'organization',
                 'type'     => 'text',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_LOCALITY_LABEL',
-                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_LOCALITY_HINT',
+                'label'    => 'City/Locality',
+                'hint'     => 'e.g., New York',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
             'schema_address_street' => [
                 'fieldset' => 'organization',
                 'type'     => 'text',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_STREET_LABEL',
-                'hint'     => 'PLG_SYSTEM_JOOMLABOOST_ML_ADDR_STREET_HINT',
+                'label'    => 'Street Address',
+                'hint'     => 'e.g., 123 Main Street',
                 'showon'   => 'enable_schema:1[AND]schema_type:localbusiness,hotel',
             ],
-            // ── Schema: FAQ ───────────────────────────────────────────────────
+            // ── Schema: FAQ (Developer / Agency only) ────────────────────────
             'manual_faqs' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_MANUAL_FAQS_LABEL',
+                'label'    => 'Manual FAQ Items',
                 'hint'     => '',
-                'showon'   => 'enable_schema:1[AND]enable_manual_faqs:1',
+                'showon'   => 'enable_schema:1[AND]enable_manual_faqs:1[AND]license_tier:developer,agency',
                 'rows'     => '6',
-                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_MANUAL_FAQS_DESC',
+                'description' => 'FAQ in JSON format. Example: [{"question":"Q?","answer":"A."}]',
             ],
-            // ── Schema: Events ────────────────────────────────────────────────
+            // ── Schema: Events (Developer / Agency only) ──────────────────────
             'schema_events' => [
                 'fieldset' => 'schema',
                 'type'     => 'textarea',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_SCHEMA_EVENTS_LABEL',
+                'label'    => 'Events (JSON)',
                 'hint'     => '',
-                'showon'   => 'enable_schema:1[AND]schema_events_enabled:1',
+                'showon'   => 'enable_schema:1[AND]schema_events_enabled:1[AND]license_tier:developer,agency',
                 'rows'     => '8',
-                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_SCHEMA_EVENTS_DESC',
+                'description' => 'Events JSON per language. Format: [{"name":"Event","startDate":"2026-12-31T20:00:00+01:00"}]',
             ],
-            // ── LlmsTxt: AI Search ────────────────────────────────────────────
+            // ── LlmsTxt: AI Search (Developer / Agency only) ─────────────────
             'llmstxt_custom_pages' => [
                 'fieldset' => 'analytics',
                 'type'     => 'textarea',
-                'label'    => 'PLG_SYSTEM_JOOMLABOOST_ML_LLMSTXT_PAGES_LABEL',
+                'label'    => 'Custom Pages for LLMs.txt',
                 'hint'     => '',
-                'showon'   => 'llmstxt_enabled:1',
+                'showon'   => 'llmstxt_enabled:1[AND]license_tier:developer,agency',
                 'rows'     => '5',
-                'description' => 'PLG_SYSTEM_JOOMLABOOST_ML_LLMSTXT_PAGES_DESC',
+                'description' => 'Extra pages as JSON per language. Format: [{"title":"Page","url":"/path","description":"Brief info"}]',
             ],
         ];
 
@@ -1711,28 +1854,30 @@ HTML;
             foreach ($langs as $lang) {
                 $fieldName  = $baseField . '_' . $lang['code'];
                 $isDefault  = !empty($lang['is_default']);
-                $defaultSuffix = Text::_('PLG_SYSTEM_JOOMLABOOST_ML_FIELD_DEFAULT_SUFFIX');
-                $langSuffix    = $isDefault
-                    ? $lang['name'] . ' — ' . $defaultSuffix
+                $langSuffix = $isDefault
+                    ? $lang['name'] . ' — ★ Default'
                     : $lang['name'];
-                $fieldLabel = htmlspecialchars(Text::_($cfg['label']) . ' (' . $langSuffix . ')', ENT_QUOTES, 'UTF-8');
-                $fieldHint  = htmlspecialchars($cfg['hint'] !== '' ? Text::_($cfg['hint']) : '', ENT_QUOTES, 'UTF-8');
-                $baseDesc   = $cfg['description'] ?? '';
-                $descSuffix = $isDefault
-                    ? Text::_('PLG_SYSTEM_JOOMLABOOST_ML_FIELD_DEFAULT_FALLBACK_NOTE')
-                    : Text::_('PLG_SYSTEM_JOOMLABOOST_ML_FIELD_TRANSLATION_NOTE');
-                $fieldDesc  = $baseDesc !== ''
-                    ? htmlspecialchars(Text::_($baseDesc) . ' ' . $descSuffix, ENT_QUOTES, 'UTF-8')
-                    : htmlspecialchars($descSuffix, ENT_QUOTES, 'UTF-8');
+                $fieldLabel = htmlspecialchars($cfg['label'] . ' (' . $langSuffix . ')', ENT_QUOTES, 'UTF-8');
+                $fieldHint  = htmlspecialchars($cfg['hint'] ?? '', ENT_QUOTES, 'UTF-8');
+                $fieldDesc  = $isDefault
+                    ? htmlspecialchars(($cfg['description'] ?? '') . ' Other languages will use this value as fallback if left empty.', ENT_QUOTES, 'UTF-8')
+                    : htmlspecialchars(($cfg['description'] ?? '') . ' Leave empty to use the Default language value.', ENT_QUOTES, 'UTF-8');
 
-                // ── Non-default languages = ADVANCED only ──────────────────────
+                // ── Non-default languages = ADVANCED + PRO only ────────────────
                 // Default language stays visible at all times (basic UI).
                 // Translations only show when "Show Advanced Options" is on.
+                // OG multilingual fields (og_site_name, og_image) require Pro
+                // license for non-default languages — multilanguage OG is a
+                // Professional/Agency feature.
                 $rawShowon = $cfg['showon'];
+                $isOgMultilangField = in_array($baseField, ['og_site_name', 'og_image'], true);
                 if (!$isDefault) {
                     $rawShowon = $rawShowon === ''
                         ? 'show_advanced_options:1'
                         : $rawShowon . '[AND]show_advanced_options:1';
+                    if ($isOgMultilangField) {
+                        $rawShowon .= '[AND]license_tier:developer,agency[OR]dev_license_preview:1';
+                    }
                 }
                 $showOn     = htmlspecialchars($rawShowon, ENT_QUOTES, 'UTF-8');
                 $rows       = isset($cfg['rows']) ? ' rows="' . $cfg['rows'] . '"' : '';

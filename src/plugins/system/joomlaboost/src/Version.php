@@ -18,9 +18,9 @@ final class Version
 {
     /**
      * Plugin version — kept in sync with joomlaboost.xml <version> tag.
-     * The build script (_build_zip.ps1) auto-updates this constant.
+     * The build script (scripts/build-plugin-zip.py) auto-updates this constant.
      */
-    public const VERSION = '0.24.0';
+    public const VERSION = '0.28.0';
 
     /**
      * Get the version string.
