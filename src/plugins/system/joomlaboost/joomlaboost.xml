@@ -7,7 +7,7 @@
   <license>GNU General Public License version 2 or later</license>
   <authorEmail>info@aiboostnow.com</authorEmail>
   <authorUrl>https://aiboostnow.com</authorUrl>
-  <version>0.28.0</version>
+  <version>0.28.1</version>
   <description>PLG_SYSTEM_JOOMLABOOST_XML_DESCRIPTION</description>
   <!-- System Requirements -->
   <php_minimum>8.1.0</php_minimum>
@@ -130,119 +130,9 @@
           <option value="0">JNO</option>
         </field>
 
-        <!-- ── AI CRAWLER INDIVIDUAL TOGGLES ───────────────────────────────── -->
+        <!-- ── AI CRAWLER BLOCKER WIDGET ────────────────────────────────────── -->
         <field name="separator_ai_crawlers" type="spacer" label="AI Crawler Rules — Allow or Block Individual Bots" class="text-info" showon="enable_robots:1" />
-        <field name="ai_crawlers_note" type="note" label="AI Crawler Control" description="All major AI and SEO crawlers are &lt;strong&gt;allowed by default&lt;/strong&gt;. Switch any bot to &lt;strong&gt;Disallow&lt;/strong&gt; to block it. Changes appear in robots.txt instantly." class="alert alert-info" showon="enable_robots:1" />
-
-        <!-- Group A: AI Content & Training Crawlers -->
-        <field name="separator_ai_group_a" type="spacer" label="AI Content &amp; Training Crawlers" class="text-muted" showon="enable_robots:1" />
-        <field name="ai_allow_gptbot" type="radio" label="GPTBot — OpenAI / ChatGPT" description="OpenAI crawler for ChatGPT knowledge base and search results. Allow to appear in ChatGPT citations." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_oaisearchbot" type="radio" label="OAI-SearchBot — OpenAI Search" description="OpenAI's dedicated crawler for ChatGPT Search feature." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_claudebot" type="radio" label="ClaudeBot — Anthropic Claude" description="Anthropic's crawler for Claude AI knowledge base." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_anthropicai" type="radio" label="anthropic-ai — Anthropic" description="Anthropic secondary crawler identifier." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_perplexity" type="radio" label="PerplexityBot — Perplexity AI" description="Perplexity AI crawler. Allow to appear in Perplexity AI search results and citations." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_googleext" type="radio" label="Google-Extended — Google AI / Gemini" description="Allows Google to use your content for Gemini, AI Overviews, and Google Bard." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_cohereai" type="radio" label="cohere-ai — Cohere AI" description="Cohere AI crawler for large language model training data." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_facebookbot" type="radio" label="FacebookBot — Meta AI (Llama)" description="Meta AI crawler for Meta AI assistant and Llama model knowledge." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_amazonbot" type="radio" label="Amazonbot — Amazon Alexa / AI" description="Amazon crawler for Alexa and Amazon AI services." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_applebot" type="radio" label="Applebot — Apple Siri &amp; Spotlight" description="Apple crawler for Siri, Spotlight search, and Safari suggestions." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_ccbot" type="radio" label="CCBot — Common Crawl (AI training)" description="Common Crawl dataset used by many open-source AI models for training." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_youbot" type="radio" label="YouBot — You.com AI Search" description="You.com AI search engine crawler." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_timpibot" type="radio" label="Timpibot — Timpi AI" description="Timpi AI search engine crawler." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_bytespider" type="radio" label="Bytespider — ByteDance / TikTok AI" description="ByteDance crawler used for TikTok AI features and content understanding." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_duckassist" type="radio" label="DuckAssistBot — DuckDuckGo AI" description="DuckDuckGo AI assistant crawler for DuckAssist answers." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-
-        <!-- Group B: SEO & Analysis Crawlers -->
-        <field name="separator_ai_group_b" type="spacer" label="SEO &amp; Analysis Crawlers" class="text-muted" showon="enable_robots:1" />
-        <field name="ai_allow_semrush" type="radio" label="SemrushBot — Semrush" description="Semrush SEO tool crawler. Allow if you use Semrush for visibility tracking." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_ahrefs" type="radio" label="AhrefsBot — Ahrefs" description="Ahrefs SEO crawler for backlink and keyword analysis." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_mj12bot" type="radio" label="MJ12bot — Majestic" description="Majestic SEO crawler for backlink and trust flow analysis." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_dotbot" type="radio" label="DotBot — Moz" description="Moz SEO tool crawler for domain authority and link analysis." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_dataforseo" type="radio" label="DataForSeoBot — DataForSEO" description="DataForSEO API crawler for search ranking data." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_diffbot" type="radio" label="Diffbot — Diffbot AI" description="Diffbot AI web crawler for knowledge graph construction." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_yandexbot" type="radio" label="YandexBot — Yandex Search" description="Yandex search engine crawler — important for Russian-speaking markets." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_omgili" type="radio" label="omgili — Webhose.io" description="Webhose.io content crawler for news and forum data aggregation." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_ia_archiver" type="radio" label="ia_archiver — Internet Archive / Wayback Machine" description="Internet Archive crawler for historical site preservation." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_scrapy" type="radio" label="Scrapy — Python scraping framework" description="Generic Scrapy user-agent used by many custom web scrapers." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
-        <field name="ai_allow_kangaroo" type="radio" label="KangoorooBot — Kangaroo" description="Kangaroo Bot web crawler." default="1" class="btn-group btn-group-yesno" showon="enable_robots:1">
-          <option value="1">Allow</option>
-          <option value="0">Disallow</option>
-        </field>
+        <field name="crawler_rules" type="CrawlerBlocker" label="Crawler Control" description="All 26 AI and SEO crawlers are allowed by default. Click &quot;Custom&quot; to individually block any crawler. Changes appear in robots.txt instantly." addfieldprefix="JoomlaBoost\Plugin\System\JoomlaBoost\Field" showon="enable_robots:1" />
 
       </fieldset>
 

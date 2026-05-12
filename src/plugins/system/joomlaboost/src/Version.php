@@ -20,7 +20,7 @@ final class Version
      * Plugin version — kept in sync with joomlaboost.xml <version> tag.
      * The build script (scripts/build-plugin-zip.py) auto-updates this constant.
      */
-    public const VERSION = '0.28.0';
+    public const VERSION = '0.28.1';
 
     /**
      * Get the version string.

@@ -61,46 +61,58 @@ class RobotService extends AbstractService
     }
 
     /**
-     * Collect AI/SEO crawler toggle params from plugin settings.
-     * Returns an array of param_name => int (1=Allow, 0=Disallow).
-     * All crawlers default to 1 (Allow) if not configured.
+     * Collect AI/SEO crawler toggle params from the crawler_rules JSON field.
+     * Returns an array of ai_allow_* param name => int (1=Allow, 0=Disallow).
+     * All crawlers default to 1 (Allow) when not configured or field is missing.
+     *
+     * Reads the single crawler_rules JSON stored by CrawlerBlockerField:
+     *   {"gptbot":1,"claudebot":0,...}
+     * and maps short keys back to the ai_allow_* names expected by EnvironmentType.
      *
      * @return array<string, int>
      */
     private function getCrawlerParams(): array
     {
-        $paramNames = [
-            'ai_allow_gptbot',
-            'ai_allow_oaisearchbot',
-            'ai_allow_claudebot',
-            'ai_allow_anthropicai',
-            'ai_allow_perplexity',
-            'ai_allow_googleext',
-            'ai_allow_cohereai',
-            'ai_allow_facebookbot',
-            'ai_allow_amazonbot',
-            'ai_allow_applebot',
-            'ai_allow_ccbot',
-            'ai_allow_youbot',
-            'ai_allow_timpibot',
-            'ai_allow_bytespider',
-            'ai_allow_duckassist',
-            'ai_allow_semrush',
-            'ai_allow_ahrefs',
-            'ai_allow_mj12bot',
-            'ai_allow_dotbot',
-            'ai_allow_dataforseo',
-            'ai_allow_diffbot',
-            'ai_allow_yandexbot',
-            'ai_allow_omgili',
-            'ai_allow_ia_archiver',
-            'ai_allow_scrapy',
-            'ai_allow_kangaroo',
+        /** @var array<string,string> Maps short JSON key → ai_allow_* param name */
+        $keyMap = [
+            'gptbot'       => 'ai_allow_gptbot',
+            'oaisearchbot' => 'ai_allow_oaisearchbot',
+            'claudebot'    => 'ai_allow_claudebot',
+            'anthropicai'  => 'ai_allow_anthropicai',
+            'perplexity'   => 'ai_allow_perplexity',
+            'googleext'    => 'ai_allow_googleext',
+            'cohereai'     => 'ai_allow_cohereai',
+            'facebookbot'  => 'ai_allow_facebookbot',
+            'amazonbot'    => 'ai_allow_amazonbot',
+            'applebot'     => 'ai_allow_applebot',
+            'ccbot'        => 'ai_allow_ccbot',
+            'youbot'       => 'ai_allow_youbot',
+            'timpibot'     => 'ai_allow_timpibot',
+            'bytespider'   => 'ai_allow_bytespider',
+            'duckassist'   => 'ai_allow_duckassist',
+            'semrush'      => 'ai_allow_semrush',
+            'ahrefs'       => 'ai_allow_ahrefs',
+            'mj12bot'      => 'ai_allow_mj12bot',
+            'dotbot'       => 'ai_allow_dotbot',
+            'dataforseo'   => 'ai_allow_dataforseo',
+            'diffbot'      => 'ai_allow_diffbot',
+            'yandexbot'    => 'ai_allow_yandexbot',
+            'omgili'       => 'ai_allow_omgili',
+            'ia_archiver'  => 'ai_allow_ia_archiver',
+            'scrapy'       => 'ai_allow_scrapy',
+            'kangaroo'     => 'ai_allow_kangaroo',
         ];
 
+        // Read the single JSON field stored by CrawlerBlockerField
+        $raw     = trim((string) $this->params->get('crawler_rules', ''));
+        $decoded = ($raw !== '' && $raw !== '{}') ? json_decode($raw, true) : null;
+        $parsed  = is_array($decoded) ? $decoded : [];
+
         $result = [];
-        foreach ($paramNames as $name) {
-            $result[$name] = (int) $this->params->get($name, 1);
+        foreach ($keyMap as $shortKey => $paramName) {
+            $result[$paramName] = array_key_exists($shortKey, $parsed)
+                ? (int) $parsed[$shortKey]
+                : 1;
         }
 
         return $result;
