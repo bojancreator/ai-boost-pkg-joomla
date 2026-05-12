@@ -163,8 +163,9 @@ class CrawlerBlockerField extends FormField
 
     private function buildScript(string $id, string $initMode): string
     {
-        $jsId   = json_encode($id,       JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);
-        $jsMode = json_encode($initMode, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT);
+        $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT;
+        $jsId   = json_encode($id, $jsonFlags);
+        $jsMode = json_encode($initMode, $jsonFlags);
         $keys   = json_encode(array_keys(self::BOTS));
 
         return <<<JS
