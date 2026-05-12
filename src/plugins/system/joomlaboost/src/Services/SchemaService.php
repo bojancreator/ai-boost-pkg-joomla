@@ -1439,7 +1439,7 @@ class SchemaService extends AbstractService
             // Falang sets Joomla input `id` internally even for /me/, /en/ homepage
             // routes, so we MUST check the URL pattern first.
             $rawPath = $_SERVER['REQUEST_URI'] ?? '';
-            $rawPath = (string) (explode('?', $rawPath)[0] ?? $rawPath);
+            $rawPath = (string) explode('?', $rawPath)[0];
             $base    = trim(parse_url((string) \Joomla\CMS\Uri\Uri::root(), PHP_URL_PATH) ?? '', '/');
             $path    = trim($rawPath, '/');
 
