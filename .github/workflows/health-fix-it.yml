@@ -1,0 +1,34 @@
+name: Health "Fix It" buttons — end-to-end
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  health-fix-it:
+    name: Health Fix It (staging)
+    runs-on: ubuntu-latest
+
+    env:
+      STAGING_URL:        ${{ secrets.STAGING_URL }}
+      STAGING_ADMIN_USER: ${{ secrets.STAGING_ADMIN_USER }}
+      STAGING_ADMIN_PASS: ${{ secrets.STAGING_ADMIN_PASS }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright
+        run: npm install playwright@1.60.0 --no-save
+
+      - name: Install Chromium browser
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Health Fix It test
+        run: node scripts/test-health-fix-it.js
