@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:health-fix-it": "node ./test-health-fix-it.js",
+    "test:health-fix-it:visible": "node ./test-health-fix-it.js --visible"
   },
   "devDependencies": {
     "@types/node": "catalog:",
