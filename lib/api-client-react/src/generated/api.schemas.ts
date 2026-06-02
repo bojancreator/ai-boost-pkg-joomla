@@ -9,45 +9,94 @@ export interface HealthStatus {
   status: string;
 }
 
-export interface LicenseValidateRequest {
-  /** UUID-format license key from Gumroad */
-  license_key: string;
-  /** URL of the site being activated (stored for display purposes) */
-  site_url?: string;
-}
-
 /**
- * Precise license state — active, expiring_soon (subscription ending within 30 days), deactivated (refunded/chargebacked), or invalid (key not found/bad format)
+ * AI Boost SKU identifier
  */
-export type LicenseValidateResponseStatus =
-  (typeof LicenseValidateResponseStatus)[keyof typeof LicenseValidateResponseStatus];
+export type LicenseSku = (typeof LicenseSku)[keyof typeof LicenseSku];
 
-export const LicenseValidateResponseStatus = {
+export const LicenseSku = {
+  schema: "schema",
+  og: "og",
+  hreflang: "hreflang",
+  code: "code",
+  aeo: "aeo",
+  bundle: "bundle",
+} as const;
+
+export type LicenseStatus = (typeof LicenseStatus)[keyof typeof LicenseStatus];
+
+export const LicenseStatus = {
   active: "active",
-  expiring_soon: "expiring_soon",
+  expired: "expired",
   invalid: "invalid",
+  limit_reached: "limit_reached",
   deactivated: "deactivated",
 } as const;
 
+export interface LicenseValidateRequest {
+  /** License key entered by the admin */
+  license_key: string;
+  sku: LicenseSku;
+  /** JUri::root() value from the Joomla install, stored for activation tracking */
+  site_domain: string;
+}
+
 export interface LicenseValidateResponse {
-  /** Whether the license key is valid and active */
   valid: boolean;
-  /** Precise license state — active, expiring_soon (subscription ending within 30 days), deactivated (refunded/chargebacked), or invalid (key not found/bad format) */
-  status?: LicenseValidateResponseStatus;
-  /** Error message when valid is false */
-  error?: string;
-  /** License tier — starter, developer, or agency */
-  tier?: string;
-  /** Buyer email address from Gumroad */
-  email?: string;
-  /** ISO 8601 timestamp of the original purchase/activation */
-  activated_at?: string;
-  /** Number of times this license has been activated */
-  uses?: number;
-  /** Maximum allowed activations (-1 means unlimited) */
-  max_uses?: number;
-  /** Remaining activations allowed (-1 means unlimited) */
-  remaining_activations?: number;
-  /** Site URL that was passed in the request */
-  site_url?: string;
+  status: LicenseStatus;
+  sku: LicenseSku | null;
+  /** Activation slots still available (0 when limit_reached) */
+  activations_remaining: number;
+  expires_at: string | null;
+  message: string;
+  /** Always true while the mock is in place; will be absent or false in production */
+  mock: boolean;
+}
+
+export interface LicenseDeactivateRequest {
+  license_key: string;
+  site_domain: string;
+}
+
+/**
+ * ok — license valid, Pro features stay enabled.
+soft_warning — license expired or non-active; show warning, Pro still on inside the grace period.
+hard_disabled — license unknown or grace period exhausted; Pro features must be turned off.
+domain_mismatch — key was already bound to a different domain/install; show collision warning.
+
+ */
+export type LicenseHeartbeatVerdict =
+  (typeof LicenseHeartbeatVerdict)[keyof typeof LicenseHeartbeatVerdict];
+
+export const LicenseHeartbeatVerdict = {
+  ok: "ok",
+  soft_warning: "soft_warning",
+  hard_disabled: "hard_disabled",
+  domain_mismatch: "domain_mismatch",
+} as const;
+
+export interface LicenseHeartbeatPayload {
+  license_key: string;
+  /** JUri::getInstance()->getHost() at the time of the heartbeat */
+  domain: string;
+  /** Currently installed AI Boost package version (analytics only) */
+  plugin_version?: string;
+  /** UUIDv4 generated once in pkg_script.php postflight, stable per Joomla install */
+  install_id: string;
+}
+
+export interface LicenseHeartbeatResult {
+  verdict: LicenseHeartbeatVerdict;
+  status: string | null;
+  expires_at: string | null;
+  message: string;
+  /** Days of grace after the first soft_warning before Pro features hard-disable */
+  grace_period_days: number;
+  domain_collision: boolean;
+}
+
+export interface LicenseDeactivateResponse {
+  success: boolean;
+  message: string;
+  mock: boolean;
 }

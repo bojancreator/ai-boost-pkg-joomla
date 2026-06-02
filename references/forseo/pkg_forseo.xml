@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<extension type="package" version="3.9" method="upgrade">
+    <name>4SEO</name>
+    <packagename>forseo</packagename>
+    <author>Yannick Gaultier - Weeblr llc</author>
+    <authorUrl>https://weeblr.com/</authorUrl>
+    <creationDate>2026-01-30</creationDate>
+    <copyright>Copyright Weeblr llc - 2020 - 2026</copyright>
+    <license>GNU General Public License version 3; see LICENSE.md</license>
+    <version>6.10.1.2660</version>
+    <packager>Yannick Gaultier - Weeblr llc</packager>
+    <packagerurl>https://weeblr.com/</packagerurl>
+    <description>4SEO package</description>
+    <scriptfile>pkg_script.php</scriptfile>
+    <blockChildUninstall>true</blockChildUninstall>
+    <files folder="packages">
+        <file type="component" id="com_forseo">com_forseo_6.10.1.2660_full.zip</file>
+        <file type="plugin" id="forseo" group="system">plg_system_forseo_6.10.1.2660_full.zip</file>
+        <file type="plugin" id="forseo" group="installer">plg_installer_forseo_6.10.1.2660_full.zip</file>
+    </files>
+    <updateservers>
+        <server type="extension" priority="2" name="4SEO updates">https://u1.weeblr.com/public/direct/forseo/update/pkg_forseo_full.xml</server>
+    </updateservers>
+    <variant>full</variant>
+    <dlid prefix="wblr_k=" suffix="&amp;provider=weeblr.zip"/>
+</extension>
+

@@ -1,46 +1,20 @@
 {
-  "name": "joomlaboost",
-  "private": true,
-  "eslintIgnore": [
-    "vendor/**",
-    "/vendor/**",
-    "**/vendor/**",
-    "node_modules/**",
-    "/node_modules/**",
-    "**/node_modules/**",
-    "build/**",
-    "/build/**",
-    "**/build/**",
-    "archive/**",
-    "/archive/**",
-    "tools/**",
-    "/tools/**",
-    "tools/__inspect_external_plugin/**",
-    "tools/__inspect_offroadseo_zip/**",
-    "tools/__inspect_offroadseo_zip2/**",
-    "**/*.min.js",
-    "/**/*.min.js",
-    "**/dist/**",
-    "/**/dist/**"
-  ],
-  "version": "1.0.0",
-  "description": "🚀 **Universal SEO & Performance Plugin for Joomla 4/5/6**",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bojancreator/JoomlaBoost.git"
+  "private": true,
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/bojancreator/JoomlaBoost/issues"
-  },
-  "homepage": "https://github.com/bojancreator/JoomlaBoost#readme"
+  "dependencies": {
+    "@replit/connectors-sdk": "^0.4.0",
+    "playwright": "^1.59.1"
+  }
 }

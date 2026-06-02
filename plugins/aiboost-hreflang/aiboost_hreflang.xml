@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_HREFLANG</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>1.0.0</version>
+  <description>PLG_SYSTEM_AIBOOST_HREFLANG_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostHreflang</namespace>
+  <files>
+    <filename plugin="aiboost_hreflang">aiboost_hreflang.php</filename>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_hreflang.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_hreflang.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_hreflang.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_hreflang.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_hreflang.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_hreflang.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_hreflang.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_hreflang.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_hreflang.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_hreflang.sys.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_hreflang.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_hreflang.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_hreflang.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_hreflang.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+
+      <fieldset name="basic" label="PLG_SYSTEM_AIBOOST_HREFLANG_FIELDSET_BASIC">
+
+        <field
+          name="enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="JENABLED"
+          default="1"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="primary_language"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_HREFLANG_PRIMARY_LANG_LABEL"
+          description="PLG_SYSTEM_AIBOOST_HREFLANG_PRIMARY_LANG_DESC"
+          hint="en"
+          size="10"
+          default="en"
+          filter="string" />
+
+        <field
+          name="x_default_url"
+          type="url"
+          label="PLG_SYSTEM_AIBOOST_HREFLANG_XDEFAULT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_HREFLANG_XDEFAULT_DESC"
+          size="60"
+          filter="url" />
+
+        <field
+          name="detection_mode"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_HREFLANG_DETECTION_LABEL"
+          description="PLG_SYSTEM_AIBOOST_HREFLANG_DETECTION_DESC"
+          default="auto">
+          <option value="auto">PLG_SYSTEM_AIBOOST_HREFLANG_DETECTION_AUTO</option>
+          <option value="manual">PLG_SYSTEM_AIBOOST_HREFLANG_DETECTION_MANUAL</option>
+        </field>
+
+        <field
+          name="manual_languages"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_HREFLANG_MANUAL_LANGS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_HREFLANG_MANUAL_LANGS_DESC"
+          rows="6"
+          cols="60"
+          default='[{"lang_code":"en-GB","sef":"en","title":"English"},{"lang_code":"de-DE","sef":"de","title":"Deutsch"}]'
+          filter="raw" />
+
+      </fieldset>
+
+      <fieldset name="falang" label="PLG_SYSTEM_AIBOOST_HREFLANG_FIELDSET_FALANG">
+
+        <field
+          name="falang_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_HREFLANG_FALANG_LABEL"
+          description="PLG_SYSTEM_AIBOOST_HREFLANG_FALANG_DESC"
+          default="1"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+      <fieldset name="advanced" label="JADVANCED">
+
+        <field
+          name="staging_mode"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_HREFLANG_STAGING_LABEL"
+          description="PLG_SYSTEM_AIBOOST_HREFLANG_STAGING_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+    </fields>
+  </config>
+</extension>

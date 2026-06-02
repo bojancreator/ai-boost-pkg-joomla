@@ -1,0 +1,29 @@
+# AI Boost
+
+> AI Boost for Joomla is an all-in-one SEO and AEO (Answer Engine Optimization) system plugin for Joomla 4, 5, and 6. It automatically generates Schema.org JSON-LD structured data, an XML sitemap with hreflang, OpenGraph and Twitter Card tags, robots.txt with AI crawler rules, llms.txt, and integrations for Google Analytics 4, Google Tag Manager, Meta Pixel, and IndexNow.
+
+## Key pages
+
+- [Home](https://aiboostnow.com/): Plugin overview, features, and pricing
+- [Features](https://aiboostnow.com/features): Full feature list — Schema.org types, business hours, site type presets, IndexNow, analytics, multilingual support
+- [Pricing](https://aiboostnow.com/pricing): Starter €59 / Developer €119 / Agency €199 — one-time payments
+- [Documentation](https://aiboostnow.com/docs): Installation guide, Schema.org configuration, sitemap, hreflang, OpenGraph, robots.txt, analytics, debug
+- [FAQ](https://aiboostnow.com/faq): Frequently asked questions about installation, features, pricing, and technical details
+- [Blog](https://aiboostnow.com/blog): Guides on Schema.org, AI search, structured data, llms.txt, IndexNow, and SEO for Joomla
+
+## About
+
+AI Boost is made by Bojan Lazarević. The plugin is sold as a one-time purchase at aiboostnow.com. Support: support@aiboostnow.com.
+
+## Blog articles
+
+- [What is Schema.org](https://aiboostnow.com/blog/what-is-schema-org): Schema.org structured data explained — why Google, ChatGPT, and Perplexity use it
+- [What is llms.txt](https://aiboostnow.com/blog/what-is-llms-txt): The new standard that helps AI engines understand your site
+- [What is IndexNow](https://aiboostnow.com/blog/what-is-indexnow): Get your pages indexed in minutes, not days
+- [What is OpenGraph](https://aiboostnow.com/blog/what-is-opengraph): Control how your pages look on social media
+- [What is robots.txt](https://aiboostnow.com/blog/what-is-robots-txt): robots.txt and why AI crawlers need special rules in 2026
+- [What is an XML Sitemap](https://aiboostnow.com/blog/what-is-xml-sitemap): The map that helps search engines find every page
+- [What is AEO](https://aiboostnow.com/blog/what-is-aeo): Answer Engine Optimization — how to get cited by ChatGPT, Perplexity, and Google AI Overview
+- [What is JSON-LD](https://aiboostnow.com/blog/what-is-json-ld): The structured data format search engines love
+- [What is hreflang](https://aiboostnow.com/blog/what-is-hreflang): Multilingual SEO explained
+- [What are Twitter Cards](https://aiboostnow.com/blog/what-is-twitter-cards): Richer previews on X and beyond

@@ -1,0 +1,8 @@
+{
+    "operations": {
+        "dismiss": "Fermer",
+        "inProgress": "Opérations en cours.",
+        "pending": "Opérations en attente.",
+        "done": "Terminé."
+    }
+}

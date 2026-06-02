@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_SEO</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>0.7.0</version>
+  <description>PLG_SYSTEM_AIBOOST_SEO_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>4.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostSeo</namespace>
+  <files>
+    <filename plugin="aiboost_seo">aiboost_seo.php</filename>
+    <folder>src</folder>
+    <folder>lib</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_seo.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_seo.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_seo.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_seo.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_seo.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_seo.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_seo.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_seo.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_seo.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_seo.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_seo.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_seo.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: License
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="license" label="PLG_SYSTEM_AIBOOST_SEO_FIELDSET_LICENSE">
+
+        <field
+          name="license_key"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_LICENSE_KEY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_LICENSE_KEY_DESC"
+          size="60"
+          filter="string" />
+
+        <field
+          name="license_tier"
+          type="hidden"
+          default="free" />
+
+        <field
+          name="license_status"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_LICENSE_STATUS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_LICENSE_STATUS_DESC"
+          default="Free"
+          readonly="true"
+          class="readonly"
+          filter="string" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Title (Free + Pro)
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="title" label="PLG_SYSTEM_AIBOOST_SEO_FIELDSET_TITLE">
+
+        <field
+          name="title_template"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_TITLE_TEMPLATE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_TITLE_TEMPLATE_DESC"
+          default="{page_title} | {site_name}"
+          size="80"
+          filter="string" />
+
+        <field
+          name="title_separator"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_SEO_TITLE_SEPARATOR_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_TITLE_SEPARATOR_DESC"
+          default="|">
+          <option value="|">|</option>
+          <option value="-">-</option>
+          <option value="–">–</option>
+          <option value="·">·</option>
+          <option value="•">•</option>
+          <option value="&gt;">></option>
+        </field>
+
+        <field
+          name="title_position"
+          type="radio"
+          label="PLG_SYSTEM_AIBOOST_SEO_TITLE_POSITION_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_TITLE_POSITION_DESC"
+          default="suffix"
+          layout="joomla.form.field.radio.switcher">
+          <option value="prefix">PLG_SYSTEM_AIBOOST_SEO_TITLE_POSITION_PREFIX</option>
+          <option value="suffix">PLG_SYSTEM_AIBOOST_SEO_TITLE_POSITION_SUFFIX</option>
+        </field>
+
+        <!-- Pro: per-view title templates (shown only when license_tier = pro) -->
+        <field
+          name="title_homepage_template"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_TITLE_HOMEPAGE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_TITLE_HOMEPAGE_DESC"
+          default=""
+          size="80"
+          filter="string"
+          showon="license_tier:pro" />
+
+        <field
+          name="title_article_template"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_TITLE_ARTICLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_TITLE_ARTICLE_DESC"
+          default=""
+          size="80"
+          filter="string"
+          showon="license_tier:pro" />
+
+        <field
+          name="title_category_template"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_TITLE_CATEGORY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_TITLE_CATEGORY_DESC"
+          default=""
+          size="80"
+          filter="string"
+          showon="license_tier:pro" />
+
+        <field
+          name="title_tag_template"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_TITLE_TAG_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_TITLE_TAG_DESC"
+          default=""
+          size="80"
+          filter="string"
+          showon="license_tier:pro" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Meta (Free)
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="meta" label="PLG_SYSTEM_AIBOOST_SEO_FIELDSET_META">
+
+        <field
+          name="default_meta_description"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_SEO_DEFAULT_META_DESC_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_DEFAULT_META_DESC_DESC"
+          rows="3"
+          cols="60"
+          filter="string"
+          default="" />
+
+        <field
+          name="default_robots"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_SEO_DEFAULT_ROBOTS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_DEFAULT_ROBOTS_DESC"
+          default="index, follow">
+          <option value="index, follow">index, follow</option>
+          <option value="noindex, follow">noindex, follow</option>
+          <option value="index, nofollow">index, nofollow</option>
+          <option value="noindex, nofollow">noindex, nofollow</option>
+        </field>
+
+        <field
+          name="noindex_menu_items"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_NOINDEX_MENU_ITEMS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_NOINDEX_MENU_ITEMS_DESC"
+          size="80"
+          filter="string"
+          default="" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Canonical (Free + Pro)
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="canonical" label="PLG_SYSTEM_AIBOOST_SEO_FIELDSET_CANONICAL">
+
+        <field
+          name="enable_canonical"
+          type="radio"
+          label="PLG_SYSTEM_AIBOOST_SEO_CANONICAL_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_CANONICAL_ENABLE_DESC"
+          default="1"
+          layout="joomla.form.field.radio.switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="strip_query_strings"
+          type="radio"
+          label="PLG_SYSTEM_AIBOOST_SEO_STRIP_QUERY_STRINGS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_STRIP_QUERY_STRINGS_DESC"
+          default="1"
+          layout="joomla.form.field.radio.switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <!-- Pro: pagination prev/next -->
+        <field
+          name="pagination_canonical"
+          type="radio"
+          label="PLG_SYSTEM_AIBOOST_SEO_PAGINATION_CANONICAL_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_PAGINATION_CANONICAL_DESC"
+          default="0"
+          layout="joomla.form.field.radio.switcher"
+          showon="license_tier:pro">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Hreflang — Pro only
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="hreflang" label="PLG_SYSTEM_AIBOOST_SEO_FIELDSET_HREFLANG">
+
+        <field
+          name="enable_hreflang"
+          type="radio"
+          label="PLG_SYSTEM_AIBOOST_SEO_HREFLANG_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_HREFLANG_ENABLE_DESC"
+          default="0"
+          layout="joomla.form.field.radio.switcher"
+          showon="license_tier:pro">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="x_default_language"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SEO_HREFLANG_XDEFAULT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_HREFLANG_XDEFAULT_DESC"
+          default="en-GB"
+          size="10"
+          filter="string"
+          showon="license_tier:pro[AND]enable_hreflang:1" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Redirects — Pro only
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="redirects" label="PLG_SYSTEM_AIBOOST_SEO_FIELDSET_REDIRECTS">
+
+        <field
+          name="enable_redirects"
+          type="radio"
+          label="PLG_SYSTEM_AIBOOST_SEO_REDIRECTS_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_REDIRECTS_ENABLE_DESC"
+          default="0"
+          layout="joomla.form.field.radio.switcher"
+          showon="license_tier:pro">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="redirect_rules"
+          type="subform"
+          label="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_RULES_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_RULES_DESC"
+          multiple="true"
+          layout="joomla.form.field.subform.repeatable-table"
+          showon="license_tier:pro[AND]enable_redirects:1">
+          <form>
+            <field
+              name="source_path"
+              type="text"
+              label="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_SOURCE_LABEL"
+              description="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_SOURCE_DESC"
+              size="50"
+              filter="string" />
+            <field
+              name="destination_url"
+              type="text"
+              label="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_DEST_LABEL"
+              description="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_DEST_DESC"
+              size="60"
+              filter="string" />
+            <field
+              name="redirect_type"
+              type="list"
+              label="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_TYPE_LABEL"
+              description="PLG_SYSTEM_AIBOOST_SEO_REDIRECT_TYPE_DESC"
+              default="301">
+              <option value="301">301 Permanent</option>
+              <option value="302">302 Temporary</option>
+            </field>
+          </form>
+        </field>
+
+      </fieldset>
+
+    </fields>
+  </config>
+</extension>

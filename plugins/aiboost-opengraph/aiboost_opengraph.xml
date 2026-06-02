@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_OPENGRAPH</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>1.2.0</version>
+  <description>PLG_SYSTEM_AIBOOST_OPENGRAPH_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostOpengraph</namespace>
+  <files>
+    <filename plugin="aiboost_opengraph">aiboost_opengraph.php</filename>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_opengraph.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_opengraph.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_opengraph.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_opengraph.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_opengraph.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_opengraph.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_opengraph.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_opengraph.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_opengraph.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_opengraph.sys.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_opengraph.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_opengraph.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_opengraph.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_opengraph.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+
+      <fieldset name="basic" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_FIELDSET_BASIC">
+
+        <field name="enabled" type="radio" layout="joomla.form.field.radio.switcher" label="JENABLED" default="1" class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="og_site_name"    type="text"  label="PLG_SYSTEM_AIBOOST_OPENGRAPH_SITE_NAME_LABEL"      description="PLG_SYSTEM_AIBOOST_OPENGRAPH_SITE_NAME_DESC"      size="60" filter="string" />
+        <field name="og_default_image" type="media" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_DEFAULT_IMAGE_LABEL" description="PLG_SYSTEM_AIBOOST_OPENGRAPH_DEFAULT_IMAGE_DESC" />
+
+        <field name="og_type" type="list" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_TYPE_LABEL" description="PLG_SYSTEM_AIBOOST_OPENGRAPH_TYPE_DESC" default="website">
+          <option value="website">PLG_SYSTEM_AIBOOST_OPENGRAPH_TYPE_WEBSITE</option>
+          <option value="blog">PLG_SYSTEM_AIBOOST_OPENGRAPH_TYPE_BLOG</option>
+        </field>
+
+      </fieldset>
+
+      <fieldset name="twitter" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_FIELDSET_TWITTER">
+
+        <field name="enable_twitter_cards" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_TWITTER_ENABLED_LABEL" description="PLG_SYSTEM_AIBOOST_OPENGRAPH_TWITTER_ENABLED_DESC" default="1" class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="twitter_card_type" type="list" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_TWITTER_CARD_LABEL" description="PLG_SYSTEM_AIBOOST_OPENGRAPH_TWITTER_CARD_DESC" default="summary_large_image">
+          <option value="summary">summary</option>
+          <option value="summary_large_image">summary_large_image</option>
+        </field>
+
+        <field name="twitter_site" type="text" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_TWITTER_SITE_LABEL" description="PLG_SYSTEM_AIBOOST_OPENGRAPH_TWITTER_SITE_DESC" size="40" filter="string" />
+
+      </fieldset>
+
+      <fieldset name="multilingual" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_FIELDSET_MULTILINGUAL">
+
+        <field name="falang_enabled" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_FALANG_LABEL" description="PLG_SYSTEM_AIBOOST_OPENGRAPH_FALANG_DESC" default="1" class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Hreflang Link Tags
+           (functionality merged from standalone Hreflang plugin)
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="hreflang" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_FIELDSET_HREFLANG">
+
+        <field
+          name="hreflang_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="hreflang_detection_mode"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_DETECT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_DETECT_DESC"
+          default="auto">
+          <option value="auto">PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_DETECT_AUTO</option>
+          <option value="manual">PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_DETECT_MANUAL</option>
+        </field>
+
+        <field
+          name="hreflang_primary_language"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_PRIMARY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_PRIMARY_DESC"
+          hint="en"
+          size="10"
+          filter="string" />
+
+        <field
+          name="hreflang_x_default_url"
+          type="url"
+          label="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_XDEFAULT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_XDEFAULT_DESC"
+          size="60"
+          filter="url" />
+
+        <field
+          name="hreflang_manual_languages"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_MANUAL_LABEL"
+          description="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_MANUAL_DESC"
+          rows="5"
+          cols="60"
+          filter="raw" />
+
+        <field
+          name="hreflang_falang_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_FALANG_LABEL"
+          description="PLG_SYSTEM_AIBOOST_OPENGRAPH_HREFLANG_FALANG_DESC"
+          default="1"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+      <fieldset name="advanced" label="JADVANCED">
+
+        <field name="staging_mode" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_OPENGRAPH_STAGING_LABEL" description="PLG_SYSTEM_AIBOOST_OPENGRAPH_STAGING_DESC" default="0" class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+    </fields>
+  </config>
+</extension>

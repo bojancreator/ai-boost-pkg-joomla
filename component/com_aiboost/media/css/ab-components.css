@@ -1,0 +1,788 @@
+/**
+ * AI Boost Design System — Components
+ *
+ * Self-contained UI primitives prefixed `.ab-*`. They consume only the
+ * `--ab-*` tokens from ab-tokens.css and never read `--bs-*` variables,
+ * so they render identically regardless of which Joomla admin template
+ * is active (Atum, YooTheme, JoomlaCity, custom).
+ *
+ * Selector rule: every component is scoped to
+ *   body[class*="com_aiboost"] .ab-{component}
+ * so the classes are inert if someone uses them on the front-end or
+ * outside the AI Boost admin.
+ *
+ * Author note on `!important`:
+ * - Avoided by default. Only used where an upstream `.btn`, `.card`,
+ *   `.badge` rule would otherwise win the cascade, and only on the
+ *   exact property under contention. Each occurrence carries a comment.
+ */
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* BUTTON                                                              */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ab-space-2);
+  padding: .4375rem .875rem;
+  font-family: var(--ab-font-family);
+  font-size: var(--ab-font-size-base);
+  font-weight: var(--ab-font-weight-medium);
+  line-height: var(--ab-line-height-tight);
+  text-decoration: none;
+  border: 1px solid var(--ab-border-strong);
+  border-radius: var(--ab-radius);
+  background: var(--ab-bg-elev);
+  color: var(--ab-text);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--ab-transition),
+              border-color var(--ab-transition),
+              color var(--ab-transition),
+              box-shadow var(--ab-transition);
+  white-space: nowrap;
+}
+body[class*="com_aiboost"] .ab-btn:hover {
+  background: var(--ab-bg-muted);
+  border-color: var(--ab-border-strong);
+  color: var(--ab-text);
+  text-decoration: none;
+}
+body[class*="com_aiboost"] .ab-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ab-focus-ring);
+}
+body[class*="com_aiboost"] .ab-btn:disabled,
+body[class*="com_aiboost"] .ab-btn[aria-disabled="true"] {
+  opacity: .55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Variants */
+body[class*="com_aiboost"] .ab-btn--primary {
+  background: var(--ab-primary);
+  border-color: var(--ab-primary);
+  color: var(--ab-text-on-primary);
+}
+body[class*="com_aiboost"] .ab-btn--primary:hover {
+  background: var(--ab-primary-hover);
+  border-color: var(--ab-primary-hover);
+  color: var(--ab-text-on-primary);
+}
+
+body[class*="com_aiboost"] .ab-btn--success {
+  background: var(--ab-success);
+  border-color: var(--ab-success);
+  color: #fff;
+}
+body[class*="com_aiboost"] .ab-btn--success:hover {
+  background: var(--ab-success-hover);
+  border-color: var(--ab-success-hover);
+  color: #fff;
+}
+
+body[class*="com_aiboost"] .ab-btn--danger {
+  background: var(--ab-danger);
+  border-color: var(--ab-danger);
+  color: #fff;
+}
+body[class*="com_aiboost"] .ab-btn--danger:hover {
+  background: var(--ab-danger-hover);
+  border-color: var(--ab-danger-hover);
+  color: #fff;
+}
+body[class*="com_aiboost"] .ab-btn--danger:focus-visible {
+  box-shadow: var(--ab-focus-ring-danger);
+}
+
+/* Danger-ghost: outlined danger action (used for Delete / Cancel) */
+body[class*="com_aiboost"] .ab-btn--ghost.ab-btn--danger-ghost {
+  border-color: var(--ab-danger);
+  color: var(--ab-danger);
+  background: transparent;
+}
+body[class*="com_aiboost"] .ab-btn--ghost.ab-btn--danger-ghost:hover {
+  background: var(--ab-danger-soft);
+  border-color: var(--ab-danger);
+  color: var(--ab-danger);
+}
+body[class*="com_aiboost"] .ab-btn--ghost.ab-btn--danger-ghost:focus-visible {
+  box-shadow: var(--ab-focus-ring-danger);
+}
+
+/* Ghost: transparent background, outlined; the default shape used for
+   secondary actions where we want low visual weight on dark and light. */
+body[class*="com_aiboost"] .ab-btn--ghost {
+  background: transparent;
+  border-color: var(--ab-border-strong);
+  color: var(--ab-text);
+}
+body[class*="com_aiboost"] .ab-btn--ghost:hover {
+  background: var(--ab-bg-muted);
+  color: var(--ab-text);
+}
+
+/* Subtle: same as ghost but tinted, used for highlighted-but-not-primary
+   actions like "Analyzers" in the Quick Actions bar. */
+body[class*="com_aiboost"] .ab-btn--subtle {
+  background: var(--ab-primary-soft);
+  border-color: transparent;
+  color: var(--ab-primary);
+}
+body[class*="com_aiboost"] .ab-btn--subtle:hover {
+  background: var(--ab-primary-soft);
+  border-color: var(--ab-primary);
+  color: var(--ab-primary);
+}
+
+/* Sizes */
+body[class*="com_aiboost"] .ab-btn--sm {
+  padding: .25rem .625rem;
+  font-size: var(--ab-font-size-sm);
+}
+body[class*="com_aiboost"] .ab-btn--lg {
+  padding: .625rem 1.25rem;
+  font-size: var(--ab-font-size-lg);
+}
+
+/* Block / full-width helper */
+body[class*="com_aiboost"] .ab-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* CARD                                                                */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-card {
+  background: var(--ab-bg-elev);
+  border: 1px solid var(--ab-border-strong);
+  border-radius: var(--ab-radius-md);
+  box-shadow: var(--ab-shadow);
+  color: var(--ab-text);
+  overflow: hidden;
+}
+/* Compatibility shim: pages using bare <div class="ab-card"><div>…</div></div>
+   (no .ab-card__body wrapper) still need internal padding. */
+body[class*="com_aiboost"] .ab-card > .ab-card-body {
+  padding: var(--ab-space-4);
+}
+body[class*="com_aiboost"] .ab-card__header {
+  padding: var(--ab-space-3) var(--ab-space-4);
+  border-bottom: 1px solid var(--ab-border);
+  background: var(--ab-bg-elev);
+  font-weight: var(--ab-font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--ab-space-2);
+}
+body[class*="com_aiboost"] .ab-card__body {
+  padding: var(--ab-space-4);
+}
+body[class*="com_aiboost"] .ab-card__footer {
+  padding: var(--ab-space-3) var(--ab-space-4);
+  border-top: 1px solid var(--ab-border);
+  background: var(--ab-bg-elev);
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* INPUT / LABEL / HELP                                                */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-label {
+  display: block;
+  font-size: var(--ab-font-size-sm);
+  font-weight: var(--ab-font-weight-semibold);
+  color: var(--ab-text);
+  margin-bottom: var(--ab-space-1);
+}
+body[class*="com_aiboost"] .ab-input {
+  display: block;
+  width: 100%;
+  padding: .4375rem .75rem;
+  font-family: var(--ab-font-family);
+  font-size: var(--ab-font-size-base);
+  line-height: var(--ab-line-height-base);
+  color: var(--ab-text);
+  background: var(--ab-bg-elev);
+  border: 1px solid var(--ab-border-strong);
+  border-radius: var(--ab-radius);
+  transition: border-color var(--ab-transition),
+              box-shadow var(--ab-transition);
+}
+body[class*="com_aiboost"] .ab-input::placeholder {
+  color: var(--ab-text-muted);
+  opacity: 1;
+}
+body[class*="com_aiboost"] .ab-input:focus {
+  outline: none;
+  border-color: var(--ab-primary);
+  box-shadow: var(--ab-focus-ring);
+}
+body[class*="com_aiboost"] .ab-input:disabled {
+  background: var(--ab-bg-muted);
+  cursor: not-allowed;
+  opacity: .7;
+}
+body[class*="com_aiboost"] .ab-input--invalid,
+body[class*="com_aiboost"] .ab-input--invalid:focus {
+  border-color: var(--ab-danger);
+  box-shadow: var(--ab-focus-ring-danger);
+}
+body[class*="com_aiboost"] .ab-help {
+  display: block;
+  font-size: var(--ab-font-size-sm);
+  color: var(--ab-text-muted);
+  margin-top: var(--ab-space-1);
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* BADGE                                                               */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ab-space-1);
+  padding: .15rem .55rem;
+  font-size: var(--ab-font-size-xs);
+  font-weight: var(--ab-font-weight-semibold);
+  line-height: 1.4;
+  border-radius: var(--ab-radius-pill);
+  background: var(--ab-bg-muted);
+  color: var(--ab-text);
+  border: 1px solid var(--ab-border);
+}
+body[class*="com_aiboost"] .ab-badge--success {
+  background: var(--ab-success-soft);
+  color: var(--ab-success);
+  border-color: transparent;
+}
+body[class*="com_aiboost"] .ab-badge--warning {
+  background: var(--ab-warning-soft);
+  color: var(--ab-warning);
+  border-color: transparent;
+}
+body[class*="com_aiboost"] .ab-badge--danger {
+  background: var(--ab-danger-soft);
+  color: var(--ab-danger);
+  border-color: transparent;
+}
+body[class*="com_aiboost"] .ab-badge--info {
+  background: var(--ab-info-soft);
+  color: var(--ab-info);
+  border-color: transparent;
+}
+body[class*="com_aiboost"] .ab-badge--primary {
+  background: var(--ab-primary-soft);
+  color: var(--ab-primary);
+  border-color: transparent;
+}
+body[class*="com_aiboost"] .ab-badge--secondary {
+  background: var(--ab-bg-muted);
+  color: var(--ab-text-muted);
+  border-color: transparent;
+}
+/* Prevent Joomla icon fonts from rendering a second glyph via ::after */
+body[class*="com_aiboost"] .ab-icon-single::after { content: none !important; }
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* TABS                                                                */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ab-space-1);
+  border-bottom: 1px solid var(--ab-border);
+  margin-bottom: var(--ab-space-4);
+  padding: 0;
+  list-style: none;
+}
+body[class*="com_aiboost"] .ab-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ab-space-2);
+  padding: var(--ab-space-2) var(--ab-space-3);
+  font-size: var(--ab-font-size-base);
+  font-weight: var(--ab-font-weight-medium);
+  color: var(--ab-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--ab-radius) var(--ab-radius) 0 0;
+  cursor: pointer;
+  transition: color var(--ab-transition), background var(--ab-transition);
+}
+body[class*="com_aiboost"] .ab-tab:hover {
+  color: var(--ab-text);
+  background: var(--ab-bg-muted);
+}
+body[class*="com_aiboost"] .ab-tab--active {
+  color: var(--ab-primary);
+  background: var(--ab-bg-elev);
+  border-color: var(--ab-border);
+  border-bottom-color: var(--ab-bg-elev);
+  margin-bottom: -1px;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* ALERT                                                               */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ab-space-3);
+  padding: var(--ab-space-3) var(--ab-space-4);
+  border: 1px solid var(--ab-border);
+  border-left-width: 4px;
+  border-radius: var(--ab-radius);
+  background: var(--ab-bg-elev);
+  color: var(--ab-text);
+  font-size: var(--ab-font-size-base);
+  line-height: var(--ab-line-height-base);
+}
+body[class*="com_aiboost"] .ab-alert--success {
+  background: var(--ab-success-soft);
+  border-color: var(--ab-success);
+  color: var(--ab-text);
+}
+body[class*="com_aiboost"] .ab-alert--warning {
+  background: var(--ab-warning-soft);
+  border-color: var(--ab-warning);
+  color: var(--ab-text);
+}
+body[class*="com_aiboost"] .ab-alert--danger {
+  background: var(--ab-danger-soft);
+  border-color: var(--ab-danger);
+  color: var(--ab-text);
+}
+body[class*="com_aiboost"] .ab-alert--info {
+  background: var(--ab-info-soft);
+  border-color: var(--ab-info);
+  color: var(--ab-text);
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* TAG (Pro / Free / Beta marker)                                      */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: .05rem .45rem;
+  font-size: var(--ab-font-size-xs);
+  font-weight: var(--ab-font-weight-bold);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  border-radius: var(--ab-radius-sm);
+  background: var(--ab-bg-muted);
+  color: var(--ab-text-muted);
+  border: 1px solid var(--ab-border);
+}
+body[class*="com_aiboost"] .ab-tag--pro {
+  background: var(--ab-primary);
+  color: var(--ab-text-on-primary);
+  border-color: var(--ab-primary);
+}
+body[class*="com_aiboost"] .ab-tag--free {
+  background: var(--ab-success-soft);
+  color: var(--ab-success);
+  border-color: transparent;
+}
+body[class*="com_aiboost"] .ab-tag--beta {
+  background: var(--ab-warning-soft);
+  color: var(--ab-warning);
+  border-color: transparent;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* TOGGLE (custom switch)                                              */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ab-space-2);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--ab-font-size-base);
+  color: var(--ab-text);
+}
+/* Hide the native checkbox ONLY when a custom .ab-toggle__track follows
+   it (the proper switch markup). Otherwise we'd hide hundreds of legacy
+   .ab-toggle wrappers that were migrated without the track span,
+   leaving the user with invisible controls across most tabs. */
+body[class*="com_aiboost"] .ab-toggle input[type="checkbox"]:has(+ .ab-toggle__track) {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+/* Proper switch markup: <label class="ab-toggle"><input><span class="ab-toggle__track">.
+   Styled to match the bare .ab-toggle__input[type=checkbox] switch below so
+   there is ONE consistent green-ON / red-OFF look everywhere. */
+body[class*="com_aiboost"] .ab-toggle__track {
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  width: 3.1rem;
+  height: 1.5rem;
+  background: var(--ab-danger);
+  border-radius: var(--ab-radius-pill);
+  transition: background var(--ab-transition);
+  flex-shrink: 0;
+}
+body[class*="com_aiboost"] .ab-toggle__track::before {
+  /* sliding knob */
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 1.15rem;
+  height: 1.15rem;
+  background: #fff;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  transition: left var(--ab-transition);
+  box-shadow: var(--ab-shadow-sm);
+  z-index: 2;
+}
+body[class*="com_aiboost"] .ab-toggle__track::after {
+  /* ON / OFF state label */
+  content: "OFF";
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: .625rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  line-height: 1;
+  z-index: 1;
+  pointer-events: none;
+}
+body[class*="com_aiboost"] .ab-toggle input[type="checkbox"]:checked + .ab-toggle__track {
+  background: var(--ab-success);
+}
+body[class*="com_aiboost"] .ab-toggle input[type="checkbox"]:checked + .ab-toggle__track::before {
+  left: calc(100% - 1.15rem - 3px);
+}
+body[class*="com_aiboost"] .ab-toggle input[type="checkbox"]:checked + .ab-toggle__track::after {
+  content: "ON";
+  right: auto;
+  left: 8px;
+}
+body[class*="com_aiboost"] .ab-toggle input[type="checkbox"]:focus-visible + .ab-toggle__track {
+  box-shadow: var(--ab-focus-ring);
+}
+body[class*="com_aiboost"] .ab-toggle input[type="checkbox"]:disabled + .ab-toggle__track {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* SELECT                                                               */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-select {
+  display: block;
+  width: 100%;
+  padding: var(--ab-space-2) var(--ab-space-3);
+  font-size: .9375rem;
+  font-family: inherit;
+  color: var(--ab-text);
+  background-color: var(--ab-surface);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right .65rem center;
+  background-size: 1rem;
+  border: 1px solid var(--ab-border-strong);
+  border-radius: var(--ab-radius);
+  appearance: none;
+  transition: border-color .15s, box-shadow .15s;
+  padding-right: 2.25rem;
+}
+body[class*="com_aiboost"] .ab-select:focus {
+  border-color: var(--ab-primary);
+  outline: 0;
+  box-shadow: 0 0 0 .2rem rgba(42, 100, 150, .2);
+}
+body[class*="com_aiboost"] .ab-select--sm {
+  padding: .3rem .65rem;
+  font-size: .8125rem;
+  padding-right: 2rem;
+}
+body[class*="com_aiboost"] .ab-select:disabled {
+  background-color: var(--ab-bg-muted);
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+/* Native <option> elements are rendered by the OS popup and don't inherit
+   parent colors on most browsers, so dark mode shows white-on-white. Force
+   dark surface + light text for AI Boost selects in dark mode.            */
+body[class*="com_aiboost"][data-bs-theme="dark"] .ab-select option,
+body[class*="com_aiboost"][data-bs-theme="dark"] select.form-select option,
+[data-bs-theme="dark"] body[class*="com_aiboost"] .ab-select option,
+[data-bs-theme="dark"] body[class*="com_aiboost"] select.form-select option {
+  background-color: var(--ab-bg-elev);
+  color: var(--ab-text);
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* BUTTON — additional variants used by migration                      */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-btn--warning {
+  background: var(--ab-warning);
+  border-color: var(--ab-warning);
+  color: #fff;
+}
+body[class*="com_aiboost"] .ab-btn--warning:hover {
+  background: var(--ab-warning-hover);
+  border-color: var(--ab-warning-hover);
+  color: #fff;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* CARD — title helper                                                 */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-card__title {
+  margin: 0;
+  font-size: var(--ab-font-size-lg);
+  font-weight: var(--ab-font-weight-semibold);
+  color: var(--ab-text);
+  line-height: var(--ab-line-height-tight);
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* LIST GROUP                                                          */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-list-group {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: var(--ab-bg-elev);
+  overflow: hidden;
+}
+body[class*="com_aiboost"] .ab-list-group__item {
+  display: block;
+  padding: var(--ab-space-3) var(--ab-space-4);
+  background: var(--ab-bg-elev);
+  color: var(--ab-text);
+  border: 0;
+  border-top: 1px solid var(--ab-border);
+  text-decoration: none;
+}
+body[class*="com_aiboost"] .ab-list-group__item:first-child {
+  border-top: 0;
+}
+body[class*="com_aiboost"] a.ab-list-group__item:hover,
+body[class*="com_aiboost"] button.ab-list-group__item:hover {
+  background: var(--ab-bg-muted);
+  color: var(--ab-text);
+  text-decoration: none;
+}
+body[class*="com_aiboost"] .ab-list-group--flush {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+body[class*="com_aiboost"] .ab-list-group--flush .ab-list-group__item {
+  background: transparent;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* TABLE — replaces Bootstrap .table-hover (broken in dark mode)       */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-table--hover tbody tr {
+  transition: background var(--ab-transition);
+}
+body[class*="com_aiboost"] .ab-table--hover tbody tr:hover {
+  background: var(--ab-bg-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* SPINNER (replaces Bootstrap .spinner-border)                        */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-spinner {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ab-spin .75s linear infinite;
+  vertical-align: -0.125em;
+}
+body[class*="com_aiboost"] .ab-spinner--sm {
+  width: .9rem;
+  height: .9rem;
+  border-width: 2px;
+}
+@keyframes ab-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* CHECK (single checkbox row, replaces Bootstrap .form-check)         */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-check {
+  display: flex;
+  align-items: center;
+  gap: var(--ab-space-2);
+  padding-left: 0;
+  min-height: auto;
+}
+body[class*="com_aiboost"] .ab-check__label {
+  color: var(--ab-text);
+  font-size: var(--ab-font-size-base);
+  cursor: pointer;
+}
+/* Boolean toggles render as a green-ON / red-OFF sliding switch — no markup
+   change needed, so this covers every hand-written tab AND all generated
+   partials that use <input class="ab-toggle__input" type="checkbox">. The
+   pseudo-elements need appearance:none to render on the checkbox. */
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  box-sizing: border-box;
+  width: 3.1rem;
+  height: 1.5rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--ab-radius-pill);
+  background: var(--ab-danger);
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+  transition: background var(--ab-transition);
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"]::before {
+  /* sliding knob */
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--ab-shadow-sm);
+  transform: translateY(-50%);
+  transition: left var(--ab-transition);
+  z-index: 2;
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"]::after {
+  /* ON / OFF state label */
+  content: "OFF";
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: .625rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  line-height: 1;
+  z-index: 1;
+  pointer-events: none;
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"]:checked {
+  background: var(--ab-success);
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"]:checked::before {
+  left: calc(100% - 1.15rem - 3px);
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"]:checked::after {
+  content: "ON";
+  right: auto;
+  left: 8px;
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: var(--ab-focus-ring);
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="checkbox"]:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+/* Radios reuse .ab-toggle__input but must stay native radios, not switches. */
+body[class*="com_aiboost"] .ab-toggle__input[type="radio"] {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--ab-primary);
+  flex-shrink: 0;
+}
+body[class*="com_aiboost"] .ab-toggle__input[type="radio"]:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* ACCORDION (replaces Bootstrap .accordion)                           */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-accordion {
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: var(--ab-bg-elev);
+  overflow: hidden;
+}
+body[class*="com_aiboost"] .ab-accordion__item {
+  border-top: 1px solid var(--ab-border);
+}
+body[class*="com_aiboost"] .ab-accordion__item:first-child {
+  border-top: 0;
+}
+body[class*="com_aiboost"] .ab-accordion__header {
+  margin: 0;
+}
+body[class*="com_aiboost"] .ab-accordion__button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: var(--ab-space-3) var(--ab-space-4);
+  font-size: var(--ab-font-size-base);
+  font-weight: var(--ab-font-weight-semibold);
+  color: var(--ab-text);
+  text-align: left;
+  background: var(--ab-bg-elev);
+  border: 0;
+  cursor: pointer;
+  transition: background var(--ab-transition);
+}
+body[class*="com_aiboost"] .ab-accordion__button:hover {
+  background: var(--ab-bg-muted);
+}
+body[class*="com_aiboost"] .ab-accordion__button:focus-visible {
+  outline: none;
+  box-shadow: var(--ab-focus-ring);
+}
+body[class*="com_aiboost"] .ab-accordion__body {
+  padding: var(--ab-space-3) var(--ab-space-4);
+  background: var(--ab-bg-elev);
+}
+body[class*="com_aiboost"] .ab-accordion--flush {
+  border: 0;
+  border-radius: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────── */
+/* STACK / CLUSTER helpers (handy for styleguide & quick actions)      */
+/* ─────────────────────────────────────────────────────────────────── */
+body[class*="com_aiboost"] .ab-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ab-space-2);
+  align-items: center;
+}
+body[class*="com_aiboost"] .ab-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ab-space-3);
+}

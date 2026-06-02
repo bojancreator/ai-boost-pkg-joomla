@@ -1,8 +1,0 @@
-# Ignore third-party and non-first-party assets for JS/TS linting
-vendor/**
-node_modules/**
-build/**
-archive/**
-tools/**
-**/dist/**
-**/*.min.js

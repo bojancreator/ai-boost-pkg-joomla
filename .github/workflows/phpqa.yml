@@ -1,0 +1,37 @@
+name: PHP QA — PHPCS + PHPStan (PHP 8.1–8.5)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # ── PHPCS + PHPStan matrix ──────────────────────────────────────────────────
+  phpqa:
+    name: phpqa (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.1", "8.2", "8.3", "8.4", "8.5"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Setup PHP ${{ matrix.php-version }}
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+
+      - name: Install QA tools (PHPCS + PHPStan)
+        run: composer install --no-progress --no-interaction --prefer-dist
+
+      - name: Run PHPCS — plugins/ + component/
+        run: vendor/bin/phpcs --standard=phpcs.xml --report=full -q
+
+      - name: Run PHPStan — plugins/
+        run: vendor/bin/phpstan analyse --configuration=phpstan.neon --no-progress --memory-limit=256M
+

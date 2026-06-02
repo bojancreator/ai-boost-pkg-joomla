@@ -3,9 +3,8 @@ import { logoDataUrl as logoSrc } from "@/assets/logo-data";
 const videoSrc = import.meta.env.BASE_URL + "hero-video.mp4";
 
 const GUMROAD = {
-  starter:   "https://aiboostnow.gumroad.com/l/joomlaboost-starter",
-  developer: "https://aiboostnow.gumroad.com/l/joomlaboost",
-  agency:    "https://aiboostnow.gumroad.com/l/joomlaboost-agency",
+  basic:        "https://aiboostnow.gumroad.com/l/joomlaboost-basic",
+  professional: "https://aiboostnow.gumroad.com/l/joomlaboost-professional",
 };
 
 export function HeroSection() {
@@ -19,7 +18,7 @@ export function HeroSection() {
           <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Features</a>
           <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Docs</a>
           <a style={{ color: "#5A5A7A", fontSize: 15, fontWeight: 500, textDecoration: "none" }}>Pricing</a>
-          <a href={GUMROAD.developer} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 14, fontWeight: 600, padding: "11px 22px", borderRadius: 8, textDecoration: "none" }}>
+          <a href={GUMROAD.professional} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 14, fontWeight: 600, padding: "11px 22px", borderRadius: 8, textDecoration: "none" }}>
             Get AI Boost →
           </a>
         </div>
@@ -45,8 +44,8 @@ export function HeroSection() {
           </p>
 
           <div style={{ display: "flex", gap: 14, marginBottom: 48 }}>
-            <a href={GUMROAD.developer} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 16, fontWeight: 700, padding: "15px 28px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 20px rgba(123,79,255,0.3)" }}>
-              Buy Developer — €119
+            <a href={GUMROAD.professional} target="_blank" rel="noopener noreferrer" style={{ background: "#7B4FFF", color: "#fff", fontSize: 16, fontWeight: 700, padding: "15px 28px", borderRadius: 10, textDecoration: "none", boxShadow: "0 4px 20px rgba(123,79,255,0.3)" }}>
+              Get Professional — €200/year
             </a>
             <a href="#features" style={{ background: "transparent", border: "1.5px solid #D4C9FF", color: "#5A5A7A", fontSize: 16, fontWeight: 600, padding: "15px 24px", borderRadius: 10, textDecoration: "none" }}>
               View all features ↓

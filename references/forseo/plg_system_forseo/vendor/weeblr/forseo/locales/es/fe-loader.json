@@ -1,0 +1,12 @@
+{
+    "editButton": {
+        "bodyIgnored": "Puede que 4SEO no haya analizado esta página aun o puede que la haya ignorado. Ignorar páginas sucede la mayoría de las veces cuando están restringidas a usuarios logueados pero también en las páginas que no tienen valor SEO como páginas de acceso, algunos formularios, etc",
+        "footerIgnored": "Pincha en este mensaje para cerrarlo.",
+        "titleIgnored": "Esta página no ha sido analizada aun o está siendo ignorada desde el punto de vista SEO.",
+        "title": "Pinche para editar la información SEO de esta página",
+        "frameTitle": "Formulario de edición de la información SEO",
+        "reload": "Recargar página",
+        "reloadPage": "Por favor recarga la página y vuelve a abrir este diálogo para ver la información actualizada.",
+        "seeBelow": "Por favor mira más abajo."
+    }
+}

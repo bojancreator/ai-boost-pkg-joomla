@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_AEO</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>1.1.0</version>
+  <description>PLG_SYSTEM_AIBOOST_AEO_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostAeo</namespace>
+  <files>
+    <filename plugin="aiboost_aeo">aiboost_aeo.php</filename>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_aeo.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_aeo.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_aeo.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_aeo.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_aeo.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_aeo.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_aeo.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_aeo.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_aeo.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_aeo.sys.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_aeo.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_aeo.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_aeo.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_aeo.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params" addfieldprefix="AiBoost\Plugin\System\AiBoostAeo\Field">
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: llms.txt / AI Index
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="basic" label="PLG_SYSTEM_AIBOOST_AEO_FIELDSET_LLMSTXT">
+
+        <field
+          name="llmstxt_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_LLMSTXT_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_LLMSTXT_ENABLED_DESC"
+          default="1"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="llmstxt_org_name"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_AEO_ORG_NAME_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ORG_NAME_DESC"
+          size="60"
+          filter="string" />
+
+        <field
+          name="llmstxt_org_desc"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_AEO_ORG_DESC_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ORG_DESC_DESC"
+          rows="4"
+          cols="60"
+          filter="string" />
+
+        <field
+          name="llmstxt_org_url"
+          type="url"
+          label="PLG_SYSTEM_AIBOOST_AEO_ORG_URL_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ORG_URL_DESC"
+          size="60"
+          filter="url" />
+
+        <field
+          name="llmstxt_custom_pages"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_AEO_CUSTOM_PAGES_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_CUSTOM_PAGES_DESC"
+          rows="6"
+          cols="60"
+          filter="raw" />
+
+        <field
+          name="llms_full_txt_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_LLMS_FULL_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_LLMS_FULL_DESC"
+          default="1"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: IndexNow
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="indexnow" label="PLG_SYSTEM_AIBOOST_AEO_FIELDSET_INDEXNOW">
+
+        <field
+          name="indexnow_api_key"
+          type="generatekey"
+          label="PLG_SYSTEM_AIBOOST_AEO_INDEXNOW_KEY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_INDEXNOW_KEY_DESC"
+          size="60"
+          filter="alnum" />
+
+        <field
+          name="indexnow_auto_submit"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_INDEXNOW_AUTO_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_INDEXNOW_AUTO_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: robots.txt + AI Crawlers
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="robots" label="PLG_SYSTEM_AIBOOST_AEO_FIELDSET_ROBOTS">
+
+        <field
+          name="robots_txt_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_ENABLED_DESC"
+          default="1"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <!-- AI crawler access mode -->
+        <field
+          name="robots_ai_mode"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_AI_MODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_AI_MODE_DESC"
+          default="allow_all">
+          <option value="allow_all">PLG_SYSTEM_AIBOOST_AEO_ROBOTS_AI_ALLOW_ALL</option>
+          <option value="block_all">PLG_SYSTEM_AIBOOST_AEO_ROBOTS_AI_BLOCK_ALL</option>
+          <option value="custom">PLG_SYSTEM_AIBOOST_AEO_ROBOTS_AI_CUSTOM</option>
+        </field>
+
+        <!-- ─ Per-crawler toggles: visible only when mode=custom ─ -->
+
+        <field
+          name="robots_block_gptbot"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_GPTBOT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_GPTBOT_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_chatgpt_user"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_CHATGPTUSER_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_CHATGPTUSER_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_claudebot"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_CLAUDEBOT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_CLAUDEBOT_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_anthropic"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_ANTHROPIC_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_ANTHROPIC_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_perplexity"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_PERPLEXITY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_PERPLEXITY_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_google_extended"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_GEXT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_GEXT_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_ccbot"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_CCBOT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_CCBOT_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_cohere"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_COHERE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_COHERE_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_googlebot"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_GOOGLEBOT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_GOOGLEBOT_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <field
+          name="robots_block_bingbot"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_BINGBOT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_BLOCK_BINGBOT_DESC"
+          default="0"
+          class="switcher"
+          showon="robots_ai_mode:custom">
+          <option value="0">PLG_SYSTEM_AIBOOST_AEO_ALLOW</option>
+          <option value="1">PLG_SYSTEM_AIBOOST_AEO_BLOCK</option>
+        </field>
+
+        <!-- Custom/override robots.txt -->
+        <field
+          name="robots_txt_custom"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_CUSTOM_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_ROBOTS_CUSTOM_DESC"
+          rows="10"
+          cols="60"
+          filter="raw" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Markdown Pages
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="markdown" label="PLG_SYSTEM_AIBOOST_AEO_FIELDSET_MARKDOWN">
+
+        <field
+          name="markdown_pages_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_MARKDOWN_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_MARKDOWN_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Advanced
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="advanced" label="JADVANCED">
+
+        <field
+          name="staging_mode"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_AEO_STAGING_LABEL"
+          description="PLG_SYSTEM_AIBOOST_AEO_STAGING_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+    </fields>
+  </config>
+</extension>

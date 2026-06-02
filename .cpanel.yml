@@ -1,8 +1,0 @@
-## Intentionally disabled
-# Deployment is handled by GitHub Actions (see .github/workflows/deploy-staging.yml)
-# Keeping this file minimal prevents accidental cPanel Git deployments.
-
----
-deployment:
-  tasks:
-    - echo "cPanel Git Deploy disabled (use GitHub Actions)."

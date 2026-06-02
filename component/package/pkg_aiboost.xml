@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="package" version="3.9" method="upgrade">
+    <name>AI Boost for Joomla</name>
+    <packagename>aiboost</packagename>
+    <author>AI Boost Team</author>
+    <creationDate>May 2026</creationDate>
+    <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <authorEmail>info@aiboostnow.com</authorEmail>
+    <authorUrl>https://aiboostnow.com</authorUrl>
+    <version>0.45.0</version>
+    <description>AI Boost for Joomla — Professional SEO &amp; AEO Package. Includes admin component + 6 modular system plugins: Schema.org, XML Sitemap, Social/OpenGraph, Analytics, AEO/llms.txt, Core.</description>
+    <php_minimum>8.1.0</php_minimum>
+    <joomla_minimum>5.0.0</joomla_minimum>
+    <url>https://aiboostnow.com</url>
+    <scriptfile>pkg_script.php</scriptfile>
+    <blockChildUninstall>true</blockChildUninstall>
+    <!--
+        Update server intentionally omitted for now. The auto-update channel
+        (updates.aiboostnow.com) is not yet live, so we ship without an
+        <updateservers> block rather than point Joomla at a dead endpoint.
+        Re-add this once the update endpoint and Lemon Squeezy licensing
+        (Task #19) are in place.
+    -->
+    <!--
+        Core plugins are bundled here.
+
+        Add-on bridge packages (pkg_aiboost_yootheme, pkg_aiboost_falang) are
+        distributed as separate, standalone ZIPs — they are optional third-party
+        integrations that require the respective paid software (YooTheme Pro /
+        Falang Pro) to be installed. Including them here would force all users to
+        have those dependencies. Install add-ons manually via Extension Manager
+        after installing pkg_aiboost. Built via: python3 scripts/build-addon-zip.py
+    -->
+    <files folder="packages">
+        <file type="component"
+              id="com_aiboost">com_aiboost-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_schema"
+              group="system">plg_system_aiboost_schema-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_sitemap"
+              group="system">plg_system_aiboost_sitemap-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_social"
+              group="system">plg_system_aiboost_social-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_analytics"
+              group="system">plg_system_aiboost_analytics-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_aeo"
+              group="system">plg_system_aiboost_aeo-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_core"
+              group="system">plg_system_aiboost_core-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_code"
+              group="system">plg_system_aiboost_code-0.41.0.zip</file>
+    </files>
+</extension>

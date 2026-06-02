@@ -11,14 +11,14 @@ These fields are injected dynamically based on the languages installed in your J
 ### Organization Name
 
 **Field:** `org_name_{lang}`  
-**Example:** `Acme Hotel Belgrade`
+**Example:** `Acme Hotel Manhattan`
 
 Your official business or website name as it should appear in search results and AI citations. Keep it consistent with your registered business name.
 
 ### Organization Description
 
 **Field:** `org_description_{lang}`  
-**Example:** *"Acme Hotel is a 4-star hotel in Belgrade, Serbia, offering luxury accommodation since 1999."*
+**Example:** *"Acme Hotel is a 4-star hotel in Manhattan, New York, USA, offering luxury accommodation since 1999."*
 
 A 1–3 sentence description of your organization. Keep it factual and authoritative — AI engines use this as the primary source when generating citations and summaries about your business.
 
@@ -82,21 +82,21 @@ Fill in only the networks where you have an active presence. Empty fields are ex
 ### Country Code
 
 **Field:** `schema_address_country`  
-**Example:** `RS` (Serbia), `DE` (Germany), `US` (United States), `GB` (United Kingdom)
+**Example:** `US` (United States), `DE` (Germany), `GB` (United Kingdom), `AU` (Australia)
 
 Two-letter ISO 3166-1 alpha-2 country code. Required for LocalBusiness and Hotel Schema types.
 
 ### Postal Code
 
 **Field:** `schema_address_zip`  
-**Example:** `11000`, `10001`, `W1A 1AA`
+**Example:** `10001`, `W1A 1AA`, `80331`
 
 Your ZIP or postal code. Used in the `PostalAddress` Schema.
 
 ### City / Locality (Multilingual)
 
 **Field:** `schema_address_locality_{lang}`  
-**Example:** `Belgrade` (en), `Beograd` (sr), `Belgrad` (de)
+**Example:** `New York` (en), `Nueva York` (es), `New York` (de)
 
 Your city name, translated per installed language if applicable.
 

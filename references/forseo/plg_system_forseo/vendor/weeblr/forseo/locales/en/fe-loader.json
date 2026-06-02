@@ -1,0 +1,11 @@
+{
+  "editButton": {
+    "frameTitle": "SEO information edit form",
+    "title": "Click to edit SEO information for this page",
+    "titleIgnored": "This page has not been analyzed yet or is ignored from an SEO standpoint.",
+    "bodyIgnored": "4SEO may not have analyzed this page yet or it may have ignored it. Ignoring pages happens most of the time when they are restricted to logged-in users but also for pages that have no SEO value such as log-in page, some forms, etc",
+    "reloadPage": "Please reload the page and re-open this dialog to see updated information.",
+    "seeBelow": "Please see below.",
+    "reload": "Reload page"
+  }
+}

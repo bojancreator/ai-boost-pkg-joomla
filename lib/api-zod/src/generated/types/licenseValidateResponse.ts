@@ -5,27 +5,17 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { LicenseValidateResponseStatus } from "./licenseValidateResponseStatus";
+import type { LicenseSku } from "./licenseSku";
+import type { LicenseStatus } from "./licenseStatus";
 
 export interface LicenseValidateResponse {
-  /** Whether the license key is valid and active */
   valid: boolean;
-  /** Precise license state — active, expiring_soon (subscription ending within 30 days), deactivated (refunded/chargebacked), or invalid (key not found/bad format) */
-  status?: LicenseValidateResponseStatus;
-  /** Error message when valid is false */
-  error?: string;
-  /** License tier — starter, developer, or agency */
-  tier?: string;
-  /** Buyer email address from Gumroad */
-  email?: string;
-  /** ISO 8601 timestamp of the original purchase/activation */
-  activated_at?: string;
-  /** Number of times this license has been activated */
-  uses?: number;
-  /** Maximum allowed activations (-1 means unlimited) */
-  max_uses?: number;
-  /** Remaining activations allowed (-1 means unlimited) */
-  remaining_activations?: number;
-  /** Site URL that was passed in the request */
-  site_url?: string;
+  status: LicenseStatus;
+  sku: LicenseSku | null;
+  /** Activation slots still available (0 when limit_reached) */
+  activations_remaining: number;
+  expires_at: Date | null;
+  message: string;
+  /** Always true while the mock is in place; will be absent or false in production */
+  mock: boolean;
 }

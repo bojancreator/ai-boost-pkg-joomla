@@ -18,6 +18,10 @@ import type {
 
 import type {
   HealthStatus,
+  LicenseDeactivateRequest,
+  LicenseDeactivateResponse,
+  LicenseHeartbeatPayload,
+  LicenseHeartbeatResult,
   LicenseValidateRequest,
   LicenseValidateResponse,
 } from "./api.schemas";
@@ -108,8 +112,12 @@ export function useHealthCheck<
 }
 
 /**
- * Verifies a license key and returns activation details including buyer email, tier, activation date, and remaining activations.
- * @summary Validate a license key against Gumroad
+ * Validate a license key against a SKU. Today this is a mock that
+recognises four key prefixes (AB-VALID-*, AB-EXPIRED-*, AB-LIMIT-*,
+AB-DEACT-*). The shape matches the planned Lemon Squeezy integration
+so swapping the mock for the real LS API is a single-file change.
+
+ * @summary Validate a per-SKU license key
  */
 export const getValidateLicenseUrl = () => {
   return `/api/license/validate`;
@@ -128,7 +136,7 @@ export const validateLicense = async (
 };
 
 export const getValidateLicenseMutationOptions = <
-  TError = ErrorType<void>,
+  TError = ErrorType<LicenseValidateResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -169,13 +177,13 @@ export type ValidateLicenseMutationResult = NonNullable<
   Awaited<ReturnType<typeof validateLicense>>
 >;
 export type ValidateLicenseMutationBody = BodyType<LicenseValidateRequest>;
-export type ValidateLicenseMutationError = ErrorType<void>;
+export type ValidateLicenseMutationError = ErrorType<LicenseValidateResponse>;
 
 /**
- * @summary Validate a license key against Gumroad
+ * @summary Validate a per-SKU license key
  */
 export const useValidateLicense = <
-  TError = ErrorType<void>,
+  TError = ErrorType<LicenseValidateResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -193,3 +201,286 @@ export const useValidateLicense = <
 > => {
   return useMutation(getValidateLicenseMutationOptions(options));
 };
+
+/**
+ * Release one activation slot so the license can be moved to another
+site. Mock today; will call POST /v1/licenses/deactivate on Lemon
+Squeezy once the vendor account is live.
+
+ * @summary Deactivate a license for the current site
+ */
+export const getDeactivateLicenseUrl = () => {
+  return `/api/license/deactivate`;
+};
+
+export const deactivateLicense = async (
+  licenseDeactivateRequest: LicenseDeactivateRequest,
+  options?: RequestInit,
+): Promise<LicenseDeactivateResponse> => {
+  return customFetch<LicenseDeactivateResponse>(getDeactivateLicenseUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(licenseDeactivateRequest),
+  });
+};
+
+export const getDeactivateLicenseMutationOptions = <
+  TError = ErrorType<LicenseDeactivateResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deactivateLicense>>,
+    TError,
+    { data: BodyType<LicenseDeactivateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deactivateLicense>>,
+  TError,
+  { data: BodyType<LicenseDeactivateRequest> },
+  TContext
+> => {
+  const mutationKey = ["deactivateLicense"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deactivateLicense>>,
+    { data: BodyType<LicenseDeactivateRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return deactivateLicense(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeactivateLicenseMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deactivateLicense>>
+>;
+export type DeactivateLicenseMutationBody = BodyType<LicenseDeactivateRequest>;
+export type DeactivateLicenseMutationError =
+  ErrorType<LicenseDeactivateResponse>;
+
+/**
+ * @summary Deactivate a license for the current site
+ */
+export const useDeactivateLicense = <
+  TError = ErrorType<LicenseDeactivateResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deactivateLicense>>,
+    TError,
+    { data: BodyType<LicenseDeactivateRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deactivateLicense>>,
+  TError,
+  { data: BodyType<LicenseDeactivateRequest> },
+  TContext
+> => {
+  return useMutation(getDeactivateLicenseMutationOptions(options));
+};
+
+/**
+ * Called every 7 days by the AI Boost Joomla plugin from the admin
+side. Server validates the license key, binds it to (domain,
+install_id) on the first call, detects domain collisions, and
+signals whether Pro features should be unlocked, soft-warned, or
+hard-disabled.
+
+ * @summary Phone-home heartbeat + strict domain binding
+ */
+export const getLicenseHeartbeatUrl = () => {
+  return `/api/license/heartbeat`;
+};
+
+export const licenseHeartbeat = async (
+  licenseHeartbeatPayload: LicenseHeartbeatPayload,
+  options?: RequestInit,
+): Promise<LicenseHeartbeatResult> => {
+  return customFetch<LicenseHeartbeatResult>(getLicenseHeartbeatUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(licenseHeartbeatPayload),
+  });
+};
+
+export const getLicenseHeartbeatMutationOptions = <
+  TError = ErrorType<LicenseHeartbeatResult>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof licenseHeartbeat>>,
+    TError,
+    { data: BodyType<LicenseHeartbeatPayload> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof licenseHeartbeat>>,
+  TError,
+  { data: BodyType<LicenseHeartbeatPayload> },
+  TContext
+> => {
+  const mutationKey = ["licenseHeartbeat"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof licenseHeartbeat>>,
+    { data: BodyType<LicenseHeartbeatPayload> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return licenseHeartbeat(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LicenseHeartbeatMutationResult = NonNullable<
+  Awaited<ReturnType<typeof licenseHeartbeat>>
+>;
+export type LicenseHeartbeatMutationBody = BodyType<LicenseHeartbeatPayload>;
+export type LicenseHeartbeatMutationError = ErrorType<LicenseHeartbeatResult>;
+
+/**
+ * @summary Phone-home heartbeat + strict domain binding
+ */
+export const useLicenseHeartbeat = <
+  TError = ErrorType<LicenseHeartbeatResult>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof licenseHeartbeat>>,
+    TError,
+    { data: BodyType<LicenseHeartbeatPayload> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof licenseHeartbeat>>,
+  TError,
+  { data: BodyType<LicenseHeartbeatPayload> },
+  TContext
+> => {
+  return useMutation(getLicenseHeartbeatMutationOptions(options));
+};
+
+/**
+ * Returns the Joomla `<updates>` XML manifest for the given package
+slug. `pkg_aiboost` (free) always returns the latest release.
+`pkg_aiboost_pro` requires a valid `key` whose `domain` matches one
+of the activated domains on the license; anything else returns an
+empty but valid `<updates/>` document so Joomla silently shows no
+updates available.
+
+ * @summary License-gated Joomla update manifest
+ */
+export const getGetPackageUpdatesUrl = (
+  packageSlug: "pkg_aiboost" | "pkg_aiboost_pro",
+) => {
+  return `/api/updates/${packageSlug}.xml`;
+};
+
+export const getPackageUpdates = async (
+  packageSlug: "pkg_aiboost" | "pkg_aiboost_pro",
+  options?: RequestInit,
+): Promise<string> => {
+  return customFetch<string>(getGetPackageUpdatesUrl(packageSlug), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPackageUpdatesQueryKey = (
+  packageSlug: "pkg_aiboost" | "pkg_aiboost_pro",
+) => {
+  return [`/api/updates/${packageSlug}.xml`] as const;
+};
+
+export const getGetPackageUpdatesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPackageUpdates>>,
+  TError = ErrorType<string>,
+>(
+  packageSlug: "pkg_aiboost" | "pkg_aiboost_pro",
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPackageUpdates>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetPackageUpdatesQueryKey(packageSlug);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPackageUpdates>>
+  > = ({ signal }) =>
+    getPackageUpdates(packageSlug, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!packageSlug,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPackageUpdates>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPackageUpdatesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPackageUpdates>>
+>;
+export type GetPackageUpdatesQueryError = ErrorType<string>;
+
+/**
+ * @summary License-gated Joomla update manifest
+ */
+
+export function useGetPackageUpdates<
+  TData = Awaited<ReturnType<typeof getPackageUpdates>>,
+  TError = ErrorType<string>,
+>(
+  packageSlug: "pkg_aiboost" | "pkg_aiboost_pro",
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPackageUpdates>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPackageUpdatesQueryOptions(packageSlug, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}

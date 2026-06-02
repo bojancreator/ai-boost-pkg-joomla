@@ -189,7 +189,7 @@ Enter an array of event objects. Required fields per event: `name`, `startDate` 
     "startDate": "2026-07-15T19:00:00+02:00",
     "endDate": "2026-07-17T23:00:00+02:00",
     "description": "Three nights of live jazz in the courtyard garden.",
-    "location": "Knez Mihailova 10, Belgrade",
+    "location": "123 W 44th St, New York",
     "url": "https://yourdomain.com/jazz-festival",
     "price": "25",
     "currency": "EUR"

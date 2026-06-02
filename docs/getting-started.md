@@ -1,7 +1,7 @@
 # Getting Started with JoomlaBoost
 
 **Version:** 0.24.0  
-**Compatible with:** Joomla 4.x, 5.x, 6.x | PHP 8.1+
+**Compatible with:** Joomla 5.x, 6.x | PHP 8.1+
 
 ---
 
@@ -108,11 +108,11 @@ Click the **Organization** tab. Fill in at minimum:
 
 | Field | Example | Why it matters |
 |-------|---------|----------------|
-| Organization Name | `Acme Hotel Belgrade` | Appears in Google Knowledge Panel and AI citations |
+| Organization Name | `Acme Hotel Manhattan` | Appears in Google Knowledge Panel and AI citations |
 | Website URL | `https://yourdomain.com` | Canonical URL in Schema.org |
 | Phone | `+1 212 555 1234` | Used in LocalBusiness Schema and Google Maps |
 | Country Code | `RS`, `DE`, `US` | ISO 3166-1 two-letter code |
-| City / Locality | `Belgrade` | Address Schema for local search |
+| City / Locality | `New York` | Address Schema for local search |
 
 Add at least one or two **Social Media Links** (Facebook, LinkedIn, etc.) — these connect your website to your social profiles as the same entity in AI systems.
 

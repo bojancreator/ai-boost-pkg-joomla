@@ -1,0 +1,11 @@
+{
+    "editButton": {
+        "frameTitle": "SEO információk szerkesztése",
+        "title": "Kattintson a SEO információk szerkesztéséhez ehhez az oldalhoz",
+        "titleIgnored": "Ez az oldal még nem lett elemzve, vagy figyelmen kívül lett hagyva SEO szempontból.",
+        "bodyIgnored": "A 4SEO lehet, hogy még nem elemzett vagy figyelmen kívül hagyott oldal. Az oldalak figyelmen kívül hagyása leggyakrabban akkor történik, amikor bejelentkezett felhasználók számára korlátozottak, de olyan oldalak esetén is, amelyeknek nincs SEO értéke, például bejelentkezési oldal, néhány űrlap stb.",
+        "reloadPage": "Kérjük, frissítse az oldalt, majd nyissa meg újra ezt a párbeszédpanelt a frissített információk megtekintéséhez.",
+        "seeBelow": "Kérjük, lásd alább.",
+        "reload": "Oldal újratöltése"
+    }
+}

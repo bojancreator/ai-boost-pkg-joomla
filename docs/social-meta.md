@@ -22,7 +22,7 @@ Master toggle. When **Yes**, JoomlaBoost injects the full set of OpenGraph and T
 ### OG Site Name (Multilingual)
 
 **Field:** `og_site_name_{lang}`  
-**Example:** `Acme Hotel Belgrade`
+**Example:** `Acme Hotel Manhattan`
 
 Your brand name as displayed in social share card headers. If left empty, falls back to Joomla's configured site name, then the Organization Name.
 

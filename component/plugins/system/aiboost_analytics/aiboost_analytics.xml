@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_ANALYTICS</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>0.6.0</version>
+  <description>PLG_SYSTEM_AIBOOST_ANALYTICS_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostAnalytics</namespace>
+  <files>
+    <filename plugin="aiboost_analytics">aiboost_analytics.php</filename>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_analytics.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_analytics.sys.ini</language>
+  </languages>
+</extension>

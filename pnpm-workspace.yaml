@@ -39,6 +39,8 @@ packages:
   - lib/*
   - lib/integrations/*
   - scripts
+  - website
+  - component/com_aiboost/vue-admin
 
 catalog:
   '@replit/vite-plugin-cartographer': ^0.5.1

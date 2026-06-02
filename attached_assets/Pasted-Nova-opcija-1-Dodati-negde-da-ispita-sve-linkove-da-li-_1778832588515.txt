@@ -1,0 +1,35 @@
+Nova opcija
+1. Dodati negde da ispita sve linkove da li su ispravni i da pokaže one koji nisu i akciju koja treba da se odradi da se to popravi. 
+
+Custom Code
+1. Dodati "INJECT BEFOR CLOSING </body>
+2. Specific menu items only opcija. Treba da se meniji izabiraju jao što ih joomla odabira kod modula
+
+
+Open Graph
+1. Izvaditi poseban plugin iz taba Social & Media i nazvati ga Open Graph
+2. Stari plugin je ako nije već bilo kreirano, pravio custom fields za Open graph za svaki artikal posebno. I te vrednosti je postavljao na svaku stranu kao prioritet, onda je gledao Intro image, pa Full Article Image, pa tek onda default image iz plugina - sada komponente. Ako nisu bili kreirani custom fields, categorije i grupa, treba ih napraviti prilikom instalacije, ako već ima onda ih ignorisati. Naziv Grupe i ime koje će se pojavljivati u custom fieldsima je AiBoostOG. 
+3. Ne prikazuje preview OG image kad se izabere.
+
+File Manager
+1. Ne radi kako treba. Modal koji treba da se otvori se pojavljuje na dnu strane. Dodao sam sliku da vidiš o čemu je reč.
+2. Kad se otvori ispravno onda ću da proverim funkcionalnost
+
+YooTheme Pro plugin
+1. Ubaciti ga u dashboard kao i ostale ili smisliti posebnu sekciju gde će biti samo doplativi pluginovi.
+2. Kad se deaktivira isključe se sve opcije koje on reguliše. Ne treba da se pojavljuje u "GDPR Consent mode" u Analitycs i Social & Meta opcija "YooTheme Pro Consent manager" i ostale funkcije treba da budu isključene u vezi yootheme pro.
+
+Health
+1. Kad se klikne na Re-run Checks ne uradi ništa.
+2. Dodati opciju desno pored Sismiss da se klikne i ode na tu funkciju.
+
+
+General
+1. Kad sam promenio u General tabu na neki preset nije promenio polja u Schema.org. Ovde može da bude konflikt sa već sačuvanim poljima iz nekog drugog Schema.org organization type, sve treba da se sačuva da se ne izgubi ako se promeni type. Hoću reći da mora da se promene polja kad se promeni preset u general tabu
+2. Izbacio bih sada opciju "Show Advanced Options" Treba uvek da prikazuje sve opcije, sad je komponente i ima mesta.
+
+Redirects
+1. Postaviti u tabu malo više informacija o ovoj opciji za one koji nisu experti.
+
+Mobilni prikaz
+1. Sve ove opcije koje radimo moraju da budu optimizovane za mobilni telefon.

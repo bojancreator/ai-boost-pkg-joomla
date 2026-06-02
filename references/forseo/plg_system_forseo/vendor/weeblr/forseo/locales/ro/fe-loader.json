@@ -1,0 +1,11 @@
+{
+    "editButton": {
+        "frameTitle": "Formular de editare informații SEO",
+        "title": "Faceți clic pentru a edita informațiile SEO pentru această pagină",
+        "titleIgnored": "Această pagină nu a fost încă analizată sau este ignorată din punct de vedere SEO.",
+        "bodyIgnored": "4SEO poate să nu fi analizat încă această pagină sau să o fi ignorat. Ignorarea paginilor se întâmplă în cea mai mare parte atunci când acestea sunt restricționate pentru utilizatorii autentificați, dar și pentru paginile care nu au valoare SEO, cum ar fi pagina de autentificare, unele formulare, etc.",
+        "reloadPage": "Vă rugăm să reîncărcați pagina și să redeschideți acest dialog pentru a vedea informațiile actualizate.",
+        "seeBelow": "Vă rugăm să consultați mai jos.",
+        "reload": "Reîncărcați pagina"
+    }
+}

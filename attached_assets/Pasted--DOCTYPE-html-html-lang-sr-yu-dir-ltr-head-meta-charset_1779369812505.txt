@@ -1,0 +1,711 @@
+
+<!DOCTYPE html>
+<html lang="sr-yu" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+	<meta name="author" content="Bojan Pavlović">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Off Road Serbia - Dedicated to nature and 4x4 off road addictives in Serbia and beyond">
+	<meta name="generator" content="emarket1ng.NET Web System">
+	<title>4X4 Serbia Crew - test proba</title>
+	<link href="https://staging.offroadserbia.com/sr/component/finder/search?format=opensearch&amp;Itemid=101" rel="search" title="OpenSearch 4X4 Serbia Crew" type="application/opensearchdescription+xml">
+	<link href="/images/LOGO-SERBIA-CREW-MALI.png" rel="icon" sizes="any">
+	<link href="/images/LOGO-SERBIA-CREW.png" rel="apple-touch-icon">
+	<link href="/favicon.ico" rel="icon" type="image/vnd.microsoft.icon">
+
+        <link href="/media/vendor/joomla-custom-elements/css/joomla-alert.min.css?0.4.1" rel="stylesheet">
+	<link href="/templates/yootheme/css/theme.9.css?1778670967" rel="stylesheet">
+	<link href="/media/plg_system_jcepro/site/css/content.min.css?86aa0286b6232c4a5b58f892ce080277" rel="stylesheet">
+
+        <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=wORVIVAzcjszn7riNWA1LQs0p5_ryTaNHyjza_zfjghb7zZbPGbj_sRCphj8KpaaLPDJ0CvTFKWPNViZdZN-FjfKEQpA45DL29UKtI7AlEg" charset="UTF-8"></script><script src="/media/vendor/awesomplete/js/awesomplete.min.js?1.1.7" defer></script>
+	<script type="application/json" class="joomla-script-options new">{"joomla.jtext":{"JLIB_JS_AJAX_ERROR_OTHER":"Greška pri preuzimanju JSON podataka: HTTP %s kod statusa.","JLIB_JS_AJAX_ERROR_PARSE":"Greška pri parsiranju JSON podataka:<br><code style=\"color:inherit;white-space:pre-wrap;padding:0;margin:0;border:0;background:inherit;\">%s<\/code>","ERROR":"Greška","MESSAGE":"Poruka","NOTICE":"Obaveštenje","WARNING":"Upozorenje","JCLOSE":"Zatvori","JOK":"OK","JOPEN":"Otvori"},"finder-search":{"url":"\/sr\/component\/finder\/?task=suggestions.suggest&amp;format=json&amp;tmpl=component&amp;Itemid=101"},"system.paths":{"root":"","rootFull":"https:\/\/staging.offroadserbia.com\/","base":"","baseFull":"https:\/\/staging.offroadserbia.com\/"},"csrf.token":"ba129eb98052d5f75bf839174f93e7c9"}</script>
+	<script src="/media/system/js/core.min.js?a3d8f8"></script>
+	<script src="/media/com_finder/js/finder.min.js?755761" type="module"></script>
+	<script src="/media/system/js/joomla-hidden-mail.min.js?80d9c7" type="module"></script>
+	<script src="/media/system/js/messages.min.js?9a4811" type="module"></script>
+	<script src="/templates/yootheme/assets/site/js/consent.js?5.0.32" type="module"></script>
+	<script src="/templates/yootheme/vendor/assets/uikit/dist/js/uikit.min.js?5.0.32"></script>
+	<script src="/templates/yootheme/vendor/assets/uikit/dist/js/uikit-icons-jack-baker.min.js?5.0.32"></script>
+	<script src="/templates/yootheme/assets/site/js/theme.js?5.0.32"></script>
+	<script src="/media/com_widgetkit/js/maps.js" defer></script>
+	<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://staging.offroadserbia.com/#/schema/Organization/base","name":"4X4 Serbia Crew","url":"https://staging.offroadserbia.com/"},{"@type":"WebSite","@id":"https://staging.offroadserbia.com/#/schema/WebSite/base","url":"https://staging.offroadserbia.com/","name":"4X4 Serbia Crew","publisher":{"@id":"https://staging.offroadserbia.com/#/schema/Organization/base"},"potentialAction":{"@type":"SearchAction","target":"https://staging.offroadserbia.com/sr/component/finder/search?q={search_term_string}&amp;Itemid=101","query-input":"required name=search_term_string"}},{"@type":"WebPage","@id":"https://staging.offroadserbia.com/#/schema/WebPage/base","url":"https://staging.offroadserbia.com/sr/test-proba","name":"4X4 Serbia Crew - test proba","description":"Off Road Serbia - Dedicated to nature and 4x4 off road addictives in Serbia and beyond","isPartOf":{"@id":"https://staging.offroadserbia.com/#/schema/WebSite/base"},"about":{"@id":"https://staging.offroadserbia.com/#/schema/Organization/base"},"inLanguage":"sr-YU"},{"@type":"Article","@id":"https://staging.offroadserbia.com/#/schema/com_content/article/220","name":"test proba","headline":"test proba","inLanguage":"sr-YU","dateCreated":"2025-11-25T14:01:32+00:00","isPartOf":{"@id":"https://staging.offroadserbia.com/#/schema/WebPage/base"}}]}</script>
+	<script>window.yootheme ||= {}; yootheme.consent = {"type":"optin","banner_layout":"section-bottom","categories":{"functional":[],"preferences":["openstreetmap"],"marketing":["meta_pixel"]}};</script>
+	<script>window.yootheme ||= {}; yootheme.theme = {"i18n":{"close":{"label":"Close"},"totop":{"label":"Back to top"},"marker":{"label":"Open"},"navbarToggleIcon":{"label":"Open Menu"},"paginationPrevious":{"label":"Previous page"},"paginationNext":{"label":"Next Page"},"searchIcon":{"toggle":"Open Search","submit":"Submit Search"},"slider":{"next":"Next slide","previous":"Previous slide","slideX":"Slide %s","slideLabel":"%s of %s"},"slideshow":{"next":"Next slide","previous":"Previous slide","slideX":"Slide %s","slideLabel":"%s of %s"},"lightboxPanel":{"next":"Next slide","previous":"Previous slide","slideLabel":"%s of %s","close":"Close"}}};</script>
+
+    <!-- AI Boost for Joomla - Start -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "4x4 Serbia Crew - default",
+    "url": "https://staging.offroadserbia.com/",
+    "description": "Off Road Serbia - Dedicated to nature and 4x4 off road addictives in Serbia and beyond",
+    "logo": {
+        "@type": "ImageObject",
+        "url": "https://staging.offroadserbia.com/images/LOGO-SERBIA-CREW.png"
+    },
+    "telephone": "+381 64 140 37 90",
+    "email": "4x4@offroadserbia.com",
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "neka adresa 255",
+        "addressLocality": "New York",
+        "addressRegion": "NY",
+        "postalCode": "10001",
+        "addressCountry": "US"
+    },
+    "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "40.6892",
+        "longitude": "74.0444"
+    },
+    "sameAs": [
+        "https://www.facebook.com/4x4serbiacrew/",
+        "https://www.instagram.com/4x4_serbia_crew/",
+        "https://www.youtube.com/c/4x4SerbiaCrew"
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Šta je AI Boost za Joomla?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "AI Boost je SEO i AEO paket za Joomla 4, 5 i 6 koji generiše Schema.org, XML sitemap, OpenGraph, robots.txt i llms.txt kako bi vaš sajt bio vidljiv u AI pretraživačima poput ChatGPT, Perplexity i Google AI Overview."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Da li radi sa Joomla 4 i 5?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Da. Paket je testiran i podržan na Joomla 4.x, 5.x i 6.x sa PHP verzijama od 8.1 do 8.5."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Koliko košta AI Boost?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Postoji besplatna verzija sa osnovnim funkcijama. Pro funkcije se kupuju po plugin-u (€15/godišnje) ili kao bundle svih 5 plugina za €45/godišnje."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Da li mogu da koristim na više sajtova?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Svaka licenca pokriva jedan domen. Za više sajtova potrebne su dodatne licence ili Agency licenca."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Šta je llms.txt?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "llms.txt je standardni fajl koji AI pretraživačima daje strukturirani index sajta - poput sitemap.xml ali namijenjen velikim jezičkim modelima. AI Boost ga generiše automatski na /llms.txt."
+            }
+        }
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "QAPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Šta je AI Boost za Joomla?",
+            "suggestedAnswer": {
+                "@type": "Answer",
+                "text": "AI Boost je SEO i AEO paket za Joomla 4, 5 i 6 koji generiše Schema.org, XML sitemap, OpenGraph, robots.txt i llms.txt kako bi vaš sajt bio vidljiv u AI pretraživačima poput ChatGPT, Perplexity i Google AI Overview."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Da li radi sa Joomla 4 i 5?",
+            "suggestedAnswer": {
+                "@type": "Answer",
+                "text": "Da. Paket je testiran i podržan na Joomla 4.x, 5.x i 6.x sa PHP verzijama od 8.1 do 8.5."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Koliko košta AI Boost?",
+            "suggestedAnswer": {
+                "@type": "Answer",
+                "text": "Postoji besplatna verzija sa osnovnim funkcijama. Pro funkcije se kupuju po plugin-u (€15/godišnje) ili kao bundle svih 5 plugina za €45/godišnje."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Da li mogu da koristim na više sajtova?",
+            "suggestedAnswer": {
+                "@type": "Answer",
+                "text": "Svaka licenca pokriva jedan domen. Za više sajtova potrebne su dodatne licence ili Agency licenca."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Šta je llms.txt?",
+            "suggestedAnswer": {
+                "@type": "Answer",
+                "text": "llms.txt je standardni fajl koji AI pretraživačima daje strukturirani index sajta - poput sitemap.xml ali namijenjen velikim jezičkim modelima. AI Boost ga generiše automatski na /llms.txt."
+            }
+        }
+    ]
+}
+</script>
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "test proba",
+    "url": "https://staging.offroadserbia.com/sr/test-proba",
+    "datePublished": "2025-11-25T14:01:32+00:00",
+    "dateModified": "2026-05-21T11:59:18+00:00",
+    "author": {
+        "@type": "Person",
+        "name": "Bojan Pavlović"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "4x4 Serbia Crew - default",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://staging.offroadserbia.com/images/LOGO-SERBIA-CREW.png"
+        }
+    }
+}
+</script>
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://staging.offroadserbia.com/sr/test-proba">
+<meta property="og:site_name" content="4x4 Serbia Crew">
+<meta property="og:title" content="test proba">
+<meta property="og:description" content="ovo je test proba og za ai boost">
+<meta property="og:image" content="https://staging.offroadserbia.com/{&quot;imagefile&quot;:&quot;images\/images\/FILM.jpg#joomlaImage:\/\/local-images\/images\/FILM.jpg?width=800&amp;height=800&quot;,&quot;alt_text&quot;:&quot;ai test proba&quot;}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="article:published_time" content="2025-11-25T14:01:32+00:00">
+<meta property="article:modified_time" content="2026-05-21T11:59:18+00:00">
+<meta property="article:author" content="Bojan Pavlović">
+<meta property="article:section" content="Uncategorised">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="test proba">
+<meta name="twitter:description" content="ovo je test proba og za ai boost">
+<meta name="twitter:image" content="https://staging.offroadserbia.com/{&quot;imagefile&quot;:&quot;images\/images\/FILM.jpg#joomlaImage:\/\/local-images\/images\/FILM.jpg?width=800&amp;height=800&quot;,&quot;alt_text&quot;:&quot;ai test proba&quot;}">
+<meta name="ai-content-verified" content="true">
+<meta name="ai-content-optimized" content="true">
+<meta name="llms-txt" content="https://staging.offroadserbia.com/llms.txt">
+<link rel="alternate" type="text/markdown" href="https://staging.offroadserbia.com/sr/test-proba?markdown=1">
+<meta name="facebook-domain-verification" content="qvwv68ttbtiail9kujaysr56dx2zfq">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GL6S29GRHJ"></script>
+<!-- Google tag (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-GL6S29GRHJ');
+</script>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1734916556867429');
+fbq('track', 'Purchase');
+fbq('track', 'Lead');
+</script>
+<!-- End Meta Pixel Code -->
+Insert Before Head
+<!-- AI Boost for Joomla - End -->
+</head>
+    <body class="">
+<!-- AI Boost for Joomla - Start -->
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1734916556867429&ev=PageView&noscript=1"
+/></noscript>
+Insert in start body
+<!-- AI Boost for Joomla - End -->
+
+        <div class="uk-hidden-visually uk-notification uk-notification-top-left uk-width-auto">
+            <div class="uk-notification-message">
+                <a href="#tm-main" class="uk-link-reset">Skip to main content</a>
+            </div>
+        </div>
+
+        
+        
+        <div class="tm-page">
+
+                        
+
+
+<header class="tm-header-mobile uk-hidden@l">
+
+
+    
+        <div class="uk-navbar-container">
+
+            <div class="uk-container uk-container-expand">
+                <nav class="uk-navbar" uk-navbar="{&quot;align&quot;:&quot;center&quot;,&quot;container&quot;:&quot;.tm-header-mobile&quot;,&quot;boundary&quot;:&quot;.tm-header-mobile .uk-navbar-container&quot;,&quot;target-y&quot;:&quot;.tm-header-mobile .uk-navbar-container&quot;,&quot;dropbar&quot;:true,&quot;dropbar-anchor&quot;:&quot;.tm-header-mobile .uk-navbar-container&quot;,&quot;dropbar-transparent-mode&quot;:&quot;remove&quot;}">
+
+                                        <div class="uk-navbar-left ">
+
+                        
+                                                    <a uk-toggle href="#tm-dialog-mobile" class="uk-navbar-toggle" aria-controls="tm-dialog-mobile">
+
+        
+        <div uk-navbar-toggle-icon></div>
+
+        
+    </a>
+                        
+                        
+                    </div>
+                    
+                                        <div class="uk-navbar-center">
+
+                                                    <a href="https://staging.offroadserbia.com/sr/" aria-label="Back to home" class="uk-logo uk-navbar-item">
+    <picture><source type="image/webp" srcset="/media/yootheme/cache/0d/LOGO-SERBIA-CREW-0d255a87.webp 126w, /media/yootheme/cache/24/LOGO-SERBIA-CREW-24fc9cd4.webp 252w" sizes="(min-width: 126px) 126px"><img src="/media/yootheme/cache/ed/LOGO-SERBIA-CREW-ed9525d0.png" width="126" height="130" alt></picture><picture><source type="image/webp" srcset="/media/yootheme/cache/50/logo-50d38e53.webp 200w" sizes="(min-width: 126px) 126px"><img class="uk-logo-inverse" src="/media/yootheme/cache/79/logo-79665374.png" width="126" height="130" alt></picture></a>
+                        
+                        
+                    </div>
+                    
+                    
+                </nav>
+            </div>
+
+        </div>
+
+    
+
+
+
+        <div id="tm-dialog-mobile" uk-offcanvas="container: true; overlay: true" mode="push">
+        <div class="uk-offcanvas-bar uk-flex uk-flex-column">
+
+                        <button class="uk-offcanvas-close uk-close-large" type="button" uk-close uk-toggle="cls: uk-close-large; mode: media; media: @s"></button>
+            
+                        <div class="uk-margin-auto-vertical uk-text-center">
+                
+<div class="uk-grid uk-child-width-1-1" uk-grid>    <div>
+<div class="uk-panel" id="module-menu-dialog-mobile">
+
+    
+    
+<ul class="uk-nav uk-nav-primary uk-nav- uk-nav-center">
+    
+	<li class="item-101"><a href="/sr/">NASLOVNA</a></li>
+	<li class="item-112"><a href="/sr/our-story">O UDRUŽENJU</a></li>
+	<li class="item-392"><a href="/sr/clanstvo">ČLANSTVO</a></li>
+	<li class="item-110"><a href="/sr/our-adventures">OFF-ROAD</a></li>
+	<li class="item-425"><a href="/sr/oprema-i-saveti">OPREMA I SAVETI</a></li>
+	<li class="item-151"><a href="/sr/contact">KONTAKT</a></li>
+	<li class="item-1902 uk-active"><a href="/sr/test-proba">test proba</a></li></ul>
+
+</div>
+</div>    <div>
+<div class="uk-panel" id="module-tm-3">
+
+    
+    
+
+    <form action="/sr/component/finder/search?Itemid=101" method="get" role="search" class="uk-search js-finder-searchform uk-search-default uk-width-1-1"><span uk-search-icon></span><input name="q" class="js-finder-search-query uk-search-input" placeholder="Search" required aria-label="Search" type="search"><input type="hidden" name="Itemid" value="101"></form>
+    
+
+</div>
+</div></div>
+            </div>
+            
+            
+        </div>
+    </div>
+    
+    
+    
+
+</header>
+
+
+
+
+<header class="tm-header uk-visible@l">
+
+
+
+
+    
+    
+        
+            <div class="uk-navbar-container">
+
+                <div class="uk-container uk-container-expand">
+                    <nav class="uk-navbar" uk-navbar="{&quot;align&quot;:&quot;center&quot;,&quot;container&quot;:&quot;.tm-header&quot;,&quot;boundary&quot;:&quot;.tm-header .uk-navbar-container&quot;,&quot;target-y&quot;:&quot;.tm-header .uk-navbar-container&quot;,&quot;dropbar&quot;:true,&quot;delay-hide&quot;:&quot;200&quot;,&quot;dropbar-anchor&quot;:&quot;.tm-header .uk-navbar-container&quot;,&quot;dropbar-transparent-mode&quot;:&quot;remove&quot;}">
+
+                        
+                        <div class="uk-navbar-center">
+
+                            
+                                                                <div class="uk-navbar-center-left uk-preserve-width">
+                                    
+<ul class="uk-navbar-nav">
+    
+	<li class="item-101"><a href="/sr/">NASLOVNA</a></li>
+	<li class="item-112"><a href="/sr/our-story">O UDRUŽENJU</a></li>
+	<li class="item-392"><a href="/sr/clanstvo">ČLANSTVO</a></li>
+	<li class="item-110"><a href="/sr/our-adventures">OFF-ROAD</a></li></ul>
+
+                                </div>
+                                
+                                <a href="https://staging.offroadserbia.com/sr/" aria-label="Back to home" class="uk-logo uk-navbar-item">
+    <picture><source type="image/webp" srcset="/media/yootheme/cache/6b/LOGO-SERBIA-CREW-6b9e1ccb.webp 150w, /media/yootheme/cache/0f/LOGO-SERBIA-CREW-0f38b86a.webp 300w" sizes="(min-width: 150px) 150px"><img src="/media/yootheme/cache/48/LOGO-SERBIA-CREW-48145074.png" width="150" height="155" alt></picture><picture><source type="image/webp" srcset="/media/yootheme/cache/84/logo-84f2dce4.webp 200w" sizes="(min-width: 150px) 150px"><img class="uk-logo-inverse" src="/media/yootheme/cache/78/logo-787e5182.png" width="150" height="155" alt></picture></a>
+
+                                                                <div class="uk-navbar-center-right uk-preserve-width">
+                                    
+<ul class="uk-navbar-nav">
+    
+	<li class="item-425"><a href="/sr/oprema-i-saveti">OPREMA I SAVETI</a></li>
+	<li class="item-151"><a href="/sr/contact">KONTAKT</a></li>
+	<li class="item-1902 uk-active"><a href="/sr/test-proba">test proba</a></li></ul>
+
+                                </div>
+                                
+                            
+                        </div>
+
+                        
+                    </nav>
+                </div>
+
+            </div>
+
+        
+    
+    
+
+
+
+
+
+
+</header>
+
+            
+            
+
+            <main id="tm-main" class="tm-main uk-section uk-section-default" uk-height-viewport="expand: true">
+
+                                <div class="uk-container">
+
+                    
+                            
+                
+                <div id="system-message-container" aria-live="polite"></div>
+
+                
+<article id="article-220" class="uk-article" data-permalink="https://staging.offroadserbia.com/sr/test-proba" typeof="Article" vocab="https://schema.org/">
+
+    <meta property="name" content="test proba">
+    <meta property="author" typeof="Person" content="Bojan Pavlović">
+    <meta property="dateModified" content="2026-05-21T11:59:18+00:00">
+    <meta property="datePublished" content="2025-11-25T14:01:32+00:00">
+    <meta class="uk-margin-remove-adjacent" property="articleSection" content="Uncategorised">
+
+    
+        <h1 class="uk-article-title">test proba</h1>
+    
+                <p class="uk-margin-remove-bottom uk-article-meta">
+                Written on <time datetime="2025-11-25T15:01:32+01:00">25 Novembar 2025</time>.                            </p>
+        
+    
+     <ul class="fields-container">
+    <li class="field-entry aiboost_og_title "><span class="field-value ">test proba</span>
+</li>
+<li class="field-entry aiboost_og_description "><span class="field-value ">ovo je test proba og za ai boost</span>
+</li>
+<li class="field-entry aiboost_og_image "><span class="field-value "><img src="/images/images/FILM.jpg" alt="ai test proba" width="800" height="800" loading="lazy"></span>
+</li></ul>
+    <div class="uk-margin-medium" property="text">
+ </div>
+
+    
+    
+    
+    
+        
+<nav aria-label="Pagination" class="uk-margin-medium">
+    <ul class="uk-pagination uk-margin-remove-bottom uk-flex-between">
+    
+            <li>        <a href="/sr/kurs-za-radio-amatere-predavanja">Sledeći <span uk-pagination-next></span></a>
+        </li>    
+    </ul>
+</nav>    
+    
+</article>
+
+
+                
+                        
+                </div>
+                
+            </main>
+
+            
+
+                        <footer>
+                <!-- Builder #footer -->
+<div class="uk-section-secondary uk-section uk-section- uk-flex uk-flex-middle fs-section" data-style="secondary" uk-height-viewport="expand: true;">
+
+
+
+
+    <div class="uk-width-1-1">
+
+    <div class="uk-container fs-section-content uk-container-large">
+
+<div class="uk-grid tm-grid-expand uk-child-width-1-1 uk-margin-medium">
+    
+        
+<div class="uk-width-1-1@m">
+    
+        
+            
+            
+            
+                
+                    
+<div class="uk-margin-remove-vertical uk-text-center@m uk-text-center">
+        <a class="el-link" href="/index.php"><picture><source type="image/webp" srcset="/media/yootheme/cache/06/logo-06c935e7.webp 200w" sizes="(min-width: 200px) 200px"><img class="el-image" src="/images/logo.png" alt loading="lazy" width="200" height="207"></picture></a>    
+    
+</div>
+                
+            
+        
+    
+</div>
+    
+</div>
+<div class="uk-grid-margin uk-grid tm-grid-expand" uk-grid>
+    
+        
+<div class="uk-width-auto@m">
+    
+        
+            
+            
+            
+                
+                    
+<div class="uk-text-center@s uk-text-center">
+    
+        <ul class="uk-margin-remove-bottom uk-subnav  uk-subnav-divider uk-flex-center@s uk-flex-center">                <li class="el-item ">
+<a class="el-link" href="mailto:4x4@offroadserbia.com" target="_blank">
+        <joomla-hidden-mail  is-link="1" is-email="1" first="NHg0" last="b2Zmcm9hZHNlcmJpYS5jb20=" text="NHg0QG9mZnJvYWRzZXJiaWEuY29t" base="" >Ova email adresa je zaštićena od spambotova. Omogućite JavaScript u vašem brauzeru da biste je videli.</joomla-hidden-mail>
+</a></li>
+                </ul>
+    
+</div>
+                
+            
+        
+    
+</div>
+<div class="uk-width-expand@m">
+    
+        
+            
+            
+            
+                
+                    <div class="uk-panel uk-text-primary uk-margin uk-text-right@m uk-text-center"><p>Join us in adventures</p></div>
+                
+            
+        
+    
+</div>
+<div class="uk-width-auto@m">
+    
+        
+            
+            
+            
+                
+                    
+<div class="uk-margin uk-text-right@m uk-text-center">    <ul class="uk-child-width-auto uk-grid-small uk-flex-inline uk-flex-middle" uk-grid>
+            <li class="el-item">
+<a class="el-link" href="https://www.youtube.com/user/tanduleani/videos?view_as=subscriber" target="_blank"><span uk-icon="icon: youtube;"></span></a></li>
+            <li class="el-item">
+<a class="el-link" href="https://www.instagram.com/4x4_serbia_crew/" target="_blank"><span uk-icon="icon: instagram;"></span></a></li>
+            <li class="el-item">
+<a class="el-link" href="https://www.facebook.com/4x4serbiacrew/" target="_blank"><span uk-icon="icon: facebook;"></span></a></li>
+    
+    </ul></div>
+                
+            
+        
+    
+</div>
+    
+</div>
+    </div>
+    </div>
+
+
+
+
+</div>            </footer>
+            
+        </div>
+
+        
+        
+<template id="consent-banner">
+    <div class="tm-consent uk-section uk-section-xsmall uk-section-muted uk-position-bottom uk-position-fixed uk-position-z-index-high bottom">        <div class="uk-container">
+            
+                <p>                    We use cookies and similar technologies to improve your experience on our website.
+                                    </p>
+            
+                <div class="uk-child-width-1-1 uk-child-width-auto@s uk-grid-small" uk-grid>                    <div>
+                        <button type="button" data-consent-button="accept" class="uk-button uk-button-primary uk-width-1-1" data-uk-toggle="target: !.tm-consent; animation: true;">Accept</button>
+                    </div>                    <div>
+                        <button type="button" data-consent-button="reject" class="uk-button uk-button-default uk-width-1-1" data-uk-toggle="target: !.tm-consent; animation: true;">Reject</button>
+                    </div>                    <div>
+                        <button type="button" data-consent-button="settings" class="uk-button uk-button-default uk-width-1-1">Manage Settings</button>
+                    </div>                </div>
+            
+        </div>    </div></template>
+
+<template id="consent-settings">
+    <div class="uk-position-z-index-highest" uk-modal>
+        <form class="uk-modal-dialog  uk-margin-auto-vertical uk-modal-body" style="width: 720px;">
+            <button class="uk-modal-close-default uk-close-large" type="button" uk-close></button>
+
+            
+                <h2 class="uk-modal-title">Privacy Settings</h2>
+            
+                <p>                    This website uses cookies and similar technologies. They are grouped into categories, which you can review and manage below. If you have accepted any non-essential cookies, you can change your preferences at any time in the settings.
+                                    </p>
+                
+                                        <div class="uk-grid-column-small uk-grid-row-medium" uk-grid>
+                        <div class="uk-width-auto ">
+
+                            <div class="uk-h4"><input id="consent-cookies-functional" class="uk-checkbox uk-form-large" type="checkbox" checked disabled></div>
+
+                        </div>
+                        <div class="uk-width-expand">
+
+                            
+                                        <h3 class="uk-h4 uk-margin-remove">
+                                                                                        <label for="consent-cookies-functional">
+                                            
+                                            Functional
+                                                                                        </label>
+                                            
+                                        </h3>
+                            
+                                                                <p class="uk-margin-small-top uk-margin-remove-bottom">                                These technologies are required to activate the core functionality of our website.                                </p>                                
+                                
+                            
+                        </div>
+                    </div>
+                                        <div class="uk-grid-column-small uk-grid-row-medium" uk-grid>
+                        <div class="uk-width-auto ">
+
+                            <div class="uk-h4"><input id="consent-cookies-preferences" class="uk-checkbox uk-form-large" type="checkbox" name="preferences"></div>
+
+                        </div>
+                        <div class="uk-width-expand">
+
+                            
+                                        <h3 class="uk-h4 uk-margin-remove">
+                                                                                        <label for="consent-cookies-preferences">
+                                            
+                                            Preferences
+                                                                                        </label>
+                                            
+                                        </h3>
+                            
+                                                                <p class="uk-margin-small-top uk-margin-remove-bottom">                                These technologies allow our website to remember your preferences and provide you with a more personalized experience.                                </p>                                
+                                
+                                    
+                                    <ul class="uk-list tm-toggle uk-margin-small-top ">
+                                                                                <li class="uk-text-emphasis">
+                                            <input id="consent-cookies-openstreetmap" class="uk-checkbox uk-margin-xsmall-right" type="checkbox" name="preferences.openstreetmap">
+                                            <label for="consent-cookies-openstreetmap">OpenStreetMap</label>
+                                        </li>
+                                                                            </ul>
+
+                                
+                            
+                        </div>
+                    </div>
+                                        <div class="uk-grid-column-small uk-grid-row-medium" uk-grid>
+                        <div class="uk-width-auto ">
+
+                            <div class="uk-h4"><input id="consent-cookies-marketing" class="uk-checkbox uk-form-large" type="checkbox" name="marketing"></div>
+
+                        </div>
+                        <div class="uk-width-expand">
+
+                            
+                                        <h3 class="uk-h4 uk-margin-remove">
+                                                                                        <label for="consent-cookies-marketing">
+                                            
+                                            Marketing
+                                                                                        </label>
+                                            
+                                        </h3>
+                            
+                                                                <p class="uk-margin-small-top uk-margin-remove-bottom">                                These technologies are used by our marketing partners to show you personalized advertisements relevant to your interests.                                </p>                                
+                                
+                                    
+                                    <ul class="uk-list tm-toggle uk-margin-small-top ">
+                                                                                <li class="uk-text-emphasis">
+                                            <input id="consent-cookies-meta_pixel" class="uk-checkbox uk-margin-xsmall-right" type="checkbox" name="marketing.meta_pixel">
+                                            <label for="consent-cookies-meta_pixel">Meta Pixel</label>
+                                        </li>
+                                                                            </ul>
+
+                                
+                            
+                        </div>
+                    </div>
+                    
+                
+            
+                <div class="uk-margin-medium-top uk-child-width-1-1 uk-child-width-auto@s uk-grid-small" uk-grid>                    <div>
+                        <button type="button" data-consent-button="accept" class="uk-button uk-button-default uk-width-1-1 uk-modal-close">Accept all</button>
+                    </div>                    <div>
+                        <button type="button" data-consent-button="reject" class="uk-button uk-button-default uk-width-1-1 uk-modal-close">Reject all</button>
+                    </div>                    <div class="uk-margin-auto-left@s">
+                        <button type="submit" data-consent-button="save" class="uk-button uk-button-primary uk-width-1-1 uk-modal-close">Save</button>
+                    </div>                </div>
+            
+        </form>    </div>
+</template>
+
+        
+
+    <!-- AI Boost for Joomla - Start -->
+INsert in end body
+<!-- AI Boost for Joomla - End -->
+<script>
+(function(c,d){"JUri"in d||(d.JUri="https://staging.offroadserbia.com/");c.addEventListener("click",function(a){var b=a.target?a.target.closest('[class*="ba-click-lightbox-form-"], [href*="ba-click-lightbox-form-"]'):null;if(b){a.preventDefault();if("pending"==b.clicked)return!1;b.clicked="pending";"formsAppClk"in window?formsAppClk.click(b):(a=document.createElement("script"),a.src=JUri+"components/com_baforms/assets/js/click-trigger.js",a.onload=function(){formsAppClk.click(b)},
+c.head.append(a))}})})(document,window);
+</script>
+</body>
+</html>

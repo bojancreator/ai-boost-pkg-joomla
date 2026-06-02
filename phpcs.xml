@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<ruleset name="AI Boost QA">
+    <description>PSR-12 coding standard for AI Boost for Joomla — standalone plugins and component.</description>
+
+    <file>plugins/</file>
+    <file>component/</file>
+
+    <arg name="basepath" value="."/>
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <rule ref="PSR12">
+        <!-- Joomla plugins use defined('_JEXEC') or die; at the file level -->
+        <exclude name="PSR1.Files.SideEffects"/>
+        <!-- Joomla entry-point files intentionally have no namespace -->
+        <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
+        <!-- Long lines are acceptable for SQL, URLs, and JSON-LD arrays -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
+
+    <!-- Joomla installer scripts use plg_/pkg_ class-name conventions -->
+    <rule ref="Squiz.Classes.ValidClassName">
+        <exclude-pattern>*/script\.php$</exclude-pattern>
+    </rule>
+
+    <!-- Exclude non-production paths -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/tests/*</exclude-pattern>
+    <exclude-pattern>*/test/*</exclude-pattern>
+    <exclude-pattern>*/stubs/*</exclude-pattern>
+    <exclude-pattern>plugin/src/*</exclude-pattern>
+    <exclude-pattern>deliverables/*</exclude-pattern>
+    <exclude-pattern>.local/*</exclude-pattern>
+    <exclude-pattern>scripts/*</exclude-pattern>
+</ruleset>

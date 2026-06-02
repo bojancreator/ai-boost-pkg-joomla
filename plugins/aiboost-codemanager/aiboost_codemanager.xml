@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_CODEMANAGER</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>1.2.0</version>
+  <description>PLG_SYSTEM_AIBOOST_CODEMANAGER_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostCodemanager</namespace>
+  <files>
+    <filename plugin="aiboost_codemanager">aiboost_codemanager.php</filename>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_codemanager.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_codemanager.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_codemanager.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_codemanager.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_codemanager.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_codemanager.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_codemanager.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_codemanager.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_codemanager.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_codemanager.sys.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_codemanager.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_codemanager.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_codemanager.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_codemanager.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Analytics & Tracking
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="analytics" label="PLG_SYSTEM_AIBOOST_CODEMANAGER_FIELDSET_ANALYTICS">
+
+        <!-- Google Analytics 4 -->
+        <field
+          name="ga4_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="ga4_measurement_id"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_ID_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_ID_DESC"
+          hint="G-XXXXXXXXXX"
+          size="40"
+          filter="string" />
+
+        <field
+          name="ga4_consent_mode"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_CONSENT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_CONSENT_DESC"
+          default="none">
+          <option value="none">PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_CONSENT_NONE</option>
+          <option value="yootheme">PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_CONSENT_YOOTHEME</option>
+          <option value="gtm">PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_CONSENT_GTM</option>
+          <option value="default_denied">PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_CONSENT_DEFAULT_DENIED</option>
+        </field>
+
+        <!-- Google Tag Manager -->
+        <field
+          name="gtm_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GTM_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GTM_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="gtm_container_id"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GTM_ID_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GTM_ID_DESC"
+          hint="GTM-XXXXXXX"
+          size="40"
+          filter="string" />
+
+        <!-- Meta Pixel — multiple IDs, one per line -->
+        <field
+          name="meta_pixel_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="meta_pixel_ids"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_IDS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_IDS_DESC"
+          rows="3"
+          cols="50"
+          hint="1234567890123"
+          filter="string" />
+
+        <field
+          name="pixel_consent_mode"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_CONSENT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_CONSENT_DESC"
+          default="auto">
+          <option value="auto">PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_CONSENT_AUTO</option>
+          <option value="consent_required">PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_CONSENT_REQUIRED</option>
+        </field>
+
+        <field
+          name="meta_pixel_standard_events"
+          type="checkboxes"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_STD_EVENTS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_STD_EVENTS_DESC">
+          <option value="PageView">PageView</option>
+          <option value="ViewContent">ViewContent</option>
+          <option value="Purchase">Purchase</option>
+          <option value="Lead">Lead</option>
+          <option value="CompleteRegistration">CompleteRegistration</option>
+          <option value="InitiateCheckout">InitiateCheckout</option>
+          <option value="AddToCart">AddToCart</option>
+          <option value="Contact">Contact</option>
+          <option value="FindLocation">FindLocation</option>
+          <option value="Schedule">Schedule</option>
+        </field>
+
+        <field
+          name="meta_custom_events"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_CUSTOM_EVENTS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_PIXEL_CUSTOM_EVENTS_DESC"
+          rows="4"
+          cols="50"
+          filter="string" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Site Verification
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="verification" label="PLG_SYSTEM_AIBOOST_CODEMANAGER_FIELDSET_VERIFICATION">
+
+        <!-- Google Search Console — multiple codes, one per line -->
+        <field
+          name="gsc_verification_codes"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GSC_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GSC_DESC"
+          rows="3"
+          cols="70"
+          hint="Abc123defXYZ..."
+          filter="string" />
+
+        <field
+          name="gsc_additional_html"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GSC_HTML_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GSC_HTML_DESC"
+          rows="4"
+          cols="70"
+          filter="raw" />
+
+        <!-- Bing Webmaster Tools -->
+        <field
+          name="bing_verification_code"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_BING_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_BING_DESC"
+          size="70"
+          filter="string" />
+
+        <!-- Yandex Webmaster -->
+        <field
+          name="yandex_verification_code"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_YANDEX_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_YANDEX_DESC"
+          size="70"
+          filter="string" />
+
+        <!-- Pinterest -->
+        <field
+          name="pinterest_verification_code"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_PINTEREST_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_PINTEREST_DESC"
+          size="70"
+          filter="string" />
+
+        <!-- Norton Safe Web -->
+        <field
+          name="norton_verification_code"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_NORTON_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_NORTON_DESC"
+          size="70"
+          filter="string" />
+
+        <!-- Facebook Domain Verification (moved here from OpenGraph plugin) -->
+        <field
+          name="fb_domain_verification"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_FB_VERIFY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_FB_VERIFY_DESC"
+          size="70"
+          filter="string" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Script Loading
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="pageload" label="PLG_SYSTEM_AIBOOST_CODEMANAGER_FIELDSET_PAGELOAD">
+
+        <field
+          name="load_on_pages"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_LOAD_PAGES_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_LOAD_PAGES_DESC"
+          default="all">
+          <option value="all">PLG_SYSTEM_AIBOOST_CODEMANAGER_LOAD_ALL</option>
+          <option value="home">PLG_SYSTEM_AIBOOST_CODEMANAGER_LOAD_HOME</option>
+          <option value="notadmin">PLG_SYSTEM_AIBOOST_CODEMANAGER_LOAD_NOTADMIN</option>
+        </field>
+
+        <field
+          name="ga4_script_load"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_LOAD_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_GA4_LOAD_DESC"
+          default="async">
+          <option value="async">async</option>
+          <option value="defer">defer</option>
+          <option value="normal">PLG_SYSTEM_AIBOOST_CODEMANAGER_LOAD_NORMAL</option>
+        </field>
+
+        <field
+          name="custom_script_load"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_CUSTOM_SCRIPT_LOAD_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_CUSTOM_SCRIPT_LOAD_DESC"
+          default="none">
+          <option value="none">PLG_SYSTEM_AIBOOST_CODEMANAGER_LOAD_NONE</option>
+          <option value="async">async</option>
+          <option value="defer">defer</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Custom Code
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="customcode" label="PLG_SYSTEM_AIBOOST_CODEMANAGER_FIELDSET_CUSTOM">
+
+        <field
+          name="custom_head_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_HEAD_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_HEAD_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="custom_head_code"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_HEAD_CODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_HEAD_CODE_DESC"
+          rows="8"
+          cols="60"
+          filter="raw" />
+
+        <field
+          name="custom_body_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_BODY_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_BODY_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="custom_body_code"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_BODY_CODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_BODY_CODE_DESC"
+          rows="8"
+          cols="60"
+          filter="raw" />
+
+        <field
+          name="custom_footer_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_FOOTER_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_FOOTER_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="custom_footer_code"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_FOOTER_CODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_FOOTER_CODE_DESC"
+          rows="8"
+          cols="60"
+          filter="raw" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Advanced
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="advanced" label="JADVANCED">
+
+        <field
+          name="staging_mode"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_CODEMANAGER_STAGING_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODEMANAGER_STAGING_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+    </fields>
+  </config>
+</extension>

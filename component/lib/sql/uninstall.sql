@@ -1,0 +1,12 @@
+-- AI Boost for Joomla — Lib Uninstall SQL
+--
+-- Intentionally EMPTY. AI Boost preserves user data on uninstall: no
+-- #__aiboost_* table is ever dropped, so removing and reinstalling keeps every
+-- setting, redirect, translation, scan and log row.
+--
+-- (This file is bundled into the component as admin/lib/sql/uninstall.sql but is
+-- not wired to any installer manifest; it is kept empty only so it never again
+-- becomes a stray table-drop path that contradicts the preserve-data contract.)
+--
+-- Licence state is reset (the six licence/dev keys are removed from the `main`
+-- #__aiboost_settings row) by Pkg_AiboostInstallerScript::uninstall() in PHP.

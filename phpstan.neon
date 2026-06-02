@@ -1,0 +1,26 @@
+parameters:
+    paths:
+        - plugins/
+
+    level: 4
+
+    # Joomla framework classes are not available in CI — suppress all Joomla-related
+    # "class not found / method not found" errors so the scan stays focused on our
+    # own code logic rather than the missing framework stubs.
+    ignoreErrors:
+        - '#unknown class Joomla\\#'
+        - '#Class Joomla\\[A-Za-z\\]+ not found#'
+        - '#Constant JPATH_[A-Z_]+#'
+        - '#Constant _JEXEC not found#'
+        - '#Call to an undefined (static )?method Joomla\\#'
+        - '#Static method Joomla\\[A-Za-z\\]+::[A-Za-z]+\(\) invoked with \d+ parameter#'
+        - '#Access to an undefined property object::\$[a-zA-Z_]+#'
+
+    excludePaths:
+        - plugin/src/
+        - .local/
+        - deliverables/
+        - scripts/
+
+    # Suppress "dead catch" false positives from Joomla's \Throwable catches
+    reportUnmatchedIgnoredErrors: false

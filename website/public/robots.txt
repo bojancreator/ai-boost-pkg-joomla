@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://aiboostnow.com/sitemap.xml
+
+# IndexNow key file
+# https://aiboostnow.com/a3f2d1e7b4c9f5e8d2a1b7c4f9e3d8a2.txt

@@ -1,206 +1,267 @@
 # Workspace — AI Boost for Joomla
 
-## Project Overview
+Single global plan: everything operational that isn't code. Status lives in exactly
+two places — **this file** (procedures) and **`BACKLOG.md`** (remaining work). No
+parallel ledger or status panel.
 
-**Owner:** Bojan (bojancreator)  
-**Brand:** AI Boost (aiboostnow.com) — ⚠️ see `.local/tasks/BRANDING.md` for naming rules  
-**Product:** AI Boost for Joomla — commercial Joomla 4–6 SEO & AEO system plugin (PHP 8.1–8.5)  
-**Mission:** All-in-one Joomla plugin that generates Schema.org, XML sitemap, OpenGraph, robots.txt, llms.txt, and AI search signals so that AI engines (ChatGPT, Perplexity, Google AI Overview, Bing Copilot) recommend the site.
-
-**⚠️ BRANDING (single source of truth: `.local/tasks/BRANDING.md`)**  
-| Element | Correct name |  
-|---|---|  
-| Website / Brand | **AI Boost** |  
-| Joomla plugin | **AI Boost for Joomla** |  
-| WordPress plugin | **AI Boost for WordPress** |  
-| Domain | aiboostnow.com |  
-| NEVER use | ~~JoomlaBoost~~, ~~AI Boost Now~~ |
-
-**Plugin slug:** `plg_system_joomlaboost`  
-**Plugin source:** `plugin/src/plugins/system/joomlaboost/`  
-**Deliverables:** `.local/deliverables/` (gitignored)  
-**Task plans:** `.local/tasks/`  
-**Master plan:** `.local/tasks/joomlaboost-master-plan.md`
+Companion files: `BACKLOG.md` (forward work), `.local/tasks/master-plan-v5.md`
+(long-term vision), `.local/docs/architecture.md` (runtime code map — read before
+touching `component/`).
 
 ---
 
-## GitHub Repositories
+## Project
 
-| Repo | Visibility | Purpose |
-|------|-----------|---------|
-| `bojancreator/aiboost-joomla` | 🔒 Private | Plugin source code (renamed from JoomlaBoost on 2026-05-07) |
-| `bojancreator/aiboostnow` | 🌐 Public | Marketing website CI/CD (aiboostnow.com) |
+- **Owner:** Bojan (bojancreator) · **Brand:** AI Boost (aiboostnow.com)
+- **Product:** AI Boost for Joomla — commercial Joomla 5–6 SEO & AEO package (PHP 8.1–8.5).
+- **Mission:** all-in-one package generating Schema.org, XML sitemap, OpenGraph,
+  robots.txt, llms.txt and AI-search signals so AI engines (ChatGPT, Perplexity,
+  Google AI Overview, Bing Copilot) recommend the site.
+- **Scope:** this repo is the Joomla plugin + Pro add-ons + bridges + build tooling.
+  WordPress and the marketing site (`bojancreator/aiboostnow`) get their own Replit
+  projects later.
 
-**Note:** Old URL `github.com/bojancreator/JoomlaBoost` permanently redirects to `aiboost-joomla` — existing clones unaffected. Plugin slug `plg_system_joomlaboost` stays forever (changing it breaks existing Joomla installations).
+**Key paths:** package source `component/` · version source of truth
+`component/Version.php` · deliverables (gitignored) `deliverables/plugin/` · Joomla
+dev skill (load before any plugin/component work) `.agents/skills/joomla-development/SKILL.md`.
 
-**Audit log:** `.local/tasks/task-34-audit.md` — full API response proof + security scan results.
+---
+
+## ⚠️ Branding — single source of truth
+
+| Element | Correct name |
+|---|---|
+| Website / Brand | **AI Boost** |
+| Joomla plugin | **AI Boost for Joomla** |
+| WordPress plugin | **AI Boost for WordPress** |
+| Domain | aiboostnow.com |
+| NEVER use | ~~JoomlaBoost~~, ~~AI Boost Now~~ |
+
+- Repos: `bojancreator/aiboost-joomla` 🔒 (plugin source) · `bojancreator/aiboostnow` 🌐 (website).
+- Plugin slug stays forever `plg_system_joomlaboost` — changing it breaks existing installs.
 
 ---
 
 ## ⚠️ Language Rules — ALWAYS FOLLOW
 
-| What | Language | Note |
-|------|----------|------|
-| **Website (aiboostnow.com)** | 🇬🇧 English ONLY | Serbian/other website versions: after English is fully done |
-| **Documentation** (user guide, getting started, API docs) | 🇬🇧 English ONLY | Translations: after English is fully done |
-| **Marketing materials** (JED, forum, Product Hunt, LinkedIn, email) | 🇬🇧 English ONLY | SR/other versions: after English is fully done |
-| **Plugin UI (`.ini` files)** | 🇬🇧 English ONLY | Other 10 languages: after final English version is done |
-| **Our conversation** | 🇷🇸 Serbian | Only for communication between Bojan and agent |
+| What | Language |
+|------|----------|
+| Website, docs, marketing, plugin UI (`.ini`) | 🇬🇧 English ONLY (en-GB) |
+| Agent ↔ Bojan conversation | 🇷🇸 Serbian |
 
-### Plugin Translation Rule (UPDATED)
-
-Work only in `en-GB` until the final version of both plugin and website is complete.
-**Do NOT touch other language `.ini` files** until Bojan explicitly asks for translations.
-The 10 other language packs (`de-DE`, `fr-FR`, `es-ES`, `it-IT`, `ru-RU`, `pt-BR`, `zh-CN`, `ar-AA`, `ja-JP`, `sr-RS`) will be updated in a single dedicated translation task at the end.
+Other 6 language packs (`de-DE`, `fr-FR`, `es-ES`, `it-IT`, `ru-RU`, `pt-BR`) and any
+non-English content only when Bojan explicitly asks — after English is final.
 
 ---
 
-## Plugin Architecture
+## 🤖 Agent Operating Procedure
 
-- **Type:** Joomla System Plugin (group: system)
-- **Entry point:** `joomlaboost.php` — extends `CMSPlugin`, loads services via autoloader
-- **Services:** `src/Services/` — 20 PHP classes (SchemaService, OpenGraphService, SitemapService, RobotService, LlmsTxtService, IndexNowService, AnalyticsService, MetaPixelService, HreflangService, VerticalPresetService, SettingsPersistenceService, PerformanceService, TranslationService, LanguageService, CustomFieldsService, DomainDetectionService, HealthService, InjectionService, ServiceContainer, ServiceAutoloader, ServiceManager, QAManagementService...)
-- **Custom Fields:** `src/Field/` — MultiLangTextField, MultiLangTextarea, MultiLangFaqField, MultiLangParamsTextField, MultiLangParamsTextarea, IndexNowKeyField, LicenseKeyField
-- **Media:** `media/` — admin.css, multilang-fields.css, js/multilang-selector.js, js/indexnow-generator.js
-- **SQL:** `sql/install.sql`, `sql/uninstall.sql`
-- **Installer:** `script.php`
+1. **Language** — Serbian with Bojan; English for all code, UI, docs, marketing.
+2. **Orientation (read in order):** `replit.md` → `BACKLOG.md` → for `component/`
+   work, `.local/docs/architecture.md` + load `joomla-development` skill → for
+   options, the matching `Manifest/*.php` → before requesting any secret/API key,
+   check the `integrations` skill **first**.
+3. **Skill routing:**
 
-### Plugin Tabs (7)
-1. **Plugin** — Quick Setup, Vertical Presets, Domain, robots.txt, License Key
-2. **Organization** — Identity, Contact, Social links, Location (multilingual fields)
-3. **Schema.org** — Structured data types, Hotel fields, FAQ auto-detect, Manual FAQ, Events
-4. **Sitemap** — XML sitemap, hreflang, article/category/menu include options
-5. **Social & Meta** — OpenGraph, Twitter Cards, per-article overrides
-6. **Analytics** — GA4, GTM, GSC verification, Meta Pixel, IndexNow, llms.txt
-7. **Debug** — Flash messages, HTML markers, staging mode
+   | Situation | Skill |
+   |---|---|
+   | `component/` work, build, staging | `joomla-development` |
+   | Creating/updating a procedure or skill | `skill-authoring` |
+   | Env vars / secrets | `environment-secrets` (read *before* the work) |
+   | Third-party service / API key | `integrations` (check *before* asking Bojan) |
+   | Deploy / production logs | `deployment` |
+   | Read-only live DB check | `database` (production) |
+   | Deep review after a big feature | `code_review` |
+   | UI / e2e testing | `testing` |
+   | Unsure which fits | run `skillSearch(query)` |
 
-### 11 Language Packs
-`en-GB` (primary), `sr-RS`, `de-DE`, `es-ES`, `fr-FR`, `it-IT`, `ru-RU`, `pt-BR`, `zh-CN`, `ar-AA`, `ja-JP`
+4. **Report proportionally — don't explain every small action.** Trivial/routine edits
+   (typo, one line, a version bump) need at most a one-line confirmation, or nothing.
+   Write a short Serbian report only for **substantive work** (code change, build, a
+   multi-step task): what changed, new version (if code touched), staging result, and
+   anything left unfinished.
+5. **Suggestions — only when useful.** May offer 1–3 next steps, but skip it when there's
+   nothing worth raising. A suggestion does **not** act without Bojan's "da"; for risky
+   actions (data loss, broad refactor, swapping a library/API) ask first and explain why.
+6. **No silent fallbacks** (fail loudly), **no fabricated/placeholder data** unless
+   asked, suggest the agent **tier** with each proposed task, keep memory hygiene
+   (durable lessons → `.agents/memory/`, never secrets, no per-task changelogs).
+7. **Escalation (after 5–6 attempts) — MANDATORY.** Send this block to Bojan verbatim,
+   in Serbian. STOP, don't loop, and **NEVER** report a false "gotovo":
+
+   > **⛔ Pravilo eskalacije (5–6 pokušaja) — OBAVEZNO.** Posle 5–6 ozbiljnih
+   > neuspjelih pokušaja da riješi **isti** problem, agent STAJE — ne vrti se u krug
+   > i **NIKAD** ne prijavljuje lažno "gotovo". Javi Bojanu na srpskom, ovim redom:
+   > 1. **Šta pokušavam** — cilj.
+   > 2. **Šta sam probao** — svaki pokušaj i zašto je pao.
+   > 3. **Gdje tačno zapinje** — konkretna tačka / greška.
+   > 4. **Opcije koje vidim** — sa posljedicom svake.
+   > 5. Pitanje: **„Imaš li ideju, ili da stopiramo ovo?"**
 
 ---
 
-## Building a Plugin ZIP
+## Architecture (pointer)
 
-Always build from the workspace source — never from a partial extracted state:
+Full runtime map with exact `path:line` pointers: **`.local/docs/architecture.md`** —
+read before touching any `component/` code. In brief: `component/` is the
+`pkg_aiboost` package — admin component (`com_aiboost`, Vue SPA in `vue-admin/`) +
+shared `AiBoost\Lib` (`component/lib/src`) + `plugins/system/` Free orchestrators
+paired with `*_pro` decorators. `Manifest/*.php` is the single source of truth for
+every option; `scripts/codegen-from-manifest.py` derives the rest.
 
-```bash
-python3 scripts/build-plugin-zip.py
-# Output: .local/deliverables/plugin/plg_system_joomlaboost-{version}.zip
+---
+
+## Manifest-first codegen
+
+`component/lib/src/Manifest/*.php` is the **single source of truth** for every
+setting. To add/change an option:
+
+1. **Add the field** to `Manifest/{tab}.php` (or `schema.php`): `key`, `tab`,
+   `section`, `label`, `type`, `default`, `tier`, `sku`. Wrap Pro entries in
+   `// @pro:start` / `// @pro:end` so the Free ZIP strips them. Vue `type`:
+   `toggle|text|textarea|select|number`. Complex types (`json`, `media`) need a
+   hand-written control — register the key in `COMPLEX_COVERAGE_ALLOWLIST` if the UI
+   lands later.
+2. **Declare metadata** (recommended): `feature_class`, `health`, `i18n`.
+3. **Run** `python3 scripts/codegen-from-manifest.py` — emits four derived families
+   (never hand-edit): Pro feature stubs, en-GB `.ini` keys, Vue partials
+   (`vue-admin/src/tabs/generated/`), Health stubs. Build runs `--check` first
+   (aborts on any missing stub/key/partial) then `verify-no-pro-leakage.py` STRICT.
+
+**Never** hand-write a Pro feature class without first adding its manifest field.
+
+### Pro gating — registry is mandatory
+
+Every Pro-gated UI surface MUST be registered in
+`component/lib/src/ProFeatureRegistry.php` **in the same commit** that adds the UI.
+It drives the Vue `<ProGate>`, server-side `stripLocked()` in
+`SettingsController::save()`, and the `info_pro_gating_active` check.
+
+- **Field-level:** `key` = settings key. **Section-level:** `key` = `section:{tab}.{section_id}`.
+- **Enum-gated** (field editable on Free, subset of values locked): use
+  `proOptions()`/`proOptionDefaults()`, render per-option lock (`:disabled` + 🔒),
+  server rewrites via `stripProOptions()`.
+- **Forbidden:** cosmetic inline `Pro` badges with no registry entry — they leave the
+  input editable on Free.
+
+**Gating model (perpetual activation):** `isProActive()` is a flat 4-branch gate —
+`dev_force_free_tier`→false, `pro_activated`→true, `dev_license_preview`→true, else
+false. It never walks `license_state` / `license_tier` / heartbeat.
+`pro_activated='1'` is set **once** by `PluginRegistry::saveLicenseState()` the first
+time any key verifies active and is **never cleared**: Pro then works **forever**. An
+expired licence only pauses updates + support (enforced by the update server), it does
+**not** relock code. Free = `pro_activated` never set. The DB-only `dev_license_preview`
+forces Pro for QA; the DB-only `dev_force_free_tier` forces Free and wins over
+everything.
+
+---
+
+## ✅ Build, verify & close (Definition of Done)
+
+A task is done only when every applicable step is finished, in order. **Never report
+"done" from a build alone — verify on staging first.**
+
+1. **Do the work.**
+2. **Update the Health registry** if any option was added/changed/removed (see rule below).
+3. **Bump the version** before building (see Versioning Rule).
+4. **Build:** `python3 scripts/build-package-zip.py`.
+5. **Install to staging:** `python3 scripts/install-to-staging.py` (also
+   `install-to-free.py` for Free-affecting changes).
+6. **Schema / install / pkg_script changes only** — run the clean-uninstall verifier,
+   **both targets**: `python3 scripts/verify-clean-uninstall.py` (`--target pro`
+   default) and `--target free`. It checks no leftover `#__aiboost_*` tables /
+   `#__extensions` rows / `robots.txt` / `llms.txt` / `sitemap*.xml`, and that settings
+   + translations survive an upgrade.
+7. **Verify on staging** — open the admin Dashboard
+   (`staging.offroadserbia.com/administrator/index.php?option=com_aiboost`), confirm the
+   feature works, the relevant **Health** item passes, and the front-end artifact
+   (meta tag / JSON-LD / script) actually appears.
+8. **Report** (step 4 of Operating Procedure) and **close** by deleting the item's line
+   from `BACKLOG.md`.
+
+Doc-only / website / non-plugin changes skip steps 2–7 but still get a report and a
+BACKLOG update if they came from a backlog item.
+
+**Test sites:**
+
+| Site | URL | Version | PHP | Build |
+|------|-----|---------|-----|-------|
+| Staging (primary) | `staging.offroadserbia.com` | Joomla 6.1 | 8.5 | Pro (full package) |
+| Free staging | `offroadbalkans.com` | Joomla 6 | 8.5 | Free only |
+| Joomla 5 Free | `joomla5-free.testmyweb.info` | Joomla 5 | 8.3 | Free |
+| Joomla 5 Pro | `joomla5-pro.testmyweb.info` | Joomla 5 | 8.3 | Pro |
+| Joomla 6 Free | `joomla6-free.testmyweb.info` | Joomla 6 | 8.3 | Free |
+| Joomla 6 Pro | `joomla6-pro.testmyweb.info` | Joomla 6 | 8.3 | Pro |
+
+Admin path for all `testmyweb.info` sites: `/administrator/`. All share user `neimar` —
+see `test_sajtovi.md` for credentials (do NOT commit passwords here). CentOS 7 host:
+PHP 8.4+ not available on `testmyweb.info` sites.
+
+WordPress test sites (`wp6-*/wp7-*` on `testmyweb.info`) are out of scope for this
+repo — the WordPress plugin lives in a separate Replit project.
+
+> **Staging note (not a bug):** Falang `Deprecated` notices come from the third-party
+> Falang plugin + PHP 8.5 + staging `display_errors=On`. Not AI Boost code — don't "fix".
+
+### 🩺 Health registry rule (MANDATORY)
+
+Every time you add/change/remove/fix ANY option, update the Health registry — without a
+check item the user can't confirm the feature works. Each entry needs: **id**
+(`critical_*`/`warning_*`/`info_*`/`duplicate_*`/`conflict_*`), **category** (from
+`HealthCheckService::CATEGORIES`), **label + message** (EN), **expected HTML artifact**,
+and **fix_actions[]** (≥1 link to target tab+field: `#tab-{name}-btn` +
+`data-ab-field="{key}"`).
+
+Locations: server check `HealthCheckService.php` · duplicate scan
+`DuplicateTagScanner.php` · conflict scan `ConflictDetector.php` · frontend
+`vue-admin/src/HealthApp.vue`.
+
+---
+
+## Pricing (updated 2026-05-25)
+
+**One license unlocks the entire Pro component** — per-feature SKUs are retired.
+
+| Product | Price/year |
+|---------|-----------|
+| AI Boost (Free) | €0 |
+| **AI Boost Pro** (all features) | **€45** |
+| Integration bridges (AcyMailing, K2, …) | sold separately |
+
+Processor: Lemon Squeezy (Merchant of Record, handles EU VAT). Bridge plugins each have
+their own key and appear in the Licenses tab only when installed.
+
+---
+
+## User Preferences
+
+### Plugin Versioning Rule
+**Always bump the version after every change, before building:** Patch (+0.0.1) for
+fixes/tweaks; Minor (+0.1.0) for new features/fields/tabs. Never edit `<version>` in XML
+manifests — the build script writes it from `component/Version.php`.
+
+### Developer Pro simulation (QA fallback)
+No UI toggle (removed so customers can't screenshot a license bypass); the keys are
+DB-only. To force Pro on a Free install (or Free on a Pro install with
+`dev_force_free_tier`), edit `#__aiboost_settings` directly and set back to `'0'` when done:
+
+```sql
+UPDATE jos_aiboost_settings
+SET settings_json = JSON_SET(settings_json, '$.dev_license_preview', '1')
+WHERE setting_key = 'main';
 ```
 
-**ZIP structure** (flat, no subfolder — Joomla requires this):
-```
-joomlaboost.php
-joomlaboost.xml
-script.php
-language/en-GB/...  (and all 10 other lang dirs)
-media/...
-sql/...
-src/...
-```
+### Agent tier guidance (Lite · Economy · Power)
+Suggest a tier with each proposed task. Default **Economy**; drop to **Lite** for purely
+mechanical edits; escalate to **Power** only when clearly warranted.
 
----
-
-## CI/CD Pipeline — aiboostnow.com
-
-**Repo:** `bojancreator/aiboostnow` (GitHub, public)  
-**Trigger:** push to `main` → auto-deploy  
-**Workflow:** `.github/workflows/deploy.yml`  
-**Flow:** pnpm build → rsync (sudo) → chown lazarenet  
-**Server:** VPS 109.199.99.205, SSH port 2222, user `neimar`  
-**Deploy path:** `/home/lazarenet/public_html/aiboostnow/`  
-**Keys:** `.local/deploy-keys/deploy_key` (private), `.local/deploy-keys/deploy_key.pub` (public, in neimar's authorized_keys)  
-**GitHub Secrets:** `SSH_HOST`, `SSH_USER=neimar`, `SSH_DEPLOY_PATH`, `SSH_PRIVATE_KEY`  
-**Gotcha:** rsync runs via `sudo rsync` — neimar mora imati passwordless sudo za rsync. Sudoers entry: `/etc/sudoers.d/neimar-rsync`
-
----
-
-## Completed Tasks
-
-| Task | What |
-|------|------|
-| #1 | Technical analysis and spec |
-| #2 | Plugin refactor + new AEO features |
-| #3 | Brand name decision → AI Boost / AI Boost for Joomla (retired: JoomlaBoost) |
-| #5 | i18n — 11 languages, 319 constants, 22 INI files |
-| #6 | EN user documentation (17 sections), Getting Started PDF |
-| #7 | JED listing, forum posts, Product Hunt, marketplace materials |
-| #8 | Pricing strategy (Starter €59 / Developer €119 / Agency €199) + Gumroad setup guide |
-| #17 | License key field in plugin admin (LicenseKeyField.php, all 11 lang files) |
-| #CI | GitHub Actions CI/CD pipeline → aiboostnow.com (deploy kao neimar, sudo rsync) |
-| #30 | 8 new Site Type presets + Advanced Hours system (v0.24.0) — MedicalClinic, LegalService, EducationalOrganization, HealthClub, Dentist, RealEstateAgent, Person, NewsMediaOrganization |
-| #34 | GitHub repo rename: JoomlaBoost → aiboost-joomla; descriptions updated; security scan ✅ |
-| #35 | Project files cleanup: deliverables reorganized into subfolders, old ZIPs removed, 12 stale task files deleted, master plan rewritten ✅ |
-| #31 | Site Types live test COMPLETE: v0.25.1 installed on Joomla 6.1 staging; all 13 schema types confirmed live ✅ (13/13); restaurant+ecommerce bug fixed; admin 500 = 3rd-party plugin incompatibility (not our bug) |
-
-## Pending / Proposed Tasks
-
-| Task | What | Status |
-|------|------|--------|
-| #9 | Logo & visual identity | PENDING |
-| #10 | Marketing website (aiboostnow.com) | PENDING |
-| #11 | Machine translation review (10 languages) | PENDING |
-| #12 | Serbian user guide | PENDING |
-| #13 | Styled PDFs for all docs | PENDING |
-| #14 | Docs section on marketing website | PENDING |
-| #15 | LinkedIn + email campaign copy | PROPOSED |
-| #16 | AEO lead magnet PDF "Joomla AI Search Checklist 2026" | PROPOSED |
-| #18 | Pricing page on marketing website | PROPOSED |
-| #19 | Server-side Gumroad license validation | PROPOSED |
-| #20 | Feature gating by license tier | PROPOSED |
-| #31 | Test all 13 Site Types on live Joomla | PROPOSED |
-| #32 | Show 13 Site Types on marketing website | PROPOSED |
-| #33 | Pro feature gating for Site Types + Advanced Hours | PROPOSED |
-
----
-
-## Pricing Model
-
-| License | Price | Sites |
-|---------|-------|-------|
-| Starter | €59 one-time | 1 site |
-| Developer | €119 one-time | 5 sites |
-| Agency | €199 one-time | Unlimited |
-| Renewals | 50% of original/year | Optional — plugin works without renewal |
-
-**Payment processor:** Gumroad (Merchant of Record, handles EU VAT automatically)  
-**Setup guide:** `deliverables/pricing/gumroad-setup-guide.md`
-
----
-
-## Key Deliverable Locations
-
-Svi deliverables su u vidljivom folderu `deliverables/` u root-u projekta (gitignored).
-
-| File | What |
-|------|------|
-| `deliverables/plugin/plg_system_joomlaboost-0.25.1.zip` | Latest installable plugin ZIP |
-| `deliverables/docs/joomlaboost-user-guide.md` | EN user guide (17 sections) |
-| `deliverables/docs/joomlaboost-getting-started.md` | EN getting started guide |
-| `deliverables/docs/JoomlaBoost-GettingStarted-Guide.pdf` | Getting started PDF |
-| `deliverables/docs/site-types-test-report.md` | Live test report — 13/13 ✅ |
-| `deliverables/marketplace/JED-listing.md` | JED listing copy (EN) |
-| `deliverables/marketplace/forum-posts.md` | Forum & Facebook posts (EN + SR) |
-| `deliverables/marketplace/product-hunt.md` | Product Hunt listing (EN) |
-| `deliverables/pricing/pricing-strategy.md` | Pricing strategy & Gumroad comparison |
-| `deliverables/pricing/pricing-page-content.md` | Pricing page copy (EN, ready to implement) |
-| `deliverables/pricing/gumroad-setup-guide.md` | Step-by-step Gumroad setup |
-| `deliverables/brand/JoomlaBoost-Brand-Brief.md` | Brand brief & name decision history |
-
----
-
-## Workspace Stack (this Replit)
-
-- **Monorepo tool:** pnpm workspaces
-- **Node.js:** 24
-- **TypeScript:** 5.9
-- **API framework:** Express 5
-- **Database:** PostgreSQL + Drizzle ORM
-- **Validation:** Zod (zod/v4), drizzle-zod
-- **API codegen:** Orval (from OpenAPI spec)
-- **Build:** esbuild (CJS bundle)
-
-Key commands:
-- `pnpm run typecheck` — full typecheck
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema (dev only)
+- **Lite:** typo/wording in one known file, one table row, pasting supplied text, a
+  single version/date bump with no logic.
+- **Economy:** copy/translation tweaks, version bump + build + staging install (no logic),
+  CSS-only fixes, file cleanup/renames, one Health entry for a shipped feature, doc edits,
+  single-plugin bug fix ≤3 files.
+- **Power:** new plugin/tab with PHP services, Health changes spanning service + Vue +
+  verification, refactors touching ≥3 plugins, Lemon Squeezy / licensing / gating work, DB
+  schema / `install.sql` / `pkg_script.php` migrations, Vue SPA refactors, anything reading
+  >5 source files or modifying >3 plugins, or touching `DocumentInspector` / conflict /
+  scanner logic.

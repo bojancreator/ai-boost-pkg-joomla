@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_SCHEMA</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>1.1.0</version>
+  <description>PLG_SYSTEM_AIBOOST_SCHEMA_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostSchema</namespace>
+  <files>
+    <filename plugin="aiboost_schema">aiboost_schema.php</filename>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_schema.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_schema.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_schema.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_schema.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_schema.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_schema.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_schema.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_schema.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_schema.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_schema.sys.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_schema.ini</language>
+    <language tag="sr-RS">language/sr-RS/plg_system_aiboost_schema.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_schema.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_schema.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: General
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="basic" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_BASIC">
+
+        <field
+          name="enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="JENABLED"
+          default="1"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="schema_type"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_DESC"
+          default="organization">
+          <option value="organization">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_ORG</option>
+          <option value="localbusiness">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_LOCAL</option>
+          <option value="hotel">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_HOTEL</option>
+          <option value="restaurant">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_RESTAURANT</option>
+          <option value="ecommerce">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_ECOMMERCE</option>
+          <option value="medical">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_MEDICAL</option>
+          <option value="lawyer">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_LAWYER</option>
+          <option value="school">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_SCHOOL</option>
+          <option value="gym">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_GYM</option>
+          <option value="dentist">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_DENTIST</option>
+          <option value="realestate">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_REALESTATE</option>
+          <option value="portfolio">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_PORTFOLIO</option>
+          <option value="news">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_NEWS</option>
+          <option value="blog">PLG_SYSTEM_AIBOOST_SCHEMA_TYPE_BLOG</option>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Organisation / Business
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="organization" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_ORG">
+
+        <field name="org_name"        type="text"     label="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_NAME_LABEL"    description="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_NAME_DESC"    size="60" filter="string" />
+        <field name="org_url"         type="url"      label="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_URL_LABEL"     description="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_URL_DESC"     size="60" filter="url" />
+        <field name="org_logo"        type="media"    label="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_LOGO_LABEL"    description="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_LOGO_DESC" />
+        <field name="org_image"       type="media"    label="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_IMAGE_LABEL"   description="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_IMAGE_DESC" />
+        <field name="org_description" type="textarea" label="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_DESC_LABEL"    rows="3" cols="60" filter="string" />
+        <field name="org_phone"       type="tel"      label="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_PHONE_LABEL"   size="40" filter="string" />
+        <field name="org_email"       type="email"    label="PLG_SYSTEM_AIBOOST_SCHEMA_ORG_EMAIL_LABEL"   size="60" filter="email" />
+
+        <field name="address_street"  type="text"     label="PLG_SYSTEM_AIBOOST_SCHEMA_ADDRESS_STREET_LABEL"  size="60" filter="string" />
+        <field name="address_city"    type="text"     label="PLG_SYSTEM_AIBOOST_SCHEMA_ADDRESS_CITY_LABEL"    size="40" filter="string" />
+        <field name="address_zip"     type="text"     label="PLG_SYSTEM_AIBOOST_SCHEMA_ADDRESS_ZIP_LABEL"     size="20" filter="string" />
+        <field name="address_country" type="text"     label="PLG_SYSTEM_AIBOOST_SCHEMA_ADDRESS_COUNTRY_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_ADDRESS_COUNTRY_DESC" hint="US" size="10" filter="string" />
+
+        <field name="geo_latitude"    type="text"     label="PLG_SYSTEM_AIBOOST_SCHEMA_LAT_LABEL"         size="20" filter="float" />
+        <field name="geo_longitude"   type="text"     label="PLG_SYSTEM_AIBOOST_SCHEMA_LNG_LABEL"         size="20" filter="float" />
+
+        <field name="price_range"     type="list"     label="PLG_SYSTEM_AIBOOST_SCHEMA_PRICE_RANGE_LABEL" default="">
+          <option value="">PLG_SYSTEM_AIBOOST_SCHEMA_PRICE_RANGE_NONE</option>
+          <option value="$">$ (Budget)</option>
+          <option value="$$">$$ (Moderate)</option>
+          <option value="$$$">$$$ (Expensive)</option>
+          <option value="$$$$">$$$$ (Very Expensive)</option>
+        </field>
+
+        <field name="rating_value"  type="text"   label="PLG_SYSTEM_AIBOOST_SCHEMA_RATING_VALUE_LABEL"  hint="4.5" size="10" filter="float" />
+        <field name="rating_count"  type="number" label="PLG_SYSTEM_AIBOOST_SCHEMA_RATING_COUNT_LABEL"  min="0" filter="integer" />
+        <field name="rating_best"   type="number" label="PLG_SYSTEM_AIBOOST_SCHEMA_RATING_BEST_LABEL"   default="5" min="1" filter="integer" />
+        <field name="rating_worst"  type="number" label="PLG_SYSTEM_AIBOOST_SCHEMA_RATING_WORST_LABEL"  default="1" min="0" filter="integer" />
+        <field name="rating_source" type="text"   label="PLG_SYSTEM_AIBOOST_SCHEMA_RATING_SOURCE_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_RATING_SOURCE_DESC" hint="Booking.com" size="40" filter="string" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Site-type Specific Details
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="site_type_details" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_TYPE_DETAILS">
+
+        <!-- Hotel -->
+        <field name="hotel_star_rating"   type="list"   label="PLG_SYSTEM_AIBOOST_SCHEMA_HOTEL_STARS_LABEL" default="">
+          <option value="">PLG_SYSTEM_AIBOOST_SCHEMA_NOT_SET</option>
+          <option value="1">1 Star</option>
+          <option value="2">2 Stars</option>
+          <option value="3">3 Stars</option>
+          <option value="4">4 Stars</option>
+          <option value="5">5 Stars</option>
+        </field>
+        <field name="hotel_checkin_time"  type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_HOTEL_CHECKIN_LABEL"  hint="14:00" size="10" filter="string" />
+        <field name="hotel_checkout_time" type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_HOTEL_CHECKOUT_LABEL" hint="11:00" size="10" filter="string" />
+        <field name="hotel_pets_allowed"  type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_SCHEMA_HOTEL_PETS_LABEL" default="0" class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <!-- Medical -->
+        <field name="medical_specialty" type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_MEDICAL_SPECIALTY_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_MEDICAL_SPECIALTY_DESC" hint="General Practice, Cardiology" size="60" filter="string" />
+
+        <!-- Lawyer -->
+        <field name="legal_area" type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_LEGAL_AREA_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_LEGAL_AREA_DESC" hint="Family Law, Corporate Law" size="60" filter="string" />
+
+        <!-- School -->
+        <field name="edu_level" type="list" label="PLG_SYSTEM_AIBOOST_SCHEMA_EDU_LEVEL_LABEL" default="">
+          <option value="">PLG_SYSTEM_AIBOOST_SCHEMA_NOT_SET</option>
+          <option value="Preschool">Preschool</option>
+          <option value="Primary Education">Primary Education</option>
+          <option value="Secondary Education">Secondary Education</option>
+          <option value="Higher Education">Higher Education</option>
+          <option value="Vocational Training">Vocational Training</option>
+          <option value="Adult Education">Adult Education</option>
+          <option value="Online Courses">Online Courses</option>
+        </field>
+
+        <!-- Gym -->
+        <field name="gym_sport"      type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_GYM_SPORT_LABEL"     description="PLG_SYSTEM_AIBOOST_SCHEMA_GYM_SPORT_DESC"     hint="CrossFit, Boxing, Yoga" size="60" filter="string" />
+        <field name="gym_amenities"  type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_GYM_AMENITIES_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_GYM_AMENITIES_DESC" hint="Pool, Sauna, Showers" size="60" filter="string" />
+
+        <!-- Dentist -->
+        <field name="dental_specialty" type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_DENTAL_SPECIALTY_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_DENTAL_SPECIALTY_DESC" hint="General Dentistry, Orthodontics" size="60" filter="string" />
+
+        <!-- Real Estate -->
+        <field name="realestate_area_served"    type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_RE_AREA_LABEL"   hint="London, Westminster" size="60" filter="string" />
+        <field name="realestate_property_types" type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_RE_TYPES_LABEL"  hint="Residential, Commercial" size="60" filter="string" />
+
+        <!-- Portfolio -->
+        <field name="job_title"     type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_JOB_TITLE_LABEL"  hint="Graphic Designer, Developer" size="60" filter="string" />
+        <field name="portfolio_url" type="url"  label="PLG_SYSTEM_AIBOOST_SCHEMA_PORTFOLIO_URL_LABEL" size="60" filter="url" />
+
+        <!-- News -->
+        <field name="news_topics"     type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_NEWS_TOPICS_LABEL"     description="PLG_SYSTEM_AIBOOST_SCHEMA_NEWS_TOPICS_DESC"     hint="Technology, Business" size="60" filter="string" />
+        <field name="news_principles" type="url"  label="PLG_SYSTEM_AIBOOST_SCHEMA_NEWS_PRINCIPLES_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_NEWS_PRINCIPLES_DESC" size="60" filter="url" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Opening Hours
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="hours" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_HOURS">
+
+        <field
+          name="schema_hours_mode"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_HOURS_MODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_HOURS_MODE_DESC"
+          default="none">
+          <option value="none">PLG_SYSTEM_AIBOOST_SCHEMA_HOURS_MODE_NONE</option>
+          <option value="simple">PLG_SYSTEM_AIBOOST_SCHEMA_HOURS_MODE_SIMPLE</option>
+          <option value="advanced">PLG_SYSTEM_AIBOOST_SCHEMA_HOURS_MODE_ADVANCED</option>
+        </field>
+
+        <field
+          name="schema_opening_hours"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_OPENING_HOURS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_OPENING_HOURS_DESC"
+          rows="4"
+          cols="60"
+          filter="string" />
+
+        <field
+          name="schema_business_hours"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_BUSINESS_HOURS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_BUSINESS_HOURS_DESC"
+          rows="10"
+          cols="60"
+          filter="raw" />
+
+        <field
+          name="schema_hours_temp_closed"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_TEMP_CLOSED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_TEMP_CLOSED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="schema_hours_appointment_only"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_APPT_ONLY_LABEL"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field name="schema_season_from"    type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_SEASON_FROM_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_SEASON_FROM_DESC" hint="06-01" size="10" filter="string" />
+        <field name="schema_season_to"      type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_SEASON_TO_LABEL"   description="PLG_SYSTEM_AIBOOST_SCHEMA_SEASON_TO_DESC"   hint="09-30" size="10" filter="string" />
+        <field name="schema_holiday_closed" type="textarea" label="PLG_SYSTEM_AIBOOST_SCHEMA_HOLIDAYS_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_HOLIDAYS_DESC" rows="4" cols="40" filter="string" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Social Profiles (sameAs)
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="social" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_SOCIAL">
+        <field name="social_facebook"  type="url" label="PLG_SYSTEM_AIBOOST_SCHEMA_SOCIAL_FB_LABEL"   size="60" filter="url" />
+        <field name="social_instagram" type="url" label="PLG_SYSTEM_AIBOOST_SCHEMA_SOCIAL_IG_LABEL"   size="60" filter="url" />
+        <field name="social_youtube"   type="url" label="PLG_SYSTEM_AIBOOST_SCHEMA_SOCIAL_YT_LABEL"   size="60" filter="url" />
+        <field name="social_twitter"   type="url" label="PLG_SYSTEM_AIBOOST_SCHEMA_SOCIAL_TW_LABEL"   size="60" filter="url" />
+        <field name="social_linkedin"  type="url" label="PLG_SYSTEM_AIBOOST_SCHEMA_SOCIAL_LI_LABEL"   size="60" filter="url" />
+        <field name="social_tiktok"    type="url" label="PLG_SYSTEM_AIBOOST_SCHEMA_SOCIAL_TK_LABEL"   size="60" filter="url" />
+        <field name="social_pinterest" type="url" label="PLG_SYSTEM_AIBOOST_SCHEMA_SOCIAL_PIN_LABEL"  size="60" filter="url" />
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Schema Types (on/off toggles)
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="schemas" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_SCHEMAS">
+
+        <field name="website_schema_enabled"   type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_SCHEMA_WEBSITE_LABEL"    description="PLG_SYSTEM_AIBOOST_SCHEMA_WEBSITE_DESC"    default="1" class="switcher"><option value="0">JNO</option><option value="1">JYES</option></field>
+        <field name="searchbox_enabled"        type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_SCHEMA_SEARCHBOX_LABEL"  description="PLG_SYSTEM_AIBOOST_SCHEMA_SEARCHBOX_DESC"  default="1" class="switcher"><option value="0">JNO</option><option value="1">JYES</option></field>
+        <field name="article_schema_enabled"   type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_SCHEMA_ARTICLE_LABEL"    description="PLG_SYSTEM_AIBOOST_SCHEMA_ARTICLE_DESC"    default="1" class="switcher"><option value="0">JNO</option><option value="1">JYES</option></field>
+        <field name="article_schema_type_auto" type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_SCHEMA_ARTICLE_AUTO_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_ARTICLE_AUTO_DESC" default="0" class="switcher"><option value="0">JNO</option><option value="1">JYES</option></field>
+        <field name="faq_enabled"              type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_SCHEMA_FAQ_LABEL"         description="PLG_SYSTEM_AIBOOST_SCHEMA_FAQ_DESC"        default="1" class="switcher"><option value="0">JNO</option><option value="1">JYES</option></field>
+        <field name="breadcrumb_enabled"       type="radio" layout="joomla.form.field.radio.switcher" label="PLG_SYSTEM_AIBOOST_SCHEMA_BREADCRUMB_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_BREADCRUMB_DESC" default="1" class="switcher"><option value="0">JNO</option><option value="1">JYES</option></field>
+
+        <field name="schema_author_name" type="text" label="PLG_SYSTEM_AIBOOST_SCHEMA_AUTHOR_NAME_LABEL" description="PLG_SYSTEM_AIBOOST_SCHEMA_AUTHOR_NAME_DESC" size="60" filter="string" />
+        <field name="schema_author_url"  type="url"  label="PLG_SYSTEM_AIBOOST_SCHEMA_AUTHOR_URL_LABEL"  size="60" filter="url" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Manual FAQ (global JSON)
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="manual_faq" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_MANUAL_FAQ">
+
+        <field
+          name="enable_manual_faqs"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_MANUAL_FAQ_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_MANUAL_FAQ_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="manual_faq_scope"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_MANUAL_FAQ_SCOPE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_MANUAL_FAQ_SCOPE_DESC"
+          default="fallback_all">
+          <option value="fallback_all">PLG_SYSTEM_AIBOOST_SCHEMA_FAQ_SCOPE_FALLBACK_ALL</option>
+          <option value="always_all">PLG_SYSTEM_AIBOOST_SCHEMA_FAQ_SCOPE_ALWAYS_ALL</option>
+          <option value="fallback_home">PLG_SYSTEM_AIBOOST_SCHEMA_FAQ_SCOPE_FALLBACK_HOME</option>
+          <option value="always_home">PLG_SYSTEM_AIBOOST_SCHEMA_FAQ_SCOPE_ALWAYS_HOME</option>
+          <option value="disabled">PLG_SYSTEM_AIBOOST_SCHEMA_FAQ_SCOPE_DISABLED</option>
+        </field>
+
+        <field
+          name="manual_faqs_json"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_MANUAL_FAQ_JSON_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_MANUAL_FAQ_JSON_DESC"
+          rows="8"
+          cols="60"
+          filter="raw" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Events Schema
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="events" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_EVENTS">
+
+        <field
+          name="schema_events_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_EVENTS_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_EVENTS_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="schema_events_json"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_EVENTS_JSON_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_EVENTS_JSON_DESC"
+          rows="8"
+          cols="60"
+          filter="raw" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Hreflang XML Sitemap
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="hreflang_sitemap" label="PLG_SYSTEM_AIBOOST_SCHEMA_FIELDSET_HREFLANG">
+
+        <field
+          name="hreflang_sitemap_enabled"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_HREFLANG_ENABLED_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_HREFLANG_ENABLED_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+        <field
+          name="hreflang_primary_language"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_HREFLANG_PRIMARY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_HREFLANG_PRIMARY_DESC"
+          hint="en"
+          size="10"
+          filter="string" />
+
+        <field
+          name="hreflang_x_default_url"
+          type="url"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_HREFLANG_XDEFAULT_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_HREFLANG_XDEFAULT_DESC"
+          size="60"
+          filter="url" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Advanced
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="advanced" label="JADVANCED">
+
+        <field
+          name="staging_mode"
+          type="radio"
+          layout="joomla.form.field.radio.switcher"
+          label="PLG_SYSTEM_AIBOOST_SCHEMA_STAGING_LABEL"
+          description="PLG_SYSTEM_AIBOOST_SCHEMA_STAGING_DESC"
+          default="0"
+          class="switcher">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+
+      </fieldset>
+
+    </fields>
+  </config>
+</extension>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension version="3.9" type="component" method="upgrade">
+    <name>com_forseo</name>
+    <author>Yannick Gaultier - Weeblr llc</author>
+    <creationDate>2026-01-30</creationDate>
+    <copyright>Copyright Weeblr llc - 2020 - 2026</copyright>
+    <license>GNU General Public License version 3; see LICENSE.md</license>
+    <authorEmail>contact@weeblr.com</authorEmail>
+    <authorUrl>https://weeblr.com/</authorUrl>
+    <version>6.10.1.2660</version>
+    <description>COM_FORSEO_XML_DESCRIPTION</description>
+    <namespace>Weeblr\Forseo</namespace>
+    <administration>
+        <menu link="index.php?option=com_forseo#/forseo/dashboard">COM_FORSEO_ADMIN_MENU</menu>
+        <files folder="admin">
+            <folder>language</folder>
+            <file>forseo.php</file>
+            <file>config.xml</file>
+            <file>access.xml</file>
+            <filename>LICENSE.md</filename>
+        </files>
+    </administration>
+</extension>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    bootstrap="component/tests/bootstrap.php"
+    colors="true"
+    failOnWarning="true"
+    failOnRisky="false"
+>
+    <testsuites>
+        <testsuite name="Service DI Tests">
+            <directory>component/tests/Service</directory>
+            <directory>component/tests/Lib</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory>component/plugins/system/aiboost_aeo/src/Service</directory>
+            <directory>component/plugins/system/aiboost_schema/src/Service</directory>
+            <directory>component/plugins/system/aiboost_sitemap/src/Service</directory>
+            <directory>component/plugins/system/aiboost_social/src/Service</directory>
+        </include>
+    </source>
+</phpunit>

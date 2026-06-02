@@ -1,0 +1,23 @@
+NAPRAVI TASK ZA OVO DA NEŠTO NE PRESKOČIMO
+
+Komentari na rešenja koja si odradio
+#1 Ok, ako uključim pluginove za joomla multilanguage - otvara polja. Sledeće radimo podršku i plugin za Falang pa da i to implementiramo
+#2 SEO Scrapers - idemo sa listom kao AI Crawlers. i naravno ispod textarea za napredne i lepo objašnjenje formata
+#3 Nisam siguran šta će mu bazni URL sajta kad već zna na kom je domenu?
+#5 Da li 404 Log radi, simulirati grešku da vidimo, Import CSV u dark pozadini i dalje ima neku svetlo sivo polje sa sivim tekstom, nije vidljivo dobro, tamo gde su Examples. Simulirati i proveriti da li radi import CSV
+#7 Integrations - ubaci link za yootheme pro za Learn More. Sad ide na aiboostnow.com, proveri o ostale linkove
+#12 Krug treba da bude animiran kad se uradi refresh strane, Ispravi bag sa tamnom pozadinom i tamnim slovima (uključi neku naprednu opciju za ovo). A što se tiče sadržaja modula, smisli nešto da me oduševiš:)
+#13 I dalje ima crni tekst na dark pozadini u admin modulu i u artiklima
+#14 I dalje je taman tekst u artiklima - ovo rešava ako se uninstalira widgetkit, ali ostaje konflikt za one koji imaju widgetkit.
+#15 Šta god si uradio za fields i dalje radi, može da forsira šta god si stavio ali ne radi, i dalje nama fields ni filed groups
+ 
+ODGOVORI NA PITANJA
+#6 Help tab - Popravi CSS za belo polje. Sadržaj help taba moramo da sredimo kad uradimo detaljnu dokumentaciju za web sajt. Dodaj u Master plan kad se završi detaljna dokumentacija da se osmisli Help tab u komponenti
+#8 Nisam ovde pametan - ostavi za sada ovako pa ćemo videti kasnije
+#9 Prazan je ekran i ima belo polje gde objašnjava da GSC nije integrisan i "Start Scan" dugme ne radi. URL Checker - Koliko razumem ne može da čekira url-ove ako nije spojen na Google Search Consolu? Ili može samostalno?
+#11 Stavi ovde analize i checkere kao Quick Actions
+
+DODATNE PRIMEDBE I SUGESTIJE
+1. Kad kliknem na Configure u kartici Performance od me pošalje u XML Sitemap meni komponente
+2. Moramo da smislimo mnogo korisniji admin module. Pogledaj sve opcije plugina i daj predlog
+3. Treba preimenovati "Health" tab u "Health & Analyzers" (ili ti daj predlog) i postaviti levo meni Health, URL Checker, Health, Analyzers, JSON-LD Validator, AI Visibility. 

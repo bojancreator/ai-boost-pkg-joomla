@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="package" version="3.9" method="upgrade">
+    <name>AI Boost for Joomla — Pro Upgrade</name>
+    <packagename>aiboost_pro</packagename>
+    <author>AI Boost Team</author>
+    <creationDate>May 2026</creationDate>
+    <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+    <license>Commercial — closed-source. Use governed by the AI Boost EULA at https://aiboostnow.com/eula</license>
+    <authorEmail>info@aiboostnow.com</authorEmail>
+    <authorUrl>https://aiboostnow.com</authorUrl>
+    <version>0.45.0</version>
+    <description>AI Boost Pro Upgrade Package — installs the closed-source Pro plugins for Schema, AEO, OpenGraph, Hreflang and Code Manager. Requires AI Boost (free) package already installed. Each Pro plugin requires a license key (entered in Components → AI Boost → Licenses) before any feature unlocks.</description>
+    <php_minimum>8.1.0</php_minimum>
+    <joomla_minimum>5.0.0</joomla_minimum>
+    <url>https://aiboostnow.com</url>
+    <scriptfile>pkg_script_pro.php</scriptfile>
+    <blockChildUninstall>true</blockChildUninstall>
+    <!--
+        Update server intentionally omitted for now. The Pro auto-update channel
+        (updates.aiboostnow.com) plus its license key-check are not yet live, so
+        we ship without an <updateservers> block rather than point Joomla at a
+        dead endpoint. Re-add this together with Lemon Squeezy licensing
+        (Task #19) so the license key-check can gate Pro updates.
+    -->
+    <files folder="packages">
+        <file type="plugin"
+              id="aiboost_schema_pro"
+              group="system">plg_system_aiboost_schema_pro-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_aeo_pro"
+              group="system">plg_system_aiboost_aeo_pro-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_social_pro"
+              group="system">plg_system_aiboost_social_pro-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_hreflang_pro"
+              group="system">plg_system_aiboost_hreflang_pro-0.41.0.zip</file>
+        <file type="plugin"
+              id="aiboost_code_pro"
+              group="system">plg_system_aiboost_code_pro-0.41.0.zip</file>
+        <file type="module"
+              id="mod_aiboost_health"
+              client="administrator">mod_aiboost_health-0.41.0.zip</file>
+    </files>
+</extension>

@@ -1,26 +1,21 @@
-name: CI
+name: Canonical tag regression tests
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  # Optional: enable manual runs from Actions tab
   workflow_dispatch:
 
 jobs:
-  phpqa:
-    name: phpqa (PHP ${{ matrix.php-version }})
+  canonical-tests:
+    name: canonical-tests (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # AI Boost for Joomla supports PHP 8.1 – 8.4 (per joomlaboost.xml <php_minimum>
-        # and the documented support matrix in replit.md). PHP 8.5 is intentionally
-        # excluded for now: it ships in Nov 2025 and PHPStan 1.x does not yet
-        # officially support analysing 8.5 syntax. Re-evaluate once PHPStan 2.x
-        # (or a 1.x release with explicit 8.5 support) is pinned in composer.json.
-        php-version: ["8.1", "8.2", "8.3", "8.4"]
+        # AI Boost for Joomla supports PHP 8.1 – 8.5 (per joomlaboost.xml).
+        php-version: ["8.1", "8.2", "8.3", "8.4", "8.5"]
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -29,32 +24,199 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           coverage: none
-          tools: composer
-      - name: Show PHP and Composer versions
-        run: |
-          php -v
-          composer -V
-          composer validate --no-check-publish --strict
-      - name: Cache Composer
-        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809
-        with:
-          path: |
-            ~/.composer/cache
-          # Cache key includes the PHP version so each matrix cell gets its own
-          # warm cache and we never reuse a cache built with a different Python ABI.
-          key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
-            ${{ runner.os }}-composer-
-      - name: Install dependencies
-        run: composer install --no-progress --prefer-dist
-      - name: Fix vendor permissions
-        run: chmod +x vendor/bin/*
-      - name: PHPCS
-        run: composer lint
-      - name: PHPStan
-        run: composer stan
       - name: Canonical tag regression tests
         run: composer test
 
-  # Note: Build artifacts moved to a separate manual workflow.
+  standalone-plugins-lint:
+    name: Standalone plugins PHP lint (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.1", "8.2", "8.3", "8.4", "8.5"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+      - name: Lint all standalone plugin PHP files
+        run: |
+          find plugins/aiboost-aeo plugins/aiboost-codemanager plugins/aiboost-hreflang \
+               plugins/aiboost-opengraph plugins/aiboost-schema \
+               -name "*.php" | xargs -I{} php -l {}
+
+  standalone-safety-tests:
+    name: Standalone safety tests (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # AI Boost for Joomla supports PHP 8.1 – 8.5 (per joomlaboost.xml).
+        php-version: ["8.1", "8.2", "8.3", "8.4", "8.5"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Setup PHP
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+      - name: Run all scripts/test-*.php standalone safety tests
+        run: php scripts/run-standalone-tests.php
+
+  standalone-plugins-build:
+    name: Build standalone plugin ZIPs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build all 5 plugin ZIPs
+        run: python3 scripts/build-plugin.py --all
+      - name: Verify ZIPs were created
+        run: |
+          ls -lh deliverables/plugins/plg_system_aiboost_*.zip
+          echo "All 5 plugin ZIPs verified."
+      - name: Upload plugin ZIPs as workflow artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: aiboost-standalone-plugins
+          path: deliverables/plugins/plg_system_aiboost_*.zip
+          retention-days: 30
+          if-no-files-found: error
+
+  standalone-plugins-smoke:
+    name: Smoke test (${{ matrix.plugin }}, Joomla ${{ matrix.joomla }}, PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    needs: standalone-plugins-build
+    strategy:
+      fail-fast: false
+      matrix:
+        php:    ["8.1", "8.2", "8.3", "8.4", "8.5"]
+        joomla: ["4", "5", "6"]
+        plugin: ["aeo", "opengraph", "codemanager", "schema", "hreflang"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: zip, simplexml, pdo, pdo_mysql, json, mbstring
+          coverage: none
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build plugin ZIP
+        run: python3 scripts/build-plugin.py --plugin ${{ matrix.plugin }}
+      - name: Run manifest + syntax smoke test
+        run: |
+          ZIP="deliverables/plugins/plg_system_aiboost_${{ matrix.plugin }}-1.0.0.zip"
+          php scripts/smoke-test-plugin.php "$ZIP" \
+            --joomla ${{ matrix.joomla }} \
+            --php    ${{ matrix.php }}
+
+  standalone-plugins-joomla-runtime:
+    name: Joomla runtime install (${{ matrix.plugin }}, Joomla ${{ matrix.joomla }})
+    runs-on: ubuntu-latest
+    needs: standalone-plugins-build
+    strategy:
+      fail-fast: false
+      matrix:
+        joomla: ["4", "5", "6"]
+        plugin: ["aeo", "opengraph", "codemanager", "schema", "hreflang"]
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: joomla_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4
+        with:
+          php-version: "8.2"
+          extensions: zip, simplexml, pdo, pdo_mysql, json, mbstring, gd, curl
+          coverage: none
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Build plugin ZIP
+        run: python3 scripts/build-plugin.py --plugin ${{ matrix.plugin }}
+      - name: Determine Joomla version to download
+        id: joomla-ver
+        run: |
+          case "${{ matrix.joomla }}" in
+            "4") echo "version=4.4.10" >> "$GITHUB_OUTPUT" ;;
+            "5") echo "version=5.3.0"  >> "$GITHUB_OUTPUT" ;;
+            "6") echo "version=6.0.0"  >> "$GITHUB_OUTPUT" ;;
+          esac
+      - name: Download and extract Joomla ${{ matrix.joomla }}
+        run: |
+          VER=${{ steps.joomla-ver.outputs.version }}
+          curl -sL "https://github.com/joomla/joomla-cms/releases/download/${VER}/Joomla_${VER}-Stable-Full_Package.zip" \
+            -o joomla.zip
+          mkdir joomla-site
+          unzip -q joomla.zip -d joomla-site
+      - name: Install Joomla via CLI
+        run: |
+          cd joomla-site
+          php installation/joomla.php install \
+            --site-name="Test Site" \
+            --admin-user=admin \
+            --admin-username=admin \
+            --admin-password=Admin1234! \
+            --admin-email=admin@example.com \
+            --db-type=mysqli \
+            --db-host=127.0.0.1 \
+            --db-user=root \
+            --db-pass=root \
+            --db-name=joomla_test \
+            --db-prefix=jos_ \
+            --no-interaction
+          rm -rf installation
+      - name: Install plugin into Joomla
+        run: |
+          ZIP=$(ls deliverables/plugins/plg_system_aiboost_${{ matrix.plugin }}-*.zip | head -1)
+          cp "$ZIP" joomla-site/
+          cd joomla-site
+          php cli/joomla.php extension:install \
+            --path="$(basename $ZIP)" \
+            --no-interaction
+      - name: Enable plugin and verify it is registered
+        run: |
+          SLUG="aiboost_${{ matrix.plugin }}"
+          php -r "
+            define('_JEXEC', 1);
+            define('JPATH_BASE', '$(pwd)/joomla-site');
+            require_once JPATH_BASE . '/includes/defines.php';
+            require_once JPATH_BASE . '/includes/framework.php';
+            \$app = \Joomla\CMS\Factory::getApplication('cli');
+            \$db  = \Joomla\CMS\Factory::getDbo();
+            \$q   = \$db->getQuery(true)
+              ->select(\$db->quoteName('enabled'))
+              ->from(\$db->quoteName('#__extensions'))
+              ->where(\$db->quoteName('element') . ' = ' . \$db->quote('$SLUG'))
+              ->where(\$db->quoteName('type') . ' = ' . \$db->quote('plugin'));
+            \$db->setQuery(\$q);
+            \$row = \$db->loadResult();
+            if (\$row === null) { echo 'FAIL: plugin not found in #__extensions\n'; exit(1); }
+            echo 'OK: plugin registered in Joomla DB (enabled=' . \$row . ')\n';
+          "

@@ -8,10 +8,10 @@ JoomlaBoost is tested against a wide range of Joomla versions, PHP versions, tem
 
 | Joomla Version | Status | Notes |
 |----------------|--------|-------|
-| 3.x | ❌ Not supported | JoomlaBoost requires Joomla 4.0 minimum |
-| 4.0 – 4.4 | ✅ Supported | Full compatibility |
-| 5.0 – 5.x | ✅ Fully supported | Primary development target |
-| 6.x | ✅ Compatible | Early support; tested with pre-release builds |
+| 3.x | ❌ Not supported | AI Boost requires Joomla 5.0 minimum |
+| 4.x | ❌ Not supported | Dropped in v0.57.0 (Joomla 4 reached end-of-life August 2025) |
+| 5.0 – 5.x | ✅ Fully supported | Primary development target (LTS through 2027) |
+| 6.x | ✅ Compatible | Tested on Joomla 6.1 |
 
 > **Recommended:** Joomla 5.x for the best experience and longest support window.
 
@@ -39,7 +39,7 @@ JoomlaBoost is tested against a wide range of Joomla versions, PHP versions, tem
 | MySQL | 8.0+ | ✅ Recommended |
 | MariaDB | 10.3+ | ✅ Supported |
 | MariaDB | 10.6+ | ✅ Recommended |
-| PostgreSQL | — | ❌ Not supported (Joomla 4/5 limitation) |
+| PostgreSQL | — | ❌ Not supported (Joomla 5/6 limitation) |
 
 ---
 
@@ -146,7 +146,7 @@ Some templates (including older versions of YooTheme Pro and some Helix-based te
 
 | Component | Minimum |
 |-----------|---------|
-| Joomla | 4.0.0 |
+| Joomla | 5.0.0 |
 | PHP | 8.1.0 |
 | MySQL | 5.7 |
 | MariaDB | 10.3 |

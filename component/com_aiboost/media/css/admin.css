@@ -1,0 +1,1511 @@
+/* AI Boost for Joomla — Admin Component Styles v0.7.1
+ * Follows Joomla 6 Atum theme (Bootstrap 5.3).
+ * Atum defines: --body-bg, --body-color, --border-color, --secondary-color,
+ *               --tertiary-bg, --secondary-bg (NO "bs-" prefix).
+ * [data-bs-theme=dark] is set on <html> by Atum dark mode.
+ */
+
+/* ── View navigation tabs (Dashboard / Settings / Import) ─────────────── */
+.ab-view-nav {
+    border-bottom: 2px solid var(--border-color, #dee2e6);
+    margin-bottom: 0;
+    gap: .25rem;
+}
+
+.ab-view-nav .nav-link {
+    border-radius: .375rem .375rem 0 0;
+    padding: .5rem 1.1rem;
+    font-size: .875rem;
+    color: var(--secondary-color, #6c757d);
+    border: 1px solid transparent;
+    border-bottom: none;
+    transition: color .15s, background .15s;
+}
+
+.ab-view-nav .nav-link:hover {
+    color: var(--body-color, #212529);
+    background: var(--tertiary-bg, #f8f9fa);
+}
+
+.ab-view-nav .nav-link.active {
+    color: var(--body-color, #212529);
+    background: var(--body-bg, #fff);
+    border-color: var(--border-color, #dee2e6)
+                  var(--border-color, #dee2e6)
+                  var(--body-bg, #fff);
+    font-weight: 600;
+}
+
+/* ── Settings tab nav — inline SVG icons ───────────────────────────────── */
+.ab-ti {
+    vertical-align: -0.125em;
+    margin-right: .4rem;
+    flex-shrink: 0;
+    opacity: .8;
+}
+#ab-settings-tabs .nav-link.active .ab-ti { opacity: 1; }
+
+/* ── Tab panes — scoped to Redirects page only to avoid Joomla Pjax CSS leak ── */
+/* Unprefixed .tab-pane rule was leaking onto article-editor tabs via Pjax;
+   now scoped to .ab-redirect-tabs so only the Redirects page is affected.   */
+.ab-redirect-tabs .tab-pane:not(.active) { display: none; }
+
+/* ── Settings form width ───────────────────────────────────────────────── */
+#ab-settings-form {
+    max-width: 960px;
+}
+
+/* ── Field groups ──────────────────────────────────────────────────────── */
+.ab-field-group {
+    margin-bottom: 1.1rem;
+}
+
+.ab-field-group > label {
+    display: block;
+    font-size: .8125rem;
+    font-weight: 600;
+    color: var(--secondary-color, #6c757d);
+    margin-bottom: .3rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.ab-field-group > small {
+    display: block;
+    font-size: .775rem;
+    color: var(--secondary-color, #6c757d);
+    margin-top: .25rem;
+    line-height: 1.45;
+}
+
+.ab-field-group .form-control,
+.ab-field-group .form-select {
+    font-size: .875rem;
+}
+
+/* ── Toggle row (checkbox + label) ────────────────────────────────────── */
+.ab-toggle {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+}
+
+.ab-toggle > label {
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--body-color, #212529);
+    text-transform: none;
+    letter-spacing: 0;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.ab-toggle .form-check-input {
+    width: 2.5em;
+    height: 1.4em;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+/* ── Section divider inside settings tabs ─────────────────────────────── */
+.ab-section-title {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--secondary-color, #6c757d);
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    padding-bottom: .4rem;
+    margin: 1.75rem 0 1.1rem;
+}
+
+.tab-pane > .ab-section-title:first-child,
+.tab-pane > .ab-field-group:first-child {
+    margin-top: 0;
+}
+
+/* ── Sticky save bar ───────────────────────────────────────────────────── */
+.ab-save-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: var(--body-bg, #fff);
+    border-top: 1px solid var(--border-color, #dee2e6);
+    padding: .875rem 0;
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ab-save-msg          { font-size: .875rem; display: none; }
+.ab-save-msg.show     { display: inline; }
+.ab-save-msg.success  { color: var(--success, #198754); }
+.ab-save-msg.error    { color: var(--danger, #dc3545); }
+
+/* ── Module status cards (dashboard) ───────────────────────────────────── */
+.ab-module-card {
+    border-color: var(--border-color, #dee2e6);
+    transition: box-shadow .15s, border-color .15s;
+    color: inherit;
+}
+
+.ab-module-card:hover {
+    box-shadow: 0 .125rem .5rem rgba(0,0,0,.1);
+    border-color: var(--primary, #2a69b8);
+    color: inherit;
+}
+
+/* ── Inline toggle buttons inside module cards ──────────────────────────── */
+.ab-toggle-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.ab-toggle-btn {
+    font-size: .7rem;
+    padding: .15rem .55rem;
+    line-height: 1.4;
+    border-radius: .25rem;
+    transition: opacity .1s;
+}
+
+.ab-toggle-btn:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.ab-btn-confirming {
+    animation: ab-confirm-pulse 0.4s ease-out;
+}
+
+@keyframes ab-confirm-pulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+.ab-cancel-disable {
+    font-size: .7rem;
+    color: var(--secondary-color, #6c757d);
+    margin-left: .4rem;
+    white-space: nowrap;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.ab-cancel-disable:hover {
+    color: var(--body-color, #212529);
+}
+
+/* ── Import / Export drop zone ─────────────────────────────────────────── */
+.ab-drop-zone {
+    border-style: dashed !important;
+    border-color: var(--border-color, #dee2e6) !important;
+    background: var(--tertiary-bg, #f8f9fa) !important;
+    transition: border-color .2s, background .2s;
+}
+
+.ab-drop-zone.dragover {
+    border-color: var(--info, #2a69b8) !important;
+    background: var(--info-bg-subtle, #d4e1f1) !important;
+}
+
+/* ── Export card accent ─────────────────────────────────────────────────── */
+.ab-export-card {
+    border-left: 3px solid var(--info, #2a69b8);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK MODE — [data-bs-theme=dark] is set on <html> by Joomla Atum.
+   All values taken directly from Atum template.min.css dark block.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Save bar — needs explicit bg so it stays opaque when sticky */
+[data-bs-theme=dark] .ab-save-bar {
+    background: #212529;
+    border-top-color: #495057;
+}
+
+/* View nav active tab — border-bottom must match page bg */
+[data-bs-theme=dark] .ab-view-nav .nav-link.active {
+    background: #212529;
+    border-color: #495057 #495057 #212529;
+    color: #dee2e6;
+}
+
+[data-bs-theme=dark] .ab-view-nav .nav-link {
+    color: #dee2e6bf;
+}
+
+[data-bs-theme=dark] .ab-view-nav .nav-link:hover {
+    background: #2b3035;
+    color: #dee2e6;
+}
+
+/* Section title border */
+[data-bs-theme=dark] .ab-section-title {
+    border-bottom-color: #495057;
+}
+
+/* Field labels */
+[data-bs-theme=dark] .ab-field-group > label,
+[data-bs-theme=dark] .ab-field-group > small {
+    color: #dee2e6bf;
+}
+
+/* Drop zone */
+[data-bs-theme=dark] .ab-drop-zone {
+    border-color: #495057 !important;
+    background: #2b3035 !important;
+}
+
+[data-bs-theme=dark] .ab-drop-zone.dragover {
+    border-color: #7fa5d4 !important;
+    background: #081525 !important;
+}
+
+/* Export card accent */
+[data-bs-theme=dark] .ab-export-card {
+    border-left-color: #7fa5d4;
+}
+
+/* Module cards on dashboard */
+[data-bs-theme=dark] .ab-module-card {
+    border-color: #495057;
+}
+
+/* ── Crawler grid ──────────────────────────────────────────────────────── */
+.ab-crawler-box {
+    background: #f0fff4;
+    border-radius: 6px;
+    padding: 6px 10px 6px 10px;
+    transition: background .15s;
+    border: 1px solid #c3e6cb;
+}
+.ab-crawler-box.blocked {
+    background: #fff5f5;
+    border-color: #f5c6cb;
+}
+.ab-crawler-box .form-check-input { cursor: pointer; margin-top: .2em; }
+.ab-crawler-bot-name {
+    display: block;
+    font-size: .8rem;
+    font-weight: 600;
+    color: #1a2e1a !important;
+    line-height: 1.2;
+}
+.ab-crawler-box.blocked .ab-crawler-bot-name { color: #5c1a1a !important; }
+.ab-crawler-bot-desc {
+    display: block;
+    font-size: .7rem;
+    color: #3d5a3d !important;
+    opacity: .8;
+    line-height: 1.3;
+}
+.ab-crawler-box.blocked .ab-crawler-bot-desc { color: #7a3030 !important; }
+
+[data-bs-theme=dark] .ab-crawler-box {
+    background: #0f2a1a;
+    border-color: #1e5c35;
+}
+[data-bs-theme=dark] .ab-crawler-box.blocked {
+    background: #2a0f0f;
+    border-color: #5c1a1a;
+}
+[data-bs-theme=dark] .ab-crawler-bot-name { color: #a8f0c0 !important; }
+[data-bs-theme=dark] .ab-crawler-box.blocked .ab-crawler-bot-name { color: #f0a8a8 !important; }
+[data-bs-theme=dark] .ab-crawler-bot-desc { color: #7abf94 !important; }
+[data-bs-theme=dark] .ab-crawler-box.blocked .ab-crawler-bot-desc { color: #bf7a7a !important; }
+
+/* ── Image Picker Modal (Joomla native media manager, iframe) ──────────── */
+#ab-media-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.6);
+}
+#ab-media-modal.d-none { display: none !important; }
+.ab-media-modal-dialog {
+    background: var(--body-bg, #fff);
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.3);
+    width: min(1100px, 97vw);
+    height: min(720px, 94vh);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.ab-media-modal-header {
+    display: flex;
+    align-items: center;
+    padding: .6rem 1rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    flex-shrink: 0;
+    gap: .5rem;
+}
+.ab-media-modal-body {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+#ab-media-iframe {
+    flex: 1;
+    width: 100%;
+    border: none;
+}
+.ab-media-modal-footer {
+    padding: .55rem 1rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex-shrink: 0;
+    background: var(--tertiary-bg, #f8f9fa);
+}
+[data-bs-theme=dark] .ab-media-modal-dialog {
+    background: #212529;
+    box-shadow: 0 8px 40px rgba(0,0,0,.6);
+}
+[data-bs-theme=dark] .ab-media-modal-footer { background: #1a1d20; }
+
+/* ── Business Hours Widget ─────────────────────────────────────────────── */
+.ab-bh-table {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 680px;
+}
+
+.ab-bh-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--tertiary-bg, #f8f9fa);
+    border: 1px solid var(--border-color, #dee2e6);
+}
+
+.ab-bh-day {
+    width: 80px;
+    flex-shrink: 0;
+    font-weight: 500;
+    font-size: .875rem;
+    padding-top: 6px;
+}
+
+.ab-bh-open {
+    width: 90px;
+    flex-shrink: 0;
+}
+
+.ab-bh-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.ab-bh-slot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ab-bh-slot .form-control {
+    width: 110px;
+    flex-shrink: 0;
+}
+
+.ab-bh-sep {
+    color: var(--secondary-color, #6c757d);
+    font-size: .85rem;
+}
+
+[data-bs-theme=dark] .ab-bh-row {
+    background: #2b3035;
+    border-color: #495057;
+}
+
+/* ── Field Hints ─────────────────────────────────────────────────── */
+.ab-hint {
+    margin-top: 5px;
+}
+
+.ab-hint-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--link-color, #2a69b8);
+    font-size: .8rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ab-hint-toggle:hover {
+    text-decoration: underline;
+}
+
+.ab-hint-toggle::after {
+    content: 'Show example';
+}
+
+.ab-hint-toggle.ab-hint-open::after {
+    content: 'Hide example';
+}
+
+.ab-hint-body {
+    margin-top: 6px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.ab-hint-code {
+    font-family: var(--font-monospace, monospace);
+    font-size: .78rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0 0 6px;
+    background: transparent;
+    color: inherit;
+}
+
+.ab-hint-body .ab-hint-link {
+    font-size: .8rem;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+[data-bs-theme=dark] .ab-hint-body {
+    background: #2b3035;
+    border-color: #495057;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HEALTH CHECKER
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Score circle — Vue version uses SVG. We only need the wrap sizing and colour
+   classes for the centred number; old border/background pravila uklonjena u v0.12.9
+   jer su pravila pomjerala broj i konfliktovala sa SVG arcom. */
+.ab-hc-score-wrap {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+.ab-hc-score-wrap svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.ab-hc-score-num-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.ab-hc-score-num {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Number colour only — NO background, NO border (Vue uses SVG ring for that). */
+.ab-hc-score-num.ab-hc-score--green  { color: #198754; }
+.ab-hc-score-num.ab-hc-score--orange { color: #fd7e14; }
+.ab-hc-score-num.ab-hc-score--red    { color: #dc3545; }
+
+[data-bs-theme=dark] .ab-hc-score-num.ab-hc-score--green  { color: #75b798; }
+[data-bs-theme=dark] .ab-hc-score-num.ab-hc-score--orange { color: #fd7e14; }
+[data-bs-theme=dark] .ab-hc-score-num.ab-hc-score--red    { color: #ea868f; }
+
+/* SVG arc colours (Vue puts class on <circle class="ab-hc-score-arc ab-hc-score--green">) */
+.ab-hc-score-arc.ab-hc-score--green  { stroke: #198754; }
+.ab-hc-score-arc.ab-hc-score--orange { stroke: #fd7e14; }
+.ab-hc-score-arc.ab-hc-score--red    { stroke: #dc3545; }
+[data-bs-theme=dark] .ab-hc-score-arc.ab-hc-score--green  { stroke: #75b798; }
+[data-bs-theme=dark] .ab-hc-score-arc.ab-hc-score--red    { stroke: #ea868f; }
+
+/* Check list */
+.ab-hc-check-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.ab-hc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .6rem 1rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    transition: background .15s;
+}
+
+.ab-hc-row:last-child {
+    border-bottom: none;
+}
+
+.ab-hc-row--pass           { background: transparent; }
+.ab-hc-row--fail-critical  { background: #fff5f5; }
+.ab-hc-row--fail-warning   { background: #fffbf0; }
+.ab-hc-row--dismissed      { opacity: .55; background: transparent; }
+
+[data-bs-theme=dark] .ab-hc-row--fail-critical { background: #2c0b0e; }
+[data-bs-theme=dark] .ab-hc-row--fail-warning  { background: #2a1f00; }
+
+/* Row icon */
+.ab-hc-row-icon {
+    font-size: 1.1rem;
+    margin-top: .1rem;
+}
+
+.ab-hc-icon--pass      { color: #198754; }
+.ab-hc-icon--critical  { color: #dc3545; }
+.ab-hc-icon--warning   { color: #fd7e14; }
+.ab-hc-icon--info      { color: #2a69b8; }
+.ab-hc-icon--dismissed { color: #6c757d; }
+
+/* Row body */
+.ab-hc-row-body {
+    min-width: 0;
+}
+
+.ab-hc-row-label {
+    font-weight: 600;
+    font-size: .875rem;
+    margin-bottom: .1rem;
+}
+
+.ab-hc-row-msg {
+    font-size: .8rem;
+    color: var(--secondary-color, #6c757d);
+    line-height: 1.45;
+}
+
+/* Row actions */
+.ab-hc-row-actions {
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.ab-hc-row-actions .btn {
+    font-size: .75rem;
+    padding: .2rem .6rem;
+}
+
+/* Category collapse */
+.ab-hc-cat-body { overflow: hidden; transition: max-height .25s ease; }
+.ab-hc-cat-body.ab-hc-cat-collapsed { display: none; }
+
+.ab-hc-chevron { transition: transform .25s; }
+
+/* Category card header */
+.card-header[data-ab-hc-toggle] {
+    user-select: none;
+}
+
+.card-header[data-ab-hc-toggle]:hover {
+    background: var(--tertiary-bg, #f8f9fa);
+}
+
+[data-bs-theme=dark] .card-header[data-ab-hc-toggle]:hover {
+    background: #2b3035;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   UX ENHANCEMENTS — v0.6.44
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Smooth show/hide for conditional fields ── */
+@keyframes abSlideIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ab-type-conditional.ab-visible {
+    animation: abSlideIn .22s ease-out;
+}
+
+/* ── Social media input icons ── */
+.ab-social-icon {
+    width: 40px;
+    justify-content: center;
+    padding: .375rem .5rem;
+    color: #fff;
+    border-color: transparent;
+    flex-shrink: 0;
+}
+.ab-social-icon svg {
+    width: 15px;
+    height: 15px;
+}
+.ab-social-facebook  { background: #1877f2; }
+.ab-social-instagram { background: #e1306c; }
+.ab-social-youtube   { background: #ff0000; }
+.ab-social-twitter   { background: #000; }
+.ab-social-linkedin  { background: #0a66c2; }
+
+/* ── URL thumbnail preview ── */
+.ab-url-preview {
+    margin-top: 7px;
+    min-height: 0;
+}
+.ab-url-preview img {
+    max-height: 88px;
+    max-width: 200px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color, #dee2e6);
+    object-fit: contain;
+    display: block;
+}
+.ab-url-preview-err {
+    font-size: .78rem;
+    color: #dc3545;
+}
+
+/* ── Star rating preview ── */
+.ab-stars-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 6px;
+}
+.ab-star {
+    font-size: 1.15rem;
+    line-height: 1;
+    color: #ffc107;
+    cursor: default;
+    user-select: none;
+}
+.ab-star.empty {
+    color: #dee2e6;
+}
+.ab-rating-txt {
+    font-size: .78rem;
+    color: var(--secondary-color, #6c757d);
+    margin-left: 5px;
+}
+[data-bs-theme=dark] .ab-star.empty { color: #495057; }
+
+/* ── OSM Geo picker modal ── */
+#ab-osm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.58);
+}
+#ab-osm-modal.ab-modal-hidden {
+    display: none !important;
+}
+.ab-osm-dialog {
+    background: var(--body-bg, #fff);
+    border-radius: 8px;
+    box-shadow: 0 10px 48px rgba(0,0,0,.35);
+    width: min(780px, 96vw);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.ab-osm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem 1rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    font-weight: 600;
+    font-size: .9rem;
+}
+.ab-osm-header button {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--secondary-color, #6c757d);
+    padding: 0 2px;
+}
+.ab-osm-header button:hover { color: var(--bs-body-color, #212529); }
+#ab-osm-map {
+    height: 380px;
+    width: 100%;
+    flex-shrink: 0;
+}
+.ab-osm-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .55rem 1rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
+    background: var(--tertiary-bg, #f8f9fa);
+}
+#ab-osm-coords {
+    font-size: .8rem;
+    color: var(--secondary-color, #6c757d);
+    font-family: var(--font-monospace, monospace);
+}
+[data-bs-theme=dark] .ab-osm-dialog  { background: #212529; }
+[data-bs-theme=dark] .ab-osm-footer  { background: #1a1d20; }
+
+/* ── Sitemap priority range sliders ── */
+.ab-range-wrap {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin-top: 2px;
+}
+.ab-range-wrap .form-range {
+    flex: 1;
+    max-width: 180px;
+    accent-color: var(--ab-accent, #2a69b8);
+}
+.ab-range-val {
+    font-size: .85rem;
+    font-weight: 700;
+    min-width: 2.2rem;
+    text-align: center;
+    background: var(--tertiary-bg, #f8f9fa);
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: var(--font-monospace, monospace);
+}
+
+/* ── Number stepper (Max Articles) ── */
+.ab-stepper {
+    display: inline-flex;
+    align-items: stretch;
+    max-width: 190px;
+}
+.ab-stepper .btn {
+    padding: .25rem .7rem;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    border-radius: 0;
+    z-index: 1;
+}
+.ab-stepper .btn:first-child {
+    border-radius: .375rem 0 0 .375rem;
+}
+.ab-stepper .btn:last-child {
+    border-radius: 0 .375rem .375rem 0;
+}
+.ab-stepper input {
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-radius: 0 !important;
+    text-align: center;
+    width: 90px;
+    min-width: 0;
+}
+.ab-stepper input:focus { z-index: 2; }
+
+/* ── GA4 / GTM inline validation indicator ── */
+.ab-id-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+.ab-id-indicator {
+    font-size: .78rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    display: none;
+}
+.ab-id-indicator.ok  { display: inline-block; color: #198754; background: #d1e7dd; }
+.ab-id-indicator.bad { display: inline-block; color: #dc3545; background: #f8d7da; }
+[data-bs-theme=dark] .ab-id-indicator.ok  { background: #051b11; color: #75b798; }
+[data-bs-theme=dark] .ab-id-indicator.bad { background: #2c0b0e; color: #ea868f; }
+
+/* ── CodeMirror overrides for Joomla admin ── */
+.ab-cm-wrap .CodeMirror {
+    height: auto;
+    min-height: 110px;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: .375rem;
+    font-size: .8rem;
+    font-family: var(--font-monospace, monospace);
+    line-height: 1.55;
+    transition: border-color .15s;
+}
+.ab-cm-wrap .CodeMirror:hover  { border-color: var(--ab-accent, #2a69b8); }
+.ab-cm-wrap .CodeMirror-scroll { min-height: 110px; }
+[data-bs-theme=dark] .ab-cm-wrap .CodeMirror         { background: #1e1e1e; color: #d4d4d4; border-color: #495057; }
+[data-bs-theme=dark] .ab-cm-wrap .CodeMirror-gutters { background: #252526; border-right-color: #3e3e42; }
+[data-bs-theme=dark] .ab-cm-wrap .CodeMirror-linenumber { color: #858585; }
+
+/* ── Frequency pills (changefreq) ── */
+.ab-freq-pills {
+    display: flex;
+    gap: .35rem;
+    flex-wrap: wrap;
+}
+.ab-freq-pill {
+    padding: .28rem .75rem;
+    font-size: .82rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 20px;
+    background: transparent;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    color: var(--body-color, #212529);
+}
+.ab-freq-pill:hover {
+    background: #e9ecef;
+}
+.ab-freq-pill.active {
+    background: var(--ab-accent, #2a69b8);
+    color: #fff;
+    border-color: var(--ab-accent, #2a69b8);
+}
+[data-bs-theme=dark] .ab-freq-pill { border-color: #495057; color: #dee2e6; }
+[data-bs-theme=dark] .ab-freq-pill:hover { background: #343a40; }
+[data-bs-theme=dark] .ab-freq-pill.active { background: #3a7bd5; border-color: #3a7bd5; }
+
+/* ── Chip / tag inputs ── */
+.ab-chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .3rem;
+    padding: .35rem .5rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: .375rem;
+    min-height: 40px;
+    cursor: text;
+    background: var(--body-bg, #fff);
+    transition: border-color .15s;
+    max-width: 520px;
+}
+.ab-chip-wrap:focus-within {
+    border-color: var(--ab-accent, #2a69b8);
+    box-shadow: 0 0 0 .2rem rgba(42,105,184,.15);
+}
+.ab-chips {
+    display: contents;
+}
+.ab-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .15rem .55rem .15rem .6rem;
+    background: var(--ab-accent, #2a69b8);
+    color: #fff;
+    border-radius: 12px;
+    font-size: .78rem;
+    font-family: var(--font-monospace, monospace);
+    white-space: nowrap;
+}
+.ab-chip-x {
+    background: none;
+    border: none;
+    color: #fff;
+    opacity: .75;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 1rem;
+}
+.ab-chip-x:hover { opacity: 1; }
+.ab-chip-input {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: .1rem .2rem;
+    min-width: 120px;
+    flex: 1;
+    background: transparent;
+    font-size: .85rem;
+}
+[data-bs-theme=dark] .ab-chip-wrap { background: var(--body-bg, #212529); border-color: #495057; }
+[data-bs-theme=dark] .ab-chip { background: #3a7bd5; }
+
+/* ── Robots.txt rule builder ── */
+.ab-robots-rule-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    align-items: center;
+}
+.ab-robots-action-group {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    padding: .25rem .5rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: .375rem;
+    background: var(--body-bg, #fff);
+    font-size: .85rem;
+}
+.ab-robots-radio {
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    cursor: pointer;
+    margin: 0;
+}
+.ab-robot-rules-list {
+    font-size: .82rem;
+}
+.ab-robot-rule-item {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .2rem .4rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: .25rem;
+    margin-bottom: .25rem;
+    font-family: var(--font-monospace, monospace);
+}
+.ab-robot-rule-item .ab-rule-action-allow { color: #198754; font-weight: 600; }
+.ab-robot-rule-item .ab-rule-action-disallow { color: #dc3545; font-weight: 600; }
+.ab-robot-rule-del {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0 .2rem;
+    font-size: 1rem;
+    line-height: 1;
+}
+.ab-robot-rule-del:hover { color: #dc3545; }
+[data-bs-theme=dark] .ab-robot-rule-item { background: #2b2d31; border-color: #495057; }
+
+/* ── URL thumbnail preview ── */
+.ab-url-preview {
+    display: none;
+    margin-top: .4rem;
+}
+.ab-url-preview img {
+    max-width: 200px;
+    max-height: 110px;
+    object-fit: cover;
+    border-radius: .375rem;
+    border: 1px solid var(--border-color, #dee2e6);
+}
+.ab-url-preview-err {
+    font-size: .78rem;
+    color: #dc3545;
+    margin-top: .25rem;
+}
+
+/* ── JSON CodeMirror wrapper ── */
+.ab-cm-json .CodeMirror {
+    min-height: 130px;
+}
+
+/* ── Social chip cards ── */
+.ab-social-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+.ab-sc-card {
+    border: 2px solid transparent;
+    border-radius: .5rem;
+    overflow: hidden;
+    width: 155px;
+    background: var(--body-bg, #fff);
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    transition: box-shadow .15s, border-color .15s;
+}
+.ab-sc-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+.ab-sc-card.has-url {
+    border-color: var(--sc-color, #2a69b8);
+}
+.ab-sc-head {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .35rem .5rem;
+    background: var(--sc-color, #555);
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 600;
+}
+.ab-sc-head svg { flex-shrink: 0; }
+.ab-sc-badge {
+    margin-left: auto;
+    font-size: .85rem;
+    opacity: .9;
+}
+.ab-sc-body {
+    padding: .3rem .4rem;
+}
+.ab-sc-input {
+    display: block;
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: .72rem;
+    background: transparent;
+    color: var(--body-color, #212529);
+    padding: .1rem .1rem;
+}
+.ab-sc-input::placeholder {
+    font-size: .68rem;
+    opacity: .5;
+}
+[data-bs-theme=dark] .ab-sc-card {
+    background: var(--body-bg, #212529);
+    box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+
+/* ── JSON badge (valid/invalid indicator) ── */
+.ab-json-badge {
+    display: none;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-top: .25rem;
+}
+.ab-json-badge.ok  { display: inline-block; color: #198754; background: #d1e7dd; }
+.ab-json-badge.bad { display: inline-block; color: #dc3545; background: #f8d7da; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   AI BOOST FILE BROWSER — custom media picker modal
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Overlay ── */
+.ab-fb-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10600;
+    background: rgba(0, 0, 0, .62);
+    padding: 0;
+}
+
+/* ── Dialog box — positioned via JS in openModal() to bypass Joomla CSS transforms ── */
+.ab-fb-dialog {
+    background: var(--body-bg, #fff);
+    border-radius: 10px;
+    box-shadow: 0 12px 56px rgba(0, 0, 0, .35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: fixed;
+    z-index: 10601;
+}
+
+/* ── Header ── */
+.ab-fb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .6rem 1rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    flex-shrink: 0;
+    background: var(--tertiary-bg, #f8f9fa);
+}
+.ab-fb-title {
+    font-weight: 600;
+    font-size: .9rem;
+}
+.ab-fb-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--secondary-color, #6c757d);
+    padding: 0 .25rem;
+    border-radius: .25rem;
+    transition: color .15s, background .15s;
+}
+.ab-fb-close-btn:hover {
+    color: var(--body-color, #212529);
+    background: var(--border-color, #dee2e6);
+}
+
+/* ── Toolbar ── */
+.ab-fb-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .45rem .8rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    flex-shrink: 0;
+    gap: .5rem;
+    flex-wrap: wrap;
+}
+.ab-fb-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: .2rem;
+    flex: 1;
+    min-width: 0;
+}
+.ab-fb-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+/* ── Breadcrumb ── */
+.ab-fb-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: .15rem;
+    flex-wrap: wrap;
+    font-size: .82rem;
+}
+.ab-fb-crumb {
+    background: none;
+    border: none;
+    padding: .15rem .35rem;
+    border-radius: .25rem;
+    cursor: pointer;
+    color: var(--link-color, #2a69b8);
+    font-size: .82rem;
+    line-height: 1.4;
+    transition: background .12s;
+}
+.ab-fb-crumb:hover { background: var(--tertiary-bg, #f0f0f0); text-decoration: underline; }
+.ab-fb-crumb.active {
+    color: var(--body-color, #212529);
+    font-weight: 600;
+    cursor: default;
+    pointer-events: none;
+}
+.ab-fb-crumb-sep {
+    color: var(--secondary-color, #6c757d);
+    font-size: .75rem;
+    user-select: none;
+}
+
+/* ── Body ── */
+.ab-fb-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: .6rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+/* ── Upload drop zone ── */
+.ab-fb-dropzone {
+    border: 2px dashed var(--border-color, #ced4da);
+    border-radius: 8px;
+    background: var(--tertiary-bg, #f8f9fa);
+    padding: 1.5rem;
+    text-align: center;
+    transition: border-color .2s, background .2s;
+    flex-shrink: 0;
+}
+.ab-fb-dropzone.dragover {
+    border-color: #2a69b8;
+    background: #e8f0fb;
+}
+.ab-fb-dropzone-inner { pointer-events: none; }
+.ab-fb-dropzone-inner button { pointer-events: all; }
+.ab-fb-dropzone-inner input  { pointer-events: all; }
+.ab-fb-progress-wrap { max-width: 320px; margin: 0 auto; }
+
+/* ── Grid ── */
+.ab-fb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: .5rem;
+    align-content: start;
+}
+
+/* ── Grid items ── */
+.ab-fb-item {
+    border: 2px solid var(--border-color, #dee2e6);
+    border-radius: 7px;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--body-bg, #fff);
+    transition: border-color .15s, box-shadow .15s, transform .12s;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+}
+.ab-fb-item:hover {
+    border-color: #2a69b8;
+    box-shadow: 0 2px 8px rgba(42, 105, 184, .22);
+    transform: translateY(-2px);
+}
+.ab-fb-item:active { transform: scale(.97); }
+
+.ab-fb-item-dir { border-style: dashed; }
+.ab-fb-item-dir:hover { border-color: #fd7e14; box-shadow: 0 2px 8px rgba(253, 126, 20, .2); }
+
+/* ── Delete button (×) on each item ── */
+.ab-fb-item { position: relative; }
+.ab-fb-item-del {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 10;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    line-height: 18px;
+    font-size: .85rem;
+    border: none;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, .85);
+    color: #fff;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, background .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ab-fb-item:hover .ab-fb-item-del { opacity: 1; }
+.ab-fb-item-del:hover { background: #b02a37; opacity: 1 !important; }
+
+/* ── Thumbnails ── */
+.ab-fb-thumb {
+    width: 100%;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--tertiary-bg, #f5f5f5);
+    overflow: hidden;
+    position: relative;
+}
+.ab-fb-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.ab-fb-thumb-dir .icon-folder,
+.ab-fb-thumb-icon {
+    font-size: 2.5rem;
+    color: var(--secondary-color, #adb5bd);
+}
+.ab-fb-thumb-dir .icon-folder { color: #fd7e14; }
+
+/* ── Item labels ── */
+.ab-fb-item-name {
+    font-size: .7rem;
+    padding: .2rem .3rem .1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+    color: var(--body-color, #212529);
+    text-align: center;
+}
+.ab-fb-item-meta {
+    font-size: .65rem;
+    color: var(--secondary-color, #6c757d);
+    padding: 0 .3rem .25rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Empty / loading states ── */
+.ab-fb-empty,
+.ab-fb-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--secondary-color, #6c757d);
+    font-size: .875rem;
+}
+@keyframes ab-spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; animation: ab-spin .8s linear infinite; }
+
+/* ── Footer ── */
+.ab-fb-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .5rem .8rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
+    flex-shrink: 0;
+    background: var(--tertiary-bg, #f8f9fa);
+    flex-wrap: wrap;
+}
+.ab-fb-footer-left {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+/* ── Browse button in input groups ── */
+.ab-img-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+}
+.ab-img-input-wrap .form-control {
+    flex: 1;
+    min-width: 180px;
+}
+.ab-browse-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Image preview under input ── */
+.ab-img-preview-wrap {
+    margin-top: .4rem;
+}
+.ab-img-preview {
+    max-width: 220px;
+    max-height: 120px;
+    object-fit: contain;
+    border-radius: .375rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    display: block;
+}
+
+/* ── Dark mode ── */
+[data-bs-theme=dark] .ab-fb-dialog {
+    background: #1e2124;
+    box-shadow: 0 12px 56px rgba(0, 0, 0, .65);
+}
+[data-bs-theme=dark] .ab-fb-header,
+[data-bs-theme=dark] .ab-fb-footer { background: #16191c; }
+[data-bs-theme=dark] .ab-fb-dropzone { background: #2b3035; border-color: #495057; }
+[data-bs-theme=dark] .ab-fb-dropzone.dragover { background: #0d1a2e; border-color: #5a8fd4; }
+[data-bs-theme=dark] .ab-fb-item { background: #2b2d31; border-color: #495057; }
+[data-bs-theme=dark] .ab-fb-thumb { background: #212429; }
+[data-bs-theme=dark] .ab-fb-item-name { color: #dee2e6; }
+[data-bs-theme=dark] .ab-fb-crumb:hover { background: #343a40; }
+
+/* ── Spin animation for loading states ─────────────────────────────────── */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ── Joomla admin module (mod_aiboost_health) — dark theme ─────────────── */
+[data-bs-theme=dark] .ab-mod-health .card {
+    background: #212529;
+    border-color: #495057;
+    color: #dee2e6;
+}
+[data-bs-theme=dark] .ab-mod-health .card-body {
+    color: #dee2e6;
+}
+[data-bs-theme=dark] .ab-mod-health .text-muted {
+    color: #adb5bd !important;
+}
+[data-bs-theme=dark] .ab-mod-health a.btn-outline-secondary {
+    color: #adb5bd;
+    border-color: #6c757d;
+}
+[data-bs-theme=dark] .ab-mod-health a.btn-outline-secondary:hover {
+    background: #343a40;
+    color: #dee2e6;
+}
+[data-bs-theme=dark] .ab-mod-health a.btn-outline-success {
+    color: #75b798;
+    border-color: #75b798;
+}
+[data-bs-theme=dark] .ab-mod-health a.btn-outline-danger {
+    color: #ea868f;
+    border-color: #ea868f;
+}
+
+/* ── Articles Edit — dark theme override (counters widgetkit CSS color lock) */
+/* widgetkit sets [data-bs-theme=dark] #content, label { color: #212529 }    */
+/* which makes our field labels invisible. Override with higher specificity.  */
+[data-bs-theme=dark] #content .com-fields-field__value label,
+[data-bs-theme=dark] #content .com-fields-subform-field label,
+[data-bs-theme=dark] #content .field-labels-above label,
+[data-bs-theme=dark] #content .control-label {
+    color: #dee2e6 !important;
+}
+[data-bs-theme=dark] #content .com-fields-field__value .control-group label,
+[data-bs-theme=dark] #content .com-fields-field__value input,
+[data-bs-theme=dark] #content .com-fields-field__value select,
+[data-bs-theme=dark] #content .com-fields-field__value textarea {
+    color: #dee2e6;
+    background-color: #2b3035;
+    border-color: #495057;
+}
+
+/* ── Import CSV example block — dark theme aware ───────────────────────── */
+.ab-import-example {
+    font-size: .78rem;
+    background: var(--tertiary-bg, #f8f9fa);
+    color: var(--body-color, #212529);
+    padding: .5rem;
+    border-radius: .25rem;
+}
+[data-bs-theme=dark] .ab-import-example {
+    background: #2b3035;
+    color: #dee2e6;
+    border: 1px solid #495057;
+}
+
+/* ── v0.14.0 — DEPRECATED Bootstrap btn-outline overrides REMOVED ──────── */
+/* Replaced by the AI Boost Design System (.ab-btn). New code MUST use      */
+/* .ab-btn / .ab-btn--ghost / .ab-btn--primary etc. — see ab-components.css */
+/* and the /_styleguide route inside the SPA for the full reference set.    */
+/* The old .btn-outline-* dark overrides used to live here; they are gone   */
+/* because every Vue mount point now uses .ab-btn and the design tokens.    */
+
+/* Muted text colors — scoped to AI Boost views only.                       */
+/* Kept during the transition while non-Vue templates (Settings tabs,       */
+/* Integrations PHP view, etc.) still emit .text-muted / .form-text. To be  */
+/* removed once those views migrate to .ab-help (#338).                     */
+body[class*="com_aiboost"][data-bs-theme=dark] .text-muted,
+[data-bs-theme=dark] body[class*="com_aiboost"] .text-muted,
+body[class*="com_aiboost"][data-bs-theme=dark] .text-secondary,
+[data-bs-theme=dark] body[class*="com_aiboost"] .text-secondary,
+body[class*="com_aiboost"][data-bs-theme=dark] small.text-muted {
+    color: #c8cdd3 !important;
+}
+body[class*="com_aiboost"][data-bs-theme=dark] .form-text,
+[data-bs-theme=dark] body[class*="com_aiboost"] .form-text {
+    color: #b9c0c7 !important;
+}
+
+/* Joomla globally appends an "external link" icon to <a target="_blank">     */
+/* via ::after — duplicates icons on our buttons. Suppress on .btn within     */
+/* our Vue mount points (mounts use IDs, not classes).                        */
+#ab-vue-integrations a.btn::after,
+#ab-vue-integrations a.btn::before,
+#ab-vue-health a.btn[target="_blank"]::after,
+#ab-vue-dashboard a.btn[target="_blank"]::after,
+#ab-vue-help a.btn[target="_blank"]::after {
+    content: none !important;
+    display: none !important;
+}

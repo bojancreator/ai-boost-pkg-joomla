@@ -1,0 +1,11 @@
+{
+    "editButton": {
+        "frameTitle": "SEO-tietojen muokkauslomake",
+        "title": "Napsauta muokataksesi tämän sivun SEO-tietoja",
+        "titleIgnored": "Tätä sivua ei ole vielä analysoitu tai se on jätetty huomiotta SEO-näkökulmasta.",
+        "bodyIgnored": "4SEO ei ehkä ole vielä analysoinut tätä sivua tai se on jätetty huomiotta. Sivujen huomiotta jättäminen tapahtuu useimmiten silloin, kun ne on rajoitettu kirjautuneille käyttäjille, mutta myös sivuille, joilla ei ole SEO-arvoa, kuten kirjautumissivuille, joillekin lomakkeille jne.",
+        "reloadPage": "Päivitä sivu ja avaa tämä valintaikkuna uudelleen nähdäksesi päivitetyt tiedot.",
+        "seeBelow": "Katso alla.",
+        "reload": "Päivitä sivu"
+    }
+}

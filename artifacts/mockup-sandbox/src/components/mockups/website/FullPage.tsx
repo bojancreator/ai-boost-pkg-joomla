@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { logoDataUrl as logoSrc } from "@/assets/logo-data";
+import { blogPosts } from "@/data/blogPosts";
 
 const videoSrc = import.meta.env.BASE_URL + "hero-video.mp4";
 
@@ -24,6 +25,8 @@ const feats = [
   { icon: "⚡", title: "IndexNow",               desc: "Instant URL submission to Bing, Yandex, and Seznam the moment you publish new content." },
   { icon: "📊", title: "Analytics Suite",        desc: "GA4, Google Tag Manager, Google Search Console verification, Meta Pixel — all from one panel." },
   { icon: "🌍", title: "11 Language Packs",      desc: "Full admin UI in EN, DE, FR, ES, IT, RU, PT, ZH, AR, JA, SR. Multilingual custom fields too." },
+  { icon: "🕐", title: "Business Hours Widget",  desc: "Set opening hours for all 7 days in one compact table. Generates proper Schema.org openingHoursSpecification automatically." },
+  { icon: "🏪", title: "13 Site Type Presets",   desc: "Restaurant, Hotel, Medical, Law firm, Gym, Real estate and more — one click fills the right schema fields." },
 ];
 
 const faqs = [
@@ -36,13 +39,14 @@ const faqs = [
 const featureList = [
   "All plugin features included",
   "Schema.org JSON-LD (all types)",
+  "Business Hours widget (compact table)",
   "XML Sitemap + hreflang",
   "OpenGraph + Twitter Cards",
   "robots.txt with AI crawler rules",
   "llms.txt generator",
   "IndexNow integration",
   "GA4, GTM, Meta Pixel",
-  "5 Vertical Presets",
+  "13 Site Type Presets",
   "11 language packs",
   "1 year of updates & bug fixes",
 ];
@@ -98,6 +102,59 @@ const css = `
   .ab-plan-btn { display:block; text-align:center; padding:13px 0; font-weight:700; font-size:14px; border-radius:10px; text-decoration:none; }
   .ab-feat-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
   .ab-feat-item { display:flex; gap:10px; align-items:flex-start; }
+
+  /* BUSINESS HOURS SPOTLIGHT */
+  .ab-bh { background:#fff; padding:96px 64px; border-top:1px solid #E8E4F4; border-bottom:1px solid #E8E4F4; }
+  .ab-bh-inner { max-width:1200px; margin:0 auto; display:flex; align-items:center; gap:72px; }
+  .ab-bh-text { flex:0 0 44%; }
+  .ab-bh-pill { display:inline-flex; align-items:center; gap:8px; background:#F3F0FF; border:1px solid #D4C9FF; border-radius:100px; padding:5px 14px; margin-bottom:20px; font-size:12px; font-weight:700; color:#7B4FFF; text-transform:uppercase; letter-spacing:.5px; }
+  .ab-bh-h3 { font-size:34px; font-weight:900; letter-spacing:-1.2px; margin:0 0 16px; color:#0C0B1D; line-height:1.1; }
+  .ab-bh-p { font-size:16px; color:#5A5A7A; line-height:1.7; margin:0 0 28px; }
+  .ab-bh-bullets { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+  .ab-bh-bullet { display:flex; gap:10px; align-items:flex-start; font-size:14px; color:#5A5A7A; }
+  .ab-bh-widget { flex:1; background:#F8F7FF; border-radius:20px; border:1.5px solid #E8E4F4; padding:28px; box-shadow:0 16px 48px rgba(123,79,255,.12),0 2px 8px rgba(0,0,0,.06); }
+  .ab-bh-widget-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .ab-bh-widget-title { font-size:13px; font-weight:700; color:#0C0B1D; }
+  .ab-bh-toggle { display:flex; background:#E8E4F4; border-radius:8px; padding:3px; gap:2px; }
+  .ab-bh-toggle-btn { font-size:11px; font-weight:600; padding:5px 10px; border-radius:6px; border:none; cursor:pointer; }
+  .ab-bh-toggle-active { background:#7B4FFF; color:#fff; }
+  .ab-bh-toggle-inactive { background:transparent; color:#9090B0; }
+  .ab-bh-table { width:100%; border-collapse:collapse; }
+  .ab-bh-table th { font-size:10px; font-weight:700; color:#9090B0; text-transform:uppercase; letter-spacing:.5px; padding:0 8px 10px; text-align:left; }
+  .ab-bh-table th:last-child { text-align:center; }
+  .ab-bh-table td { padding:6px 8px; border-top:1px solid #EEE9FF; }
+  .ab-bh-day { font-size:13px; font-weight:600; color:#0C0B1D; min-width:36px; }
+  .ab-bh-time { background:#fff; border:1.5px solid #E8E4F4; border-radius:6px; font-size:12px; color:#0C0B1D; padding:5px 8px; width:74px; text-align:center; font-family:monospace; }
+  .ab-bh-sep { font-size:12px; color:#B0B0C8; padding:0 4px; }
+  .ab-bh-check { width:16px; height:16px; accent-color:#7B4FFF; cursor:pointer; display:block; margin:0 auto; }
+  .ab-bh-closed { font-size:11px; color:#FF6B6B; font-weight:600; text-align:center; }
+  .ab-bh-schema { margin-top:16px; background:#F0ECF8; border-radius:10px; padding:12px 14px; font-size:11px; font-family:monospace; color:#5A5A7A; line-height:1.6; overflow:hidden; }
+  .ab-bh-schema-key { color:#7B4FFF; }
+  .ab-bh-schema-val { color:#1A9C50; }
+
+  @media (max-width: 900px) {
+    .ab-bh { padding:64px 20px; }
+    .ab-bh-inner { flex-direction:column; gap:40px; }
+    .ab-bh-text { flex:none; width:100%; }
+    .ab-bh-h3 { font-size:26px; }
+  }
+
+  /* BLOG */
+  .ab-blog { background:#fff; padding:96px 64px; border-top:1px solid #E8E4F4; border-bottom:1px solid #E8E4F4; }
+  .ab-blog-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .ab-blog-card { background:#F8F7FF; border:1.5px solid #E8E4F4; border-radius:16px; padding:28px; display:flex; flex-direction:column; gap:12px; transition:border-color .15s; position:relative; }
+  .ab-blog-card:hover { border-color:#C4B5FF; }
+  .ab-blog-cat { display:inline-flex; align-items:center; background:#F3F0FF; border:1px solid #D4C9FF; color:#7B4FFF; font-size:11px; font-weight:700; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:.4px; width:fit-content; }
+  .ab-blog-new { display:inline-flex; align-items:center; background:#7B4FFF; color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:100px; text-transform:uppercase; letter-spacing:.4px; margin-left:6px; }
+  .ab-blog-title { font-size:16px; font-weight:700; color:#0C0B1D; line-height:1.35; }
+  .ab-blog-excerpt { font-size:13px; color:#5A5A7A; line-height:1.65; flex:1; }
+  .ab-blog-meta { display:flex; align-items:center; gap:10px; font-size:12px; color:#9090B0; margin-top:auto; padding-top:12px; border-top:1px solid #EEE9FF; }
+  .ab-blog-read-more { font-size:13px; font-weight:600; color:#7B4FFF; text-decoration:none; }
+
+  @media (max-width: 900px) {
+    .ab-blog { padding:64px 20px; }
+    .ab-blog-grid { grid-template-columns:1fr; }
+  }
 
   /* FAQ */
   .ab-faq { background:#F8F7FF; padding:96px 64px; border-top:1px solid #E8E4F4; }
@@ -253,6 +310,93 @@ export function FullPage() {
         </div>
       </section>
 
+      {/* BUSINESS HOURS SPOTLIGHT */}
+      <section className="ab-bh">
+        <div className="ab-bh-inner">
+          <div className="ab-bh-text">
+            <div className="ab-bh-pill">🕐 New in v0.26</div>
+            <h3 className="ab-bh-h3">
+              Set your opening hours{" "}
+              <span style={{ color: PURPLE }}>in seconds</span>
+            </h3>
+            <p className="ab-bh-p">
+              Our compact weekly table replaces 46 individual fields. Pick open/close times for each day — AI Boost generates proper <code style={{ background:"#F3F0FF", padding:"2px 6px", borderRadius:4, fontSize:14, color:PURPLE }}>openingHoursSpecification</code> Schema.org JSON-LD automatically.
+            </p>
+            <ul className="ab-bh-bullets">
+              {[
+                ["✓", "One compact 7-row table instead of 46 separate fields"],
+                ["✓", "All same hours or individual per day — one click toggle"],
+                ["✓", "Mark any day as closed with a single checkbox"],
+                ["✓", "Instant Schema.org output — no JSON editing needed"],
+              ].map(([mark, text]) => (
+                <li key={text} className="ab-bh-bullet">
+                  <span style={{ color: PURPLE, fontWeight: 900, flexShrink: 0 }}>{mark}</span>
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="ab-bh-widget">
+            <div className="ab-bh-widget-header">
+              <span className="ab-bh-widget-title">Business Hours</span>
+              <div className="ab-bh-toggle">
+                <button className="ab-bh-toggle-btn ab-bh-toggle-inactive">All same</button>
+                <button className="ab-bh-toggle-btn ab-bh-toggle-active">Individual</button>
+              </div>
+            </div>
+            <table className="ab-bh-table">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th colSpan={3}>Hours</th>
+                  <th>Open</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { day: "Mon", open: "09:00", close: "17:00", isOpen: true },
+                  { day: "Tue", open: "09:00", close: "17:00", isOpen: true },
+                  { day: "Wed", open: "09:00", close: "17:00", isOpen: true },
+                  { day: "Thu", open: "09:00", close: "18:00", isOpen: true },
+                  { day: "Fri", open: "09:00", close: "16:00", isOpen: true },
+                  { day: "Sat", open: "10:00", close: "14:00", isOpen: true },
+                  { day: "Sun", open: "",      close: "",      isOpen: false },
+                ].map(row => (
+                  <tr key={row.day}>
+                    <td><span className="ab-bh-day">{row.day}</span></td>
+                    {row.isOpen ? (
+                      <>
+                        <td><span className="ab-bh-time">{row.open}</span></td>
+                        <td><span className="ab-bh-sep">–</span></td>
+                        <td><span className="ab-bh-time">{row.close}</span></td>
+                        <td><input type="checkbox" className="ab-bh-check" defaultChecked readOnly /></td>
+                      </>
+                    ) : (
+                      <>
+                        <td colSpan={3}><span className="ab-bh-closed">Closed</span></td>
+                        <td><input type="checkbox" className="ab-bh-check" readOnly /></td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="ab-bh-schema">
+              <span className="ab-bh-schema-key">"openingHoursSpecification"</span>: [{"{"}
+              <br />
+              &nbsp;&nbsp;<span className="ab-bh-schema-key">"@type"</span>: <span className="ab-bh-schema-val">"OpeningHoursSpecification"</span>,
+              <br />
+              &nbsp;&nbsp;<span className="ab-bh-schema-key">"dayOfWeek"</span>: <span className="ab-bh-schema-val">"Monday"</span>,
+              <br />
+              &nbsp;&nbsp;<span className="ab-bh-schema-key">"opens"</span>: <span className="ab-bh-schema-val">"09:00"</span>,
+              <span className="ab-bh-schema-key"> "closes"</span>: <span className="ab-bh-schema-val">"17:00"</span>
+              <br />
+              {"}"}, <span style={{ color:"#B0B0C8" }}>…6 more days</span> ]
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section id="pricing" className="ab-pricing">
         <div style={{ maxWidth:1200, margin:"0 auto" }}>
@@ -292,6 +436,37 @@ export function FullPage() {
           <p style={{ textAlign:"center", marginTop:40, fontSize:14, color:"#9090B0" }}>
             🛡️ 30-day money-back guarantee &nbsp;·&nbsp; Payments by Gumroad &nbsp;·&nbsp; EU VAT handled automatically
           </p>
+        </div>
+      </section>
+
+      {/* BLOG */}
+      <section id="blog" className="ab-blog">
+        <div style={{ maxWidth:1200, margin:"0 auto" }}>
+          <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginBottom:56, flexWrap:"wrap", gap:16 }}>
+            <div>
+              <h2 className="ab-h2">From the blog</h2>
+              <p style={{ fontSize:17, color:"#5A5A7A", marginTop:12, maxWidth:520 }}>Guides, explainers, and tutorials on Schema.org, AI search, and Joomla SEO.</p>
+            </div>
+            <a href="/blog" className="ab-blog-read-more" style={{ fontSize:14 }}>View all {blogPosts.length} posts →</a>
+          </div>
+          <div className="ab-blog-grid">
+            {[...blogPosts].reverse().slice(0, 6).map(post => (
+              <article key={post.slug} className="ab-blog-card">
+                <div style={{ display:"flex", alignItems:"center", flexWrap:"wrap", gap:4 }}>
+                  <span className="ab-blog-cat">{post.category}</span>
+                  {post.isNew && <span className="ab-blog-new">New</span>}
+                </div>
+                <h3 className="ab-blog-title">{post.title}</h3>
+                <p className="ab-blog-excerpt">{post.excerpt}</p>
+                <div className="ab-blog-meta">
+                  <span>{new Date(post.date).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" })}</span>
+                  <span>·</span>
+                  <span>{post.readTime}</span>
+                  <a href={`/blog/${post.slug}`} className="ab-blog-read-more" style={{ marginLeft:"auto" }}>Read →</a>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

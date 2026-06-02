@@ -5,10 +5,12 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { LicenseSku } from "./licenseSku";
 
 export interface LicenseValidateRequest {
-  /** UUID-format license key from Gumroad */
+  /** License key entered by the admin */
   license_key: string;
-  /** URL of the site being activated (stored for display purposes) */
-  site_url?: string;
+  sku: LicenseSku;
+  /** JUri::root() value from the Joomla install, stored for activation tracking */
+  site_domain: string;
 }

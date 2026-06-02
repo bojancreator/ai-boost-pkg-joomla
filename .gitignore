@@ -1,42 +1,61 @@
-# IDE and OS specific files
-.vscode/
-.idea/
-*.swp
-*~
+# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# compiled output
+dist
+tmp
+out-tsc
+*.tsbuildinfo
+.expo
+.expo-shared
+
+# dependencies
+node_modules
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# misc
+/.sass-cache
+/connect.lock
+/coverage
+/libpeerconnection.log
+npm-debug.log
+yarn-error.log
+testem.log
+/typings
+
+# System Files
 .DS_Store
 Thumbs.db
 
-# Dependencies
-/vendor/
-/node_modules/
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md
 
-# Build artifacts
-/build/
-/dist/
-*.zip
-*.tar.gz
+# Replit
+.cache/
+.local/
 
-# Tooling inspection/build artifacts
-tools/__build/
-tools/__inspect_*/
-tools/__inspect_offroadseo_zip*/
-tools/__inspect_1.8.8/
+# Deliverables (ZIP-ovi, PDF-ovi, marketing materijali — ne idu u git)
+/deliverables/
+# Exception: text reports and docs in deliverables/docs/ are tracked
+!/deliverables/docs/
+!/deliverables/docs/*.md
+# Exception: SDK template bridge for third-party integration developers
+!/deliverables/integrations/
+!/deliverables/integrations/**
 
-# Logs and cache
-*.log
-logs/
-!logs/.gitkeep
-cache/
-!cache/.gitkeep
-tmp/
-!tmp/.gitkeep
-
-# Local configuration
-.env
-.env.*.local
-
-# Codacy CLI cache
-.codacy-cli-v2/
-
-# Continue extension cache
-.continue/
+# Generated OG images — regenerated fresh by `prebuild` on every `pnpm build`
+website/public/og/

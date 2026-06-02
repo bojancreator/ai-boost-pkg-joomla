@@ -1,0 +1,9 @@
+-- AI Boost — Component Uninstall SQL
+--
+-- Intentionally EMPTY. We preserve user data on uninstall: no #__aiboost_*
+-- table is ever dropped, so a user who removes the component and reinstalls
+-- keeps every setting, redirect, translation, scan and log row.
+--
+-- Licence state is reset (the six licence/dev keys are JSON_REMOVEd from the
+-- `main` #__aiboost_settings row) by Pkg_AiboostInstallerScript::uninstall()
+-- in PHP, not here.

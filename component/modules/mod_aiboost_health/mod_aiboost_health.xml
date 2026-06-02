@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" version="4.0" client="administrator" method="upgrade">
+    <name>MOD_AIBOOST_HEALTH</name>
+    <packagename>aiboost</packagename>
+    <author>AI Boost Team</author>
+    <creationDate>May 2026</creationDate>
+    <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <authorEmail>info@aiboostnow.com</authorEmail>
+    <authorUrl>https://aiboostnow.com</authorUrl>
+    <version>0.11.0</version>
+    <description>MOD_AIBOOST_HEALTH_XML_DESCRIPTION</description>
+    <php_minimum>8.1.0</php_minimum>
+    <joomla_minimum>5.0.0</joomla_minimum>
+    <files>
+        <filename module="mod_aiboost_health">mod_aiboost_health.php</filename>
+        <folder>tmpl</folder>
+        <folder>language</folder>
+    </files>
+    <languages>
+        <language tag="en-GB">language/en-GB/mod_aiboost_health.ini</language>
+        <language tag="en-GB">language/en-GB/mod_aiboost_health.sys.ini</language>
+    </languages>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+            </fieldset>
+            <fieldset name="advanced">
+                <field
+                    name="layout"
+                    type="modulelayout"
+                    label="JFIELD_ALT_LAYOUT_LABEL"
+                    class="form-select"
+                    default=""
+                    addfrom="modules/mod_aiboost_health/tmpl"
+                />
+                <field
+                    name="moduleclass_sfx"
+                    type="textarea"
+                    label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
+                    rows="3"
+                    validate="CssIdentifier"
+                />
+                <field
+                    name="cache"
+                    type="list"
+                    label="COM_MODULES_FIELD_CACHING_LABEL"
+                    default="0"
+                >
+                    <option value="1">JGLOBAL_USE_GLOBAL</option>
+                    <option value="0">COM_MODULES_FIELD_VALUE_NOCACHING</option>
+                </field>
+                <field
+                    name="cache_time"
+                    type="text"
+                    label="COM_MODULES_FIELD_CACHE_TIME_LABEL"
+                    default="900"
+                    filter="int"
+                />
+                <field
+                    name="cachemode"
+                    type="hidden"
+                    default="static"
+                />
+            </fieldset>
+        </fields>
+    </config>
+</extension>

@@ -75,7 +75,7 @@ When **Yes**, JoomlaBoost wraps every block it injects in HTML comments that ide
 {
   "@context": "https://schema.org",
   "@type": "Hotel",
-  "name": "Acme Hotel Belgrade",
+  "name": "Acme Hotel Manhattan",
   ...
 }
 </script>
@@ -83,7 +83,7 @@ When **Yes**, JoomlaBoost wraps every block it injects in HTML comments that ide
 
 <!-- JoomlaBoost: OpenGraph start -->
 <meta property="og:type" content="website" />
-<meta property="og:title" content="Acme Hotel Belgrade" />
+<meta property="og:title" content="Acme Hotel Manhattan" />
 ...
 <!-- JoomlaBoost: OpenGraph end -->
 ```

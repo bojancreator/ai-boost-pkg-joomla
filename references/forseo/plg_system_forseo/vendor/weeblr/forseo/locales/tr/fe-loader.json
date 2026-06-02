@@ -1,0 +1,12 @@
+{
+    "editButton": {
+        "footerIgnored": "Kapatmak için bu mesajı tıklayın.",
+        "bodyIgnored": "4 SEO bu sayfayı henüz analiz etmemiş olabilir veya göz ardı etmiş olabilir. Sayfaları yok saymak, çoğu zaman oturum açmış kullanıcılarla sınırlı olduklarında, aynı zamanda oturum açma sayfası, bazı formlar vb. gibi SEO değeri olmayan sayfalar için de olur",
+        "titleIgnored": "Bu sayfa henüz analiz edilmedi veya SEO açısından göz ardı edildi.",
+        "title": "Bu sayfanın SEO bilgilerini düzenlemek için tıklayın",
+        "frameTitle": "SEO bilgi düzenleme formu",
+        "reloadPage": "Lütfen sayfayı yeniden yükleyin ve güncel bilgileri görmek için bu iletişim kutusunu yeniden açın.",
+        "seeBelow": "Lütfen aşağıya bakın.",
+        "reload": "Sayfayı yeniden yükleyin"
+    }
+}

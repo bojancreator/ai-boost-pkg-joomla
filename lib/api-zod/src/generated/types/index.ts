@@ -7,6 +7,12 @@
  */
 
 export * from "./healthStatus";
+export * from "./licenseDeactivateRequest";
+export * from "./licenseDeactivateResponse";
+export * from "./licenseHeartbeatPayload";
+export * from "./licenseHeartbeatResult";
+export * from "./licenseHeartbeatVerdict";
+export * from "./licenseSku";
+export * from "./licenseStatus";
 export * from "./licenseValidateRequest";
 export * from "./licenseValidateResponse";
-export * from "./licenseValidateResponseStatus";

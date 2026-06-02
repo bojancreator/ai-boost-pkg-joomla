@@ -203,12 +203,12 @@ Add extra pages or important content not automatically discovered by JoomlaBoost
 
 **Example output:**
 ```
-# Acme Hotel Belgrade
+# Acme Hotel Manhattan
 
-> A 4-star hotel in Belgrade, Serbia, offering luxury accommodation since 1999.
+> A 4-star hotel in Manhattan, New York, USA, offering luxury accommodation since 1999.
 
-Contact: info@acmehotel.com | +381 11 123 4567
-Address: Knez Mihailova 10, Belgrade, Serbia
+Contact: info@acmehotel.com | +1 212 555 0123
+Address: 123 W 44th St, New York, USA
 
 ## Pages
 

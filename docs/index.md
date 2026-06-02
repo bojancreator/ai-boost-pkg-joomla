@@ -1,14 +1,14 @@
-# AI Boost (JoomlaBoost) — Documentation
+# AI Boost for Joomla — Documentation
 
-**Version:** 0.24.0  
-**Compatible with:** Joomla 4.x, 5.x, 6.x | PHP 8.1+  
-**Publisher:** AI Boost Now — [aiboostnow.com](https://aiboostnow.com)
+**Version:** 0.27.0  
+**Compatible with:** Joomla 5.x, 6.x | PHP 8.1+  
+**Publisher:** AI Boost — [aiboostnow.com](https://aiboostnow.com)
 
 ---
 
-## What is JoomlaBoost?
+## What is AI Boost for Joomla?
 
-JoomlaBoost is an all-in-one SEO and AEO (Answer Engine Optimization) system plugin for Joomla. It automatically generates structured data, XML sitemaps, OpenGraph tags, AI-readable signals, and analytics integrations — everything in one place, with no coding required.
+**AI Boost for Joomla** is an all-in-one SEO and AEO (Answer Engine Optimization) system plugin for Joomla. It automatically generates structured data, XML sitemaps, OpenGraph tags, AI-readable signals, and analytics integrations — everything in one place, with no coding required.
 
 **Key benefits:**
 - Get found by Google, Bing, ChatGPT, Perplexity, and Google AI Overviews
@@ -23,19 +23,21 @@ JoomlaBoost is an all-in-one SEO and AEO (Answer Engine Optimization) system plu
 
 ## License Tiers
 
-| Feature | Unlicensed | Starter | Developer | Agency |
-|---------|:----------:|:-------:|:---------:|:------:|
-| Schema.org, Sitemap, OpenGraph, Robots.txt | ✓ | ✓ | ✓ | ✓ |
-| GA4, GTM, GSC Verification | ✓ | ✓ | ✓ | ✓ |
-| FAQ Auto-detect | ✓ | ✓ | ✓ | ✓ |
-| Meta Pixel | ✓ | ✓ | ✓ | ✓ |
-| IndexNow | — | — | ✓ | ✓ |
-| LLMs.txt | — | — | ✓ | ✓ |
-| Manual FAQ (multilingual) | — | — | ✓ | ✓ |
-| Events Schema | — | — | ✓ | ✓ |
-| Number of sites | — | 1 | 5 | Unlimited |
+| Feature | Free | Developer | Agency |
+|---------|:----:|:---------:|:------:|
+| Schema.org, Sitemap, OpenGraph, Robots.txt | ✓ | ✓ | ✓ |
+| GA4, GTM, GSC Verification | ✓ | ✓ | ✓ |
+| FAQ Auto-detect | ✓ | ✓ | ✓ |
+| Meta Pixel | ✓ | ✓ | ✓ |
+| 8 Specialized Site Types | — | ✓ | ✓ |
+| Advanced Business Hours | — | ✓ | ✓ |
+| IndexNow | — | ✓ | ✓ |
+| llms.txt | — | ✓ | ✓ |
+| Manual FAQ (multilingual) | — | ✓ | ✓ |
+| Events Schema | — | ✓ | ✓ |
+| Number of sites | 1 | 5 | Unlimited |
 
-> Features marked **Developer / Agency** display an upgrade notice in the admin panel for Starter and unlicensed users.
+> Features marked **Developer / Agency** display an upgrade notice in the admin panel for free users.
 
 ---
 
@@ -61,6 +63,9 @@ JoomlaBoost is an all-in-one SEO and AEO (Answer Engine Optimization) system plu
 - [Troubleshooting](troubleshooting.md) — Common issues and solutions
 - [Compatibility Matrix](compatibility.md) — Joomla versions, PHP, templates, third-party plugins
 
+### Release Notes
+- [Changelog](changelog.md) — What's new in each version
+
 ---
 
 ## Quick Verification Checklist
@@ -76,5 +81,5 @@ After installation and initial setup, verify these URLs work:
 
 ---
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now. All rights reserved.*  
-*[aiboostnow.com/docs](https://aiboostnow.com/docs) | support@aiboostnow.com*
+*AI Boost for Joomla v0.27.0 — © 2025–2026 AI Boost (aiboostnow.com). All rights reserved.*  
+*[aiboostnow.com/docs](https://aiboostnow.com/docs) | info@aiboostnow.com*

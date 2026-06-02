@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_SOCIAL</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>0.8.2</version>
+  <description>PLG_SYSTEM_AIBOOST_SOCIAL_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostSocial</namespace>
+  <files>
+    <filename plugin="aiboost_social">aiboost_social.php</filename>
+    <folder>src</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_social.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_social.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_social.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_social.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_social.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_social.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_social.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_social.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_social.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_social.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_social.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_social.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+      <fieldset name="basic" label="PLG_SYSTEM_AIBOOST_SOCIAL_FIELDSET_BASIC">
+        <field
+          name="enabled"
+          type="radio"
+          label="JSTATUS"
+          description="PLG_SYSTEM_AIBOOST_SOCIAL_ENABLED_DESC"
+          layout="joomla.form.field.radio.switcher"
+          default="1"
+          filter="integer">
+          <option value="0">JDISABLED</option>
+          <option value="1">JENABLED</option>
+        </field>
+      </fieldset>
+    </fields>
+  </config>
+</extension>

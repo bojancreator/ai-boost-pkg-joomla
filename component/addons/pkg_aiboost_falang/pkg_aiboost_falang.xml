@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="package" version="3.9" method="upgrade">
+    <name>AI Boost for Falang Pro</name>
+    <packagename>aiboost_falang</packagename>
+    <author>AI Boost Team</author>
+    <creationDate>May 2026</creationDate>
+    <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <authorEmail>info@aiboostnow.com</authorEmail>
+    <authorUrl>https://aiboostnow.com</authorUrl>
+    <version>1.0.0</version>
+    <description>AI Boost add-on for Falang Pro. Requires AI Boost for Joomla (Basic or Professional) and Falang Pro. Provides: automatic hreflang tags from Falang language data, per-language Schema.org organisation fields, per-language OpenGraph meta, and hreflang alternates in XML sitemap.</description>
+    <php_minimum>8.1.0</php_minimum>
+    <joomla_minimum>5.0.0</joomla_minimum>
+    <url>https://aiboostnow.com</url>
+    <files folder="packages">
+        <file type="plugin"
+              id="aiboost_falang"
+              group="system">plg_system_aiboost_falang-1.0.0.zip</file>
+    </files>
+</extension>

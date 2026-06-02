@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_AIBOOST_CODE</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>0.7.0</version>
+  <description>PLG_SYSTEM_AIBOOST_CODE_XML_DESCRIPTION</description>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>4.0.0</joomla_minimum>
+  <namespace path="src">AiBoost\Plugin\System\AiBoostCode</namespace>
+  <files>
+    <filename plugin="aiboost_code">aiboost_code.php</filename>
+    <folder>src</folder>
+    <folder>lib</folder>
+    <folder>language</folder>
+  </files>
+  <languages>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_code.ini</language>
+    <language tag="en-GB">language/en-GB/plg_system_aiboost_code.sys.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_code.ini</language>
+    <language tag="de-DE">language/de-DE/plg_system_aiboost_code.sys.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_code.ini</language>
+    <language tag="fr-FR">language/fr-FR/plg_system_aiboost_code.sys.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_code.ini</language>
+    <language tag="es-ES">language/es-ES/plg_system_aiboost_code.sys.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_code.ini</language>
+    <language tag="it-IT">language/it-IT/plg_system_aiboost_code.sys.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_code.ini</language>
+    <language tag="pt-BR">language/pt-BR/plg_system_aiboost_code.sys.ini</language>
+  </languages>
+  <config>
+    <fields name="params">
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: License
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="license" label="PLG_SYSTEM_AIBOOST_CODE_FIELDSET_LICENSE">
+
+        <field
+          name="license_key"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODE_LICENSE_KEY_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_LICENSE_KEY_DESC"
+          size="60"
+          filter="string" />
+
+        <field
+          name="license_tier"
+          type="hidden"
+          default="free" />
+
+        <field
+          name="license_status"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODE_LICENSE_STATUS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_LICENSE_STATUS_DESC"
+          default="Free"
+          readonly="true"
+          class="readonly"
+          filter="string" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Global Snippets (Free)
+           Three positions — head, body-open, body-close.
+           One slot per position in the Free tier.
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset name="global_snippets" label="PLG_SYSTEM_AIBOOST_CODE_FIELDSET_GLOBAL">
+
+        <field
+          name="dev_mode_suppress"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODE_DEV_MODE_SUPPRESS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_DEV_MODE_SUPPRESS_DESC"
+          default="1">
+          <option value="1">PLG_SYSTEM_AIBOOST_CODE_YES</option>
+          <option value="0">PLG_SYSTEM_AIBOOST_CODE_NO</option>
+        </field>
+
+        <field
+          name="head_code"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODE_HEAD_CODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_HEAD_CODE_DESC"
+          rows="8"
+          cols="60"
+          filter="raw"
+          default="" />
+
+        <field
+          name="body_top_code"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODE_BODY_TOP_CODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_BODY_TOP_CODE_DESC"
+          rows="8"
+          cols="60"
+          filter="raw"
+          default="" />
+
+        <field
+          name="body_bottom_code"
+          type="textarea"
+          label="PLG_SYSTEM_AIBOOST_CODE_BODY_BOTTOM_CODE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_BODY_BOTTOM_CODE_DESC"
+          rows="8"
+          cols="60"
+          filter="raw"
+          default="" />
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Pro Snippets [Pro only]
+           Unlimited named snippet slots with per-snippet targeting.
+           Uses Joomla native subform (multiple=true) — each row
+           stores: label, enabled, position, target, menu_ids,
+           user_state, code.
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset
+        name="pro_snippets"
+        label="PLG_SYSTEM_AIBOOST_CODE_FIELDSET_PRO_SNIPPETS"
+        showon="license_tier:pro">
+
+        <field
+          name="pro_snippets_list"
+          type="subform"
+          label="PLG_SYSTEM_AIBOOST_CODE_PRO_SNIPPETS_LIST_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_PRO_SNIPPETS_LIST_DESC"
+          multiple="true"
+          min="0"
+          max="500"
+          layout="joomla.form.field.subform.repeatable-table"
+          filter="array">
+          <form>
+            <field
+              name="snippet_label"
+              type="text"
+              label="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_LABEL"
+              size="40"
+              filter="string"
+              default="" />
+            <field
+              name="snippet_enabled"
+              type="list"
+              label="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_ENABLED"
+              default="1">
+              <option value="1">PLG_SYSTEM_AIBOOST_CODE_YES</option>
+              <option value="0">PLG_SYSTEM_AIBOOST_CODE_NO</option>
+            </field>
+            <field
+              name="snippet_position"
+              type="list"
+              label="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_POSITION"
+              default="head">
+              <option value="head">PLG_SYSTEM_AIBOOST_CODE_POS_HEAD</option>
+              <option value="body_top">PLG_SYSTEM_AIBOOST_CODE_POS_BODY_TOP</option>
+              <option value="body_bottom">PLG_SYSTEM_AIBOOST_CODE_POS_BODY_BOTTOM</option>
+            </field>
+            <field
+              name="snippet_target"
+              type="list"
+              label="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_TARGET"
+              default="all">
+              <option value="all">PLG_SYSTEM_AIBOOST_CODE_TARGET_ALL</option>
+              <option value="homepage">PLG_SYSTEM_AIBOOST_CODE_TARGET_HOMEPAGE</option>
+              <option value="articles">PLG_SYSTEM_AIBOOST_CODE_TARGET_ARTICLES</option>
+              <option value="categories">PLG_SYSTEM_AIBOOST_CODE_TARGET_CATEGORIES</option>
+              <option value="specific">PLG_SYSTEM_AIBOOST_CODE_TARGET_SPECIFIC</option>
+            </field>
+            <field
+              name="snippet_menu_ids"
+              type="text"
+              label="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_MENU_IDS"
+              description="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_MENU_IDS_DESC"
+              size="40"
+              filter="string"
+              default="" />
+            <field
+              name="snippet_user_state"
+              type="list"
+              label="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_USER_STATE"
+              default="all">
+              <option value="all">PLG_SYSTEM_AIBOOST_CODE_USER_ALL</option>
+              <option value="logged_in">PLG_SYSTEM_AIBOOST_CODE_USER_LOGGED_IN</option>
+              <option value="guests">PLG_SYSTEM_AIBOOST_CODE_USER_GUESTS</option>
+            </field>
+            <field
+              name="snippet_code"
+              type="textarea"
+              label="PLG_SYSTEM_AIBOOST_CODE_SNIPPET_CODE"
+              rows="6"
+              cols="60"
+              filter="raw"
+              default="" />
+          </form>
+        </field>
+
+      </fieldset>
+
+      <!-- ═══════════════════════════════════════════════════════
+           FIELDSET: Social Snippets [Pro only]
+           Pre-built tracking snippets — admin provides only the
+           account/pixel ID; plugin generates the full JS tag.
+           ═══════════════════════════════════════════════════════ -->
+      <fieldset
+        name="social_snippets"
+        label="PLG_SYSTEM_AIBOOST_CODE_FIELDSET_SOCIAL"
+        showon="license_tier:pro">
+
+        <!-- Facebook Pixel -->
+        <field
+          name="enable_fb_pixel"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODE_FB_PIXEL_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_FB_PIXEL_ENABLE_DESC"
+          default="0">
+          <option value="1">PLG_SYSTEM_AIBOOST_CODE_YES</option>
+          <option value="0">PLG_SYSTEM_AIBOOST_CODE_NO</option>
+        </field>
+        <field
+          name="fb_pixel_id"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODE_FB_PIXEL_ID_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_FB_PIXEL_ID_DESC"
+          size="30"
+          filter="string"
+          default=""
+          showon="enable_fb_pixel:1" />
+        <field
+          name="fb_events"
+          type="checkboxes"
+          label="PLG_SYSTEM_AIBOOST_CODE_FB_EVENTS_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_FB_EVENTS_DESC"
+          showon="enable_fb_pixel:1">
+          <option value="PageView">PageView</option>
+          <option value="Purchase">Purchase</option>
+          <option value="Lead">Lead</option>
+          <option value="AddToCart">AddToCart</option>
+          <option value="ViewContent">ViewContent</option>
+        </field>
+
+        <!-- Google Ads Conversion -->
+        <field
+          name="enable_google_ads"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODE_GADS_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_GADS_ENABLE_DESC"
+          default="0">
+          <option value="1">PLG_SYSTEM_AIBOOST_CODE_YES</option>
+          <option value="0">PLG_SYSTEM_AIBOOST_CODE_NO</option>
+        </field>
+        <field
+          name="google_ads_id"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODE_GADS_ID_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_GADS_ID_DESC"
+          size="30"
+          filter="string"
+          default=""
+          showon="enable_google_ads:1" />
+
+        <!-- LinkedIn Insight Tag -->
+        <field
+          name="enable_linkedin"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODE_LINKEDIN_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_LINKEDIN_ENABLE_DESC"
+          default="0">
+          <option value="1">PLG_SYSTEM_AIBOOST_CODE_YES</option>
+          <option value="0">PLG_SYSTEM_AIBOOST_CODE_NO</option>
+        </field>
+        <field
+          name="linkedin_partner_id"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODE_LINKEDIN_ID_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_LINKEDIN_ID_DESC"
+          size="30"
+          filter="string"
+          default=""
+          showon="enable_linkedin:1" />
+
+        <!-- TikTok Pixel -->
+        <field
+          name="enable_tiktok"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODE_TIKTOK_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_TIKTOK_ENABLE_DESC"
+          default="0">
+          <option value="1">PLG_SYSTEM_AIBOOST_CODE_YES</option>
+          <option value="0">PLG_SYSTEM_AIBOOST_CODE_NO</option>
+        </field>
+        <field
+          name="tiktok_pixel_id"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODE_TIKTOK_ID_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_TIKTOK_ID_DESC"
+          size="30"
+          filter="string"
+          default=""
+          showon="enable_tiktok:1" />
+
+        <!-- Pinterest Base Tag -->
+        <field
+          name="enable_pinterest"
+          type="list"
+          label="PLG_SYSTEM_AIBOOST_CODE_PINTEREST_ENABLE_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_PINTEREST_ENABLE_DESC"
+          default="0">
+          <option value="1">PLG_SYSTEM_AIBOOST_CODE_YES</option>
+          <option value="0">PLG_SYSTEM_AIBOOST_CODE_NO</option>
+        </field>
+        <field
+          name="pinterest_tag_id"
+          type="text"
+          label="PLG_SYSTEM_AIBOOST_CODE_PINTEREST_ID_LABEL"
+          description="PLG_SYSTEM_AIBOOST_CODE_PINTEREST_ID_DESC"
+          size="30"
+          filter="string"
+          default=""
+          showon="enable_pinterest:1" />
+
+      </fieldset>
+
+    </fields>
+  </config>
+</extension>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="component" method="upgrade">
+  <name>com_aiboost</name>
+  <author>AI Boost Team</author>
+  <creationDate>May 2026</creationDate>
+  <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
+  <license>GNU General Public License version 2 or later</license>
+  <authorEmail>info@aiboostnow.com</authorEmail>
+  <authorUrl>https://aiboostnow.com</authorUrl>
+  <version>0.15.0</version>
+  <description>COM_AIBOOST_XML_DESCRIPTION</description>
+  <namespace path="src">AiBoost\Component\AiBoost</namespace>
+  <php_minimum>8.1.0</php_minimum>
+  <joomla_minimum>5.0.0</joomla_minimum>
+  <joomla_maximum>6.9999.9999</joomla_maximum>
+  <scriptfile>script.php</scriptfile>
+  <media destination="com_aiboost" folder="media">
+    <folder>css</folder>
+    <folder>js</folder>
+  </media>
+  <administration>
+    <menu link="option=com_aiboost&amp;view=app">COM_AIBOOST_MENU</menu>
+    <files folder="admin">
+      <folder>css</folder>
+      <folder>js</folder>
+      <folder>language</folder>
+      <folder>lib</folder>
+      <folder>services</folder>
+      <folder>sql</folder>
+      <folder>src</folder>
+      <folder>tmpl</folder>
+      <filename>access.xml</filename>
+      <filename>com_aiboost.php</filename>
+      <filename>Version.php</filename>
+    </files>
+  </administration>
+  <install>
+    <sql>
+      <file driver="mysql" charset="utf8">sql/install.sql</file>
+    </sql>
+  </install>
+  <uninstall>
+    <sql>
+      <file driver="mysql" charset="utf8">sql/uninstall.sql</file>
+    </sql>
+  </uninstall>
+</extension>

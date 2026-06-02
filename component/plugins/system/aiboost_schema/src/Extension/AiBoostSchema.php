@@ -1,0 +1,161 @@
+<?php
+/**
+ * AI Boost — Schema.org Plugin (Free)
+ *
+ * Thin orchestrator that delegates Free-tier schema generation to
+ * SchemaBuilder, then fires `EVENT_FILTER_SCHEMA_BLOCKS` so the
+ * closed-source aiboost_schema_pro plugin can decorate the Organization
+ * block and append Pro-only blocks (FAQPage / QAPage / Article / HowTo /
+ * Event). Removing the Pro plugin removes the entire Pro code path —
+ * no settings, no runtime patch, no license-tier flag can re-enable Pro
+ * behaviour from the Free package.
+ *
+ * Free tier (this file):
+ *   - Organization JSON-LD (name, URL, logo, address, phone, email, social)
+ *   - WebSite + SearchAction (homepage only)
+ *   - BreadcrumbList (auto-built from Joomla pathway)
+ *
+ * @package     AiBoost\Plugin\System\AiBoostSchema
+ * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
+ * @license     GNU General Public License version 2 or later
+ */
+
+namespace AiBoost\Plugin\System\AiBoostSchema\Extension;
+
+defined('_JEXEC') or die;
+
+use AiBoost\Lib\BodyBlockBuilder;
+use AiBoost\Lib\DocumentInspector;
+use AiBoost\Lib\HeadBlockBuilder;
+use AiBoost\Lib\Integration\FilterDispatcher;
+use AiBoost\Lib\Integration\Sdk;
+use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Plugin\System\AiBoostSchema\Service\SchemaBuilder;
+use AiBoost\Version;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Plugin\CMSPlugin;
+
+class AiBoostSchema extends CMSPlugin
+{
+    protected $autoloadLanguage = true;
+
+    /**
+     * onBeforeCompileHead — build the Free baseline JSON-LD blocks, let the
+     * Pro plugin decorate via EVENT_FILTER_SCHEMA_BLOCKS, then inject.
+     */
+    public function onBeforeCompileHead(): void
+    {
+        $app = Factory::getApplication();
+        if (!$app->isClient('site')) {
+            return;
+        }
+
+        $doc = $app->getDocument();
+        if (!$doc || $doc->getType() !== 'html') {
+            return;
+        }
+
+        $settings = $this->getAiBoostSettings();
+
+        // Last-write-wins per request; all plugins read the same setting (#384).
+        $hide = !empty($settings['hide_comments']);
+        HeadBlockBuilder::setHideComments($hide);
+        BodyBlockBuilder::setHideComments($hide);
+
+        // Cooperative conflict-resolution: skip when another extension already
+        // emits an Organization/LocalBusiness JSON-LD block (#362).
+        if (DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_SCHEMA_ORG, $settings)) {
+            if (!empty($settings['debug_mode'])) {
+                error_log('[AI Boost: aiboost_schema] Cooperative mode — Organization JSON-LD already present, skipping injection');
+            }
+            HeadBlockBuilder::noteSkip(
+                HeadBlockBuilder::SECTION_SCHEMA,
+                'Schema.org already emitted by another extension'
+            );
+            return;
+        }
+
+        $ctx     = new JoomlaAppContext();
+        $db      = Factory::getDbo();
+        $builder = new SchemaBuilder($settings, $ctx, $db);
+        $schemas = $builder->buildAll();
+
+        // Pro decorator hook — closed-source aiboost_schema_pro listens here
+        // and decorates the Organization block (upgraded @type via preset,
+        // aggregateRating, openingHours, type-specific fields, translations)
+        // and appends Pro-only blocks (FAQPage, QAPage, Article, HowTo, Event).
+        // When the Pro plugin is absent the blocks pass through unchanged.
+        if (class_exists(FilterDispatcher::class)) {
+            $filtered = FilterDispatcher::dispatch(
+                Sdk::EVENT_FILTER_SCHEMA_BLOCKS,
+                [
+                    'blocks'   => $schemas,
+                    'settings' => $settings,
+                    'option'   => $ctx->getCurrentOption(),
+                    'view'     => $ctx->getCurrentView(),
+                    'id'       => $ctx->getCurrentId(),
+                ]
+            );
+            if (isset($filtered['blocks']) && is_array($filtered['blocks'])) {
+                $schemas = $filtered['blocks'];
+            }
+        }
+
+        if (!empty($settings['debug_mode'])) {
+            error_log('[AI Boost: aiboost_schema] onBeforeCompileHead — pushing ' . count($schemas) . ' JSON-LD blocks');
+        }
+
+        $bodies = [];
+        foreach ($schemas as $schema) {
+            $json = json_encode(
+                $schema,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
+            );
+            if ($json !== false) {
+                $bodies[] = '<script type="application/ld+json">' . "\n" . $json . "\n" . '</script>';
+            }
+        }
+        if (!empty($bodies)) {
+            HeadBlockBuilder::pushSection(
+                HeadBlockBuilder::SECTION_SCHEMA,
+                implode("\n", $bodies)
+            );
+        }
+    }
+
+    /**
+     * Idempotent finalize — see HeadBlockBuilder::finalize().
+     */
+    public function onAfterRender(): void
+    {
+        $app = Factory::getApplication();
+        HeadBlockBuilder::finalize($app, Version::VERSION);
+        BodyBlockBuilder::finalize($app);
+    }
+
+    /**
+     * Load all AI Boost settings from #__aiboost_settings (cached per request).
+     *
+     * @return array<string,mixed>
+     */
+    private function getAiBoostSettings(): array
+    {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+        try {
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('settings_json'))
+                ->from($db->quoteName('#__aiboost_settings'))
+                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
+            $db->setQuery($query);
+            $json  = $db->loadResult();
+            $cache = $json ? (json_decode($json, true) ?? []) : [];
+        } catch (\Throwable $e) {
+            $cache = [];
+        }
+        return $cache;
+    }
+}

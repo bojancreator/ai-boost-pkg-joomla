@@ -5,12 +5,20 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "seed:license-mock": "tsx ./src/seed-license-mock.ts",
+    "seed:pkg-versions": "tsx ./src/seed-pkg-versions.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:health-fix-it": "node ./test-health-fix-it.js",
     "test:health-fix-it:visible": "node ./test-health-fix-it.js --visible"
   },
+  "dependencies": {
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "pg": "^8.20.0"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/pg": "^8.18.0",
     "tsx": "catalog:"
   }
 }

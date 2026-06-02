@@ -1,0 +1,12 @@
+{
+    "editButton": {
+        "frameTitle": "SEO information redigeringsformular",
+        "title": "Klik for at redigere SEO information for denne side",
+        "titleIgnored": "Denne side er ikke blevet analyseret eller bliver ignoreret ud fra en SEO vinkel.",
+        "bodyIgnored": "4SEO har måske endnu ikke analyseret denne side eller den har måske ignoreret siden. Ignorering af sider sker oftest hvis de er begrænsede til på-loggede brugere, men også for side som ikke har nogen SEO værdi, såsom log-på side, nogle formularer etc",
+        "footerIgnored": "Klik på denne besked for at lukke den.",
+        "reloadPage": "Genindlæs venligst siden og gen-åben denne dialog for at se opdateret information.",
+        "seeBelow": "Se venligst nedenfor.",
+        "reload": "Genindlæs side"
+    }
+}

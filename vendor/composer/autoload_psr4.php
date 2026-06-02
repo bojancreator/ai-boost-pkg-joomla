@@ -6,6 +6,13 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'JoomlaBoost\\Plugin\\System\\JoomlaBoost\\' => array($baseDir . '/src/plugins/system/joomlaboost/src'),
-    'JoomlaBoost\\' => array($baseDir . '/src'),
+    'PhpParser\\' => array($vendorDir . '/nikic/php-parser/lib/PhpParser'),
+    'DeepCopy\\' => array($vendorDir . '/myclabs/deep-copy/src/DeepCopy'),
+    'AiBoost\\Tests\\' => array($baseDir . '/component/tests'),
+    'AiBoost\\Plugin\\System\\AiBoostSocial\\' => array($baseDir . '/component/plugins/system/aiboost_social/src'),
+    'AiBoost\\Plugin\\System\\AiBoostSitemap\\' => array($baseDir . '/component/plugins/system/aiboost_sitemap/src'),
+    'AiBoost\\Plugin\\System\\AiBoostSchema\\' => array($baseDir . '/component/plugins/system/aiboost_schema/src'),
+    'AiBoost\\Plugin\\System\\AiBoostIntFalang\\' => array($baseDir . '/component/plugins/system/aiboost_int_falang/src'),
+    'AiBoost\\Plugin\\System\\AiBoostAeo\\' => array($baseDir . '/component/plugins/system/aiboost_aeo/src'),
+    'AiBoost\\Lib\\' => array($baseDir . '/component/lib/src'),
 );

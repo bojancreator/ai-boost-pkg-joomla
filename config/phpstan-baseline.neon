@@ -1,7 +1,0 @@
-parameters:
-	ignoreErrors:
-		-
-			message: '#^Property JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceContainer\:\:\$serviceMap \(array\<string, class\-string\<JoomlaBoost\\Plugin\\System\\JoomlaBoost\\Services\\ServiceInterface\>\>\) does not accept default value of type array\<string, string\>\.$#'
-			identifier: property.defaultValue
-			count: 1
-			path: ../src/plugins/system/joomlaboost/src/Services/ServiceContainer.php
