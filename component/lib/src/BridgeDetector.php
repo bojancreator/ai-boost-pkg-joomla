@@ -59,12 +59,12 @@ final class BridgeDetector
             return self::$cache[$cacheKey];
         }
 
-        if (self::$db === null) {
+        $db = self::db();
+        if ($db === null) {
             return self::$cache[$cacheKey] = false;
         }
 
         try {
-            $db    = self::$db;
             $query = $db->getQuery(true)
                 ->select('COUNT(*)')
                 ->from($db->quoteName('#__extensions'))
@@ -105,16 +105,20 @@ final class BridgeDetector
             return self::$cache[$cacheKey];
         }
 
-        if (self::$db === null) {
+        $db = self::db();
+        if ($db === null) {
             return self::$cache[$cacheKey] = false;
         }
 
         try {
-            $db     = self::$db;
-            $prefix = $db->getPrefix();
-            $actual = str_replace('#__', $prefix, $tableName);
-            $tables = $db->getTableList();
-            return self::$cache[$cacheKey] = in_array($actual, $tables, true);
+            $suffix = str_replace('#__', '', $tableName);
+            $query  = $db->getQuery(true)
+                ->select('COUNT(*)')
+                ->from($db->quoteName('information_schema.tables'))
+                ->where($db->quoteName('table_schema') . ' = DATABASE()')
+                ->where($db->quoteName('table_name') . ' LIKE ' . $db->quote('%' . $suffix));
+            $db->setQuery($query);
+            return self::$cache[$cacheKey] = (bool) $db->loadResult();
         } catch (\Throwable) {
             return self::$cache[$cacheKey] = false;
         }
@@ -147,6 +151,19 @@ final class BridgeDetector
         return self::isExtensionEnabled($extensionName, 'plugin',    'system')
             || self::isExtensionEnabled($extensionName, 'component', '')
             || self::isExtensionEnabled($extensionName, 'template',  '');
+    }
+
+    private static function db(): ?DatabaseInterface
+    {
+        if (self::$db !== null) {
+            return self::$db;
+        }
+        try {
+            self::$db = AdapterRegistry::database()->getConnection();
+            return self::$db;
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     // ── Sitemap exclusion registry ──────────────────────────────────────────
@@ -308,6 +325,9 @@ final class BridgeDetector
     /** SEF code of the primary language, registered by aiboost_falang. */
     private static string $primaryLanguageSef = '';
 
+    /** Hreflang source mode: auto, joomla_native, or falang. */
+    private static string $hreflangMode = 'auto';
+
     /**
      * Register the primary language SEF (used for sitemap x-default hreflang).
      * Called by aiboost_falang in onAiBoostBeforeSitemapBuild().
@@ -326,6 +346,17 @@ final class BridgeDetector
         return self::$primaryLanguageSef;
     }
 
+    public static function registerHreflangMode(string $mode): void
+    {
+        $allowed = ['auto', 'joomla_native', 'falang'];
+        self::$hreflangMode = in_array($mode, $allowed, true) ? $mode : 'auto';
+    }
+
+    public static function getHreflangMode(): string
+    {
+        return self::$hreflangMode;
+    }
+
     /** Clear all cached results (useful in tests or CLI contexts). */
     public static function clearCache(): void
     {
@@ -337,5 +368,6 @@ final class BridgeDetector
         self::$schemaTranslationActive = false;
         self::$registeredTranslations  = [];
         self::$primaryLanguageSef      = '';
+        self::$hreflangMode            = 'auto';
     }
 }

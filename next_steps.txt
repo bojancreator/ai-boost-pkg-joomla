@@ -1,0 +1,10 @@
+Ovo je plan za naredne korake.
+
+1. Kompatibilnost sa php 8.2, 8.3, 8.4, 8.5
+2. Komponentu radimo na engleskom. Kad je završimo treba da se prevede na: de, fr, it, ru, es i portugalski. Da li je arhitektura koja je napravljena spremna za ovo
+3. Kompletna provera svih funkcija i provera da li svi prevodi rade dobro
+4. Napraviti opširnu dokumentaciju. veoma detaljnu o komponenti na svih 7 jezika - da li ovo može da radi replit po instrukcija koje mu mi damo ili moramo mi?
+5. Doraditi web sajt sa ovim novim promenama koje smo napravili. nije više plugin orijentisan već kao komponenta. - Da li može replit?
+6. Integrisati lemon squezzy kad se registruje nalog i stigne uputstvo.
+7. Tvoje sugestije
+8. Krećemo sa prodajom

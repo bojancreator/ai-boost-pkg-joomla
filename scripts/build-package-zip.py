@@ -117,7 +117,13 @@ def strip_pro_blocks(text: str) -> str:
     return out
 
 
-def add_dir_to_zip(zf: zipfile.ZipFile, src_dir: Path, arc_prefix: str = "", strip_pro: bool = False) -> None:
+def add_dir_to_zip(
+    zf: zipfile.ZipFile,
+    src_dir: Path,
+    arc_prefix: str = "",
+    strip_pro: bool = False,
+    manifest_version: str | None = None,
+) -> None:
     """Recursively add all files in src_dir to zf under arc_prefix.
 
     When `strip_pro=True`, *.php files have @pro:start/@pro:end blocks
@@ -125,8 +131,14 @@ def add_dir_to_zip(zf: zipfile.ZipFile, src_dir: Path, arc_prefix: str = "", str
     """
     for fpath in sorted(src_dir.rglob("*")):
         if fpath.is_file():
-            arcname = arc_prefix + "/" + fpath.relative_to(src_dir).as_posix() if arc_prefix else fpath.relative_to(src_dir).as_posix()
-            if strip_pro and fpath.suffix == ".php":
+            rel_path = fpath.relative_to(src_dir)
+            arcname = arc_prefix + "/" + rel_path.as_posix() if arc_prefix else rel_path.as_posix()
+            if manifest_version and len(rel_path.parts) == 1 and fpath.suffix.lower() == ".xml":
+                content = fpath.read_text(encoding="utf-8", errors="replace")
+                content = re.sub(r"<version>[^<]+</version>", f"<version>{manifest_version}</version>", content)
+                zf.writestr(arcname, content)
+                continue
+            if strip_pro and fpath.suffix.lower() == ".php":
                 content = fpath.read_text(encoding="utf-8", errors="replace")
                 stripped = strip_pro_blocks(content)
                 if stripped != content:
@@ -251,7 +263,7 @@ def build_plugin_zip(plugin_name: str, version: str, tmp_dir: Path, strip_pro: b
         # Add all plugin source files.
         # Plugins no longer bundle lib/ classes — ProGate/ConflictManager removed in P01.
         # Each plugin Extension class reads #__aiboost_settings directly via Factory::getDbo().
-        add_dir_to_zip(zf, plugin_dir, strip_pro=strip_pro)
+        add_dir_to_zip(zf, plugin_dir, strip_pro=strip_pro, manifest_version=version)
 
     print(f"    ✓ {zip_name} ({zip_path.stat().st_size // 1024} KB)")
     return zip_path
@@ -269,7 +281,7 @@ def build_module_zip(module_name: str, version: str, tmp_dir: Path) -> Path:
     print(f"  → Building {zip_name} ...")
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        add_dir_to_zip(zf, module_dir)
+        add_dir_to_zip(zf, module_dir, manifest_version=version)
 
     print(f"    ✓ {zip_name} ({zip_path.stat().st_size // 1024} KB)")
     return zip_path
@@ -283,7 +295,8 @@ def build_vue_admin() -> None:
         print("  ⚠️  vue-admin directory not found — skipping Vue build")
         return
     print("  → Building Vue admin bundle ...")
-    result = _sp.run(["pnpm", "run", "build"], cwd=str(vue_dir), capture_output=True, text=True)
+    pnpm_bin = "pnpm.cmd" if os.name == "nt" else "pnpm"
+    result = _sp.run([pnpm_bin, "run", "build"], cwd=str(vue_dir), capture_output=True, text=True)
     if result.returncode != 0:
         print(f"  [WARN] Vue build failed:\n{result.stderr}")
     else:
@@ -461,7 +474,7 @@ def build_integration_zip(name: str, version: str) -> Path:
         sys.exit(f"ERROR: integration plugin directory not found: {plugin_dir}")
     print(f"  → Building {zip_path.name} ...")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        add_dir_to_zip(zf, plugin_dir)
+        add_dir_to_zip(zf, plugin_dir, manifest_version=version)
     size_kb = zip_path.stat().st_size // 1024
     print(f"    ✓ {zip_path.name} ({size_kb} KB)")
     return zip_path

@@ -63,6 +63,8 @@ final class ProFeatureRegistry
             ['key' => 'section:schema.author_entity', 'tab' => 'schema', 'label' => 'Author Entity (Person schema)',     'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'section:schema.howto',       'tab' => 'schema',   'label' => 'HowTo Schema',                      'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'section:schema.event',       'tab' => 'schema',   'label' => 'Event Schema',                      'lock_reason' => 'pro', 'scope' => 'section'],
+            ['key' => 'section:schema.business_details', 'tab' => 'schema', 'label' => 'Pro business type details',       'lock_reason' => 'pro', 'scope' => 'section'],
+            ['key' => 'schema_breadcrumb_pro',      'tab' => 'schema',   'label' => 'Enhanced BreadcrumbList',            'lock_reason' => 'pro', 'scope' => 'field'],
 
             // ── Sitemap tab ─────────────────────────────────────────────
             ['key' => 'include_tags',               'tab' => 'sitemap',  'label' => 'Tag URLs in sitemap',               'lock_reason' => 'pro', 'scope' => 'field'],
@@ -70,12 +72,15 @@ final class ProFeatureRegistry
             ['key' => 'section:sitemap.advanced',   'tab' => 'sitemap',  'label' => 'Sitemap advanced (index, image, hreflang)', 'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'section:sitemap.news',       'tab' => 'sitemap',  'label' => 'Google News Sitemap',               'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'ping_on_publish',            'tab' => 'sitemap',  'label' => 'Ping search engines on publish',    'lock_reason' => 'pro', 'scope' => 'field'],
+            ['key' => 'hreflang_sitemap',           'tab' => 'sitemap',  'label' => 'hreflang alternates in sitemap',     'lock_reason' => 'pro', 'scope' => 'field'],
 
             // ── Social tab ──────────────────────────────────────────────
             // Task #473 — og_description_override is Free; kept in the
             // sectionFields() map below under section:social.locale so it is
             // NOT stripped on Free saves.
             ['key' => 'enable_og_locale',           'tab' => 'social',   'label' => 'og:locale tag',                     'lock_reason' => 'pro', 'scope' => 'field'],
+            ['key' => 'hreflang_enabled',           'tab' => 'social',   'label' => 'hreflang alternate links',           'lock_reason' => 'pro', 'scope' => 'field'],
+            ['key' => 'hreflang_primary_language',  'tab' => 'social',   'label' => 'Primary hreflang language',          'lock_reason' => 'pro', 'scope' => 'field'],
             ['key' => 'section:social.pixel_events', 'tab' => 'social',  'label' => 'Meta Pixel Standard Events',        'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'section:social.pixel_custom_events', 'tab' => 'social', 'label' => 'Meta Pixel Custom Events',    'lock_reason' => 'pro', 'scope' => 'section'],
 
@@ -192,33 +197,63 @@ final class ProFeatureRegistry
         if ($isPro) {
             return $payload;
         }
+
         $stripped = [];
         foreach (self::proOptions() as $field => $proValues) {
-            if (!array_key_exists($field, $payload)) {
+            $incoming = self::incomingProOption($payload, (string) $field, $proValues);
+            if ($incoming === null) {
                 continue;
             }
-            $incoming = (string) $payload[$field];
-            if (!in_array($incoming, $proValues, true)) {
-                continue;
-            }
-            // Fall back to the previously-saved value if it was Free-safe,
-            // otherwise to the documented default.
-            $fallback = self::proOptionDefaults()[$field] ?? '';
-            $prev     = (string) ($existing[$field] ?? '');
-            if ($prev !== '' && !in_array($prev, $proValues, true)) {
-                $fallback = $prev;
-            }
+
+            $fallback = self::freeOptionFallback((string) $field, $existing, $proValues);
             $payload[$field] = $fallback;
             $stripped[] = $field . '=' . $incoming . '→' . $fallback;
         }
-        if (!empty($stripped)) {
-            error_log(
-                '[AI Boost] ProFeatureRegistry::stripProOptions() rewrote Pro enum values on Free save: '
-                . implode(', ', $stripped)
-                . ' — the SPA dropdown should have disabled these options.'
-            );
-        }
+
+        self::logStrippedProOptions($stripped);
         return $payload;
+    }
+
+    /**
+     * @param array<string,mixed> $payload
+     * @param array<int,string>   $proValues
+     */
+    private static function incomingProOption(array $payload, string $field, array $proValues): ?string
+    {
+        if (!array_key_exists($field, $payload)) {
+            return null;
+        }
+
+        $incoming = (string) $payload[$field];
+        return in_array($incoming, $proValues, true) ? $incoming : null;
+    }
+
+    /**
+     * @param array<string,mixed> $existing
+     * @param array<int,string>   $proValues
+     */
+    private static function freeOptionFallback(string $field, array $existing, array $proValues): string
+    {
+        $fallback = self::proOptionDefaults()[$field] ?? '';
+        $previous = (string) ($existing[$field] ?? '');
+
+        return $previous !== '' && !in_array($previous, $proValues, true)
+            ? $previous
+            : $fallback;
+    }
+
+    /** @param array<int,string> $stripped */
+    private static function logStrippedProOptions(array $stripped): void
+    {
+        if ($stripped === []) {
+            return;
+        }
+
+        error_log(
+            '[AI Boost] ProFeatureRegistry::stripProOptions() rewrote Pro enum values on Free save: '
+            . implode(', ', $stripped)
+            . ' — the SPA dropdown should have disabled these options.'
+        );
     }
 
     /**
@@ -232,28 +267,41 @@ final class ProFeatureRegistry
      */
     public static function sectionFields(): array
     {
+        return self::schemaSectionFields()
+            + self::sitemapSectionFields()
+            + self::socialSectionFields()
+            + self::analyticsSectionFields()
+            + self::codeSectionFields()
+            + self::aeoSectionFields()
+            + self::translationSectionFields();
+    }
+
+    /** @return array<string, array<int,string>> */
+    private static function schemaSectionFields(): array
+    {
         return [
-            // Task #473 — whole FAQ card is Pro; gates auto_detect + manual + items + output type.
             'section:schema.faq'                  => [
                 'faq_auto_detect', 'enable_manual_faqs', 'faq_items',
                 'schema_faq_output_type', 'manual_faq_scope',
             ],
-            // Day-by-day schedule grid (rendered only when schema_hours_mode=advanced).
-            'section:schema.hours_advanced'       => [
-                'schema_hours_temp_closed', 'schema_holiday_closed',
-                'hours_mo_opens', 'hours_mo_closes', 'hours_tu_opens', 'hours_tu_closes',
-                'hours_we_opens', 'hours_we_closes', 'hours_th_opens', 'hours_th_closes',
-                'hours_fr_opens', 'hours_fr_closes', 'hours_sa_opens', 'hours_sa_closes',
-                'hours_su_opens', 'hours_su_closes',
-                'hours_mo_closed', 'hours_tu_closed', 'hours_we_closed', 'hours_th_closed',
-                'hours_fr_closed', 'hours_sa_closed', 'hours_su_closed',
-            ],
+            'section:schema.hours_advanced'       => self::advancedOpeningHoursFields(),
             'section:schema.author_entity'        => ['schema_author_entity_enabled'],
-            'section:schema.howto'                => ['schema_howto'],
+            'section:schema.howto'                => ['schema_howto', 'schema_howto_enabled'],
             'section:schema.event'                => [
                 'events_enabled', 'events_category_id', 'schema_event_article_ids',
                 'schema_events_enabled', 'schema_events_en',
             ],
+            'section:schema.business_details'     => [
+                'specific_star_rating', 'specific_checkin_time', 'specific_checkout_time',
+                'specific_pets_allowed', 'specific_area_served',
+            ],
+        ];
+    }
+
+    /** @return array<string, array<int,string>> */
+    private static function sitemapSectionFields(): array
+    {
+        return [
             'section:sitemap.priority_pertype'    => [
                 'priority_homepage', 'priority_articles', 'priority_categories', 'priority_tags',
                 'sitemap_priority_articles', 'sitemap_priority_categories', 'sitemap_priority_menu',
@@ -264,15 +312,26 @@ final class ProFeatureRegistry
             'section:sitemap.news'                => [
                 'enable_news_sitemap', 'news_category_id', 'news_publication_name',
             ],
-            // Task #473 — whole Meta Pixel card is Pro on Free.
+        ];
+    }
+
+    /** @return array<string, array<int,string>> */
+    private static function socialSectionFields(): array
+    {
+        return [
             'section:social.pixel'                => [
                 'enable_meta_pixel', 'meta_pixel_id', 'meta_pixel_ids',
                 'pixel_consent_mode',
             ],
             'section:social.pixel_events'         => ['meta_pixel_standard_events'],
             'section:social.pixel_custom_events'  => ['meta_custom_events'],
+        ];
+    }
 
-            // Task #473 — Analytics re-tiering. GA4 keys stay Free; everything else Pro.
+    /** @return array<string, array<int,string>> */
+    private static function analyticsSectionFields(): array
+    {
+        return [
             'section:analytics.non_ga4'           => [
                 'enable_google_verification', 'gsc_verification_code', 'gsc_codes',
                 'gsc_additional_html', 'fb_domain_verification',
@@ -280,49 +339,73 @@ final class ProFeatureRegistry
             'section:analytics.gtm'               => [
                 'enable_gtm', 'gtm_container_id',
             ],
+        ];
+    }
 
-            // Task #473 — Custom Code is whole-tab Pro. Mirror EVERY key the
-            // SettingsController accepts for this tab (head/body/footer scopes
-            // + menu_ids + legacy aliases) so a crafted Free POST can't
-            // persist Pro-only injection settings via stripLocked() bypass.
+    /** @return array<string, array<int,string>> */
+    private static function codeSectionFields(): array
+    {
+        return [
             'section:code'                        => [
                 'enable_custom_code',
                 'custom_code_head', 'custom_code_head_scope', 'custom_code_head_menu_ids',
                 'custom_code_body', 'custom_code_body_scope', 'custom_code_body_menu_ids',
                 'custom_code_footer', 'custom_code_footer_scope', 'custom_code_footer_menu_ids',
-                // Legacy single-bucket aliases (still writable by older payloads).
                 'custom_code_scope', 'custom_code_menu_ids',
             ],
-
-            // Task #473 — Debug tab is whole-tab Pro. Strip the toggles the
-            // SettingsController accepts; dev_license_preview / dev_force_free_tier
-            // stay DB-only QA overrides and are filtered separately by the
-            // controller itself, so we deliberately do NOT list them here.
             'section:debug'                       => [
                 'debug_mode', 'hide_comments', 'staging_mode',
             ],
+        ];
+    }
 
-            // AEO Pro sections — every key in here MUST appear in the SPA's
-            // payload list so stripLocked() actually drops it on a Free save.
+    /** @return array<string, array<int,string>> */
+    private static function aeoSectionFields(): array
+    {
+        return [
             'section:aeo.llms_full'               => [
                 'llms_full_txt_enabled', 'llms_full_max_articles',
             ],
-            // Task #463: AI Crawler Rules is now a Free-only consolidated
-            // card in AeoTab.vue. `crawler_bot_rules`, `ai_crawlers_enabled`,
-            // and `crawler_rules` pass through stripLocked() unchanged.
             'section:aeo.indexnow'                => [
                 'indexnow_enabled', 'indexnow_api_key', 'indexnow_auto_submit',
             ],
             'section:aeo.markdown'                => [
                 'markdown_pages_enabled',
             ],
+        ];
+    }
 
-            // section:translations.per_language gates the per-language values
-            // saved through the dedicated saveTranslations endpoint (which has
-            // its own isPro guard in SettingsController). It deliberately has
-            // no settings-payload keys to strip here.
+    /** @return array<string, array<int,string>> */
+    private static function translationSectionFields(): array
+    {
+        return [
             'section:translations.per_language'   => [],
         ];
+    }
+
+    /** @return array<int,string> */
+    private static function advancedOpeningHoursFields(): array
+    {
+        $keys = ['schema_hours_temp_closed', 'schema_holiday_closed'];
+        $dayAliases = [
+            ['mon', 'mo', 'monday'],
+            ['tue', 'tu', 'tuesday'],
+            ['wed', 'we', 'wednesday'],
+            ['thu', 'th', 'thursday'],
+            ['fri', 'fr', 'friday'],
+            ['sat', 'sa', 'saturday'],
+            ['sun', 'su', 'sunday'],
+        ];
+
+        foreach ($dayAliases as $aliases) {
+            foreach ($aliases as $day) {
+                $keys[] = 'hours_' . $day . '_opens';
+                $keys[] = 'hours_' . $day . '_closes';
+                $keys[] = 'hours_' . $day . '_closed';
+            }
+        }
+
+        return $keys;
     }
 
     /**
@@ -336,19 +419,25 @@ final class ProFeatureRegistry
     {
         $out = [];
         foreach (self::all() as $entry) {
-            $key = (string) ($entry['key'] ?? '');
-            if ($key === '') {
-                continue;
-            }
-            if (strpos($key, 'section:') === 0) {
-                foreach (self::sectionFields()[$key] ?? [] as $sectionKey) {
-                    $out[] = $sectionKey;
-                }
-            } else {
-                $out[] = $key;
-            }
+            array_push($out, ...self::lockedKeysForEntry($entry));
         }
         return array_values(array_unique($out));
+    }
+
+    /**
+     * @param array<string,string> $entry
+     * @return array<int,string>
+     */
+    private static function lockedKeysForEntry(array $entry): array
+    {
+        $key = (string) ($entry['key'] ?? '');
+        if ($key === '') {
+            return [];
+        }
+
+        return strpos($key, 'section:') === 0
+            ? (self::sectionFields()[$key] ?? [])
+            : [$key];
     }
 
     /**

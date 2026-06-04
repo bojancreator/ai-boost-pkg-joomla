@@ -899,9 +899,61 @@ class Pkg_AiboostInstallerScript
                 )->execute();
             }
 
+            // The old row may still point at the current package_id after an
+            // upgrade. Joomla blocks individual child-extension removal in
+            // that state, so detach the obsolete row before uninstalling it.
+            $db->setQuery(
+                $db->getQuery(true)
+                    ->update($db->quoteName('#__extensions'))
+                    ->set($db->quoteName('package_id') . ' = 0')
+                    ->set($db->quoteName('enabled') . ' = 0')
+                    ->where($db->quoteName('extension_id') . ' = ' . $oldId)
+            )->execute();
+
             // Uninstall the legacy plugin (removes files + extensions row).
-            $installer = new \Joomla\CMS\Installer\Installer();
-            $installer->uninstall('plugin', $oldId);
+            // Some Joomla installer contexts do not inject a database into a
+            // fresh Installer instance; fallback cleanup below still removes
+            // the obsolete extension row in that case.
+            try {
+                $installer = new \Joomla\CMS\Installer\Installer();
+                if (method_exists($installer, 'setDatabase')) {
+                    $installer->setDatabase($db);
+                }
+                $installer->uninstall('plugin', $oldId);
+            } catch (\Throwable $uninstallError) {
+                self::logEvent('warning', '[AiBoost] Legacy aiboost_perf Joomla uninstall failed; falling back to orphan cleanup: ' . $uninstallError->getMessage());
+            }
+
+            $stillInstalled = (int) $db->setQuery(
+                $db->getQuery(true)
+                    ->select('COUNT(*)')
+                    ->from($db->quoteName('#__extensions'))
+                    ->where($db->quoteName('extension_id') . ' = ' . $oldId)
+            )->loadResult();
+
+            if ($stillInstalled > 0) {
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->delete($db->quoteName('#__extensions'))
+                        ->where($db->quoteName('extension_id') . ' = ' . $oldId)
+                )->execute();
+
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->delete($db->quoteName('#__schemas'))
+                        ->where($db->quoteName('extension_id') . ' = ' . $oldId)
+                )->execute();
+
+                $legacyPath = JPATH_PLUGINS . '/system/aiboost_perf';
+                if (is_dir($legacyPath)) {
+                    try {
+                        \Joomla\CMS\Filesystem\Folder::delete($legacyPath);
+                    } catch (\Throwable $ignored) {
+                        // The database row is the source of the installer warning;
+                        // folder cleanup can be retried manually if the host blocks it.
+                    }
+                }
+            }
 
             Factory::getApplication()->enqueueMessage(
                 'AI Boost: legacy plugin aiboost_perf was uninstalled and replaced by aiboost_core.',

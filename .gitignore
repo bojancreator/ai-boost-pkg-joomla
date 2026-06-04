@@ -48,6 +48,9 @@ Thumbs.db
 .cache/
 .local/
 
+# Local vendor/license keys for integration test plugin downloads
+/test-plugins/api_keys.txt
+
 # Deliverables (ZIP-ovi, PDF-ovi, marketing materijali — ne idu u git)
 /deliverables/
 # Exception: text reports and docs in deliverables/docs/ are tracked

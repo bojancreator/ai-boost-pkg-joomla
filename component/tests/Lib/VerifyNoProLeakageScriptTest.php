@@ -3,7 +3,6 @@
 namespace AiBoost\Tests\Lib;
 
 use PHPUnit\Framework\TestCase;
-use ZipArchive;
 
 /**
  * Smoke-test the scripts/verify-no-pro-leakage.py script by feeding it
@@ -15,25 +14,24 @@ use ZipArchive;
  * ALLOW_FILES list or flips ADVISORY_MODE back to True) every future Free
  * ZIP would leak Pro logic without anyone noticing.
  *
- * The test runs `python3` via shell_exec. If python3 is unavailable we
- * skip rather than fail — CI installs python3 unconditionally, this is
- * only protective for very stripped-down local dev environments.
+ * The test runs Python via exec(). If no usable interpreter is available we
+ * skip rather than fail — CI installs Python unconditionally, this is only
+ * protective for very stripped-down local dev environments.
  */
 final class VerifyNoProLeakageScriptTest extends TestCase
 {
     private const SCRIPT = __DIR__ . '/../../../scripts/verify-no-pro-leakage.py';
 
     private string $tmpDir;
+     private string $python;
 
     protected function setUp(): void
     {
         if (!is_file(self::SCRIPT)) {
             $this->markTestSkipped('verify-no-pro-leakage.py not present.');
         }
-        $py = trim((string) shell_exec('command -v python3 2>/dev/null'));
-        if ($py === '') {
-            $this->markTestSkipped('python3 not available in PATH.');
-        }
+        $this->python = $this->findPython();
+        putenv('PYTHONIOENCODING=utf-8');
         $this->tmpDir = sys_get_temp_dir() . '/aiboost-leakage-' . uniqid('', true);
         mkdir($this->tmpDir, 0777, true);
     }
@@ -64,23 +62,67 @@ final class VerifyNoProLeakageScriptTest extends TestCase
     private function buildZip(string $name, array $files): string
     {
         $path = $this->tmpDir . '/' . $name;
-        $zip = new ZipArchive();
-        $this->assertTrue(
-            $zip->open($path, ZipArchive::CREATE) === true,
-            'Failed to create test ZIP'
-        );
+        $source = $this->tmpDir . '/source-' . uniqid('', true);
+        mkdir($source, 0777, true);
+
         foreach ($files as $rel => $contents) {
-            $zip->addFromString($rel, $contents);
+            $filePath = $source . '/' . str_replace('\\', '/', (string) $rel);
+            $dir = dirname($filePath);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
+            }
+            file_put_contents($filePath, $contents);
         }
-        $zip->close();
+
+        $zipper = $this->tmpDir . '/make-zip-' . uniqid('', true) . '.py';
+        file_put_contents($zipper, <<<'PY'
+import os
+import sys
+import zipfile
+
+root, out = sys.argv[1], sys.argv[2]
+with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as archive:
+    for current, _, files in os.walk(root):
+        for name in files:
+            full = os.path.join(current, name)
+            archive.write(full, os.path.relpath(full, root).replace(os.sep, '/'))
+PY);
+        $cmd = sprintf(
+            '%s %s %s %s 2>&1',
+            escapeshellarg($this->python),
+            escapeshellarg($zipper),
+            escapeshellarg($source),
+            escapeshellarg($path)
+        );
+        exec($cmd, $output, $exit);
+        $this->assertSame(0, $exit, "Failed to create test ZIP. Output:\n" . implode("\n", $output));
+        $this->assertFileExists($path, 'Python ZIP helper did not create the expected archive.');
+
         return $path;
     }
 
     private function runScript(string $zipPath): array
     {
-        $cmd = sprintf('python3 %s %s 2>&1', escapeshellarg(self::SCRIPT), escapeshellarg($zipPath));
+        $cmd = sprintf('%s %s %s 2>&1', escapeshellarg($this->python), escapeshellarg(self::SCRIPT), escapeshellarg($zipPath));
         exec($cmd, $output, $exit);
         return ['exit' => $exit, 'output' => implode("\n", $output)];
+    }
+
+    private function findPython(): string
+    {
+        foreach ($this->pythonCandidates() as $candidate) {
+            exec(escapeshellarg($candidate) . ' --version 2>&1', $output, $exit);
+            if ($exit === 0) {
+                return $candidate;
+            }
+        }
+        $this->markTestSkipped('Python not available in PATH.');
+    }
+
+    /** @return list<string> */
+    private function pythonCandidates(): array
+    {
+        return PHP_OS_FAMILY === 'Windows' ? ['python', 'python3'] : ['python3', 'python'];
     }
 
     public function testCleanPackagePassesWithExitZero(): void
@@ -129,15 +171,10 @@ final class VerifyNoProLeakageScriptTest extends TestCase
         // Build an inner Pro sub-ZIP whose ProGate.php uses @pro markers —
         // it goes inside packages/ of the outer free ZIP. The script
         // recursively inspects packages/*.zip and any Pro token there fails.
-        $innerPath = $this->tmpDir . '/plg_aiboost_random_pro-1.0.0.zip';
-        $inner = new ZipArchive();
-        $inner->open($innerPath, ZipArchive::CREATE);
-        // Use a path NOT in ALLOW_FILES so the script reports it.
-        $inner->addFromString(
-            'plugins/system/aiboost_random_pro/src/Features/Foo.php',
-            "<?php\n// @pro start\nclass Foo {}\n"
-        );
-        $inner->close();
+        $innerPath = $this->buildZip('plg_aiboost_random_pro-1.0.0.zip', [
+            // Use a path NOT in ALLOW_FILES so the script reports it.
+            'plugins/system/aiboost_random_pro/src/Features/Foo.php' => "<?php\n// @pro start\nclass Foo {}\n",
+        ]);
 
         $zip = $this->buildZip('pkg_with_inner_pro.zip', [
             'manifest.xml'                   => '<extension/>',

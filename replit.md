@@ -6,7 +6,8 @@ parallel ledger or status panel.
 
 Companion files: `BACKLOG.md` (forward work), `.local/tasks/master-plan-v5.md`
 (long-term vision), `.local/docs/architecture.md` (runtime code map — read before
-touching `component/`).
+touching `component/`), `docs/architecture-refactor-plan.md` (decision gates for
+large structural refactors — not a status board).
 
 ---
 
@@ -108,6 +109,12 @@ read before touching any `component/` code. In brief: `component/` is the
 shared `AiBoost\Lib` (`component/lib/src`) + `plugins/system/` Free orchestrators
 paired with `*_pro` decorators. `Manifest/*.php` is the single source of truth for
 every option; `scripts/codegen-from-manifest.py` derives the rest.
+
+For structural refactors that change settings persistence, Pro gating, service
+boundaries, installer behavior, or shared Joomla/WordPress logic, follow
+`docs/architecture-refactor-plan.md` before editing code. It defines the
+Architecture Decision Gates and when to escalate to XHigh; `BACKLOG.md` remains
+the only forward task list.
 
 ---
 

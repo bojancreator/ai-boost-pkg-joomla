@@ -284,6 +284,11 @@ final class PluginRegistry
      */
     public static function hasPro(string $sku): bool
     {
+        $simState = self::simulatedStatus($sku);
+        if ($simState !== null) {
+            return $simState === 'active';
+        }
+
         // Task #565 — per-SKU SKUs are retired; Pro is a single bundle unlocked
         // by perpetual activation. Delegate to the canonical bundle-level gate
         // so every Pro emitter, the admin UI and the settings-save endpoint

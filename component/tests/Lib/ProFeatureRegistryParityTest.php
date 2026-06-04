@@ -28,13 +28,14 @@ use PHPUnit\Framework\TestCase;
 final class ProFeatureRegistryParityTest extends TestCase
 {
     private const VUE_SRC = __DIR__ . '/../../com_aiboost/vue-admin/src';
+    private const ROUTER_SRC = self::VUE_SRC . '/router.js';
 
     /**
      * Recursively collect every .vue file under the SPA source directory.
      *
      * @return array<int, string>
      */
-    private function collectVueFiles(): array
+    private function collectVueFiles(bool $includeGenerated = false): array
     {
         $root = realpath(self::VUE_SRC);
         $this->assertNotFalse($root, 'Vue SPA source directory not found: ' . self::VUE_SRC);
@@ -48,12 +49,11 @@ final class ProFeatureRegistryParityTest extends TestCase
             if (!$file->isFile() || strtolower($file->getExtension()) !== 'vue') {
                 continue;
             }
-            // Task #470 — `tabs/generated/` partials are pure derivations of the
-            // manifest (codegen-from-manifest.py); their gate-keys are verified
-            // by ManifestProRegistryParityTest, not by this Vue↔registry scan.
-            // Including them here produces spurious "orphan" reports for keys
-            // that are intentionally gated at section level in ProFeatureRegistry.
-            if (str_contains(str_replace(DIRECTORY_SEPARATOR, '/', $file->getPathname()), '/tabs/generated/')) {
+            // Task #470 — generated partials may satisfy registry→Vue parity
+            // for direct manifest field gates, but Vue→registry parity ignores
+            // them because many generated fields are intentionally gated by a
+            // parent section instead of a direct registry entry.
+            if (!$includeGenerated && str_contains(str_replace(DIRECTORY_SEPARATOR, '/', $file->getPathname()), '/tabs/generated/')) {
                 continue;
             }
             $files[] = $file->getPathname();
@@ -90,7 +90,7 @@ final class ProFeatureRegistryParityTest extends TestCase
         $template = preg_replace('#<style\b[^>]*>.*?</style>#is', '', $template) ?? $template;
 
         $static = [];
-        if (preg_match_all('/\bgate-key\s*=\s*"([^"]+)"/', $template, $m)) {
+        if (preg_match_all('/(?:^|\s)gate-key\s*=\s*"([^"]+)"/', $template, $m)) {
             $static = $m[1];
         }
         $dynamic = [];
@@ -98,6 +98,21 @@ final class ProFeatureRegistryParityTest extends TestCase
             $dynamic = $m[1];
         }
         return ['static' => $static, 'dynamic' => $dynamic];
+    }
+
+    /** @return array<int,string> */
+    private function extractRouterProGateKeys(): array
+    {
+        $src = file_get_contents(self::ROUTER_SRC);
+        $this->assertNotFalse($src, 'Failed to read router.js');
+
+        $keys = [];
+        if (preg_match_all('/\bproGate\s*:\s*\'([^\']+)\'/', $src, $m)) {
+            $keys = $m[1];
+        }
+        $keys = array_values(array_unique($keys));
+        sort($keys);
+        return $keys;
     }
 
     public function testEveryRegistryEntryHasMatchingVueProGateWrapper(): void
@@ -109,11 +124,14 @@ final class ProFeatureRegistryParityTest extends TestCase
         sort($registryKeys);
 
         $vueKeys = [];
-        foreach ($this->collectVueFiles() as $f) {
+        foreach ($this->collectVueFiles(true) as $f) {
             $extracted = $this->extractGateKeys($f);
             foreach ($extracted['static'] as $k) {
                 $vueKeys[] = $k;
             }
+        }
+        foreach ($this->extractRouterProGateKeys() as $k) {
+            $vueKeys[] = $k;
         }
         $vueKeys = array_values(array_unique($vueKeys));
         sort($vueKeys);
@@ -145,6 +163,11 @@ final class ProFeatureRegistryParityTest extends TestCase
                 }
             }
         }
+        foreach ($this->extractRouterProGateKeys() as $k) {
+            if (!isset($registrySet[$k])) {
+                $orphans[] = $k . '  (in router.js meta.proGate)';
+            }
+        }
         $orphans = array_values(array_unique($orphans));
         sort($orphans);
 
@@ -158,7 +181,7 @@ final class ProFeatureRegistryParityTest extends TestCase
         );
     }
 
-    public function testNoDynamicGateKeyBindings(): void
+    public function testOnlyRouteLevelGateUsesDynamicGateKeyBinding(): void
     {
         $dynamic = [];
         foreach ($this->collectVueFiles() as $f) {
@@ -168,10 +191,11 @@ final class ProFeatureRegistryParityTest extends TestCase
             }
         }
         $this->assertSame(
-            [],
+            ['AppShell.vue: :gate-key="proGateKey"'],
             $dynamic,
-            "Dynamic :gate-key bindings cannot be statically verified against ProFeatureRegistry. "
-            . "Use a static gate-key=\"…\" literal so CI can guarantee parity:\n  - "
+            "Only AppShell.vue may use a dynamic route-level :gate-key binding. "
+            . "Route-level gate values must be static router.js meta.proGate strings so CI can "
+            . "verify them against ProFeatureRegistry:\n  - "
             . implode("\n  - ", $dynamic)
         );
     }
@@ -209,19 +233,8 @@ final class ProFeatureRegistryParityTest extends TestCase
         $this->assertNotFalse($tabPath, 'SchemaTab.vue not found.');
         $src = (string) file_get_contents($tabPath);
 
-        // Parse the SCHEMA_TYPE_OPTIONS constant: collect every {value:'X', ..., pro:true|false}.
-        $proVue  = [];
-        $allVue  = [];
-        if (preg_match('/const\s+SCHEMA_TYPE_OPTIONS\s*=\s*\[(.*?)\]/s', $src, $block)
-            && preg_match_all('/\{\s*value:\s*\'([^\']+)\'[^}]*?pro:\s*(true|false)\s*\}/', $block[1], $m, PREG_SET_ORDER)
-        ) {
-            foreach ($m as $row) {
-                $allVue[] = $row[1];
-                if ($row[2] === 'true') {
-                    $proVue[] = $row[1];
-                }
-            }
-        }
+        [$allVue, $proVue] = $this->schemaTypeOptionSets($src);
+
         $this->assertNotEmpty(
             $allVue,
             'Could not parse SCHEMA_TYPE_OPTIONS in SchemaTab.vue. Has the constant been renamed?'
@@ -242,6 +255,28 @@ final class ProFeatureRegistryParityTest extends TestCase
             $allVue,
             'Free fallback "' . $default . '" is not even listed in SchemaTab.vue dropdown.'
         );
+    }
+
+    /** @return array{0:list<string>,1:list<string>} */
+    private function schemaTypeOptionSets(string $src): array
+    {
+        if (!preg_match('/const\s+SCHEMA_TYPE_OPTIONS\s*=\s*\[(.*?)\]/s', $src, $block)) {
+            return [[], []];
+        }
+        if (!preg_match_all('/\{\s*value:\s*\'([^\']+)\'[^}]*?pro:\s*(true|false)\s*\}/', $block[1], $matches, PREG_SET_ORDER)) {
+            return [[], []];
+        }
+
+        $all = [];
+        $pro = [];
+        foreach ($matches as $row) {
+            $all[] = $row[1];
+            if ($row[2] === 'true') {
+                $pro[] = $row[1];
+            }
+        }
+
+        return [$all, $pro];
     }
 
     public function testEverySectionEntryHasMatchingSectionFieldsRow(): void

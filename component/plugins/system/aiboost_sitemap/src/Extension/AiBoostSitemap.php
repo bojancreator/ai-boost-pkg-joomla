@@ -379,6 +379,10 @@ class AiBoostSitemap extends CMSPlugin
         $hrefExt = null;
 
         if ($withHreflang) {
+            try {
+                Factory::getApplication()->triggerEvent('onAiBoostBeforeSitemapBuild');
+            } catch (\Throwable) { /* integration bridge hook is best-effort */ }
+
             $db          = Factory::getDbo();
             $defaultLang = (string) Factory::getApplication()->get('language', 'en-GB');
             $hrefExt     = new HreflangSitemapExtension($baseUrl, $db, $defaultLang);
@@ -409,7 +413,7 @@ class AiBoostSitemap extends CMSPlugin
                         (string) ($entry['loc'] ?? '')
                     );
                 } elseif ($entry['type'] === 'menu') {
-                    $xml .= $hrefExt->renderForMenu((int) $entry['id']);
+                    $xml .= $hrefExt->renderForMenu((int) $entry['id'], (string) ($entry['loc'] ?? ''));
                 }
             }
 

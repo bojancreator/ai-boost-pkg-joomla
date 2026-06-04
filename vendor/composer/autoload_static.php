@@ -29,6 +29,7 @@ class ComposerStaticInit50c6f6d191644763fb199c3466c4fb50
             'AiBoost\\Plugin\\System\\AiBoostSchema\\' => 36,
             'AiBoost\\Plugin\\System\\AiBoostIntFalang\\' => 39,
             'AiBoost\\Plugin\\System\\AiBoostAeo\\' => 33,
+            'AiBoost\\Plugin\\System\\AiBoostAeoPro\\' => 36,
             'AiBoost\\Lib\\' => 12,
         ),
     );
@@ -65,6 +66,10 @@ class ComposerStaticInit50c6f6d191644763fb199c3466c4fb50
         'AiBoost\\Plugin\\System\\AiBoostAeo\\' => 
         array (
             0 => __DIR__ . '/../..' . '/component/plugins/system/aiboost_aeo/src',
+        ),
+        'AiBoost\\Plugin\\System\\AiBoostAeoPro\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/component/plugins/system/aiboost_aeo_pro/src',
         ),
         'AiBoost\\Lib\\' => 
         array (

@@ -35,6 +35,8 @@ use AiBoost\Lib\Integration\AbstractIntegrationPlugin;
 use AiBoost\Lib\Integration\IntegrationDescriptor;
 use AiBoost\Lib\Integration\Sdk;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Uri\Uri;
 
 class AiBoostIntFalang extends AbstractIntegrationPlugin
 {
@@ -68,64 +70,47 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     public function onAiBoostRegisterFields(): array
     {
         return [
-            [
-                'key'         => 'falang_hreflang_head',
-                'tab'         => 'social',
-                'section'     => 'hreflang',
-                'label'       => 'Falang: hreflang in <head>',
-                'type'        => 'toggle',
-                'default'     => '1',
-                'tier'        => 'free',
-                'sku'         => 'core',
-                'integration' => 'falang',
+            $this->manifestField('falang_hreflang_head', 'social', 'hreflang', 'Falang: hreflang in <head>', 'toggle', '1', [
                 'description' => 'Generate <link rel="alternate" hreflang> tags from Falang language list.',
-            ],
-            [
-                'key'         => 'falang_hreflang_sitemap',
-                'tab'         => 'sitemap',
-                'section'     => 'hreflang',
-                'label'       => 'Falang: hreflang in sitemap',
-                'type'        => 'toggle',
-                'default'     => '1',
-                'tier'        => 'free',
-                'sku'         => 'core',
-                'integration' => 'falang',
-            ],
-            [
-                'key'         => 'falang_schema_translate',
-                'tab'         => 'schema',
-                'section'     => 'translation',
-                'label'       => 'Falang: translate Schema.org per language',
-                'type'        => 'toggle',
-                'default'     => '1',
-                'tier'        => 'free',
-                'sku'         => 'core',
-                'integration' => 'falang',
-            ],
-            [
-                'key'         => 'falang_og_translate',
-                'tab'         => 'social',
-                'section'     => 'og',
-                'label'       => 'Falang: translate OpenGraph per language',
-                'type'        => 'toggle',
-                'default'     => '1',
-                'tier'        => 'free',
-                'sku'         => 'core',
-                'integration' => 'falang',
-            ],
-            [
-                'key'         => 'falang_primary_language',
-                'tab'         => 'general',
-                'section'     => 'multilingual',
-                'label'       => 'Falang: primary language SEF',
-                'type'        => 'text',
-                'default'     => 'en',
-                'tier'        => 'free',
-                'sku'         => 'core',
-                'integration' => 'falang',
+            ]),
+            $this->manifestField('falang_hreflang_sitemap', 'sitemap', 'hreflang', 'Falang: hreflang in sitemap'),
+            $this->manifestField('falang_hreflang_mode', 'sitemap', 'hreflang', 'Hreflang source mode', 'select', 'auto', [
+                'options'     => [
+                    'auto'          => 'Auto: Joomla native first, Falang fallback',
+                    'joomla_native' => 'Joomla native only',
+                    'falang'        => 'Falang only',
+                ],
+                'description' => 'Choose how sitemap hreflang alternates are sourced when Joomla multilingual associations and Falang are both present.',
+            ]),
+            $this->manifestField('falang_schema_translate', 'schema', 'translation', 'Falang: translate Schema.org per language'),
+            $this->manifestField('falang_og_translate', 'social', 'og', 'Falang: translate OpenGraph per language'),
+            $this->manifestField('falang_primary_language', 'general', 'multilingual', 'Falang: primary language SEF', 'text', 'en', [
                 'description' => 'SEF code used as x-default in sitemap hreflang alternates.',
-            ],
+            ]),
         ];
+    }
+
+    /** @param array<string,mixed> $extra */
+    private function manifestField(
+        string $key,
+        string $tab,
+        string $section,
+        string $label,
+        string $type = 'toggle',
+        string $default = '1',
+        array $extra = []
+    ): array {
+        return array_merge([
+            'key'         => $key,
+            'tab'         => $tab,
+            'section'     => $section,
+            'label'       => $label,
+            'type'        => $type,
+            'default'     => $default,
+            'tier'        => 'free',
+            'sku'         => 'core',
+            'integration' => 'falang',
+        ], $extra);
     }
 
     // ── Bridge: register translation data with BridgeDetector ──────────────
@@ -135,19 +120,21 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         if (!$this->isDetected()) {
             return;
         }
-        if (!(int) $this->params->get('falang_hreflang_sitemap', 1)) {
+        if (!(int) $this->aiBoostSetting('falang_hreflang_sitemap', $this->params->get('falang_hreflang_sitemap', 1))) {
             return;
         }
         if (!class_exists(BridgeDetector::class)) {
             return;
         }
 
+        BridgeDetector::registerHreflangMode($this->hreflangMode());
+
         $langs = $this->getLanguages();
         if (!empty($langs)) {
             BridgeDetector::registerSitemapLanguages($langs);
         }
 
-        $primary = trim((string) $this->params->get('falang_primary_language', 'en'));
+        $primary = trim((string) $this->aiBoostSetting('falang_primary_language', $this->params->get('falang_primary_language', 'en')));
         if ($primary !== '') {
             BridgeDetector::registerPrimaryLanguageSef($primary);
         }
@@ -156,6 +143,69 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         if (!empty($aliasMap)) {
             BridgeDetector::registerFalangAliasMap($aliasMap);
         }
+    }
+
+    private function hreflangMode(): string
+    {
+        $mode = (string) $this->aiBoostSetting('falang_hreflang_mode', $this->params->get('falang_hreflang_mode', 'auto'));
+        return in_array($mode, ['auto', 'joomla_native', 'falang'], true) ? $mode : 'auto';
+    }
+
+    private function aiBoostSetting(string $key, mixed $default = null): mixed
+    {
+        static $settings = null;
+
+        if ($settings === null) {
+            $settings = $this->loadAiBoostSettings();
+        }
+
+        return $settings[$key] ?? $default;
+    }
+
+    /** @return array<string,mixed> */
+    private function loadAiBoostSettings(): array
+    {
+        try {
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('settings_json'))
+                ->from($db->quoteName('#__aiboost_settings'))
+                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
+            $json = $db->setQuery($query)->loadResult();
+            $data = $json ? json_decode((string) $json, true) : [];
+
+            return is_array($data) ? $data : [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    public function onBeforeCompileHead(): void
+    {
+        if (!$this->isDetected()) {
+            return;
+        }
+
+        $app = Factory::getApplication();
+        if (!$app->isClient('site')) {
+            return;
+        }
+
+        $document = $app->getDocument();
+        if (!$document || $document->getType() !== 'html') {
+            return;
+        }
+
+        if (!(int) $this->params->get('falang_hreflang_enabled', 1)) {
+            return;
+        }
+
+        $languages = $this->getLanguages();
+        if (count($languages) < 2) {
+            return;
+        }
+
+        $this->injectHreflangTags($document, $languages);
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -241,5 +291,194 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             $fetch('#__categories', '#__categories', 'c');
         } catch (\Throwable) { /* silent */ }
         return $map;
+    }
+
+    /** @param array<int, array<string,string>> $languages */
+    private function injectHreflangTags(object $document, array $languages): void
+    {
+        try {
+            $app        = Factory::getApplication();
+            $menu       = $app->getMenu()->getActive();
+            $currentUri = Uri::getInstance();
+            $baseUrl    = $currentUri->getScheme() . '://' . $currentUri->getHost();
+            $primarySef = trim((string) $this->params->get('falang_primary_language', 'en'));
+            $aliasMap   = $this->loadFalangAliasMap();
+            [$defaultUrl, $primaryEmitted] = $this->addLanguageHeadLinks(
+                $document,
+                $languages,
+                $menu,
+                $baseUrl,
+                $currentUri,
+                $aliasMap,
+                $primarySef
+            );
+
+            $primaryUrl = $defaultUrl ?: ($baseUrl . '/' . $primarySef . '/');
+            if (!$primaryEmitted && $primarySef !== '') {
+                $document->addHeadLink($primaryUrl, 'alternate', 'rel', ['hreflang' => $this->primaryHreflang($primarySef, $languages)]);
+            }
+            $this->addCustomHreflangLink($document, 'x-default', $primaryUrl);
+        } catch (\Throwable) { /* graceful degradation */ }
+    }
+
+    /**
+     * @param array<int, array<string,string>> $languages
+     * @param array<string,array<string,string>> $aliasMap
+     * @return array{0:?string,1:bool}
+     */
+    private function addLanguageHeadLinks(
+        object $document,
+        array $languages,
+        ?object $menu,
+        string $baseUrl,
+        Uri $currentUri,
+        array $aliasMap,
+        string $primarySef
+    ): array {
+        $defaultUrl = null;
+        $primaryEmitted = false;
+        $langSefs = $this->languageSefs($languages);
+
+        foreach ($languages as $lang) {
+            $linkData = $this->normalizeLanguageLinkData($lang);
+            if ($linkData === null) {
+                continue;
+            }
+
+            [$sef, $hreflang] = $linkData;
+            $url = $this->buildLanguageUrl($menu, $sef, $baseUrl, $currentUri, $langSefs, $aliasMap);
+            $document->addHeadLink($url, 'alternate', 'rel', ['hreflang' => $hreflang]);
+
+            if ($sef === $primarySef) {
+                $defaultUrl = $url;
+                $primaryEmitted = true;
+            }
+        }
+
+        return [$defaultUrl, $primaryEmitted];
+    }
+
+    private function addCustomHreflangLink(object $document, string $hreflang, string $href): void
+    {
+        if (method_exists($document, 'addCustomTag')) {
+            $document->addCustomTag(
+                '<link rel="alternate" hreflang="'
+                . htmlspecialchars($hreflang, ENT_QUOTES, 'UTF-8')
+                . '" href="'
+                . htmlspecialchars($href, ENT_QUOTES, 'UTF-8')
+                . '">'
+            );
+        }
+    }
+
+    /** @param array<int, array<string,string>> $languages */
+    private function primaryHreflang(string $primarySef, array $languages): string
+    {
+        $langCode = $this->findLanguageCodeBySef($primarySef, $languages);
+        if ($langCode !== '') {
+            return strtolower(str_replace('_', '-', $langCode));
+        }
+
+        $fallback = ['en' => 'en-gb', 'sr' => 'sr-yu', 'ru' => 'ru-ru'];
+        return $fallback[$primarySef] ?? strtolower($primarySef);
+    }
+
+    /** @param array<int, array<string,string>> $languages */
+    private function findLanguageCodeBySef(string $sef, array $languages): string
+    {
+        foreach ($languages as $lang) {
+            if ((string) ($lang['sef'] ?? '') === $sef) {
+                return trim((string) ($lang['lang_code'] ?? ''));
+            }
+        }
+
+        return '';
+    }
+
+    /** @param array<int, array<string,string>> $languages */
+    private function languageSefs(array $languages): array
+    {
+        return array_values(array_filter(array_map(
+            static fn (array $lang): string => (string) ($lang['sef'] ?? ''),
+            $languages
+        )));
+    }
+
+    /** @param array<string,string> $lang */
+    private function normalizeLanguageLinkData(array $lang): ?array
+    {
+        $sef      = trim((string) ($lang['sef'] ?? ''));
+        $langCode = trim((string) ($lang['lang_code'] ?? ''));
+
+        return $sef !== '' && $langCode !== ''
+            ? [$sef, strtolower(str_replace('_', '-', $langCode))]
+            : null;
+    }
+
+    /**
+     * @param array<int,string> $allSefs
+     * @param array<string,array<string,string>> $aliasMap
+     */
+    private function buildLanguageUrl(
+        ?object $menu,
+        string $sef,
+        string $baseUrl,
+        Uri $currentUri,
+        array $allSefs,
+        array $aliasMap = []
+    ): string {
+        $aliasUrl = $this->buildAliasLanguageUrl($menu, $sef, $baseUrl, $aliasMap);
+        if ($aliasUrl !== '') {
+            return $aliasUrl;
+        }
+
+        $routeUrl = $this->buildRoutedLanguageUrl($menu, $sef, $baseUrl);
+        return $routeUrl !== ''
+            ? $routeUrl
+            : $baseUrl . '/' . $sef . $this->stripLanguagePrefix($currentUri->getPath(), $allSefs);
+    }
+
+    /** @param array<string,array<string,string>> $aliasMap */
+    private function buildAliasLanguageUrl(?object $menu, string $sef, string $baseUrl, array $aliasMap): string
+    {
+        $menuAlias = $menu ? trim((string) ($menu->alias ?? '')) : '';
+        if ($menuAlias === '' || empty($aliasMap[$menuAlias][$sef])) {
+            return '';
+        }
+
+        return $baseUrl . '/' . $sef . '/' . $aliasMap[$menuAlias][$sef];
+    }
+
+    private function buildRoutedLanguageUrl(?object $menu, string $sef, string $baseUrl): string
+    {
+        if (!$menu) {
+            return '';
+        }
+
+        try {
+            $routed = Route::_('index.php?Itemid=' . (int) $menu->id . '&lang=' . $sef, false, Route::TLS_IGNORE, true);
+            return str_starts_with($routed, 'http') ? $routed : $baseUrl . $routed;
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    /** @param array<int,string> $allSefs */
+    private function stripLanguagePrefix(string $path, array $allSefs): string
+    {
+        $cleanPath = '/' . ltrim($path, '/');
+        foreach ($allSefs as $existingSef) {
+            if ($existingSef === '') {
+                continue;
+            }
+            if (str_starts_with($cleanPath, '/' . $existingSef . '/')) {
+                return substr($cleanPath, strlen('/' . $existingSef)) ?: '/';
+            }
+            if ($cleanPath === '/' . $existingSef) {
+                return '/';
+            }
+        }
+
+        return $cleanPath;
     }
 }

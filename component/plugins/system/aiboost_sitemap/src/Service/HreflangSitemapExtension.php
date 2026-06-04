@@ -103,63 +103,95 @@ class HreflangSitemapExtension
      */
     public function renderForArticle(int $articleId, string $language, string $currentUrl = ''): string
     {
-        // Language-neutral items (Joomla "All languages", stored as '*') have no
-        // language alternate. Emitting hreflang="*" produces invalid markup that
-        // Google rejects, so skip hreflang entirely for these URLs.
-        if ($language === '' || $language === '*') {
-            return '';
+        if ($this->usesRegisteredArticleLanguages($language)) {
+            return $this->renderForRegisteredLanguages($currentUrl);
         }
 
         $alternates = $this->resolveAlternates($articleId, $language, 'com_content.item');
 
         // Association strategy: 2+ linked translations found
         if (count($alternates) >= 2) {
-            $xml      = '';
-            $xDefault = null;
-
-            foreach ($alternates as $alt) {
-                $hreflang = htmlspecialchars($alt['hreflang'], ENT_XML1);
-                $href     = htmlspecialchars($alt['href'],     ENT_XML1);
-
-                $xml .= '    <xhtml:link rel="alternate" hreflang="' . $hreflang . '" href="' . $href . '"/>' . "\n";
-
-                if ($xDefault === null || !empty($alt['is_default'])) {
-                    $xDefault = $href;
-                }
-            }
-
-            if ($xDefault !== null) {
-                $xml .= '    <xhtml:link rel="alternate" hreflang="x-default" href="' . $xDefault . '"/>' . "\n";
-            }
-
-            return $xml;
+            return $this->renderAlternates($alternates);
         }
 
-        // All-active-languages strategy: no associations, but site is multilingual
-        // Emit a single x-default so Google understands this URL is language-specific.
-        if ($currentUrl !== '' && count($this->getPublishedLanguages()) > 1) {
-            $safeHref = htmlspecialchars($currentUrl, ENT_XML1);
-            $safeLang = htmlspecialchars(strtolower(str_replace('_', '-', $language)), ENT_XML1);
+        return $this->renderArticleWithoutAssociations($language, $currentUrl);
+    }
 
-            return '    <xhtml:link rel="alternate" hreflang="' . $safeLang . '" href="' . $safeHref . '"/>' . "\n"
-                . '    <xhtml:link rel="alternate" hreflang="x-default" href="' . $safeHref . '"/>' . "\n";
+    private function usesRegisteredArticleLanguages(string $language): bool
+    {
+        // Language-neutral Joomla items ('*') have no valid hreflang value.
+        return $this->hreflangMode() === 'falang' || $language === '' || $language === '*';
+    }
+
+    private function renderArticleWithoutAssociations(string $language, string $currentUrl): string
+    {
+        if ($currentUrl === '' || count($this->getPublishedLanguages()) <= 1) {
+            return '';
         }
 
-        return '';
+        if ($this->hreflangMode() !== 'joomla_native') {
+            $registered = $this->renderForRegisteredLanguages($currentUrl);
+            if ($registered !== '') {
+                return $registered;
+            }
+        }
+
+        return $this->renderSingleLanguageFallback($language, $currentUrl);
+    }
+
+    private function renderSingleLanguageFallback(string $language, string $currentUrl): string
+    {
+        return $this->renderAlternateLink(strtolower(str_replace('_', '-', $language)), $currentUrl)
+            . $this->renderAlternateLink('x-default', $currentUrl);
+    }
+
+    /** @param array<int,array{hreflang:string,href:string,is_default:bool}> $alternates */
+    private function renderAlternates(array $alternates): string
+    {
+        $xml      = '';
+        $xDefault = null;
+
+        foreach ($alternates as $alt) {
+            $xml .= $this->renderAlternateLink($alt['hreflang'], $alt['href']);
+
+            if ($xDefault === null || !empty($alt['is_default'])) {
+                $xDefault = $alt['href'];
+            }
+        }
+
+        return $xDefault !== null
+            ? $xml . $this->renderAlternateLink('x-default', $xDefault)
+            : $xml;
+    }
+
+    private function renderAlternateLink(string $hreflang, string $href): string
+    {
+        return '    <xhtml:link rel="alternate" hreflang="'
+            . htmlspecialchars($hreflang, ENT_XML1)
+            . '" href="'
+            . htmlspecialchars($href, ENT_XML1)
+            . '"/>' . "\n";
     }
 
     /**
      * Render all <xhtml:link rel="alternate"> tags for a single menu item.
      *
-     * @param  int    $menuId  Menu item ID from #__menu.
+     * @param  int    $menuId      Menu item ID from #__menu.
+     * @param  string $currentUrl  Current sitemap URL for Falang fallback mode.
      * @return string          XML fragment (empty if no associations found).
      */
-    public function renderForMenu(int $menuId): string
+    public function renderForMenu(int $menuId, string $currentUrl = ''): string
     {
+        if ($this->hreflangMode() === 'falang') {
+            return $this->renderForRegisteredLanguages($currentUrl);
+        }
+
         $alternates = $this->resolveMenuAlternates($menuId);
 
         if (count($alternates) < 2) {
-            return '';
+            return $this->hreflangMode() === 'auto'
+                ? $this->renderForRegisteredLanguages($currentUrl)
+                : '';
         }
 
         $xml      = '';
@@ -181,6 +213,107 @@ class HreflangSitemapExtension
         }
 
         return $xml;
+    }
+
+    private function renderForRegisteredLanguages(string $currentUrl): string
+    {
+        if ($this->hreflangMode() === 'joomla_native') {
+            return '';
+        }
+
+        if ($currentUrl === '' || !class_exists('AiBoost\\Lib\\BridgeDetector')) {
+            return '';
+        }
+
+        $languages = \AiBoost\Lib\BridgeDetector::getSitemapLanguages();
+        if (count($languages) < 2) {
+            return '';
+        }
+
+        return $this->renderRegisteredLanguageLinks(
+            $languages,
+            \AiBoost\Lib\BridgeDetector::getPrimaryLanguageSef(),
+            $this->pathWithoutLanguagePrefix($currentUrl, $this->languageSefs($languages)),
+            $currentUrl
+        );
+    }
+
+    private function hreflangMode(): string
+    {
+        if (!class_exists('AiBoost\\Lib\\BridgeDetector')) {
+            return 'auto';
+        }
+
+        return \AiBoost\Lib\BridgeDetector::getHreflangMode();
+    }
+
+    /** @param array<int,array<string,string>> $languages */
+    private function renderRegisteredLanguageLinks(array $languages, string $primarySef, string $path, string $currentUrl): string
+    {
+        $xml       = '';
+        $xDefault  = '';
+
+        foreach ($languages as $lang) {
+            $linkData = $this->registeredLanguageLinkData($lang, $path);
+            if ($linkData === null) {
+                continue;
+            }
+
+            [$sef, $hreflang, $href] = $linkData;
+            $xml .= $this->renderAlternateLink($hreflang, $href);
+
+            if ($sef === $primarySef) {
+                $xDefault = $href;
+            }
+        }
+
+        return $xml !== ''
+            ? $xml . $this->renderAlternateLink('x-default', $xDefault ?: $currentUrl)
+            : '';
+    }
+
+    /** @param array<string,string> $lang */
+    private function registeredLanguageLinkData(array $lang, string $path): ?array
+    {
+        $sef      = trim((string) ($lang['sef'] ?? ''));
+        $langCode = trim((string) ($lang['lang_code'] ?? ''));
+
+        return $sef !== '' && $langCode !== ''
+            ? [$sef, strtolower(str_replace('_', '-', $langCode)), rtrim($this->baseUrl, '/') . '/' . $sef . $path]
+            : null;
+    }
+
+    /** @param array<int,array<string,string>> $languages */
+    private function languageSefs(array $languages): array
+    {
+        return array_values(array_filter(array_map(
+            static fn (array $lang): string => (string) ($lang['sef'] ?? ''),
+            $languages
+        )));
+    }
+
+    /** @param array<int,string> $allSefs */
+    private function pathWithoutLanguagePrefix(string $url, array $allSefs): string
+    {
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        if ($path === '') {
+            return '/';
+        }
+
+        $cleanPath = '/' . ltrim($path, '/');
+        foreach ($allSefs as $sef) {
+            if ($sef === '') {
+                continue;
+            }
+            if ($cleanPath === '/' . $sef) {
+                return '/';
+            }
+            if (str_starts_with($cleanPath, '/' . $sef . '/')) {
+                return substr($cleanPath, strlen('/' . $sef)) ?: '/';
+            }
+        }
+
+        return $cleanPath;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

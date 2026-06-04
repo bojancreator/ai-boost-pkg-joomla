@@ -66,7 +66,8 @@
     </div>
 
     <!-- Hotel Details -->
-    <div v-if="isType('LodgingBusiness')" class="ab-card">
+    <ProGate v-if="isType('LodgingBusiness')" gate-key="section:schema.business_details" mode="section">
+    <div class="ab-card">
       <div class="ab-card-header">🏨 Hotel Details</div>
       <div class="ab-card-body">
         <div class="row g-3">
@@ -102,6 +103,7 @@
         </div>
       </div>
     </div>
+    </ProGate>
 
     <!-- Restaurant -->
     <div v-if="isType('FoodEstablishment')" class="ab-card">
@@ -126,7 +128,8 @@
     </div>
 
     <!-- Real Estate -->
-    <div v-if="isType('RealEstateAgent')" class="ab-card">
+    <ProGate v-if="isType('RealEstateAgent')" gate-key="section:schema.business_details" mode="section">
+    <div class="ab-card">
       <div class="ab-card-header">🏠 Real Estate Settings</div>
       <div class="ab-card-body">
         <label class="ab-label">Area Served</label>
@@ -135,6 +138,7 @@
         <div class="ab-help">City, district, or region names (comma-separated).</div>
       </div>
     </div>
+    </ProGate>
 
     <!-- Opening Hours (local business types) -->
     <div v-if="hasHours" class="ab-card">

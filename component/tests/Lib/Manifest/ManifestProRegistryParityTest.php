@@ -3,6 +3,7 @@
 namespace AiBoost\Tests\Lib\Manifest;
 
 use AiBoost\Lib\ProFeatureRegistry;
+use AiBoost\Lib\SettingsSaveDefinition;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -16,11 +17,11 @@ use PHPUnit\Framework\TestCase;
  * for these keys, so the SPA looks correct, but the server save endpoint
  * accepts the value. This test fails before the bug reaches a build.
  *
- * The opposite direction (registry → manifest) is intentionally NOT
- * asserted here: ProFeatureRegistry also lists `section:*` entries and
- * legacy single-key registry rows that may not have a 1:1 manifest field
- * yet. Once Task #472 finishes the cleanup, the inverse parity can be
- * added safely.
+ * The opposite direction (registry → manifest) is intentionally limited here:
+ * ProFeatureRegistry also lists `section:*` entries and legacy single-key
+ * registry rows that may not have a 1:1 manifest field yet. The section-fields
+ * test below verifies concrete stripLocked() keys against manifest, save
+ * compatibility, or a documented legacy allowlist.
  */
 final class ManifestProRegistryParityTest extends TestCase
 {
@@ -44,52 +45,9 @@ final class ManifestProRegistryParityTest extends TestCase
         return $all;
     }
 
-    /**
-     * Pro manifest keys that ProFeatureRegistry currently gates only by
-     * section wrapper (e.g. `section:sitemap.advanced`, `section:schema.howto`)
-     * but does NOT list as an exact key under sectionFields(). These rows
-     * therefore slip past stripLocked() on Free installs. Tracked for fix
-     * in Task #472 — see plan there for the registry rows that need to be
-     * added. DO NOT extend this list silently; any new entry here must be
-     * justified in the same PR by linking the follow-up task.
-     */
-    private const KNOWN_UNGATED_PRO_KEYS_FIX_IN_472 = [
-        'hreflang_enabled',
-        'hreflang_primary_language',
-        'hreflang_sitemap',
-        'schema_breadcrumb_pro',
-        'schema_howto_enabled',
-    ];
-
     public function testEveryProManifestFieldIsGatedByRegistry(): void
     {
-        $registryKeys = array_flip(array_map(
-            static fn(array $e): string => (string) $e['key'],
-            ProFeatureRegistry::all()
-        ));
-
-        $sectionUnion = [];
-        foreach (ProFeatureRegistry::sectionFields() as $sectionKey => $keys) {
-            foreach ($keys as $k) {
-                $sectionUnion[$k] = $sectionKey;
-            }
-        }
-
-        $known = array_flip(self::KNOWN_UNGATED_PRO_KEYS_FIX_IN_472);
-        $orphans = [];
-        foreach ($this->loadAll() as $f) {
-            if (($f['tier'] ?? 'free') !== 'pro') {
-                continue;
-            }
-            $key = (string) ($f['key'] ?? '');
-            if ($key === '') {
-                continue;
-            }
-            if (isset($registryKeys[$key]) || isset($sectionUnion[$key]) || isset($known[$key])) {
-                continue;
-            }
-            $orphans[] = $key . ' (sku=' . ($f['sku'] ?? '?') . ', tab=' . ($f['tab'] ?? '?') . ')';
-        }
+        $orphans = $this->proManifestFieldsMissingRegistryGating();
 
         sort($orphans);
         $this->assertSame(
@@ -103,22 +61,104 @@ final class ManifestProRegistryParityTest extends TestCase
 
     public function testEverySectionFieldsKeyIsAKnownManifestKey(): void
     {
-        // Inverse-direction smoke test: any key listed inside sectionFields()
-        // that isn't a real manifest key (or known legacy key) is dead config.
-        // We don't assert on the full set because the registry intentionally
-        // lists a few historical aliases (e.g. schema_events_en); instead, we
-        // collect the orphans and fail only if NEW ones appear by surfacing
-        // them in the assertion message. Since this is a fail-loud test it
-        // currently checks the count is bounded by a known allowlist.
+        $unknown = $this->unknownSectionFieldKeys();
+
+        sort($unknown);
+        $this->assertSame(
+            [],
+            $unknown,
+            "ProFeatureRegistry::sectionFields() lists keys that are not in any manifest, not accepted by "
+            . "SettingsSaveDefinition, and not in the legacy allowlist. Either add the manifest field, "
+            . "add the key to SettingsSaveDefinition, document the alias in the allowlist, or remove the "
+            . "stale row:\n  - " . implode("\n  - ", $unknown)
+        );
+    }
+
+    /** @return array<string,bool> */
+    private function registryKeySet(): array
+    {
+        return array_flip(array_map(
+            static fn(array $entry): string => (string) $entry['key'],
+            ProFeatureRegistry::all()
+        ));
+    }
+
+    /** @return array<string,string> */
+    private function sectionFieldKeySet(): array
+    {
+        $sectionUnion = [];
+        foreach (ProFeatureRegistry::sectionFields() as $sectionKey => $keys) {
+            foreach ($keys as $key) {
+                $sectionUnion[$key] = $sectionKey;
+            }
+        }
+        return $sectionUnion;
+    }
+
+    /** @return list<string> */
+    private function proManifestFieldsMissingRegistryGating(): array
+    {
+        $gatedKeys = $this->registryKeySet()
+            + $this->sectionFieldKeySet();
+        $orphans = [];
+
+        foreach ($this->loadAll() as $field) {
+            $key = $this->fieldKey($field);
+            if ($this->isUngatedProField($field, $key, $gatedKeys)) {
+                $orphans[] = $key . ' (sku=' . ($field['sku'] ?? '?') . ', tab=' . ($field['tab'] ?? '?') . ')';
+            }
+        }
+
+        return $orphans;
+    }
+
+    /**
+     * @param array<string,mixed> $field
+     * @param array<string,mixed> $gatedKeys
+     */
+    private function isUngatedProField(array $field, string $key, array $gatedKeys): bool
+    {
+        return $key !== '' && $this->isProTier($field) && !isset($gatedKeys[$key]);
+    }
+
+    /** @param array<string,mixed> $field */
+    private function fieldKey(array $field): string
+    {
+        return isset($field['key']) ? (string) $field['key'] : '';
+    }
+
+    /** @param array<string,mixed> $field */
+    private function isProTier(array $field): bool
+    {
+        return isset($field['tier']) && $field['tier'] === 'pro';
+    }
+
+    /** @return list<string> */
+    private function unknownSectionFieldKeys(): array
+    {
         $manifestKeys = array_flip(array_map(
-            static fn(array $f): string => (string) ($f['key'] ?? ''),
+            static fn(array $field): string => (string) ($field['key'] ?? ''),
             $this->loadAll()
         ));
+        $saveKeys = array_flip(SettingsSaveDefinition::acceptedKeys());
+        $allow = array_flip($this->legacySectionFieldAllowlist());
+        $unknown = [];
 
-        // Documented historical aliases (kept in sectionFields() for legacy
-        // installs where the row already exists in #__aiboost_settings under
-        // these names). DO NOT remove without a data migration step.
-        $legacyAllowlist = [
+        foreach (ProFeatureRegistry::sectionFields() as $section => $keys) {
+            foreach ($keys as $key) {
+                if (!isset($manifestKeys[$key]) && !isset($saveKeys[$key]) && !isset($allow[$key])) {
+                    $unknown[] = "$section → $key";
+                }
+            }
+        }
+
+        return $unknown;
+    }
+
+    /** @return list<string> */
+    private function legacySectionFieldAllowlist(): array
+    {
+        return [
             'schema_event_article_ids',
             'schema_events_enabled',
             'schema_events_en',
@@ -133,37 +173,14 @@ final class ManifestProRegistryParityTest extends TestCase
             'meta_custom_events',
             'enable_sitemap_index',
             'enable_image_sitemap',
-            'enable_hreflang',
             'enable_news_sitemap',
             'news_category_id',
             'news_publication_name',
             'indexnow_api_key',
             'indexnow_auto_submit',
             'schema_howto',
-            // Orphans flagged by the parity test on 2026-05-27 — listed in
-            // ProFeatureRegistry::sectionFields() but have no matching manifest
-            // key. Either the manifest needs the field added or the registry
-            // row needs to be removed. Tracked for fix in Task #472.
             'llms_full_max_articles',
             'events_category_id',
         ];
-        $allow = array_flip($legacyAllowlist);
-
-        $unknown = [];
-        foreach (ProFeatureRegistry::sectionFields() as $section => $keys) {
-            foreach ($keys as $k) {
-                if (!isset($manifestKeys[$k]) && !isset($allow[$k])) {
-                    $unknown[] = "$section → $k";
-                }
-            }
-        }
-        sort($unknown);
-        $this->assertSame(
-            [],
-            $unknown,
-            "ProFeatureRegistry::sectionFields() lists keys that are not in any manifest and not in the "
-            . "legacy allowlist. Either add the manifest field, add the alias to the allowlist (with a "
-            . "comment explaining the migration), or remove the stale row:\n  - " . implode("\n  - ", $unknown)
-        );
     }
 }

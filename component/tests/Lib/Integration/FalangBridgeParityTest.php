@@ -61,17 +61,18 @@ final class FalangBridgeParityTest extends TestCase
         self::assertContains(ConflictManager::SLOT_HREFLANG, $desc->claimsSlots);
     }
 
-    public function testFalangContributesFiveByteIdenticalManifestFields(): void
+    public function testFalangContributesExpectedManifestFields(): void
     {
         $rc = new ReflectionClass(\AiBoost\Plugin\System\AiBoostIntFalang\Extension\AiBoostIntFalang::class);
         $instance = $rc->newInstanceWithoutConstructor();
         $fields = $instance->onAiBoostRegisterFields();
 
-        self::assertCount(5, $fields);
+        self::assertCount(6, $fields);
 
         $expectedKeys = [
             'falang_hreflang_head',
             'falang_hreflang_sitemap',
+            'falang_hreflang_mode',
             'falang_schema_translate',
             'falang_og_translate',
             'falang_primary_language',

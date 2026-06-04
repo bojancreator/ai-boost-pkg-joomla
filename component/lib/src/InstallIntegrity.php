@@ -55,7 +55,7 @@ final class InstallIntegrity
         'aiboost_code_pro',
     ];
 
-    /** Non-plugin extensions that ship in every edition. */
+    /** Non-plugin extensions audited alongside the package plugins. */
     public const COMPONENT_ELEMENT = 'com_aiboost';
     public const MODULE_ELEMENT    = 'mod_aiboost_health';
 
@@ -131,11 +131,13 @@ final class InstallIntegrity
             $ok[] = $element;
         }
 
-        // 2. Component + health module (every edition).
-        foreach ([
-            'component' => self::COMPONENT_ELEMENT,
-            'module'    => self::MODULE_ELEMENT,
-        ] as $type => $element) {
+        // 2. Component is core; the Health module is a Pro-only surface.
+        $expectedNonPlugins = ['component' => self::COMPONENT_ELEMENT];
+        if ($isPro) {
+            $expectedNonPlugins['module'] = self::MODULE_ELEMENT;
+        }
+
+        foreach ($expectedNonPlugins as $type => $element) {
             $row = $rows[$type][$element] ?? null;
             if ($row === null) {
                 $missing[] = $element;
@@ -177,7 +179,7 @@ final class InstallIntegrity
             'orphan'         => array_values($orphan),
             'mismatch'       => array_values($mismatch),
             'active_count'   => count($ok),
-            'expected_count' => count($expectedPlugins) + 2,
+            'expected_count' => count($expectedPlugins) + count($expectedNonPlugins),
         ];
     }
 

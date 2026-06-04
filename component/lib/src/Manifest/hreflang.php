@@ -21,6 +21,11 @@ return [
         'tier' => 'pro', 'sku' => 'hreflang',
     ],
     [
+        'key' => 'enable_hreflang', 'tab' => 'sitemap', 'section' => 'hreflang',
+        'label' => 'Add hreflang to sitemap', 'type' => 'toggle', 'default' => '0',
+        'tier' => 'pro', 'sku' => 'hreflang',
+    ],
+    [
         'key' => 'hreflang_primary_language', 'tab' => 'social', 'section' => 'hreflang',
         'label' => 'Primary language SEF', 'type' => 'text', 'default' => 'en',
         'tier' => 'pro', 'sku' => 'hreflang',

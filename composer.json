@@ -15,6 +15,7 @@
     "psr-4": {
       "AiBoost\\Lib\\": "component/lib/src/",
       "AiBoost\\Plugin\\System\\AiBoostAeo\\": "component/plugins/system/aiboost_aeo/src/",
+      "AiBoost\\Plugin\\System\\AiBoostAeoPro\\": "component/plugins/system/aiboost_aeo_pro/src/",
       "AiBoost\\Plugin\\System\\AiBoostSchema\\": "component/plugins/system/aiboost_schema/src/",
       "AiBoost\\Plugin\\System\\AiBoostSitemap\\": "component/plugins/system/aiboost_sitemap/src/",
       "AiBoost\\Plugin\\System\\AiBoostSocial\\": "component/plugins/system/aiboost_social/src/",

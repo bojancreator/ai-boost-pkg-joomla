@@ -4,6 +4,8 @@ namespace AiBoost\Tests\Lib;
 
 use AiBoost\Lib\PluginRegistry;
 use Joomla\CMS\Factory;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,9 +22,9 @@ use PHPUnit\Framework\TestCase;
  * Each test runs in a separate process so we can `define('JDEBUG', ...)`
  * once per scenario without polluting the others.
  *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
  */
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 final class PluginRegistrySimulationTest extends TestCase
 {
     /** Seed the fake DB with a simulation map that flips every SKU. */
@@ -47,7 +49,7 @@ final class PluginRegistrySimulationTest extends TestCase
 
     public function testSimulatorIsHonoredWhenJdebugIsOn(): void
     {
-        define('JDEBUG', true);
+        $this->defineJdebug(true);
         $this->seedSimulation();
 
         $caps = PluginRegistry::capabilities();
@@ -92,7 +94,7 @@ final class PluginRegistrySimulationTest extends TestCase
 
     public function testSimulatorIsIgnoredWhenJdebugIsOff(): void
     {
-        define('JDEBUG', false);
+        $this->defineJdebug(false);
         $this->seedSimulation();
 
         $caps = PluginRegistry::capabilities();
@@ -147,6 +149,13 @@ final class PluginRegistrySimulationTest extends TestCase
         // simulatedStatus() must also refuse to leak the persisted state.
         $this->assertNull(PluginRegistry::simulatedStatus('schema'));
         $this->assertNull(PluginRegistry::simulatedStatus('int_falang'));
+    }
+
+    private function defineJdebug(bool $enabled): void
+    {
+        if (!defined('JDEBUG')) {
+            define('JDEBUG', $enabled);
+        }
     }
 }
 

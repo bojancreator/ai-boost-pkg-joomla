@@ -45,9 +45,9 @@ final class InstallIntegrityTest extends TestCase
     }
 
     /**
-     * Component + health module rows, present and on-version, that every
-     * edition expects. Scenarios that only care about plugins prepend these so
-     * they never produce spurious "missing" noise.
+        * Component row, present and on-version, that every edition expects.
+        * Scenarios that only care about plugins prepend this so they never produce
+        * spurious "missing" noise.
      *
      * @return list<array<string,mixed>>
      */
@@ -55,6 +55,15 @@ final class InstallIntegrityTest extends TestCase
     {
         return [
             $this->row(InstallIntegrity::COMPONENT_ELEMENT, 'component', 1, self::VERSION, ''),
+        ];
+    }
+
+    /**
+     * @return list<array<string,mixed>>
+     */
+    private function proModuleRows(): array
+    {
+        return [
             $this->row(InstallIntegrity::MODULE_ELEMENT, 'module', 1, self::VERSION, ''),
         ];
     }
@@ -97,9 +106,9 @@ final class InstallIntegrityTest extends TestCase
         $this->assertSame([], $audit['disabled']);
         $this->assertSame([], $audit['orphan']);
         $this->assertSame([], $audit['mismatch']);
-        // Free expects 7 plugins + component + module.
+        // Free expects 7 plugins + component.
         $this->assertSame(
-            count(InstallIntegrity::FREE_SYSTEM_PLUGINS) + 2,
+            count(InstallIntegrity::FREE_SYSTEM_PLUGINS) + 1,
             $audit['active_count']
         );
         $this->assertSame($audit['expected_count'], $audit['active_count']);
@@ -107,7 +116,7 @@ final class InstallIntegrityTest extends TestCase
 
     public function testCleanProBaselineReportsNoProblems(): void
     {
-        $rows  = array_merge($this->coreRows(), $this->freePluginRows(), $this->proPluginRows());
+        $rows  = array_merge($this->coreRows(), $this->proModuleRows(), $this->freePluginRows(), $this->proPluginRows());
         $db    = $this->db($rows);
         $audit = InstallIntegrity::audit($db, true, self::VERSION);
 
