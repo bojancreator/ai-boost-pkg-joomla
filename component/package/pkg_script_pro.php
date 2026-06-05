@@ -1,8 +1,8 @@
 <?php
 /**
- * AI Boost — Pro Upgrade Package Installer Script
+ * AI Boost — Legacy Add-on Package Installer Script
  *
- * Installs / upgrades the closed-source Pro plugins:
+ * Installs / upgrades the legacy closed-source add-on plugins:
  *   - aiboost_schema_pro
  *   - aiboost_aeo_pro
  *   - aiboost_social_pro   (SKU: og)
@@ -10,9 +10,8 @@
  *   - aiboost_code_pro
  *
  * Requirements:
- *   - AI Boost (free) package must already be installed.
- *   - Each plugin requires its license key to be entered + verified on
- *     Components → AI Boost → Licenses before any feature unlocks.
+ *   - AI Boost package must already be installed.
+ *   - License keys are managed from Components → AI Boost → Licenses.
  *
  * @package     AiBoost
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
@@ -44,7 +43,7 @@ class Pkg_Aiboost_ProInstallerScript
                 // fall through to error_log
             }
         }
-        @error_log('[AiBoost Pro][' . strtoupper($severity) . '] ' . $msg);
+        @error_log('[AiBoost Add-on][' . strtoupper($severity) . '] ' . $msg);
     }
 
     public function preflight(string $type, object $parent): bool
@@ -53,20 +52,20 @@ class Pkg_Aiboost_ProInstallerScript
 
         if (version_compare(PHP_VERSION, self::MIN_PHP, '<')) {
             $app->enqueueMessage(
-                sprintf('AI Boost Pro requires PHP %s or higher. You are running PHP %s.', self::MIN_PHP, PHP_VERSION),
+                sprintf('AI Boost add-on package requires PHP %s or higher. You are running PHP %s.', self::MIN_PHP, PHP_VERSION),
                 'error'
             );
             return false;
         }
         if (version_compare(JVERSION, self::MIN_JOOMLA, '<')) {
             $app->enqueueMessage(
-                sprintf('AI Boost Pro requires Joomla %s or higher. You are running Joomla %s.', self::MIN_JOOMLA, JVERSION),
+                sprintf('AI Boost add-on package requires Joomla %s or higher. You are running Joomla %s.', self::MIN_JOOMLA, JVERSION),
                 'error'
             );
             return false;
         }
 
-        // The free package MUST already be installed (com_aiboost = the host
+        // The base package MUST already be installed (com_aiboost = the host
         // component that owns the shared lib autoloader and Licenses UI).
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
@@ -77,8 +76,8 @@ class Pkg_Aiboost_ProInstallerScript
         $exists = (int) $db->setQuery($query)->loadResult();
         if ($exists === 0) {
             $app->enqueueMessage(
-                'AI Boost (free) package is not installed. Install pkg_aiboost first, '
-                . 'then install this Pro Upgrade package.',
+                'AI Boost package is not installed. Install pkg_aiboost first, '
+                . 'then install this legacy add-on package.',
                 'error'
             );
             return false;
@@ -100,44 +99,33 @@ class Pkg_Aiboost_ProInstallerScript
             return true;
         }
 
-        // Auto-enable the five Pro system plugins right after install/upgrade.
-        // Without this a freshly-installed Pro package leaves every
-        // aiboost_*_pro plugin DISABLED in #__extensions, so a paying customer
-        // sees no Pro output until they manually publish each plugin one by one.
-        // Each Pro plugin self-gates on a verified-active license
-        // (PluginRegistry::hasPro), so enabling them unconditionally is safe —
-        // no Pro behaviour leaks until the license is active.
+        // Auto-enable the legacy add-on system plugins right after install/upgrade.
+        // Each plugin still checks license/update entitlement internally.
         $this->enableProPlugins();
 
-        // Publish the admin Health module (a Pro-only surface that ships in this
-        // Pro package). Ensures exactly ONE instance, published in the 'cpanel'
+        // Publish the admin Health module that ships in this add-on package.
+        // Ensures exactly ONE instance, published in the 'cpanel'
         // position at the top of the control panel, and removes any duplicate
         // instances left by older base builds that used to bundle the module.
         $this->publishHealthModule();
 
-        // Task #455 — Pro just landed → flip the Components menu label to
-        // "AI Boost Pro". The base package's applyEditionMenuLabel() also
-        // does this on its next install/update, but doing it here makes the
-        // label flip immediately when the Pro Upgrade is installed on top
-        // of an existing Free install (no need to reinstall the base pkg).
-        $this->relabelComponentMenu('COM_AIBOOST_MENU_PRO');
+        $this->relabelComponentMenu('COM_AIBOOST_MENU');
 
         $app->enqueueMessage(
-            'AI Boost Pro Upgrade installed. Open Components → AI Boost → Licenses '
-            . 'and verify each license key to unlock Pro features.',
+            'AI Boost add-on package installed. Open Components → AI Boost → Licenses '
+            . 'to verify license keys for updates and support.',
             'message'
         );
         return true;
     }
 
     /**
-     * Enable the five Pro system plugins after install/upgrade.
+    * Enable the five legacy add-on system plugins after install/upgrade.
      *
      * Mirrors Pkg_AiboostInstallerScript::enablePlugins() in pkg_script.php,
-     * but targets the Pro plugin element names. Deterministic exact-name
+    * but targets the add-on plugin element names. Deterministic exact-name
      * updates (no LIKE) so we never touch an unrelated extension. Safe to run
-     * on every install/upgrade — UPDATE is idempotent and the plugins gate
-     * their own behaviour on an active license.
+    * on every install/upgrade — UPDATE is idempotent.
      */
     private function enableProPlugins(): void
     {
@@ -163,16 +151,15 @@ class Pkg_Aiboost_ProInstallerScript
         } catch (\Throwable $e) {
             self::logEvent('warning', '[AiBoost Pro] enableProPlugins failed: ' . $e->getMessage());
             Factory::getApplication()->enqueueMessage(
-                'Warning: Could not auto-enable Pro plugins. Please enable them manually in Extensions → Plugins.',
+                'Warning: Could not auto-enable AI Boost add-on plugins. Please enable them manually in Extensions → Plugins.',
                 'warning'
             );
         }
     }
 
     /**
-     * Task #455 — Pro Upgrade package removed → revert the Components menu
-     * label to "AI Boost Free". Without this hook the label would stay
-     * "AI Boost Pro" until the next base package install/update.
+    * Legacy add-on package removed → keep the Components menu on the
+    * one-product AI Boost label.
      *
      * Task #461 audit note — the Pro package ships only Pro plugin
      * sub-packages (aiboost_*_pro). It has no DB tables of its own, so
@@ -185,7 +172,7 @@ class Pkg_Aiboost_ProInstallerScript
      */
     public function uninstall(object $parent): bool
     {
-        $this->relabelComponentMenu('COM_AIBOOST_MENU_FREE');
+        $this->relabelComponentMenu('COM_AIBOOST_MENU');
         // Remove the admin Health module instances. The module extension (files
         // + #__extensions row) is removed by Joomla via its pkg_aiboost_pro.xml
         // membership; this clears the #__modules / #__modules_menu rows Joomla

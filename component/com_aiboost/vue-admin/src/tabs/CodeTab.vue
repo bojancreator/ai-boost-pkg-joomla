@@ -1,7 +1,6 @@
-<template>
+﻿<template>
   <div class="ab-code-tab">
     <!-- Task #473 — Custom Code Injection is whole-tab Pro. -->
-    <ProGate gate-key="section:code" mode="section">
     <div class="ab-card">
       <div class="ab-card-header">💉 Custom Code Injection</div>
       <div class="ab-card-body">
@@ -28,6 +27,7 @@
         </div>
         <ScopeSelector
           field="head"
+          data-ab-field="custom_code_head_menu_ids"
           :s="s"
           :menu-groups="menuGroups"
           v-model:selected-ids="selectedHeadIds"
@@ -49,6 +49,7 @@
         </div>
         <ScopeSelector
           field="body"
+          data-ab-field="custom_code_body_menu_ids"
           :s="s"
           :menu-groups="menuGroups"
           v-model:selected-ids="selectedBodyIds"
@@ -70,6 +71,7 @@
         </div>
         <ScopeSelector
           field="footer"
+          data-ab-field="custom_code_footer_menu_ids"
           :s="s"
           :menu-groups="menuGroups"
           v-model:selected-ids="selectedFooterIds"
@@ -77,8 +79,6 @@
 
       </div>
     </div>
-
-    </ProGate>
   </div>
 </template>
 

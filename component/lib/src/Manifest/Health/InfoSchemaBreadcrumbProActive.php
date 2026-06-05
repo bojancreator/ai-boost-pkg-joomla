@@ -29,7 +29,7 @@ final class InfoSchemaBreadcrumbProActive
     public const HEALTH_ID   = 'info_schema_breadcrumb_pro_active';
     public const SETTING_KEY = 'schema_breadcrumb_pro';
     public const CATEGORY    = 'Schema';
-    public const LABEL       = 'Enhanced BreadcrumbList (Pro)';
+    public const LABEL       = 'Enhanced BreadcrumbList';
 
     /**
      * Evaluate the check. Default: report pass=true whenever the option

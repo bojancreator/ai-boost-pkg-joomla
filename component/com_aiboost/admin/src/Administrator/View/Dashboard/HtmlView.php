@@ -35,18 +35,6 @@ class HtmlView extends BaseHtmlView
     public int     $multilingualLangCount = 0;
     /** Legacy translation row count — kept for template back-compat. */
     public int     $multilingualCount  = 0;
-    /** True when the current settings license_tier is pro/developer/agency. */
-    public bool    $isProEnabled       = false;
-    /** True when Joomla debug mode is on — gates the License Simulator card. */
-    public bool    $debugMode          = false;
-    /** Current license_simulation map (empty when simulator hasn't been used). */
-    public array   $licenseSimulation  = [];
-    /** Capabilities snapshot for the simulator card. */
-    public array   $capabilities       = [];
-    /** True when ANY SKU has a simulated state (regardless of JDEBUG). */
-    public bool    $simulationActive   = false;
-    /** SKUs currently overridden by the simulator — used for the SIM pill tooltip. */
-    public array   $simulationSkus     = [];
 
     public function display($tpl = null): void
     {
@@ -72,31 +60,6 @@ class HtmlView extends BaseHtmlView
             $this->multilingualLangCount = 0;
         }
         $this->multilingualCount = $this->countTranslations();
-        $this->isProEnabled      = $this->checkIsProEnabled();
-
-        // ── License Simulator (Task #432) — dev-only, gated on JDEBUG ────
-        $this->debugMode = defined('JDEBUG') && JDEBUG === true;
-        try {
-            $this->licenseSimulation = \AiBoost\Lib\PluginRegistry::loadSimulation();
-            $this->capabilities      = \AiBoost\Lib\PluginRegistry::capabilities();
-            $this->simulationActive  = \AiBoost\Lib\PluginRegistry::isSimulationActive();
-            $skus = [];
-            foreach (\AiBoost\Lib\PluginRegistry::SIM_SKUS as $sku) {
-                if (!empty($this->licenseSimulation[$sku])) {
-                    $skus[] = $sku;
-                }
-            }
-            if (!empty($this->licenseSimulation['_domain_override'])) {
-                $skus[] = 'domain';
-            }
-            $this->simulationSkus = $skus;
-        } catch (\Throwable $e) {
-            $this->licenseSimulation = [];
-            $this->capabilities      = [];
-            $this->simulationActive  = false;
-            $this->simulationSkus    = [];
-        }
-
         $this->addToolbar();
 
         parent::display($tpl);

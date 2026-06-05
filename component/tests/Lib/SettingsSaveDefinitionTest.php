@@ -53,7 +53,7 @@ final class SettingsSaveDefinitionTest extends TestCase
         }
     }
 
-    public function testAdvancedOpeningHoursVariantsAreAcceptedAndProStripped(): void
+    public function testAdvancedOpeningHoursVariantsAreAcceptedAndNotStripped(): void
     {
         $accepted = SettingsSaveDefinition::acceptedKeys();
         $locked = ProFeatureRegistry::lockedSettingsKeys();
@@ -62,7 +62,7 @@ final class SettingsSaveDefinitionTest extends TestCase
             foreach (['opens', 'closes', 'closed'] as $suffix) {
                 $key = 'hours_' . $day . '_' . $suffix;
                 $this->assertContains($key, $accepted, "$key must be accepted for compatibility.");
-                $this->assertContains($key, $locked, "$key must be stripped on Free saves.");
+                $this->assertNotContains($key, $locked, "$key must remain saveable in the one-product model.");
             }
         }
     }
@@ -77,7 +77,7 @@ final class SettingsSaveDefinitionTest extends TestCase
         $this->assertSame('cooperative', $defaults['conflict_mode'] ?? null);
     }
 
-    public function testGatedProManifestFieldsCanExtendAcceptedKeys(): void
+    public function testLegacyProManifestFieldsCanExtendAcceptedKeysWithoutLocks(): void
     {
         $accepted = SettingsSaveDefinition::acceptedKeys();
         $locked = ProFeatureRegistry::lockedSettingsKeys();
@@ -86,12 +86,12 @@ final class SettingsSaveDefinitionTest extends TestCase
             $this->assertContains(
                 $key,
                 $accepted,
-                "$key can be accepted because ProFeatureRegistry strips it on Free saves."
+                "$key must be accepted in the one-product model."
             );
-            $this->assertContains(
+            $this->assertNotContains(
                 $key,
                 $locked,
-                "$key must stay locked for Free saves."
+                "$key must not be locked for saves."
             );
         }
     }
@@ -182,13 +182,13 @@ final class SettingsSaveDefinitionTest extends TestCase
         $this->assertSame('compatibility', SettingsSaveDefinition::field('robots_block_scrapers')['source'] ?? null);
     }
 
-    public function testAeoIndexNowPayloadKeysAreManifestBackedAndLocked(): void
+    public function testAeoIndexNowPayloadKeysAreManifestBackedAndSaveable(): void
     {
         $this->assertAeoManifestField('indexnow_api_key', 'indexnow', 'text', '', 'pro');
         $this->assertAeoManifestField('indexnow_auto_submit', 'indexnow', 'toggle', '0', 'pro');
 
         foreach (['indexnow_enabled', 'indexnow_api_key', 'indexnow_auto_submit'] as $key) {
-            $this->assertContains($key, ProFeatureRegistry::lockedSettingsKeys());
+            $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
         }
     }
 
@@ -208,7 +208,7 @@ final class SettingsSaveDefinitionTest extends TestCase
                 'tier'    => 'pro',
                 'sku'     => 'core',
             ]);
-            $this->assertContains($key, ProFeatureRegistry::lockedSettingsKeys());
+            $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
         }
 
         foreach (['show_advanced_options', 'dev_license_preview', 'dev_force_free_tier'] as $key) {
@@ -223,7 +223,7 @@ final class SettingsSaveDefinitionTest extends TestCase
         foreach (['meta_pixel_id', 'meta_pixel_ids', 'pixel_consent_mode', 'meta_custom_events'] as $key) {
             $this->assertManifestAttributes($key, [
                 'source' => 'manifest',
-                'tab'    => 'social',
+                'tab'    => 'analytics',
                 'tier'   => 'pro',
                 'sku'    => 'og',
             ]);
@@ -281,12 +281,12 @@ final class SettingsSaveDefinitionTest extends TestCase
     {
         foreach ($this->schemaProSectionExpectations() as $key => $expected) {
             $this->assertSchemaManifestField($key, 'schema', $expected['section'], $expected['type'], $expected['default'], 'pro');
-            $this->assertContains($key, ProFeatureRegistry::lockedSettingsKeys());
+            $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
         }
 
         foreach ($this->activeOpeningHoursExpectations() as $key => $expected) {
             $this->assertSchemaManifestField($key, 'schema', 'hours_advanced', $expected['type'], $expected['default'], 'pro');
-            $this->assertContains($key, ProFeatureRegistry::lockedSettingsKeys());
+            $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
         }
 
         foreach (['hours_monday_opens', 'hours_mo_opens', 'schema_events_enabled', 'schema_events_en'] as $key) {

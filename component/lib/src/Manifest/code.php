@@ -2,8 +2,8 @@
 /**
  * AI Boost — Custom Code Injection manifest.
  *
- * Whole tab is Pro (Task #473) — every field marked tier:pro and the
- * CodeTab.vue itself is wrapped in <ProGate gate-key="section:code">.
+ * Historical tier metadata is retained for compatibility while the
+ * one-product admin keeps the tab editable.
  */
 
 defined('_JEXEC') or die;

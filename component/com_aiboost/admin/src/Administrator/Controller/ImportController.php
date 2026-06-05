@@ -24,8 +24,8 @@ class ImportController extends BaseController
      * License state + per-site identity + dev overrides must always come from
      * the destination install's own verified state, never from a JSON file.
      * Without this denylist a hand-crafted export could set
-     * license_state[*].status=active and unlock Pro features (a license
-     * bypass), or clobber the unique per-site install_id. The destination's
+    * license_state[*].status=active and forge entitlement state, or clobber
+    * the unique per-site install_id. The destination's
      * existing values for these keys are preserved on import.
      *
      * @var string[]

@@ -6,14 +6,12 @@
 -->
 <template>
   <div class="ab-gen-field">
-    <ProGate gate-key="hreflang_sitemap" mode="field">
-      <div class="ab-check ab-toggle mb-3">
-        <input v-model="s.hreflang_sitemap" data-ab-field="hreflang_sitemap"
-               true-value="1" false-value="0"
-               type="checkbox" class="ab-toggle__input" id="ab-gen-hreflang-sitemap" />
-        <label class="ab-check__label" for="ab-gen-hreflang-sitemap">Emit &lt;xhtml:link&gt; hreflang alternates in sitemap</label>
-      </div>
-    </ProGate>
+    <div class="ab-check ab-toggle mb-3">
+      <input v-model="s.hreflang_sitemap" data-ab-field="hreflang_sitemap"
+             true-value="1" false-value="0"
+             type="checkbox" class="ab-toggle__input" id="ab-gen-hreflang-sitemap" />
+      <label class="ab-check__label" for="ab-gen-hreflang-sitemap">Emit &lt;xhtml:link&gt; hreflang alternates in sitemap</label>
+    </div>
   </div>
 </template>
 

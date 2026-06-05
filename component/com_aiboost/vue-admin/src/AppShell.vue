@@ -18,22 +18,8 @@
         </a>
       </div>
 
-      <!-- v0.55.0 — route-level Pro gate. Routes that mark
-           `meta.proGate = 'page:xxx'` get wrapped in <ProGate> so the body
-           renders as a muted preview with an "Unlock Pro version" pill on
-           Free / unlicensed Pro installs. The Licenses route additionally
-           marks `meta.proGateForceUnlockOnInstall = true` so a fresh Pro
-           install (no key entered) can still use the page to paste a key. -->
       <router-view v-else v-slot="{ Component }">
-        <ProGate
-          v-if="proGateKey"
-          :gate-key="proGateKey"
-          mode="section"
-          :force-unlock="proGateForceUnlock"
-        >
-          <component :is="Component" />
-        </ProGate>
-        <component v-else :is="Component" />
+        <component :is="Component" />
       </router-view>
     </div>
   </div>
@@ -44,13 +30,12 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import ToastStack from './components/ToastStack.vue'
-import ProGate from './components/ProGate.vue'
 import { useColorScheme } from './composables/useColorScheme.js'
 import { ensureLegacyGlobals } from './composables/useLegacyGlobals.js'
 
 export default {
   name: 'AppShell',
-  components: { Sidebar, ToastStack, ProGate },
+  components: { Sidebar, ToastStack },
 
   setup() {
     const { scheme } = useColorScheme()
@@ -61,15 +46,6 @@ export default {
     const legacyHref = computed(() => {
       const meta = route.meta || {}
       return meta.legacyUrl || ''
-    })
-
-    const proGateKey = computed(() => (route.meta && route.meta.proGate) || '')
-    const proGateForceUnlock = computed(() => {
-      const meta = route.meta || {}
-      if (!meta.proGateForceUnlockOnInstall) return false
-      const boot = window.aiBoostBootstrap || {}
-      return !!(boot.isProInstall
-        || (boot.license && boot.license.isProInstall))
     })
 
     async function loadGlobalsForRoute(r) {
@@ -93,7 +69,7 @@ export default {
     onMounted(() => loadGlobalsForRoute(route))
     watch(() => route.fullPath, () => loadGlobalsForRoute(route))
 
-    return { scheme, loading, error, legacyHref, proGateKey, proGateForceUnlock }
+    return { scheme, loading, error, legacyHref }
   },
 }
 </script>

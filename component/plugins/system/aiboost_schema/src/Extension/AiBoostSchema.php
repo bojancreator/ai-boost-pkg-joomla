@@ -1,17 +1,13 @@
 <?php
 /**
- * AI Boost — Schema.org Plugin (Free)
+ * AI Boost — Schema.org Plugin
  *
- * Thin orchestrator that delegates Free-tier schema generation to
- * SchemaBuilder, then fires `EVENT_FILTER_SCHEMA_BLOCKS` so the
- * closed-source aiboost_schema_pro plugin can decorate the Organization
- * block and append Pro-only blocks (FAQPage / QAPage / Article / HowTo /
- * Event). Removing the Pro plugin removes the entire Pro code path —
- * no settings, no runtime patch, no license-tier flag can re-enable Pro
- * behaviour from the Free package.
+ * Thin orchestrator that delegates schema generation to SchemaBuilder, then
+ * fires `EVENT_FILTER_SCHEMA_BLOCKS` so optional add-ons can extend the block
+ * list without coupling this plugin to a specific integration package.
  *
- * Free tier (this file):
- *   - Organization JSON-LD (name, URL, logo, address, phone, email, social)
+ * Core output:
+ *   - Organization/Business JSON-LD (name, URL, logo, address, phone, email, social)
  *   - WebSite + SearchAction (homepage only)
  *   - BreadcrumbList (auto-built from Joomla pathway)
  *
@@ -40,8 +36,8 @@ class AiBoostSchema extends CMSPlugin
     protected $autoloadLanguage = true;
 
     /**
-     * onBeforeCompileHead — build the Free baseline JSON-LD blocks, let the
-     * Pro plugin decorate via EVENT_FILTER_SCHEMA_BLOCKS, then inject.
+    * onBeforeCompileHead — build JSON-LD blocks, let optional integrations
+    * filter them via EVENT_FILTER_SCHEMA_BLOCKS, then inject.
      */
     public function onBeforeCompileHead(): void
     {
@@ -80,11 +76,9 @@ class AiBoostSchema extends CMSPlugin
         $builder = new SchemaBuilder($settings, $ctx, $db);
         $schemas = $builder->buildAll();
 
-        // Pro decorator hook — closed-source aiboost_schema_pro listens here
-        // and decorates the Organization block (upgraded @type via preset,
-        // aggregateRating, openingHours, type-specific fields, translations)
-        // and appends Pro-only blocks (FAQPage, QAPage, Article, HowTo, Event).
-        // When the Pro plugin is absent the blocks pass through unchanged.
+        // Optional integration hook. Listeners may decorate existing blocks or
+        // append extra JSON-LD blocks; without listeners the core blocks pass
+        // through unchanged.
         if (class_exists(FilterDispatcher::class)) {
             $filtered = FilterDispatcher::dispatch(
                 Sdk::EVENT_FILTER_SCHEMA_BLOCKS,

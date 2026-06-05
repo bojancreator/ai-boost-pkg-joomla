@@ -16,7 +16,7 @@
         </div>
         <div class="mb-0">
           <label class="ab-label">Manual Domain <span style="opacity:.5;font-weight:400;">(if auto-detect is off)</span></label>
-          <input v-model="s.manual_domain" type="url" class="ab-input"
+          <input v-model="s.manual_domain" data-ab-field="manual_domain" type="url" class="ab-input"
             placeholder="https://example.com" style="max-width:340px">
         </div>
       </div>

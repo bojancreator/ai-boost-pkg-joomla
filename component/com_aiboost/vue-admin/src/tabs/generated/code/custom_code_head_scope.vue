@@ -6,16 +6,14 @@
 -->
 <template>
   <div class="ab-gen-field">
-    <ProGate gate-key="custom_code_head_scope" mode="field">
-      <div class="mb-3">
-        <label class="ab-label" for="ab-gen-custom-code-head-scope">Head code scope</label>
-        <select v-model="s.custom_code_head_scope" data-ab-field="custom_code_head_scope"
-                class="ab-select" id="ab-gen-custom-code-head-scope">
-          <option value="all">All pages</option>
-          <option value="specific">Specific menu items only</option>
-        </select>
-      </div>
-    </ProGate>
+    <div class="mb-3">
+      <label class="ab-label" for="ab-gen-custom-code-head-scope">Head code scope</label>
+      <select v-model="s.custom_code_head_scope" data-ab-field="custom_code_head_scope"
+              class="ab-select" id="ab-gen-custom-code-head-scope">
+        <option value="all">All pages</option>
+        <option value="specific">Specific menu items only</option>
+      </select>
+    </div>
   </div>
 </template>
 

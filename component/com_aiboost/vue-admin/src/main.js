@@ -28,10 +28,9 @@ import ToastStack       from './components/ToastStack.vue'
 import { createSpaRouter } from './router.js'
 
 /**
- * Register ProGate globally so every tab can use <ProGate> without an
- * explicit import. ProGate reads the active license + the Pro feature
- * registry exposed at window.aiBoostProFeatures (or via the SPA bootstrap)
- * and locks the wrapped slot when the install is Free.
+ * Register ProGate globally so existing tab templates can keep their wrapper
+ * markup while the component renders as a pass-through during the one-product
+ * transition.
  */
 function installGlobals(app) {
   app.component('ProGate', ProGate)

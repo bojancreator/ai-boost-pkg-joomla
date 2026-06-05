@@ -10,7 +10,7 @@
       <label class="ab-label" for="ab-gen-error-log-min-severity">Minimum severity to log</label>
       <select v-model="s.error_log_min_severity" data-ab-field="error_log_min_severity"
               class="ab-select" id="ab-gen-error-log-min-severity">
-        <option value="debug">Debug (very verbose — troubleshooting only)</option>
+        <option value="debug">Debug (very verbose â€” troubleshooting only)</option>
         <option value="info">Info</option>
         <option value="warning">Warning (recommended)</option>
         <option value="error">Error only</option>

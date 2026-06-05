@@ -14,6 +14,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import DashboardApp     from './DashboardApp.vue'
+import AutopilotPage    from './AutopilotPage.vue'
 import HealthApp        from './HealthApp.vue'
 import SettingsApp      from './App.vue'
 import HelpPage         from './HelpPage.vue'
@@ -24,44 +25,42 @@ import RedirectsPage    from './RedirectsPage.vue'
 import UrlCheckerPage   from './UrlCheckerPage.vue'
 import ImportPage       from './ImportPage.vue'
 import StyleguidePage   from './StyleguidePage.vue'
-import ErrorsPage       from './ErrorsPage.vue'
+import { pageRouteAliases, settingsRouteAliases } from './navigation.js'
 
 function urls() {
-  const boot = window.aiBoostBootstrap || {}
+  const boot = (globalThis.window && globalThis.window.aiBoostBootstrap) || {}
   return boot.legacyUrls || {}
-}
-
-/**
- * v0.55.0 — The route-level Pro guard was removed. Per Bojan's directive,
- * every Pro page must be REACHABLE on Free / unlicensed installs so the
- * user can see what they would get with Pro. The page contents are
- * rendered through <ProGate gate-key="page:*"> instead, which shows a
- * muted preview and an "Unlock Pro version" link to the pricing page.
- *
- * `import` is the lone exception — it stays hidden from the TopNav
- * (`proHidden`) because it is an export-only utility and not a feature
- * we want to advertise. We keep a passive redirect on Free so a stale
- * /#/import deep link does not error.
- *
- * Server-side enforcement (controllers + ProFeatureRegistry::stripLocked)
- * remains the real authorization boundary.
- */
-function isProTier() {
-  const boot = window.aiBoostBootstrap || {}
-  return !!(boot.isPro || (boot.license && boot.license.isPro))
 }
 
 export function createSpaRouter() {
   const u = urls()
 
+  const aliasRoutes = settingsRouteAliases.map(({ path, tab }) => ({
+    path,
+    redirect: (to) => ({ path: '/settings', query: { ...to.query, tab } }),
+  }))
+
+  const pageAliases = pageRouteAliases.map(({ path, target }) => ({
+    path,
+    redirect: target,
+  }))
+
   const routes = [
     { path: '/',             redirect: '/dashboard' },
+    ...aliasRoutes,
+    ...pageAliases,
 
     {
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardApp,
       meta: { legacyUrl: u.dashboard },
+    },
+    {
+      path: '/autopilot',
+      name: 'autopilot',
+      component: AutopilotPage,
+      meta: { legacyUrl: u.settings, title: 'Autopilot' },
     },
     {
       path: '/settings',
@@ -76,28 +75,28 @@ export function createSpaRouter() {
       meta: { legacyUrl: u.health },
     },
     {
+      path: '/health/errors',
+      name: 'health-errors',
+      component: HealthApp,
+      meta: { legacyUrl: u.health, title: 'Health' },
+    },
+    {
       path: '/integrations',
       name: 'integrations',
       component: IntegrationsPage,
-      meta: { legacyUrl: u.integrations, proGate: 'page:integrations' },
+      meta: { legacyUrl: u.integrations },
     },
     {
       path: '/licenses',
       name: 'licenses',
       component: LicensesPage,
-      // Licenses uses proGateForceUnlockOnInstall so a Pro install with
-      // no verified key yet can still type one in.
-      meta: {
-        legacyUrl: '', title: 'Licenses',
-        proGate: 'page:licenses',
-        proGateForceUnlockOnInstall: true,
-      },
+      meta: { legacyUrl: '', title: 'License & Updates' },
     },
     {
       path: '/analyzers',
       name: 'analyzers',
       component: AnalyzerPage,
-      meta: { legacyUrl: u.analyzer, proGate: 'page:analyzers' },
+      meta: { legacyUrl: u.analyzer },
     },
     {
       path: '/help',
@@ -105,26 +104,19 @@ export function createSpaRouter() {
       component: HelpPage,
       meta: { legacyUrl: '' },
     },
-    {
-      // Task #512 — Errors tab: Vue-only, no legacyUrl (data via AJAX).
-      // Available on Free too — error log is a free feature.
-      path: '/errors',
-      name: 'errors',
-      component: ErrorsPage,
-      meta: { legacyUrl: '', title: 'Errors' },
-    },
+    { path: '/errors', redirect: '/health/errors' },
 
     {
       path: '/redirects',
       name: 'redirects',
       component: RedirectsPage,
-      meta: { legacyUrl: '', title: 'Redirects', proGate: 'page:redirects' },
+      meta: { legacyUrl: '', title: 'Redirects' },
     },
     {
       path: '/urlchecker',
       name: 'urlchecker',
       component: UrlCheckerPage,
-      meta: { legacyUrl: '', title: 'URL Checker', proGate: 'page:urlchecker' },
+      meta: { legacyUrl: '', title: 'URL Checker' },
     },
     {
       path: '/import',
@@ -147,15 +139,6 @@ export function createSpaRouter() {
   const router = createRouter({
     history: createWebHashHistory(),
     routes,
-  })
-
-  router.beforeEach((to) => {
-    // `import` is the only Pro route still bounced — it is hidden from
-    // the TopNav (proHidden) and serves no purpose on Free.
-    if (to.name === 'import' && !isProTier()) {
-      return { name: 'dashboard' }
-    }
-    return true
   })
 
   return router

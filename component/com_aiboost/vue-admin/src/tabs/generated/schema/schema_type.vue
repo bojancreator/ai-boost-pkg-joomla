@@ -10,18 +10,23 @@
       <label class="ab-label" for="ab-gen-schema-type">Schema Type</label>
       <select v-model="s.schema_type" data-ab-field="schema_type"
               class="ab-select" id="ab-gen-schema-type">
-        <option value="Organization">Organization (generic) [Free]</option>
-        <option value="LocalBusiness">LocalBusiness [Free]</option>
-        <option value="FoodEstablishment">Restaurant / Cafe [Free]</option>
-        <option value="EducationalOrganization">School / University [Free]</option>
-        <option value="LodgingBusiness">Hotel / Accommodation [Pro]</option>
-        <option value="MedicalClinic">Medical Clinic [Pro]</option>
-        <option value="LegalService">Lawyer / Law Firm [Pro]</option>
-        <option value="SportsActivityLocation">Gym / Sports Club [Pro]</option>
-        <option value="Dentist">Dentist [Pro]</option>
-        <option value="RealEstateAgent">Real Estate Agency [Pro]</option>
-        <option value="Person">Person / Portfolio [Pro]</option>
-        <option value="NewsMediaOrganization">News / Media [Pro]</option>
+        <option value="Organization">Organization (generic)</option>
+        <option value="LocalBusiness">LocalBusiness</option>
+        <option value="FoodEstablishment">Restaurant / Cafe</option>
+        <option value="Restaurant">Restaurant (specific)</option>
+        <option value="EducationalOrganization">School / University</option>
+        <option value="LodgingBusiness">Hotel / Accommodation</option>
+        <option value="MedicalClinic">Medical Clinic</option>
+        <option value="LegalService">Lawyer / Law Firm</option>
+        <option value="SportsActivityLocation">Gym / Sports Club</option>
+        <option value="Dentist">Dentist</option>
+        <option value="RealEstateAgent">Real Estate Agency</option>
+        <option value="AutomotiveBusiness">Automotive Business</option>
+        <option value="Store">Store / Shop</option>
+        <option value="TouristAttraction">Tourist Attraction</option>
+        <option value="ProfessionalService">Professional Service</option>
+        <option value="Person">Person / Portfolio</option>
+        <option value="NewsMediaOrganization">News / Media</option>
       </select>
     </div>
   </div>

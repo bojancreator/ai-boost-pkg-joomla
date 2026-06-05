@@ -1,14 +1,14 @@
 <?php
 /**
- * AI Boost — Pro feature handler: BreadcrumbPro
+ * AI Boost — Legacy feature handler: BreadcrumbPro
  *
  * Auto-generated stub by scripts/codegen-from-manifest.py for manifest
  * key `schema_breadcrumb_pro` (tier=pro, sku=schema). The codegen script will NEVER
  * overwrite this file once it exists, so it is safe to fill in real
- * Pro logic below the `// @pro:start` marker.
+ * compatibility logic below the `// @pro:start` marker.
  *
  * Label  : Enhanced BreadcrumbList (Pro)
- * Purpose: Emit a richer BreadcrumbList with per-item images and structured position metadata. Free tier emits the basic BreadcrumbList.
+ * Purpose: Emit a richer BreadcrumbList with per-item images and structured position metadata. The core plugin emits the basic BreadcrumbList.
  *
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
  * @license     GNU General Public License version 2 or later
@@ -26,7 +26,7 @@ final class BreadcrumbPro
     public const SETTING_KEY = 'schema_breadcrumb_pro';
 
     /**
-     * Return true if this Pro feature is enabled in #__aiboost_settings.
+    * Return true if this legacy feature is enabled in #__aiboost_settings.
      *
      * @param array<string,mixed> $settings  Decoded settings_json blob.
      */
@@ -37,16 +37,16 @@ final class BreadcrumbPro
 
     // @pro:start
     /**
-     * Apply this feature's effect. Called by the parent Pro plugin's
+    * Apply this feature's effect. Called by the parent legacy decorator's
      * event handler (e.g. onBeforeCompileHead). Replace this stub with
      * real logic; the // @pro:start ... // @pro:end markers guarantee
-     * the block is stripped out of the free package by build-package-zip.py.
+    * the block is stripped from package variants that do not ship it.
      *
      * @param array<string,mixed> $settings
      */
     public static function apply(array $settings): void
     {
-        // TODO: implement Pro logic for schema_breadcrumb_pro.
+        // TODO: implement compatibility logic for schema_breadcrumb_pro.
     }
     // @pro:end
 }

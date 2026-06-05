@@ -2,7 +2,8 @@
 
 This document is an architecture decision guide for structural refactors. It is
 not a parallel task board. The forward work list stays in `BACKLOG.md`, and the
-operating procedure stays in `replit.md`.
+operating procedure stays in `OPERATING.md`. Product strategy and release
+sequencing for v0.5 are in `docs/v0.5-product-direction.md`.
 
 ## Method: Architecture Decision Gates
 
@@ -642,8 +643,9 @@ Several technical SEO, crawler, analytics, social, and identity controls are in
 places that make sense historically but are harder to discover during setup.
 
 Goal: reorganize the admin sidebar and settings surfaces into clearer product
-areas: `OVERVIEW`, `SETUP`, `SEO`, `AI SEARCH`, `TOOLS`, and `ADVANCED`, while
+areas: `OVERVIEW`, `SETUP`, `SEO`, `AI VISIBILITY`, `TOOLS`, and `ADVANCED`, while
 keeping existing stored setting keys and route aliases stable where possible.
+See `docs/v0.5-product-direction.md §2` for the accepted v0.5 target menu.
 
 Non-goals:
 
@@ -704,7 +706,7 @@ Preferred implementation shape:
 
 Likely files:
 
-- `component/com_aiboost/vue-admin/src/components/Sidebar.vue`
+- `component/com_aiboost/vue-admin/src/Sidebar.vue`
 - `component/com_aiboost/vue-admin/src/router.js`
 - `component/com_aiboost/vue-admin/src/App.vue` or settings shell files
 - `component/com_aiboost/vue-admin/src/tabs/*`

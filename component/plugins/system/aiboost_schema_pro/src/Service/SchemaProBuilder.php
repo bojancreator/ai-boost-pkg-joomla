@@ -2,7 +2,7 @@
 /**
  * AI Boost — SchemaProBuilder (Pro)
  *
- * Decorates the Free baseline schema blocks and appends Pro-only blocks.
+ * Decorates the core schema blocks and appends extended schema blocks.
  * Invoked from AiBoostSchemaPro::onAiBoostFilterSchemaBlocks.
  *
  * Decorates Organization block:
@@ -14,7 +14,7 @@
  *   - Per-language org_name / org_description / org_address_* / org_logo
  *     via TranslationService + FalangBridge fallback
  *
- * Appends Pro blocks (in order):
+ * Appends extended blocks (in order):
  *   - FAQPage  / QAPage (controlled by schema_faq_output_type)
  *   - Article / BlogPosting / NewsArticle / TechArticle
  *   - HowTo
@@ -65,7 +65,7 @@ class SchemaProBuilder
     }
 
     /**
-     * Decorate Free blocks + append Pro blocks.
+    * Decorate core blocks + append extended blocks.
      *
      * @param  array<int, array<string,mixed>> $freeBlocks
      * @return array<int, array<string,mixed>>
@@ -120,7 +120,7 @@ class SchemaProBuilder
     }
 
     /**
-     * Decorate the Free Organization block: upgraded @type, translations,
+    * Decorate the Organization block: upgraded @type, translations,
      * openingHours, aggregateRating, type-specific properties.
      *
      * @param  array<string,mixed> $block
@@ -128,7 +128,7 @@ class SchemaProBuilder
      */
     private function decorateOrganization(array $block): array
     {
-        $typeKey = (string) ($this->settings['schema_type'] ?? 'organization');
+        $typeKey = SiteTypePresetService::normalizeKey((string) ($this->settings['schema_type'] ?? 'organization'));
         $type    = SiteTypePresetService::getSchemaType($typeKey, true);
         $isLocal = SiteTypePresetService::isLocalBusiness($typeKey, true);
 
@@ -162,7 +162,7 @@ class SchemaProBuilder
             }
 
             // Patch translated address fields (preserves region/zip/country
-            // from Free baseline if PostalAddress was emitted).
+            // from the core block if PostalAddress was emitted).
             $addrStreet = $this->translations->get('org_address_street', $lc, '')
                        ?: $this->falang->translate('org_address_street', $addrStreetRaw);
             $addrCity   = $this->translations->get('org_address_city', $lc, '')
@@ -229,14 +229,14 @@ class SchemaProBuilder
             }
         }
 
-        if (in_array($typeKey, ['medicalclinic', 'legalservice'], true)) {
+        if (in_array($typeKey, ['medicalclinic', 'legalservice', 'automotivebusiness', 'professionalservice'], true)) {
             $service = trim((string) ($this->settings['specific_available_service'] ?? ''));
             if ($service !== '') {
                 $block['availableService'] = $service;
             }
         }
 
-        if (in_array($typeKey, ['realestateagent', 'automotivebusiness', 'professionalservice'], true)) {
+        if (in_array($typeKey, ['realestateagent', 'automotivebusiness', 'professionalservice', 'store', 'touristattraction', 'localbusiness'], true)) {
             $areaServed = trim((string) ($this->settings['specific_area_served'] ?? ''));
             if ($areaServed !== '') {
                 $block['areaServed'] = $areaServed;

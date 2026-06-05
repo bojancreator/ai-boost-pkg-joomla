@@ -112,7 +112,7 @@ trait ProGate
             $db->setQuery($update);
             $db->execute();
         } catch (\Throwable $e) {
-            error_log('[AI Boost ProGate] Failed to store license tier: ' . $e->getMessage());
+            error_log('[AI Boost LicenseCompat] Failed to store license tier: ' . $e->getMessage());
         }
     }
 

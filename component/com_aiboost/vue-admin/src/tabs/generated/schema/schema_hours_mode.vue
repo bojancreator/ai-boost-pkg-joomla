@@ -11,7 +11,7 @@
       <select v-model="s.schema_hours_mode" data-ab-field="schema_hours_mode"
               class="ab-select" id="ab-gen-schema-hours-mode">
         <option value="simple">Simple (one text line)</option>
-        <option value="advanced">Advanced — day-by-day schedule [Pro]</option>
+        <option value="advanced">Advanced â€” day-by-day schedule</option>
         <option value="none">Not applicable / Hide</option>
       </select>
     </div>

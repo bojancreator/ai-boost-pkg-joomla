@@ -2,80 +2,88 @@
 
 The **only** forward plan: real remaining work, in plain language, organised by
 **type of work** — not just new features. When you pick up an item, follow the
-**Task completion procedure (Definition of Done)** in `replit.md`; when it's
+**Task completion procedure (Definition of Done)** in `OPERATING.md`; when it's
 shipped and verified on staging, delete its line from this file. That deletion
 *is* marking it done — no parallel task panel.
+
+Product strategy and release sequence for v0.5: `docs/v0.5-product-direction.md`.
 
 ---
 
 ## New options / features
 
+- **Autopilot MVP** — guided one-time setup flow: Site Identity → Schema.org core →
+  Sitemap → Social Meta, with a visual completion state showing which key areas are
+  configured. New Vue route, first item under `SETUP`. No AI inference in this slice —
+  Autopilot is a guided checklist. Architecture Gate 0 required before implementation.
+  See `docs/v0.5-product-direction.md §3`.
+
 - **Alias Assistant** — suggest and fix article aliases, with automatic 301
-  redirects when an alias changes.
+  redirects when an alias changes. *(post-v0.5)*
 - **YOOtheme Pro integration** — bridge AI Boost into YOOtheme-built sites so they
-  also get the schema / OG / AEO output.
+  also get the schema / OG / AEO output. *(post-v0.5)*
 - **Warn the admin when custom code is unusually large** — flag injected code that
-  could slow the site down.
+  could slow the site down. *(post-v0.5)*
 - **Preview injected custom code before saving it** — let admins see what will be
-  output before it goes live.
+  output before it goes live. *(post-v0.5)*
 
 ## Admin UX / navigation
 
 (admin menu structure, settings information architecture and option placement)
 
 - **Rework the admin sidebar into clearer product areas** — replace the current
-  `OVERVIEW / SEO FEATURES / TOOLS / SETTINGS` grouping with this final order:
+  `OVERVIEW / SEO FEATURES / TOOLS / SETTINGS` grouping with this v0.5 target order:
 
   ```text
   OVERVIEW
   - Dashboard
-  - Health
-  - Errors
+  - Health          (absorbs Errors — one status surface, not two)
 
   SETUP
-  - General
+  - Autopilot       (new — guided one-time setup, see Autopilot item above)
   - Site Identity
-  - License & Plan
+  - License & Updates
   - Integrations
 
   SEO
+  - Technical SEO   (canonical URL + 404 monitoring, moved out of Sitemap)
   - Schema.org
-  - Sitemap
+  - Sitemap         (sitemap-only after Technical SEO moves out)
   - Social Meta
   - Analytics & Tracking
-  - Technical SEO
 
-  AI SEARCH
-  - AI Search / AEO
+  AI VISIBILITY
+  - AEO
+  - GEO             (reserved placeholder — not implemented in v0.5)
   - Crawlers & Robots
 
   TOOLS
+  - Redirects
   - Analyzers
   - URL Checker
-  - Redirects
-  - Import
 
   ADVANCED
   - Custom Code
   - Debug
+  - Import
   - Help
   ```
 
-  Keep `Dashboard`, `Health` and `Errors` at the top because they are status and
-  diagnostics entrypoints. Keep `Analyzers`, `URL Checker`, `Redirects` and
-  `Import` as tools because they are action pages rather than settings. Keep the
-  existing Pro preview behaviour for normal Pro pages, but keep `Import` hidden
-  on Free/unlicensed installs because it is rare and migration-oriented. Update
-  route labels, sidebar active-state logic and docs/screenshots together.
+  Implement in four slices as defined in `docs/architecture-refactor-plan.md`
+  (Admin IA Gate 1). Keep `Dashboard` and `Health` at the top because they are
+  status and diagnostics entrypoints. `General` settings (domain, conflict
+  resolution) are accessible from within relevant pages but no longer a primary
+  SETUP destination. Update route labels, sidebar active-state logic and
+  docs/screenshots together per slice.
 
 - **Rename admin menu items to match user mental models** — use these final names:
-  `Organization` -> `Site Identity`; `Licenses` -> `License & Plan`;
+  `Organization` -> `Site Identity`; `Licenses` -> `License & Updates`;
   `Social & Meta` -> `Social Meta`; `Analytics` -> `Analytics & Tracking`;
-  `AEO` -> `AI Search / AEO`; `Custom Code` stays `Custom Code` but moves to
-  `ADVANCED`; `Debug` stays `Debug` and moves to `ADVANCED`. The goal is that a
-  normal Joomla admin can guess where to go without knowing internal feature
-  names. Architecture gate: not required. XHigh: recommended for final wording
-  review before implementation.
+  `AEO` -> `AEO` (short form, section header renamed to `AI VISIBILITY`);
+  `Custom Code` stays `Custom Code` but moves to `ADVANCED`; `Debug` stays
+  `Debug` and moves to `ADVANCED`. The goal is that a normal Joomla admin can
+  guess where to go without knowing internal feature names. Architecture gate: not
+  required. XHigh: recommended for final wording review before implementation.
 
 - **Promote Organization settings into Site Identity** — move the current
   `Organization` tab out of the low-priority Settings area and make it the second
@@ -112,7 +120,7 @@ shipped and verified on staging, delete its line from this file. That deletion
 
 - **Create Crawlers & Robots as the single crawler-policy page** — move all
   crawler and robots controls into the new `Crawlers & Robots` item under
-  `AI SEARCH`. This page should contain, in order: `robots.txt Management`
+  `AI VISIBILITY`. This page should contain, in order: `robots.txt Management`
   (enable, auto-sync, live preview), `SEO scraper blocks` (Ahrefs, Semrush,
   Majestic, Moz, Screaming Frog, Sitebulb, etc.), `AI Crawler Rules` with the
   default allow/block policy, per-bot rules for AI crawlers, and `Custom
@@ -121,16 +129,11 @@ shipped and verified on staging, delete its line from this file. That deletion
   architecture move.
 
 - **Refocus AI Search / AEO on AI-visible content endpoints and signals** — keep
-  the renamed `AI Search / AEO` page for: `llms.txt - AI Site Index`,
+  the renamed `AEO` page (section `AI VISIBILITY`) for: `llms.txt - AI Site Index`,
   `llms-full.txt - Full Site Index`, `Markdown Pages - AI Agent Endpoint`,
   `AI Signals`, and `IndexNow - Instant Search Indexing`. Move non-AI crawler
-  controls out to `Crawlers & Robots`. The page name should include both
-  `AI Search` and `AEO` during the transition so existing SEO/AEO users still
-  recognise it.
-
-  Keep the existing `aeo` setting keys and route/tab identifiers unless a
-  deliberate migration is planned. This is a visible naming and layout change,
-  not a reason to churn stored settings.
+  controls out to `Crawlers & Robots`. The page name `AEO` is sufficient now that
+  the section header is `AI VISIBILITY`.
 
 - **Move Meta Pixel into Analytics & Tracking** — move `Meta Pixel`, `Meta Pixel
   Standard Events` and `Meta Pixel Custom Events` out of `Social Meta` and into
@@ -186,22 +189,20 @@ shipped and verified on staging, delete its line from this file. That deletion
 
 (structural / gating / cleanup work that isn't a user-facing feature)
 
-- **Close known Pro gating exceptions** — remove the accepted exceptions from
-  `ManifestProRegistryParityTest.php` so the test no longer tolerates known
-  imperfect gating. The Free/Pro split is already strong; this makes the guard
-  fully strict before the next serious Pro release. Architecture gate: not
-  required. XHigh: not required.
 - **Make settings save manifest-driven** — move the settings save whitelist out
   of `SettingsController.php` and derive accepted keys, defaults, types and tier
   rules from the manifest registry. This is the most important step for making
   options easy to add or remove safely. Architecture gate: required; start with
   `docs/architecture-refactor-plan.md`. XHigh: required before the first
-  implementation slice.
+  implementation slice. *(Gate 2 and most of Gate 3 are already complete — see
+  architecture-refactor-plan.md for current status: 176/318 keys manifest-backed.
+  Remaining: Analytics and Sitemap SKU ownership decisions.)*
 - **Build a small WordPress vertical slice now** — implement only
   Organization/WebSite schema end-to-end on WordPress first. This will expose
   missing CMS abstractions before the project grows by another large wave of
   options. Architecture gate: required. XHigh: required before architecture and
-  implementation.
+  implementation. *(post-v0.5 — hold until Joomla v0.5 ships and shared service
+  boundaries are stable.)*
 - **Thin Joomla plugin classes into platform entrypoints** — keep Joomla plugin
   classes as event/bootstrap layers, but move business logic into shared
   services. Start with `AiBoostCore.php`, because it currently mixes platform

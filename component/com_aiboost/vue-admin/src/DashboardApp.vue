@@ -1,18 +1,6 @@
 <template>
   <div class="ab-vue-dashboard">
 
-    <!-- License Simulator state pill (Task #433) — visible whenever ANY SKU is overridden, regardless of JDEBUG -->
-    <div v-if="simulationActiveLive" class="ab-sim-banner mb-3">
-      <button type="button"
-              class="ab-sim-pill"
-              :title="simulationTooltip"
-              @click="scrollToSimulator">
-        <span class="ab-sim-dot" aria-hidden="true"></span>
-        <span class="ab-sim-label">SIM ACTIVE</span>
-        <span class="ab-sim-meta">License Simulator overriding real licensing</span>
-      </button>
-    </div>
-
     <!-- Task #492 — Backup-staleness reminder. Surfaces the same signal as
          the Danger Zone "Last backup" line, but at the top of the dashboard
          so admins see it before they scroll. Dismissible for 7 days. -->
@@ -77,39 +65,27 @@
 
     <!-- Task #483 — Multilingual detected banner (Pro discovery).
          Shown when Joomla Multilanguage is active with ≥2 published content
-         languages. On Free (or Pro without verified license) it routes to the
-         pricing page; verified Pro installs jump to the Sitemap tab focused
-         on the enable_hreflang field. -->
+         languages. It routes to the Sitemap tab focused on the enable_hreflang field. -->
     <a v-if="data.multilingualLangCount >= 2"
        :href="multilingualBannerHref"
        :target="multilingualBannerTarget"
        :rel="multilingualBannerTarget === '_blank' ? 'noopener' : null"
        class="ab-card ab-ml-banner mb-4"
-       :title="isPro ? 'Open Settings → Sitemap → hreflang' : 'Unlock AI Boost Pro to add hreflang & translations'">
+      title="Open Settings → Sitemap → hreflang">
       <div class="ab-card__body d-flex align-items-center gap-3 py-3">
         <span class="ab-ml-banner__icon" aria-hidden="true">🌐</span>
         <div class="flex-grow-1">
           <div class="d-flex align-items-center gap-2 flex-wrap">
             <strong class="ab-ml-banner__title">Multilingual — detected</strong>
-            <span class="ab-nav-pro-badge">Pro</span>
             <span class="ab-badge ab-badge--success">{{ data.multilingualLangCount }} languages</span>
           </div>
           <div class="text-muted small mt-1">
-            <template v-if="isPro">
-              AI Boost Pro can emit hreflang alternates and store per-language
-              translations for every field. Click to configure.
-            </template>
-            <template v-else>
-              Your site publishes content in
-              <strong>{{ data.multilingualLangCount }}</strong> languages.
-              Upgrade to AI Boost Pro to add hreflang alternates and
-              per-language SEO translations.
-            </template>
+            AI Boost can emit hreflang alternates and store per-language
+            translations for every field. Click to configure.
           </div>
         </div>
         <span class="ab-ml-banner__cta">
-          <template v-if="isPro">Configure →</template>
-          <template v-else>Unlock Pro →</template>
+          Configure →
         </span>
       </div>
     </a>
@@ -191,83 +167,6 @@
       </div>
     </div>
 
-    <!-- License Simulator (Task #432) — dev-only, JDEBUG-gated -->
-    <div v-if="data.debugMode" id="ab-license-simulator" class="ab-card mb-4" style="border-left:4px solid #8b5cf6">
-      <div class="ab-card__header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h2 class="ab-card__title fs-5 mb-0">
-          <span class="icon-flash me-2" aria-hidden="true" style="color:#8b5cf6"></span>License Simulator
-          <span class="ab-badge ms-2" style="background:#8b5cf6;color:#fff">Dev only</span>
-        </h2>
-        <span class="text-muted small">Overrides real licensing for testing. Hidden when JDEBUG is off.</span>
-      </div>
-      <div class="ab-card__body">
-        <p class="text-muted small mb-3">
-          Toggle each per-SKU license state to verify Free / Pro / Integration gating.
-          Saving instantly refreshes capabilities — no page reload needed.
-        </p>
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-3">
-            <thead class="table-light">
-              <tr>
-                <th style="width:30%">SKU</th>
-                <th v-for="s in data.simStates" :key="s" class="text-center small">{{ stateLabel(s) }}</th>
-                <th class="small">Current</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="sku in data.simSkus" :key="sku">
-                <td class="fw-semibold">
-                  <code>{{ sku }}</code>
-                  <div class="text-muted small fw-normal">{{ skuDescription(sku) }}</div>
-                </td>
-                <td v-for="s in data.simStates" :key="s" class="text-center">
-                  <input type="radio"
-                         :name="'ab-sim-' + sku"
-                         :value="s"
-                         :checked="simModel[sku] === s"
-                         :disabled="simBusy"
-                         @change="simModel[sku] = s" />
-                </td>
-                <td>
-                  <span :class="['ab-badge', stateBadgeClass(resolvedState(sku))]">
-                    {{ stateLabel(resolvedState(sku)) }}
-                  </span>
-                  <span v-if="isSimulated(sku)" class="ab-badge ms-1"
-                        style="background:#8b5cf6;color:#fff" title="Overridden by simulator">SIM</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="row g-3 align-items-end">
-          <div class="col-md-6">
-            <label class="form-label small fw-semibold mb-1">Pretend domain (multi-site warning test)</label>
-            <input type="text"
-                   class="form-control form-control-sm"
-                   v-model="simModel._domain_override"
-                   :disabled="simBusy"
-                   placeholder="e.g. https://other.example.com" />
-            <div class="form-text small">Leave blank to use the real <code>JUri::root()</code>.</div>
-          </div>
-          <div class="col-md-6 d-flex gap-2 justify-content-md-end">
-            <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" :disabled="simBusy" @click="simulatorReset">
-              Reset simulator
-            </button>
-            <button type="button" class="ab-btn ab-btn--primary ab-btn--sm" :disabled="simBusy" @click="simulatorSave">
-              {{ simBusy ? 'Saving…' : 'Save simulator state' }}
-            </button>
-          </div>
-        </div>
-
-        <div v-if="simFlash"
-             class="small mt-2"
-             :class="simFlashOk ? 'text-success' : 'text-danger'">
-          {{ simFlash }}
-        </div>
-      </div>
-    </div>
-
     <!-- Quick actions — AI Boost Design System (.ab-*) -->
     <div class="ab-card mb-4">
       <div class="ab-card__header">
@@ -279,20 +178,10 @@
           <a :href="data.urls.settings" class="ab-btn ab-btn--primary">
             <span class="icon-cog" aria-hidden="true"></span> Open Settings
           </a>
-          <!-- Task #473 — on Free, Redirect Manager is locked: clicking the
-               CTA opens the pricing/upgrade page instead of the Pro tool. -->
-          <a v-if="isPro" :href="data.urls.redirects" class="ab-btn ab-btn--ghost">
+          <a :href="data.urls.redirects" class="ab-btn ab-btn--ghost">
             <span class="icon-arrow-right" aria-hidden="true"></span> Redirect Manager
             <span v-if="data.redirectCount > 0" class="ab-badge ms-1">{{ data.redirectCount }}</span>
           </a>
-          <a v-else href="https://aiboostnow.com/pricing" target="_blank" rel="noopener"
-             class="ab-btn ab-btn--ghost" :aria-disabled="'true'"
-             title="Redirect Manager is a Pro feature">
-            <span class="icon-lock" aria-hidden="true"></span> Redirect Manager
-            <span class="ab-nav-pro-badge ms-1">Pro</span>
-          </a>
-          <!-- Task #473 — Import quick action removed (Import page is Pro-only
-               and rarely needed; legacy installs migrate via pkg_script). -->
           <a :href="data.urls.pluginManager" class="ab-btn ab-btn--ghost">
             <span class="icon-puzzle-piece" aria-hidden="true"></span> Manage Plugins
           </a>
@@ -368,17 +257,9 @@
         <h2 class="ab-card__title fs-5 mb-0">
           <span class="icon-warning me-2" aria-hidden="true"></span>Top 404 Errors
           <span class="ab-badge ab-badge--danger ms-2">{{ data.total404 }} unique URLs</span>
-          <span v-if="!isPro" class="ab-nav-pro-badge ms-2">Pro</span>
         </h2>
-        <!-- Task #473 — Free admins get an upgrade CTA, Pro admins jump
-             straight to the redirects list filtered to the 404 tab. -->
-        <a v-if="isPro" :href="data.urls.redirects + '&tab=404'" class="ab-btn ab-btn--ghost ab-btn--sm">
+        <a :href="data.urls.redirects + '&tab=404'" class="ab-btn ab-btn--ghost ab-btn--sm">
           View all &amp; manage redirects
-        </a>
-        <a v-else href="https://aiboostnow.com/pricing" target="_blank" rel="noopener"
-           class="ab-btn ab-btn--ghost ab-btn--sm" :aria-disabled="'true'"
-           title="Redirect Manager is a Pro feature">
-          Unlock with Pro
         </a>
       </div>
       <div class="ab-card__body p-0">
@@ -418,7 +299,6 @@
       <div class="ab-card__header">
         <h2 class="ab-card__title fs-5 mb-0">
           <span class="icon-warning me-2" aria-hidden="true"></span>404 Monitoring
-          <span v-if="!isPro" class="ab-nav-pro-badge ms-2">Pro</span>
         </h2>
       </div>
       <div class="ab-card__body text-muted small">
@@ -583,12 +463,6 @@ export default {
       multilingualActive:    raw.multilingualActive    ?? false,
       multilingualLangCount: raw.multilingualLangCount ?? 0,
       multilingualCount:     raw.multilingualCount     ?? 0,
-      debugMode:            raw.debugMode            ?? false,
-      simulationActive:     raw.simulationActive     ?? false,
-      simulationSkus:       raw.simulationSkus       ?? [],
-      simStates:            raw.simStates            ?? ['active','expired','disabled','not_licensed'],
-      simSkus:              raw.simSkus              ?? [],
-      capabilities:         raw.capabilities         ?? {},
       urls: {
         settings:      raw.urls?.settings      ?? '#',
         health:        raw.urls?.health        ?? '#',
@@ -626,60 +500,6 @@ export default {
     const topCriticalConflicts = computed(() =>
       data.conflicts.filter(c => c.status === 'critical' && !c.dismissed).slice(0, 3)
     )
-
-    /**
-     * Simulator active state derived from live capabilities, so it stays
-     * accurate after simulatorSave/simulatorReset refresh capabilities.
-     * Falls back to the server-side simulationActive flag for first paint.
-     */
-    const simulatedSkus = computed(() => {
-      const caps = data.capabilities || {}
-      const skus = []
-      for (const sku of data.simSkus) {
-        const key = sku.startsWith('int_') ? sku : 'pro_' + sku
-        if (caps[key] && caps[key].simulated) {
-          skus.push(sku)
-        }
-      }
-      return skus
-    })
-    /**
-     * Pill visibility merges two signals:
-     *  - live `capabilities[*].simulated` (accurate when JDEBUG is on,
-     *    because PluginRegistry only applies overrides under JDEBUG)
-     *  - server-side `data.simulationActive` from PluginRegistry::isSimulationActive(),
-     *    which is true whenever ANY simulator row is persisted, even when
-     *    JDEBUG is off — this is exactly the "left it on outside debug" case.
-     * We update `data.simulationActive` reactively in simulatorSave/Reset
-     * so the pill disappears on a full reset without a page reload.
-     */
-    const simulationActiveLive = computed(() =>
-      simulatedSkus.value.length > 0 || data.simulationActive === true
-    )
-    const simulationTooltip = computed(() => {
-      const liveSet = new Set(simulatedSkus.value)
-      for (const s of (data.simulationSkus || [])) liveSet.add(s)
-      const skus = Array.from(liveSet)
-      if (!skus.length) {
-        return 'License Simulator is active — overriding real licensing for testing.'
-      }
-      return 'License Simulator active — overriding: ' + skus.join(', ')
-    })
-    function scrollToSimulator() {
-      const el = document.getElementById('ab-license-simulator')
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        el.classList.add('ab-sim-flash')
-        setTimeout(() => el.classList.remove('ab-sim-flash'), 1600)
-        return
-      }
-      // Simulator card is hidden (JDEBUG off) — deep-link to Health where the
-      // info_license_simulation_active registry entry lives, anchored to the card.
-      if (data.urls && data.urls.health) {
-        const sep = data.urls.health.includes('#') ? '' : '#ab-license-simulator'
-        window.location.href = data.urls.health + sep
-      }
-    }
 
     async function doToggle(element, state) {
       const p = plugins[element]
@@ -944,145 +764,22 @@ export default {
       }
     }
 
-    // isPro is injected by PHP from settings (window.aiBoostDashboard.isPro)
-    // so it works on the Dashboard page where window.aiBoostSettings is absent.
-    const isProValue = raw.isPro ?? false
-
-    // ── License Simulator (Task #432) ───────────────────────────────────
-    const initialSim = raw.licenseSimulation || {}
-    const simModel = reactive({ _domain_override: initialSim._domain_override || '' })
-    for (const sku of data.simSkus) {
-      simModel[sku] = initialSim[sku] || ''
-    }
-    const simBusy    = ref(false)
-    const simFlash   = ref('')
-    const simFlashOk = ref(true)
-
-    function stateLabel(state) {
-      const labels = {
-        active: 'Active', expired: 'Expired', disabled: 'Disabled',
-        not_licensed: 'Not licensed', '': '—',
-      }
-      return labels[state] ?? state
-    }
-    function stateBadgeClass(state) {
-      switch (state) {
-        case 'active':       return 'ab-badge--success'
-        case 'expired':      return 'ab-badge--warning'
-        case 'disabled':     return 'ab-badge--danger'
-        case 'not_licensed': return ''
-        default:             return ''
-      }
-    }
-    function skuDescription(sku) {
-      const d = {
-        schema:       'AI Boost Schema Pro',
-        og:           'AI Boost OpenGraph Pro',
-        hreflang:     'AI Boost Hreflang Pro',
-        code:         'AI Boost Code Manager Pro',
-        aeo:          'AI Boost AEO Pro',
-        bundle:       'AI Boost Bundle (all 5)',
-        int_falang:   'Falang integration plugin',
-        int_yootheme: 'YOOtheme Pro integration plugin',
-      }
-      return d[sku] || ''
-    }
-    function resolvedState(sku) {
-      const key = sku.startsWith('int_') ? sku : 'pro_' + sku
-      return data.capabilities?.[key]?.license_state || 'not_licensed'
-    }
-    function isSimulated(sku) {
-      const key = sku.startsWith('int_') ? sku : 'pro_' + sku
-      return !!data.capabilities?.[key]?.simulated
-    }
-
-    async function simulatorSave() {
-      simBusy.value  = true
-      simFlash.value = ''
-      const body = new URLSearchParams()
-      body.append(data.tokenName, '1')
-      for (const sku of data.simSkus) {
-        if (simModel[sku]) {
-          body.append('simulation[' + sku + ']', simModel[sku])
-        }
-      }
-      if (simModel._domain_override) {
-        body.append('simulation[_domain_override]', simModel._domain_override)
-      }
-      try {
-        const resp = await fetch(
-          'index.php?option=com_aiboost&task=settings.simulatorSave&format=json',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type':     'application/x-www-form-urlencoded',
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: body.toString(),
-          }
-        )
-        const json = await resp.json()
-        if (json.success) {
-          data.capabilities = json.capabilities || {}
-          // Re-derive simulator state from the values we just persisted so the
-          // SIM ACTIVE pill updates immediately — works even when JDEBUG is
-          // off (capabilities[*].simulated stays false in that case).
-          const savedSkus = []
-          for (const sku of data.simSkus) {
-            if (simModel[sku]) savedSkus.push(sku)
-          }
-          if (simModel._domain_override) savedSkus.push('domain')
-          data.simulationSkus   = savedSkus
-          data.simulationActive = savedSkus.length > 0
-          simFlash.value   = 'Saved — capabilities refreshed.'
-          simFlashOk.value = true
-        } else {
-          simFlash.value   = json.message || 'Save failed.'
-          simFlashOk.value = false
-        }
-      } catch (e) {
-        simFlash.value   = 'Network error: ' + e.message
-        simFlashOk.value = false
-      } finally {
-        simBusy.value = false
-        setTimeout(() => { simFlash.value = '' }, 4000)
-      }
-    }
-
-    function simulatorReset() {
-      for (const sku of data.simSkus) {
-        simModel[sku] = ''
-      }
-      simModel._domain_override = ''
-      simulatorSave()
-    }
-
-    // Task #483 — Multilingual banner click target.
-    // Free / Pro-without-license → pricing page in new tab.
-    // Verified Pro → Settings → Sitemap tab, focused on enable_hreflang
-    // (the only hreflang toggle on the form today; Social hreflang_enabled
-    // mirrors it via codegen).
     const multilingualBannerHref = computed(() => {
-      if (!isProValue) return 'https://aiboostnow.com/pricing'
       const base = data.urls && data.urls.settings ? data.urls.settings : 'index.php?option=com_aiboost&view=settings'
       const sep  = base.indexOf('?') === -1 ? '?' : '&'
       return base + sep + 'tab=sitemap&field=enable_hreflang'
     })
-    const multilingualBannerTarget = computed(() => isProValue ? '_self' : '_blank')
+    const multilingualBannerTarget = computed(() => '_self')
 
     return {
       data,
       plugins,
-      isPro: isProValue,
       multilingualBannerHref,
       multilingualBannerTarget,
       conflictCritical,
       conflictWarnings,
       conflictTotal,
       topCriticalConflicts,
-      simulationActiveLive,
-      simulationTooltip,
-      scrollToSimulator,
       doToggle,
       startDisable,
       cancelDisable,
@@ -1101,17 +798,6 @@ export default {
       dismissBackupReminder,
       scrollToBackup,
       backupNow,
-      simModel,
-      simBusy,
-      simFlash,
-      simFlashOk,
-      stateLabel,
-      stateBadgeClass,
-      skuDescription,
-      resolvedState,
-      isSimulated,
-      simulatorSave,
-      simulatorReset,
     }
   },
 }
@@ -1191,69 +877,6 @@ export default {
   white-space: nowrap;
 }
 [data-bs-theme=dark] .ab-ml-banner__cta { color: #4ade80; }
-
-/* ── License Simulator banner pill (Task #433) ────────────────── */
-.ab-sim-banner {
-  display: flex;
-  justify-content: flex-start;
-}
-.ab-sim-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: .55rem;
-  padding: .4rem .85rem;
-  border: 1px solid #8b5cf6;
-  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
-  color: #fff;
-  border-radius: 999px;
-  font-size: .78rem;
-  font-weight: 600;
-  letter-spacing: .03em;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, .35);
-  transition: transform .15s, box-shadow .15s;
-}
-.ab-sim-pill:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(139, 92, 246, .5);
-}
-.ab-sim-pill:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-.ab-sim-dot {
-  width: .55rem;
-  height: .55rem;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 0 0 rgba(255, 255, 255, .85);
-  animation: ab-sim-pulse 1.6s infinite;
-  flex-shrink: 0;
-}
-.ab-sim-label {
-  text-transform: uppercase;
-}
-.ab-sim-meta {
-  font-weight: 400;
-  letter-spacing: 0;
-  opacity: .92;
-  font-size: .72rem;
-}
-@keyframes ab-sim-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, .85); }
-  70%  { box-shadow: 0 0 0 .5rem rgba(255, 255, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-}
-.ab-sim-flash {
-  animation: ab-sim-flash-bg 1.5s ease-out;
-}
-@keyframes ab-sim-flash-bg {
-  0%   { box-shadow: 0 0 0 4px rgba(139, 92, 246, .55); }
-  100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
-}
-@media (max-width: 540px) {
-  .ab-sim-meta { display: none; }
-}
 
 /* ── Configure link ───────────────────────────────────────────── */
 .ab-configure-link {

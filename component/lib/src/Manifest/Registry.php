@@ -230,14 +230,6 @@ final class Registry
             }
         }
 
-        // Pro-tier field
-        if (($field['tier'] ?? 'free') === 'pro') {
-            $sku = (string) ($field['sku'] ?? 'core');
-            $cap = $caps['pro_' . $sku] ?? null;
-            if (!$cap || empty($cap['installed']) || empty($cap['enabled'])) {
-                $field['locked']      = true;
-                $field['lock_reason'] = 'pro';
-            }
-        }
+        // v0.5 one-product transition: historical tier=pro fields are no longer locked.
     }
 }

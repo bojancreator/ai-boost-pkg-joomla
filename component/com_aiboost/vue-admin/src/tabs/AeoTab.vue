@@ -1,10 +1,16 @@
-<template>
+﻿<template>
   <div class="ab-aeo-tab">
+
+    <div class="ab-page-intro mb-3">
+      <h2 class="ab-page-intro__title">AI Visibility / GEO</h2>
+      <p class="ab-page-intro__text">
+        Signals that help AI search and generative engines understand, index, and cite your site.
+      </p>
+    </div>
 
     <!-- ── Section: llms.txt ─────────────────────────────────────── -->
     <div class="ab-card mb-3">
       <div class="ab-card-header">
-        <span class="ab-badge ab-badge-free">Free</span>
         llms.txt — AI Site Index
       </div>
       <div class="ab-card-body">
@@ -20,7 +26,7 @@
         </div>
 
         <template v-if="s.llmstxt_enabled === '1'">
-          <div class="mb-3">
+          <div class="mb-3" data-ab-field="llmstxt_custom_pages">
             <label class="ab-label">Site Description for AI</label>
             <textarea
               v-model="s.llmstxt_description"
@@ -75,7 +81,7 @@
           </div>
 
           <!-- FAQ Items -->
-          <div class="mb-1">
+          <div class="mb-1" data-ab-field="llmstxt_faq_items">
             <label class="ab-label">Manual FAQ Items</label>
             <div
               v-for="(faq, i) in faqItems" :key="i"
@@ -95,7 +101,6 @@
     </div>
 
     <!-- ── Section: llms-full.txt (Pro — gated via ProGate registry) ── -->
-    <ProGate gate-key="section:aeo.llms_full" mode="section">
     <div class="ab-card mb-3">
       <div class="ab-card-header">llms-full.txt — Full Site Index</div>
       <div class="ab-card-body">
@@ -118,12 +123,10 @@
         </div>
       </div>
     </div>
-    </ProGate>
 
     <!-- ── Section: robots.txt ───────────────────────────────────── -->
     <div class="ab-card mb-3">
       <div class="ab-card-header">
-        <span class="ab-badge ab-badge-free">Free</span>
         robots.txt Management
       </div>
       <div class="ab-card-body">
@@ -200,7 +203,6 @@
     <!-- ── Section: AI Crawler Rules (Free — consolidated in Task #463) ── -->
     <div class="ab-card mb-3">
       <div class="ab-card-header">
-        <span class="ab-badge ab-badge-free">Free</span>
         AI Crawler Rules
       </div>
       <div class="ab-card-body">
@@ -274,7 +276,6 @@
     </div>
 
     <!-- ── Section: IndexNow (Pro — gated via ProGate registry) ── -->
-    <ProGate gate-key="section:aeo.indexnow" mode="section">
     <div class="ab-card mb-3">
       <div class="ab-card-header">IndexNow — Instant Search Indexing</div>
       <div class="ab-card-body">
@@ -318,10 +319,8 @@
         </div>
       </div>
     </div>
-    </ProGate>
 
     <!-- ── Section: Markdown Pages (Pro — gated via ProGate registry) ── -->
-    <ProGate gate-key="section:aeo.markdown" mode="section">
     <div class="ab-card mb-3">
       <div class="ab-card-header">Markdown Pages — AI Agent Endpoint</div>
       <div class="ab-card-body">
@@ -349,12 +348,10 @@
         </div>
       </div>
     </div>
-    </ProGate>
 
     <!-- ── Section: AI Signals ───────────────────────────────────── -->
     <div class="ab-card mb-4">
       <div class="ab-card-header">
-        <span class="ab-badge ab-badge-free">Free</span>
         AI Signals
       </div>
       <div class="ab-card-body">
@@ -377,7 +374,7 @@
 </template>
 
 <script>
-// Pro gating for this tab's 4 Pro sections is fully delegated to <ProGate>
+// Legacy tier gating for this tab has been retired
 // (registry keys: section:aeo.llms_full, .crawler_rules, .indexnow, .markdown).
 // No local isPro check or :disabled wiring is required here.
 import TranslationExpander from '../components/TranslationExpander.vue'
@@ -497,6 +494,16 @@ export default {
 
 <style scoped>
 .ab-aeo-tab { max-width: 860px; }
+.ab-page-intro__title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.ab-page-intro__text {
+  margin: 0;
+  color: var(--secondary-color, #6c757d);
+  font-size: .92rem;
+}
 .ab-faq-row { background: var(--secondary-bg, #f8f9fa); color: var(--body-color, #212529); }
 .ab-pro-section { position: relative; }
 .ab-disabled    { opacity: .42; pointer-events: none; user-select: none; }

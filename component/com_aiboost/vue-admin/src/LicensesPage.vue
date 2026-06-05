@@ -1,9 +1,9 @@
 <template>
   <div class="ab-licenses-page">
     <header class="ab-page-header">
-      <h2>Licenses</h2>
+      <h2>License &amp; Updates</h2>
       <p class="text-muted">
-        Enter your <strong>AI Boost Pro</strong> license key to unlock all Pro features (Schema, OpenGraph, Hreflang, Code Manager, AEO).
+        Enter your AI Boost license key to enable automatic updates and support.
         Integration plugins (third-party bridges) are licensed separately and appear below once installed.
       </p>
       <div v-if="mockNotice" class="ab-alert ab-alert--info" style="margin-top: 12px;">
@@ -18,15 +18,14 @@
 
     <!-- ───── Perpetual activation status ───── -->
     <div v-if="proActivated" class="ab-alert ab-alert--success" style="margin-top: 12px;">
-      <strong>Pro activated&nbsp;✓</strong>
+      <strong>License activated&nbsp;✓</strong>
       <span v-if="proActivatedAt">on {{ formatDate(proActivatedAt) }}</span>.
-      All Pro features are permanently unlocked. If your licence later expires, your features keep working —
-      an expired licence only pauses automatic updates &amp; support until you renew.
+      If your licence later expires, installed features keep working; renewal restores automatic updates &amp; support.
     </div>
 
-    <!-- ───── Core: AI Boost Pro (single key) ───── -->
+    <!-- ───── Core: AI Boost (single key) ───── -->
     <section v-if="!loadError" class="ab-license-section">
-      <h3 class="ab-section-title">AI Boost Pro</h3>
+      <h3 class="ab-section-title">AI Boost</h3>
       <table class="ab-table">
         <thead>
           <tr>
@@ -40,8 +39,8 @@
         <tbody>
           <tr>
             <td>
-              <strong>AI Boost Pro</strong>
-              <div class="small text-muted">All Pro features</div>
+              <strong>AI Boost</strong>
+              <div class="small text-muted">Updates and support</div>
             </td>
             <td>
               <input
@@ -168,7 +167,7 @@
               {{ heartbeat.message || 'This license has been used on another domain.' }}
             </span>
             <span v-else-if="heartbeat.status === 'expired' || (heartbeat.last_verdict && heartbeat.last_verdict !== 'ok')">
-              — <strong>Licence lapsed.</strong> Your Pro features keep working permanently — renewing only restores automatic updates &amp; support.
+              — <strong>Licence lapsed.</strong> Installed features keep working; renewing restores automatic updates &amp; support.
             </span>
             <span v-else class="small text-muted" style="margin-left: 6px;">
               (next automatic check
@@ -201,7 +200,7 @@
       <p class="small text-muted">
         Don't have a license yet? Get one from
         <a href="https://aiboostnow.com/pricing" target="_blank" rel="noopener">aiboostnow.com/pricing</a>.
-        One license unlocks all AI Boost Pro features (€45/year). Integration plugins are sold separately.
+        One license covers AI Boost updates and support. Integration plugins are sold separately.
       </p>
     </div>
   </div>
@@ -211,7 +210,7 @@
 import { ref, computed, onMounted } from 'vue'
 
 const CORE_SKU = 'bundle'
-const CORE_LABEL = 'AI Boost Pro'
+const CORE_LABEL = 'AI Boost'
 
 const INTEGRATION_LABELS = {
 }
@@ -323,10 +322,8 @@ export default {
         row.message = s.message || ''
         row.expires_at = s.expires_at || null
         row.activations_remaining = typeof s.activations_remaining === 'number' ? s.activations_remaining : null
-        // v0.55.3 — Bojan's directive: reload the admin page after a
-        // successful verify so the new license state (Pro unlocked,
-        // tabs no longer muted, header pill removed) is reflected
-        // everywhere without the user having to F5 manually.
+        // Reload after verification so the updated license and heartbeat state
+        // is reflected everywhere without the user having to refresh manually.
         setTimeout(() => { window.location.reload() }, 600)
       } catch (e) {
         row.status = 'invalid'
@@ -354,9 +351,8 @@ export default {
           row.status = 'deactivated'
           row.message = data.message || 'License released.'
           row.expires_at = null
-          // v0.55.3 — reload after Release so the UI re-locks the Pro
-          // pages (header lock icons reappear, content re-mutes) without
-          // requiring a manual page refresh.
+          // Reload after release so license and heartbeat state refreshes
+          // without requiring a manual page refresh.
           setTimeout(() => { window.location.reload() }, 600)
         } else {
           row.message = (data && data.message) || 'Deactivate failed.'

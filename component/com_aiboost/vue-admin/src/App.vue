@@ -71,10 +71,12 @@
       <GeneralTab   v-show="activeTab === 'general'"   :s="s" />
       <OrgTab       v-show="activeTab === 'org'"        :s="s" />
       <SchemaTab    v-show="activeTab === 'schema'"     :s="s" />
+      <TechnicalSeoTab v-show="activeTab === 'technical'" :s="s" />
       <SitemapTab   v-show="activeTab === 'sitemap'"    :s="s" />
       <SocialTab    v-show="activeTab === 'social'"     :s="s" />
       <AnalyticsTab v-show="activeTab === 'analytics'"  :s="s" />
       <AeoTab       v-show="activeTab === 'aeo'"        :s="s" />
+      <CrawlersRobotsTab v-show="activeTab === 'crawlers'" :s="s" />
       <CodeTab      v-show="activeTab === 'code'"       :s="s" />
       <DebugTab     v-show="activeTab === 'debug'"      :s="s" />
     </div>
@@ -88,10 +90,12 @@ import { loadTranslationData, getAllTranslations } from './composables/useTransl
 import GeneralTab   from './tabs/GeneralTab.vue'
 import OrgTab       from './tabs/OrgTab.vue'
 import SchemaTab    from './tabs/SchemaTab.vue'
+import TechnicalSeoTab from './tabs/TechnicalSeoTab.vue'
 import SitemapTab   from './tabs/SitemapTab.vue'
 import SocialTab    from './tabs/SocialTab.vue'
 import AnalyticsTab from './tabs/AnalyticsTab.vue'
 import AeoTab       from './tabs/AeoTab.vue'
+import CrawlersRobotsTab from './tabs/CrawlersRobotsTab.vue'
 import CodeTab      from './tabs/CodeTab.vue'
 import DebugTab     from './tabs/DebugTab.vue'
 
@@ -109,9 +113,35 @@ const ICONS = {
   urlchecker:'<svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>',
 }
 
+const FIELD_TAB_ALIASES = {
+  enable_canonical: 'technical',
+  canonical_url_map: 'technical',
+  redirect_404_log_enabled: 'technical',
+  enable_robots: 'crawlers',
+  robots_auto_sync: 'crawlers',
+  robots_custom_scrapers: 'crawlers',
+  robots_custom_rules: 'crawlers',
+  ai_crawlers_enabled: 'crawlers',
+  aeo_crawler_default_policy: 'crawlers',
+  crawler_bot_rules: 'crawlers',
+  crawler_rules: 'crawlers',
+}
+
+function resolveSettingsTab(tab, field) {
+  return FIELD_TAB_ALIASES[field] || tab
+}
+
 const DEFAULTS = {
   schema_type:             'Organization',
   specific_price_range:    '',
+  specific_payment_accepted: '',
+  specific_amenity_feature: '',
+  specific_job_title:      '',
+  specific_affiliation:    '',
+  specific_knows_about:    '',
+  specific_founding_date:  '',
+  specific_masthead_url:   '',
+  specific_ethics_policy_url: '',
   schema_hours_mode:       'none',
   manual_faq_scope:        'fallback_all',
   schema_faq_output_type:  'faqpage',
@@ -127,7 +157,7 @@ const DEFAULTS = {
 
 export default {
   name: 'AiBoostSettings',
-  components: { GeneralTab, OrgTab, SchemaTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CodeTab, DebugTab },
+  components: { GeneralTab, OrgTab, SchemaTab, TechnicalSeoTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab },
 
   mounted() {
     // Hash-based deep link: #tab=<id>   (e.g. #tab=analytics)
@@ -146,8 +176,9 @@ export default {
       const params = new URLSearchParams(window.location.search)
       const qTab   = params.get('tab')
       const qField = params.get('field')
-      if (qTab && this.tabs.some(t => t.id === qTab)) {
-        this.activeTab = qTab
+      const resolvedQTab = resolveSettingsTab(qTab, qField)
+      if (resolvedQTab && this.tabs.some(t => t.id === resolvedQTab)) {
+        this.activeTab = resolvedQTab
       }
       if (qField) {
         this.$nextTick(() => setTimeout(() => this._scrollToField(qField), 180))
@@ -159,7 +190,7 @@ export default {
     // this query inside the hash, so it is read here rather than from
     // window.location.search above.
     if (this.$route && this.$route.name === 'settings') {
-      const rTab = this.$route.query.tab
+      const rTab = resolveSettingsTab(this.$route.query.tab, this.$route.query.field)
       if (rTab && this.tabs.some(t => t.id === rTab)) {
         this.activeTab = rTab
       }
@@ -168,8 +199,9 @@ export default {
     // Global event from Health tab → switch tab + scroll/highlight field
     this._gotoHandler = (e) => {
       const target = e.detail || {}
-      if (target.tab && this.tabs.some(t => t.id === target.tab)) {
-        this.activeTab = target.tab
+      const targetTab = resolveSettingsTab(target.tab, target.field)
+      if (targetTab && this.tabs.some(t => t.id === targetTab)) {
+        this.activeTab = targetTab
       }
       if (target.field) {
         this.$nextTick(() => setTimeout(() => this._scrollToField(target.field), 180))
@@ -200,12 +232,14 @@ export default {
       s: Object.assign({}, DEFAULTS, window.aiBoostSettings || {}),
       tabs: [
         { id: 'general',   label: 'General',       icon: ICONS.general,   color: '#6366f1' },
-        { id: 'org',       label: 'Organization',  icon: ICONS.org,       color: '#3b82f6' },
+        { id: 'org',       label: 'Site Identity', icon: ICONS.org,       color: '#3b82f6' },
         { id: 'schema',    label: 'Schema.org',    icon: ICONS.schema,    color: '#8b5cf6' },
+        { id: 'technical', label: 'Technical SEO', icon: ICONS.general,   color: '#0ea5e9' },
         { id: 'sitemap',   label: 'Sitemap',       icon: ICONS.sitemap,   color: '#14b8a6' },
-        { id: 'social',    label: 'Social & Meta', icon: ICONS.social,    color: '#ec4899' },
-        { id: 'analytics', label: 'Analytics',     icon: ICONS.analytics, color: '#f97316' },
-        { id: 'aeo',       label: 'AEO',           icon: ICONS.aeo,       color: '#06b6d4' },
+        { id: 'social',    label: 'Social Meta',   icon: ICONS.social,    color: '#ec4899' },
+        { id: 'analytics', label: 'Analytics & Tracking', icon: ICONS.analytics, color: '#f97316' },
+        { id: 'aeo',       label: 'AI Visibility', icon: ICONS.aeo,       color: '#06b6d4' },
+        { id: 'crawlers',  label: 'Crawlers & Robots', icon: ICONS.urlchecker, color: '#22c55e' },
         { id: 'code',      label: 'Custom Code',   icon: ICONS.code,      color: '#f59e0b' },
         { id: 'debug',     label: 'Debug',         icon: ICONS.debug,     color: '#64748b' },
       ],
@@ -243,7 +277,7 @@ export default {
     // without remounting this component.
     '$route.query.tab'(tab) {
       if (!this.$route || this.$route.name !== 'settings') return
-      const id = tab || 'general'
+      const id = resolveSettingsTab(tab || 'general', this.$route.query.field)
       if (this.tabs.some(t => t.id === id)) this.activeTab = id
     },
   },

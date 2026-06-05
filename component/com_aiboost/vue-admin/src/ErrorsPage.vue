@@ -1,7 +1,7 @@
 <template>
   <div class="ab-page-errors">
     <header class="ab-page-header mb-3">
-      <h2 class="ab-h2 mb-1">Errors</h2>
+      <h2 class="ab-h2 mb-1">Error Log</h2>
       <p class="text-muted mb-0">
         Events written by AI Boost components into <code>#__aiboost_error_log</code>.
         Retention: 1000 rows or 30 days, whichever comes first.

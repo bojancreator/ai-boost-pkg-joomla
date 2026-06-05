@@ -66,7 +66,7 @@ class SeoAnalyzerService
             'why'        => 'Canonical URLs prevent duplicate-content penalties when the same page is reachable via multiple URLs.',
             'suggestion' => 'Enable “Canonical URL management” in AI Boost so every page emits a self-canonical link.',
             'fix_action' => 'apply_setting',
-            'fix_payload'=> ['setting' => 'enable_canonical', 'value' => '1', 'tab' => 'sitemap', 'field' => 'enable_canonical'],
+            'fix_payload'=> ['setting' => 'enable_canonical', 'value' => '1', 'tab' => 'technical', 'field' => 'enable_canonical'],
         ],
         'og_title' => [
             'why'        => 'Without og:title, Facebook, LinkedIn and Slack fall back to a generic share preview.',
@@ -106,7 +106,7 @@ class SeoAnalyzerService
             'why'        => 'robots.txt tells crawlers which paths to fetch and where the sitemap lives. Without it, crawlers waste budget.',
             'suggestion' => 'Enable AI Boost robots.txt management — it generates a Joomla-aware robots.txt automatically.',
             'fix_action' => 'apply_setting',
-            'fix_payload'=> ['setting' => 'enable_robots', 'value' => '1', 'tab' => 'general', 'field' => 'enable_robots'],
+            'fix_payload'=> ['setting' => 'enable_robots', 'value' => '1', 'tab' => 'crawlers', 'field' => 'enable_robots'],
         ],
         'sitemap_xml' => [
             'why'        => 'XML sitemaps tell search engines about every page on your site, including new and orphaned content.',

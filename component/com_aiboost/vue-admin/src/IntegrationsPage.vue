@@ -6,7 +6,8 @@
       <div class="d-flex align-items-center gap-2">
         <span class="ab-badge ab-badge--success" :title="tooltip('support_active')">{{ supportActiveCount }} AI Boost active</span>
         <span class="ab-badge ab-badge--neutral" :title="tooltip('detected')">{{ detectedCount }} Detected in Joomla</span>
-        <span class="ab-badge ab-badge--warning" :title="tooltip('coming_soon')">{{ comingSoonCount }} Coming soon</span>
+        <span class="ab-badge ab-badge--warning" :title="tooltip('coming_soon')">{{ comingSoonCount }} Add-ons</span>
+        <span class="ab-badge" :title="tooltip('roadmap')">{{ roadmapCount }} Roadmap</span>
         <span class="ab-badge" :title="tooltip('not_detected')">{{ notDetectedCount }} Not installed</span>
       </div>
       <div class="ms-auto d-flex gap-2 align-items-center">
@@ -57,15 +58,7 @@
           <!-- Card footer: CTAs -->
           <div class="ab-card__footer bg-transparent border-top-0 pt-0 pb-3 px-3 d-flex gap-2 flex-wrap align-items-center">
             <a
-              v-if="item.status === 'coming_soon' && item.addon_url"
-              :href="item.addon_url"
-              target="_blank"
-              rel="noopener"
-              class="ab-btn ab-btn--primary ab-btn--sm"
-            >
-              Get Add-on
-            </a>
-            <a
+              v-if="hasCardAction(item)"
               :href="item.learn_url"
               target="_blank"
               rel="noopener"
@@ -73,18 +66,6 @@
             >
               Learn More
             </a>
-            <button
-              v-if="item.status === 'coming_soon'"
-              type="button"
-              class="ab-btn ab-btn--ghost ab-btn--sm ms-auto"
-              :class="{ 'ab-vote--active': hasVoted(item.key) }"
-              :title="hasVoted(item.key) ? 'Click to remove your vote' : 'Vote so we prioritise this integration'"
-              @click="toggleVote(item.key)"
-            >
-              <span aria-hidden="true">{{ hasVoted(item.key) ? '★' : '☆' }}</span>
-              {{ hasVoted(item.key) ? 'Voted' : 'I want this' }}
-              <span class="ms-1 small text-muted">({{ voteCount(item.key) }})</span>
-            </button>
           </div>
 
         </div>
@@ -117,7 +98,6 @@ export default {
       integrations: window.aiBoostIntegrations || [],
       search:          '',
       categoryFilter:  '',
-      votes:           this.loadVotes(),
     }
   },
 
@@ -142,6 +122,7 @@ export default {
     supportActiveCount() { return this.integrations.filter(i => i.status === 'support_active').length },
     detectedCount()      { return this.integrations.filter(i => i.status === 'detected').length },
     comingSoonCount()    { return this.integrations.filter(i => i.status === 'coming_soon').length },
+    roadmapCount()       { return this.integrations.filter(i => i.status === 'roadmap').length },
     notDetectedCount()   { return this.integrations.filter(i => i.status === 'not_detected').length },
   },
 
@@ -150,7 +131,8 @@ export default {
       const map = {
         support_active:  '✅ AI Boost support active',
         detected:        '🔍 Detected in Joomla',
-        coming_soon:     '🚧 Coming soon',
+        coming_soon:     '🚧 Add-on available soon',
+        roadmap:         'Roadmap',
         not_detected:    '⚪ Not installed',
         // Legacy fallbacks (older server data)
         installed:       '✅ Installed',
@@ -164,6 +146,7 @@ export default {
         support_active:  'ab-badge--success',
         detected:        'ab-badge--neutral',
         coming_soon:     'ab-badge--warning',
+        roadmap:         '',
         not_detected:    '',
         installed:       'ab-badge--success',
         addon_available: 'ab-badge--warning',
@@ -174,34 +157,20 @@ export default {
     tooltip(status) {
       const map = {
         support_active: 'Extension is installed in Joomla AND AI Boost actively integrates with it (avoids duplicate meta, reads its settings, etc.).',
-        detected:       'Extension is installed in Joomla. A dedicated AI Boost support plugin is on the roadmap — vote to prioritise it.',
-        coming_soon:    'No dedicated AI Boost support yet. Vote to help us prioritise which integration we build next.',
+        detected:       'Extension is installed in Joomla. Dedicated AI Boost support is not active yet.',
+        coming_soon:    'Dedicated AI Boost support is planned as an add-on. Actions are disabled until the add-on is ready.',
+        roadmap:        'Future integration placeholder. No action is available until the integration is scoped.',
         not_detected:   'Not installed on this Joomla site.',
         installed:      'Installed in Joomla.',
-        addon_available:'Coming soon — vote to help us prioritise it.',
+        addon_available:'Coming soon.',
       }
       return map[status] || ''
     },
 
-    /* ── Voting (localStorage-only for v1) ──────────────────────── */
-    loadVotes() {
-      try {
-        const raw = window.localStorage.getItem('aiboost_integration_votes')
-        const v   = raw ? JSON.parse(raw) : {}
-        return (v && typeof v === 'object') ? v : {}
-      } catch (e) { return {} }
+    hasCardAction(item) {
+      return item.status !== 'coming_soon' && item.status !== 'roadmap' && !!item.learn_url
     },
-    persistVotes() {
-      try { window.localStorage.setItem('aiboost_integration_votes', JSON.stringify(this.votes)) } catch (e) {}
-    },
-    hasVoted(key)  { return !!this.votes[key] },
-    voteCount(key) { return this.votes[key] ? 1 : 0 },
-    toggleVote(key) {
-      const next = { ...this.votes }
-      if (next[key]) { delete next[key] } else { next[key] = Date.now() }
-      this.votes = next
-      this.persistVotes()
-    },
+
   },
 }
 </script>
@@ -216,12 +185,15 @@ export default {
 .ab-int-card--support_active .ab-card__header { border-left: 3px solid var(--bs-success, #28a745); }
 .ab-int-card--detected       .ab-card__header { border-left: 3px solid var(--bs-secondary, #6c757d); }
 .ab-int-card--coming_soon    .ab-card__header { border-left: 3px solid var(--bs-warning, #f59e0b); }
+.ab-int-card--roadmap        .ab-card__header { border-left: 3px solid var(--bs-secondary, #6c757d); opacity: .7; }
 .ab-int-card--not_detected   .ab-card__header { border-left: 3px solid var(--bs-secondary, #6c757d); opacity: .85; }
+
+.ab-int-card--roadmap .ab-card__body,
+.ab-int-card--roadmap .ab-card__footer { opacity: .7; }
 
 .ab-badge--neutral { background: #e5e7eb; color: #374151; }
 .ab-badge--warning { background: #fef3c7; color: #92400e; }
 [data-bs-theme="dark"] .ab-badge--neutral { background: #374151; color: #e5e7eb; }
 [data-bs-theme="dark"] .ab-badge--warning { background: #78350f; color: #fde68a; }
 
-.ab-vote--active { color: #f59e0b; border-color: #f59e0b; }
 </style>

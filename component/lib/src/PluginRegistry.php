@@ -3,11 +3,11 @@
  * AI Boost — Plugin Registry
  *
  * Single request-cached scan of #__extensions for every AI Boost plugin
- * (core, Pro upgrade, integration). Provides the source of truth that the
+ * (core, legacy add-on, integration). Provides the source of truth that the
  * Manifest Registry and the Vue SPA use to know which SKUs / integrations
  * are physically installed and enabled.
  *
- * SKU map (PRO upgrades):
+ * Legacy add-on SKU map:
  *   plg_system_aiboost_schema_pro   → sku 'schema'
  *   plg_system_aiboost_aeo_pro      → sku 'aeo'
  *   plg_system_aiboost_social_pro   → sku 'og'
@@ -151,105 +151,183 @@ final class PluginRegistry
         $licStates   = self::loadLicenseStates();
         $bundleReal  = self::resolveRealStatus($licStates['bundle'] ?? null);
 
+        $caps += self::proCapabilities($rows, $sim, $licStates, $bundleReal);
+        $caps['pro_bundle'] = self::buildBundleCapability($sim, $bundleReal);
+        $caps += self::integrationCapabilities($rows, $sim);
+
+        return self::$cache = $caps;
+    }
+
+    /**
+     * @param array<string, array<string,mixed>> $rows
+     * @param array<string,mixed>|null $sim
+     * @param array<string, array<string,mixed>> $licStates
+     * @return array<string, array<string,mixed>>
+     */
+    private static function proCapabilities(array $rows, ?array $sim, array $licStates, ?string $bundleReal): array
+    {
+        $caps = [];
         foreach (self::PRO_SKUS as $element => $sku) {
-            $row        = $rows[$element] ?? null;
-            $installed  = $row !== null;
-            $rowEnabled = $row !== null && (int) ($row['enabled'] ?? 0) === 1;
+            $caps['pro_' . $sku] = self::buildProCapability($rows[$element] ?? null, $element, $sku, $sim, $licStates, $bundleReal);
+        }
+        return $caps;
+    }
 
-            $simState = self::simStateFor($sim, $sku);
-            if ($simState !== null) {
-                // Layer 1 — simulator overrides everything
-                $caps['pro_' . $sku] = [
-                    'installed'     => $simState !== 'not_licensed',
-                    'enabled'       => $simState === 'active',
-                    'version'       => self::manifestVersion($row),
-                    'element'       => $element,
-                    'license_state' => $simState,
-                    'simulated'     => true,
-                ];
-                continue;
-            }
+    /**
+     * @param array<string, array<string,mixed>> $rows
+     * @param array<string,mixed>|null $sim
+     * @return array<string, array<string,mixed>>
+     */
+    private static function integrationCapabilities(array $rows, ?array $sim): array
+    {
+        $caps = [];
+        foreach (self::integrations() as $element => $key) {
+            $caps['int_' . $key] = self::buildIntegrationCapability($rows[$element] ?? null, $element, $key, $sim);
+        }
+        return $caps;
+    }
 
-            // Layer 2 — real per-SKU verification (or bundle covers it).
-            // Bundle 'active' UNCONDITIONALLY overrides per-SKU state so that
-            // hasPro()/licenseStatus() see a consistent 'active' for every SKU.
-            $perSku       = self::resolveRealStatus($licStates[$sku] ?? null);
-            $licenseValid = $bundleReal === 'active' || $perSku === 'active';
-
-            if ($bundleReal === 'active') {
-                $licenseState = 'active';
-            } elseif ($perSku !== null) {
-                $licenseState = $perSku;
-            } else {
-                $licenseState = null;
-            }
-
-            // Layer 3 — physical plugin row state combines with license gate
-            $enabled = $installed && $rowEnabled && $licenseValid;
-            if ($licenseState === null) {
-                $licenseState = $installed ? 'disabled' : 'not_licensed';
-            }
-            // If license is active but Joomla row is disabled, surface 'disabled'
-            if ($licenseValid && $installed && !$rowEnabled) {
-                $licenseState = 'disabled';
-            }
-
-            $caps['pro_' . $sku] = [
-                'installed'     => $installed,
-                'enabled'       => $enabled,
-                'version'       => self::manifestVersion($row),
-                'element'       => $element,
-                'license_state' => $licenseState,
-                'simulated'     => false,
-            ];
+    /**
+     * @param array<string,mixed>|null $row
+     * @param array<string,mixed>|null $sim
+     * @param array<string, array<string,mixed>> $licStates
+     * @return array<string,mixed>
+     */
+    private static function buildProCapability(?array $row, string $element, string $sku, ?array $sim, array $licStates, ?string $bundleReal): array
+    {
+        $simState = self::simStateFor($sim, $sku);
+        if ($simState !== null) {
+            return self::simulatedCapability($row, $element, $simState);
         }
 
-        // 'bundle' is virtual — combine simulator + real verification.
+        $installed  = $row !== null;
+        $rowEnabled = self::extensionRowEnabled($row);
+        $perSku = self::resolveRealStatus($licStates[$sku] ?? null);
+        $licenseValid = self::licenseStatusActive($bundleReal) || self::licenseStatusActive($perSku);
+        $licenseState = self::resolvedSkuLicenseState($installed, $rowEnabled, $licenseValid, $bundleReal, $perSku);
+
+        return [
+            'installed'     => $installed,
+            'enabled'       => $installed && $rowEnabled && $licenseValid,
+            'version'       => self::manifestVersion($row),
+            'element'       => $element,
+            'license_state' => $licenseState,
+            'simulated'     => false,
+        ];
+    }
+
+    /**
+     * @param array<string,mixed>|null $row
+     * @return array<string,mixed>
+     */
+    private static function simulatedCapability(?array $row, string $element, string $simState): array
+    {
+        return [
+            'installed'     => $simState !== 'not_licensed',
+            'enabled'       => $simState === 'active',
+            'version'       => self::manifestVersion($row),
+            'element'       => $element,
+            'license_state' => $simState,
+            'simulated'     => true,
+        ];
+    }
+
+    private static function resolvedSkuLicenseState(bool $installed, bool $rowEnabled, bool $licenseValid, ?string $bundleReal, ?string $perSku): string
+    {
+        $state = self::baseSkuLicenseState($installed, $bundleReal, $perSku);
+        return self::licensedRowDisabled($installed, $rowEnabled, $licenseValid) ? 'disabled' : $state;
+    }
+
+    private static function baseSkuLicenseState(bool $installed, ?string $bundleReal, ?string $perSku): string
+    {
+        if ($bundleReal === 'active') {
+            return 'active';
+        }
+        return $perSku ?? ($installed ? 'disabled' : 'not_licensed');
+    }
+
+    private static function licensedRowDisabled(bool $installed, bool $rowEnabled, bool $licenseValid): bool
+    {
+        return $licenseValid && $installed && !$rowEnabled;
+    }
+
+    /**
+     * @param array<string,mixed>|null $row
+     */
+    private static function extensionRowEnabled(?array $row): bool
+    {
+        return $row !== null && (int) ($row['enabled'] ?? 0) === 1;
+    }
+
+    private static function licenseStatusActive(?string $status): bool
+    {
+        return $status === 'active';
+    }
+
+    /**
+     * @param array<string,mixed>|null $sim
+     * @return array<string,mixed>
+     */
+    private static function buildBundleCapability(?array $sim, ?string $bundleReal): array
+    {
         $bundleSim = self::simStateFor($sim, 'bundle');
         if ($bundleSim !== null) {
-            $caps['pro_bundle'] = [
-                'installed'     => $bundleSim !== null && $bundleSim !== 'not_licensed',
+            return [
+                'installed'     => $bundleSim !== 'not_licensed',
                 'enabled'       => $bundleSim === 'active',
                 'version'       => '',
                 'element'       => '',
                 'license_state' => $bundleSim,
                 'simulated'     => true,
             ];
-        } else {
-            $caps['pro_bundle'] = [
-                'installed'     => $bundleReal !== null && $bundleReal !== 'not_licensed',
-                'enabled'       => $bundleReal === 'active',
-                'version'       => '',
-                'element'       => '',
-                'license_state' => $bundleReal ?? 'not_licensed',
-                'simulated'     => false,
-            ];
         }
 
-        foreach (self::integrations() as $element => $key) {
-            $row       = $rows[$element] ?? null;
-            $thirdP    = self::detectThirdParty($key);
-            $installed = $row !== null;
-            $enabled   = $row !== null && (int) ($row['enabled'] ?? 0) === 1;
+        return [
+            'installed'     => $bundleReal !== null && $bundleReal !== 'not_licensed',
+            'enabled'       => $bundleReal === 'active',
+            'version'       => '',
+            'element'       => '',
+            'license_state' => $bundleReal ?? 'not_licensed',
+            'simulated'     => false,
+        ];
+    }
 
-            $simState = self::simStateFor($sim, 'int_' . $key);
-            if ($simState !== null) {
-                $installed = $simState !== 'not_licensed';
-                $enabled   = $simState === 'active';
-            }
-
-            $caps['int_' . $key] = [
-                'installed'            => $installed,
-                'enabled'              => $enabled,
-                'version'              => self::manifestVersion($row),
-                'detected_third_party' => $thirdP,
-                'element'              => $element,
-                'license_state'        => $simState ?? ($enabled ? 'active' : ($installed ? 'disabled' : 'not_licensed')),
-                'simulated'            => $simState !== null,
-            ];
+    /**
+     * @param array<string,mixed>|null $row
+     * @param array<string,mixed>|null $sim
+     * @return array<string,mixed>
+     */
+    private static function buildIntegrationCapability(?array $row, string $element, string $key, ?array $sim): array
+    {
+        $simState = self::simStateFor($sim, 'int_' . $key);
+        if ($simState !== null) {
+            return self::integrationCapability($row, $element, $key, $simState !== 'not_licensed', $simState === 'active', $simState, true);
         }
 
-        return self::$cache = $caps;
+        $installed = $row !== null;
+        return self::integrationCapability($row, $element, $key, $installed, self::extensionRowEnabled($row), null, false);
+    }
+
+    /**
+     * @param array<string,mixed>|null $row
+     * @return array<string,mixed>
+     */
+    private static function integrationCapability(?array $row, string $element, string $key, bool $installed, bool $enabled, ?string $simState, bool $simulated): array
+    {
+        return [
+            'installed'            => $installed,
+            'enabled'              => $enabled,
+            'version'              => self::manifestVersion($row),
+            'detected_third_party' => self::detectThirdParty($key),
+            'element'              => $element,
+            'license_state'        => $simState ?? self::realIntegrationLicenseState($installed, $enabled),
+            'simulated'            => $simulated,
+        ];
+    }
+
+    private static function realIntegrationLicenseState(bool $installed, bool $enabled): string
+    {
+        return $enabled ? 'active' : ($installed ? 'disabled' : 'not_licensed');
     }
 
     /**
@@ -347,18 +425,20 @@ final class PluginRegistry
     public static function isProActive(array $settings): bool
     {
         // 1. QA: force the install to behave as Free (screenshots / parity).
-        if ((string) ($settings['dev_force_free_tier'] ?? '0') === '1') {
+        if (self::settingEnabled($settings, 'dev_force_free_tier')) {
             return false;
         }
         // 2. Perpetual activation flag — set once a key verifies active, never cleared.
-        if ((string) ($settings['pro_activated'] ?? '0') === '1') {
-            return true;
-        }
         // 3. QA: force Pro on a Free / never-activated install.
-        if ((string) ($settings['dev_license_preview'] ?? '0') === '1') {
-            return true;
-        }
-        return false;
+        return self::settingEnabled($settings, 'pro_activated') || self::settingEnabled($settings, 'dev_license_preview');
+    }
+
+    /**
+     * @param array<string,mixed> $settings
+     */
+    private static function settingEnabled(array $settings, string $key): bool
+    {
+        return (string) ($settings[$key] ?? '0') === '1';
     }
 
     /**
@@ -398,44 +478,9 @@ final class PluginRegistry
     public static function saveSimulation(array $map): void
     {
         try {
-            $clean = [];
-            foreach (self::SIM_SKUS as $sku) {
-                $state = (string) ($map[$sku] ?? '');
-                if (in_array($state, self::SIM_STATES, true)) {
-                    $clean[$sku] = $state;
-                }
-            }
-            $domain = trim((string) ($map['_domain_override'] ?? ''));
-            if ($domain !== '') {
-                $clean['_domain_override'] = $domain;
-            }
-
-            $db    = AdapterRegistry::database()->getConnection();
-            $query = $db->getQuery(true)
-                ->select($db->quoteName('settings_json'))
-                ->from('#__aiboost_settings')
-                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
-            $json  = (string) $db->setQuery($query)->loadResult();
-            $data  = json_decode($json, true) ?: [];
-            $data['license_simulation'] = $clean;
-            $now   = AdapterRegistry::clock()->nowSql();
-            $newJson = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            $check = $db->getQuery(true)
-                ->select('id')->from('#__aiboost_settings')
-                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
-            $id    = (int) $db->setQuery($check)->loadResult();
-            if ($id > 0) {
-                $upd = $db->getQuery(true)->update('#__aiboost_settings')
-                    ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
-                    ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
-                    ->where($db->quoteName('id') . ' = ' . $id);
-            } else {
-                $upd = $db->getQuery(true)->insert('#__aiboost_settings')
-                    ->columns(['setting_key', 'settings_json', 'created_at', 'updated_at'])
-                    ->values($db->quote('main') . ',' . $db->quote($newJson) . ',' . $db->quote($now) . ',' . $db->quote($now));
-            }
-            $db->setQuery($upd)->execute();
+            $data = self::loadMainSettings();
+            $data['license_simulation'] = self::cleanSimulationMap($map);
+            self::persistMainSettings($data);
         } catch (\Throwable $e) {
             error_log('[AI Boost PluginRegistry] saveSimulation failed: ' . $e->getMessage());
         }
@@ -470,14 +515,7 @@ final class PluginRegistry
         }
         $out = [];
         try {
-            $db    = AdapterRegistry::database()->getConnection();
-            $query = $db->getQuery(true)
-                ->select($db->quoteName('settings_json'))
-                ->from('#__aiboost_settings')
-                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
-            $json  = (string) $db->setQuery($query)->loadResult();
-            $data  = json_decode($json, true) ?: [];
-            $sim   = $data['license_simulation'] ?? [];
+            $sim = self::loadMainSettings()['license_simulation'] ?? [];
             if (is_array($sim)) {
                 $out = $sim;
             }
@@ -569,21 +607,7 @@ final class PluginRegistry
         }
         $out = [];
         try {
-            $db    = AdapterRegistry::database()->getConnection();
-            $query = $db->getQuery(true)
-                ->select($db->quoteName('settings_json'))
-                ->from('#__aiboost_settings')
-                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
-            $json  = (string) $db->setQuery($query)->loadResult();
-            $data  = json_decode($json, true) ?: [];
-            $states = $data['license_state'] ?? [];
-            if (is_array($states)) {
-                foreach ($states as $sku => $state) {
-                    if (is_array($state)) {
-                        $out[(string) $sku] = $state;
-                    }
-                }
-            }
+            $out = self::normalizeLicenseStates(self::loadMainSettings()['license_state'] ?? []);
         } catch (\Throwable $e) {
             error_log('[AI Boost PluginRegistry] loadLicenseStates failed: ' . $e->getMessage());
         }
@@ -605,69 +629,137 @@ final class PluginRegistry
     public static function saveLicenseState(string $sku, array $state): void
     {
         try {
-            $db    = AdapterRegistry::database()->getConnection();
-            $query = $db->getQuery(true)
-                ->select($db->quoteName('settings_json'))
-                ->from('#__aiboost_settings')
-                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
-            $json  = (string) $db->setQuery($query)->loadResult();
-            $data  = json_decode($json, true) ?: [];
-
-            $states = isset($data['license_state']) && is_array($data['license_state'])
-                ? $data['license_state']
-                : [];
+            $data = self::loadMainSettings();
+            $states = is_array($data['license_state'] ?? null) ? $data['license_state'] : [];
             $states[$sku] = $state;
             $data['license_state'] = $states;
 
-            // Back-compat — materialise old single license_tier
-            $anyActive = false;
-            foreach ($states as $s) {
-                if (is_array($s) && self::resolveRealStatus($s) === 'active') {
-                    $anyActive = true;
-                    break;
-                }
-            }
+            $anyActive = self::hasActiveLicenseState($states);
             $data['license_tier'] = $anyActive ? 'pro' : 'free';
-
-            // Task #565 — perpetual activation. The first time any SKU resolves
-            // to an active verified licence we set a permanent `pro_activated`
-            // flag. This is the single source of truth for "is this a paid Pro
-            // install". It is NEVER cleared by expiry, deactivation or the
-            // heartbeat — once activated, Pro stays unlocked forever (an expired
-            // licence only stops updates + support, enforced by the update
-            // server, not by disabling code here).
-            if ($anyActive && (string) ($data['pro_activated'] ?? '0') !== '1') {
-                $data['pro_activated'] = '1';
-                if (empty($data['pro_activated_at'])) {
-                    $data['pro_activated_at'] = gmdate('c');
-                }
-                $data['pro_activated_version'] = class_exists('AiBoost\\Version')
-                    ? \AiBoost\Version::VERSION
-                    : '';
-            }
-
-            $now     = AdapterRegistry::clock()->nowSql();
-            $newJson = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-            $check = $db->getQuery(true)
-                ->select('id')->from('#__aiboost_settings')
-                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
-            $id    = (int) $db->setQuery($check)->loadResult();
-            if ($id > 0) {
-                $upd = $db->getQuery(true)->update('#__aiboost_settings')
-                    ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
-                    ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
-                    ->where($db->quoteName('id') . ' = ' . $id);
-            } else {
-                $upd = $db->getQuery(true)->insert('#__aiboost_settings')
-                    ->columns(['setting_key', 'settings_json', 'created_at', 'updated_at'])
-                    ->values($db->quote('main') . ',' . $db->quote($newJson) . ',' . $db->quote($now) . ',' . $db->quote($now));
-            }
-            $db->setQuery($upd)->execute();
+            self::markPerpetualActivation($data, $anyActive);
+            self::persistMainSettings($data);
         } catch (\Throwable $e) {
             error_log('[AI Boost PluginRegistry] saveLicenseState failed: ' . $e->getMessage());
         }
         self::reset();
+    }
+
+    /**
+     * @param array<string,mixed> $map
+     * @return array<string,mixed>
+     */
+    private static function cleanSimulationMap(array $map): array
+    {
+        $clean = [];
+        foreach (self::SIM_SKUS as $sku) {
+            $state = (string) ($map[$sku] ?? '');
+            if (in_array($state, self::SIM_STATES, true)) {
+                $clean[$sku] = $state;
+            }
+        }
+        $domain = trim((string) ($map['_domain_override'] ?? ''));
+        if ($domain !== '') {
+            $clean['_domain_override'] = $domain;
+        }
+        return $clean;
+    }
+
+    /**
+     * @param mixed $states
+     * @return array<string, array<string,mixed>>
+     */
+    private static function normalizeLicenseStates($states): array
+    {
+        $out = [];
+        if (!is_array($states)) {
+            return $out;
+        }
+        foreach ($states as $sku => $state) {
+            if (is_array($state)) {
+                $out[(string) $sku] = $state;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * @param array<string,mixed> $states
+     */
+    private static function hasActiveLicenseState(array $states): bool
+    {
+        foreach ($states as $state) {
+            if (is_array($state) && self::resolveRealStatus($state) === 'active') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param array<string,mixed> $data
+     */
+    private static function markPerpetualActivation(array &$data, bool $anyActive): void
+    {
+        if (!$anyActive || (string) ($data['pro_activated'] ?? '0') === '1') {
+            return;
+        }
+        $data['pro_activated'] = '1';
+        if (empty($data['pro_activated_at'])) {
+            $data['pro_activated_at'] = gmdate('c');
+        }
+        $data['pro_activated_version'] = class_exists('AiBoost\\Version') ? \AiBoost\Version::VERSION : '';
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private static function loadMainSettings(): array
+    {
+        $db = AdapterRegistry::database()->getConnection();
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('settings_json'))
+            ->from('#__aiboost_settings')
+            ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
+        $json = (string) $db->setQuery($query)->loadResult();
+        return json_decode($json, true) ?: [];
+    }
+
+    /**
+     * @param array<string,mixed> $data
+     */
+    private static function persistMainSettings(array $data): void
+    {
+        $db = AdapterRegistry::database()->getConnection();
+        $now = AdapterRegistry::clock()->nowSql();
+        $newJson = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $id = self::mainSettingsId($db);
+        $query = $id > 0
+            ? self::updateMainSettingsQuery($db, $id, $newJson, $now)
+            : self::insertMainSettingsQuery($db, $newJson, $now);
+        $db->setQuery($query)->execute();
+    }
+
+    private static function mainSettingsId($db): int
+    {
+        $query = $db->getQuery(true)
+            ->select('id')->from('#__aiboost_settings')
+            ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
+        return (int) $db->setQuery($query)->loadResult();
+    }
+
+    private static function updateMainSettingsQuery($db, int $id, string $json, string $now)
+    {
+        return $db->getQuery(true)->update('#__aiboost_settings')
+            ->set($db->quoteName('settings_json') . ' = ' . $db->quote($json))
+            ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
+            ->where($db->quoteName('id') . ' = ' . $id);
+    }
+
+    private static function insertMainSettingsQuery($db, string $json, string $now)
+    {
+        return $db->getQuery(true)->insert('#__aiboost_settings')
+            ->columns(['setting_key', 'settings_json', 'created_at', 'updated_at'])
+            ->values($db->quote('main') . ',' . $db->quote($json) . ',' . $db->quote($now) . ',' . $db->quote($now));
     }
 
     /**
@@ -678,29 +770,42 @@ final class PluginRegistry
      */
     public static function resolveRealStatus(?array $state): ?string
     {
-        if (!$state) {
-            return null;
-        }
-        $key = isset($state['key']) ? trim((string) $state['key']) : '';
-        if ($key === '') {
+        if (!self::hasLicenseKey($state)) {
             return null;
         }
         $status = strtolower((string) ($state['status'] ?? ''));
-        if ($status === 'active') {
-            // Honor expiry if present
-            $exp = (string) ($state['expires_at'] ?? '');
-            if ($exp !== '') {
-                $expTs = strtotime($exp);
-                if ($expTs !== false && $expTs < time()) {
-                    return 'expired';
-                }
-            }
-            return 'active';
+        return $status === 'active' ? self::activeStatusWithExpiry($state) : self::inactiveLicenseStatus($status);
+    }
+
+    /**
+     * @param array<string,mixed>|null $state
+     */
+    private static function hasLicenseKey(?array $state): bool
+    {
+        return $state !== null && trim((string) ($state['key'] ?? '')) !== '';
+    }
+
+    /**
+     * @param array<string,mixed> $state
+     */
+    private static function activeStatusWithExpiry(array $state): string
+    {
+        return self::licenseExpired((string) ($state['expires_at'] ?? '')) ? 'expired' : 'active';
+    }
+
+    private static function licenseExpired(string $expiresAt): bool
+    {
+        $expiresAt = trim($expiresAt);
+        if ($expiresAt === '') {
+            return false;
         }
-        if (in_array($status, ['expired', 'limit_reached', 'deactivated', 'invalid'], true)) {
-            return 'expired';
-        }
-        return null;
+        $expiresTs = strtotime($expiresAt);
+        return $expiresTs !== false && $expiresTs < time();
+    }
+
+    private static function inactiveLicenseStatus(string $status): ?string
+    {
+        return in_array($status, ['expired', 'limit_reached', 'deactivated', 'invalid'], true) ? 'expired' : null;
     }
 
     // ── Internals ────────────────────────────────────────────────────────

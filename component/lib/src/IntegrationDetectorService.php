@@ -27,22 +27,22 @@ class IntegrationDetectorService
      * are discovered dynamically via IntegrationRegistry and overlay this
      * map — keeping the dashboard live without a core release per bridge.
      *
-     * `status_type`:
-     *   'addon'      — Dedicated AI Boost support plugin in the works for this extension
+        * `status_type`:
+        *   'addon'      — Dedicated AI Boost support plugin in the works for this extension
      *   'compatible' — Works out of the box, AI Boost detects and adapts (true "support active")
-     *   'planned'    — On the wish-list, ranked by user votes
+        *   'planned'    — Roadmap placeholder shown without user actions until scoped
      */
     private const INTEGRATIONS = [
         'falang' => [
             'name'        => 'Falang Pro',
             'vendor'      => 'Falang',
             'category'    => 'Multilingual',
-            'description' => 'Multilingual content management for Joomla. AI Boost integrates Schema.org, OG meta, and sitemap hreflang for all Falang-translated content.',
+            'description' => 'Multilingual content management for Joomla. AI Boost detects Falang Pro and keeps multilingual Schema.org, OG meta, and sitemap hreflang behaviour compatible.',
             'type'        => 'component',
             'element'     => 'com_falang',
             'folder'      => '',
-            'status_type' => 'addon',
-            'addon_url'   => 'https://aiboostnow.com/integrations/falang',
+            'status_type' => 'compatible',
+            'addon_url'   => '',
             'learn_url'   => 'https://www.falang.net/',
             'icon'        => 'icon-language',
         ],
@@ -59,6 +59,19 @@ class IntegrationDetectorService
             'learn_url'   => 'https://yootheme.com/marketplace/yootheme-pro',
             'icon'        => 'icon-puzzle',
         ],
+        'admintools' => [
+            'name'        => 'Admin Tools Pro',
+            'vendor'      => 'Akeeba',
+            'category'    => 'Security',
+            'description' => 'Security hardening for Joomla. AI Boost detects Admin Tools Pro and avoids conflicts in robots.txt management and redirect rules.',
+            'type'        => 'plugin',
+            'element'     => 'admintools',
+            'folder'      => 'system',
+            'status_type' => 'compatible',
+            'addon_url'   => '',
+            'learn_url'   => 'https://aiboostnow.com/docs/integrations/admintools',
+            'icon'        => 'icon-shield',
+        ],
         'hikashop' => [
             'name'        => 'HikaShop',
             'vendor'      => 'Hikari Software',
@@ -68,7 +81,7 @@ class IntegrationDetectorService
             'element'     => 'com_hikashop',
             'folder'      => '',
             'status_type' => 'addon',
-            'addon_url'   => 'https://aiboostnow.com/integrations/hikashop',
+            'addon_url'   => '',
             'learn_url'   => 'https://www.hikashop.com/',
             'icon'        => 'icon-shopping-cart',
         ],
@@ -81,50 +94,37 @@ class IntegrationDetectorService
             'element'     => 'com_virtuemart',
             'folder'      => '',
             'status_type' => 'addon',
-            'addon_url'   => 'https://aiboostnow.com/integrations/virtuemart',
+            'addon_url'   => '',
             'learn_url'   => 'https://virtuemart.net/',
             'icon'        => 'icon-shopping-cart',
         ],
-        'k2' => [
-            'name'        => 'K2',
-            'vendor'      => 'JoomlaWorks',
-            'category'    => 'Content',
-            'description' => 'Extended content component for Joomla. AI Boost detects K2 article pages and generates Article schema, OG meta, and sitemap entries.',
+        'forseo' => [
+            'name'        => '4SEO Pro',
+            'vendor'      => 'Weeblr',
+            'category'    => 'SEO Suite',
+            'description' => 'All-in-one Joomla SEO suite with metadata, sitemap, structured data, social sharing, redirects, canonical URLs, and analytics features. Compatibility scope is planned.',
             'type'        => 'component',
-            'element'     => 'com_k2',
+            'element'     => 'com_4seo',
             'folder'      => '',
-            'status_type' => 'addon',
-            'addon_url'   => 'https://aiboostnow.com/integrations/k2',
-            'learn_url'   => 'https://getk2.org/',
-            'icon'        => 'icon-file-alt',
+            'status_type' => 'planned',
+            'addon_url'   => '',
+            'learn_url'   => 'https://weeblr.com/joomla-seo/4seo',
+            'icon'        => 'icon-search',
         ],
         'easyblog' => [
             'name'        => 'EasyBlog',
             'vendor'      => 'StackIdeas',
             'category'    => 'Content',
-            'description' => 'Feature-rich blogging extension for Joomla. AI Boost for EasyBlog adds Article and BlogPosting schema to every post and author page.',
+            'description' => 'Feature-rich blogging extension for Joomla. Future scope may cover Article and BlogPosting schema for posts and author pages.',
             'type'        => 'component',
             'element'     => 'com_easyblog',
             'folder'      => '',
-            'status_type' => 'addon',
-            'addon_url'   => 'https://aiboostnow.com/integrations/easyblog',
+            'status_type' => 'planned',
+            'addon_url'   => '',
             'learn_url'   => 'https://stackideas.com/easyblog',
             'icon'        => 'icon-pencil',
         ],
-        'admintools' => [
-            'name'        => 'Admin Tools',
-            'vendor'      => 'Akeeba',
-            'category'    => 'Security',
-            'description' => 'Security hardening for Joomla. AI Boost detects Admin Tools and avoids conflicts in robots.txt management and redirect rules.',
-            'type'        => 'plugin',
-            'element'     => 'admintools',
-            'folder'      => 'system',
-            'status_type' => 'compatible',
-            'addon_url'   => '',
-            'learn_url'   => 'https://aiboostnow.com/docs/integrations/admintools',
-            'icon'        => 'icon-shield',
-        ],
-        // ── Planned: vote-driven wish-list (always shows as "Coming soon") ──
+        // ── Planned: inactive roadmap placeholders ──
         'joomshopping' => [
             'name'        => 'JoomShopping',
             'vendor'      => 'WebDesigner',
@@ -138,57 +138,18 @@ class IntegrationDetectorService
             'learn_url'   => 'https://www.joomshopping.pro/',
             'icon'        => 'icon-shopping-cart',
         ],
-        'rsformpro' => [
-            'name'        => 'RSForm! Pro',
-            'vendor'      => 'RSJoomla!',
-            'category'    => 'Forms',
-            'description' => 'Popular form builder. Planned: ContactPoint schema linking and Meta Pixel Lead event hooks for form submissions.',
+        'j2store' => [
+            'name'        => 'J2Store',
+            'vendor'      => 'J2Store',
+            'category'    => 'E-Commerce',
+            'description' => 'Joomla e-commerce extension. Future scope may cover product metadata, structured data, and sitemap compatibility checks.',
             'type'        => 'component',
-            'element'     => 'com_rsform',
+            'element'     => 'com_j2store',
             'folder'      => '',
             'status_type' => 'planned',
             'addon_url'   => '',
-            'learn_url'   => 'https://www.rsjoomla.com/joomla-extensions/joomla-form.html',
-            'icon'        => 'icon-list',
-        ],
-        'chronoforms' => [
-            'name'        => 'ChronoForms',
-            'vendor'      => 'ChronoEngine',
-            'category'    => 'Forms',
-            'description' => 'Form builder for Joomla. Planned: schema for contact forms and conversion event tracking through GA4/Meta Pixel.',
-            'type'        => 'component',
-            'element'     => 'com_chronoforms7',
-            'folder'      => '',
-            'status_type' => 'planned',
-            'addon_url'   => '',
-            'learn_url'   => 'https://www.chronoengine.com/',
-            'icon'        => 'icon-list',
-        ],
-        'akeebabackup' => [
-            'name'        => 'Akeeba Backup',
-            'vendor'      => 'Akeeba',
-            'category'    => 'Backup',
-            'description' => 'The Joomla backup standard. Planned: pre-publish sitemap snapshots and health-check awareness of backup status.',
-            'type'        => 'component',
-            'element'     => 'com_akeeba',
-            'folder'      => '',
-            'status_type' => 'planned',
-            'addon_url'   => '',
-            'learn_url'   => 'https://www.akeeba.com/products/akeeba-backup.html',
-            'icon'        => 'icon-database',
-        ],
-        'jce' => [
-            'name'        => 'JCE Editor',
-            'vendor'      => 'WIDGet Factory',
-            'category'    => 'Editor',
-            'description' => 'Powerful WYSIWYG editor for Joomla. Planned: automatic alt-text suggestions and image schema injection during article editing.',
-            'type'        => 'plugin',
-            'element'     => 'jce',
-            'folder'      => 'editors',
-            'status_type' => 'planned',
-            'addon_url'   => '',
-            'learn_url'   => 'https://www.joomlacontenteditor.net/',
-            'icon'        => 'icon-pencil-alt',
+            'learn_url'   => 'https://www.j2store.org/',
+            'icon'        => 'icon-shopping-cart',
         ],
     ];
 
@@ -252,7 +213,8 @@ class IntegrationDetectorService
      * Returns one of four UI states:
      *   support_active — extension is installed AND AI Boost actively integrates with it
      *   detected       — extension is installed, dedicated AI Boost support plugin still coming
-     *   coming_soon    — planned / addon-available integration that is not installed yet
+    *   coming_soon    — addon-available integration that is not installed yet
+    *   roadmap        — future integration placeholder without actions
      *   not_detected   — compatible integration that is simply not installed
      *
      * Legacy values ('installed', 'addon_available') are kept as fallbacks for any
@@ -261,7 +223,7 @@ class IntegrationDetectorService
     private function resolveStatus(string $statusType, bool $installed): string
     {
         if ($statusType === 'planned') {
-            return 'coming_soon';
+            return 'roadmap';
         }
         if ($installed) {
             return $statusType === 'compatible' ? 'support_active' : 'detected';

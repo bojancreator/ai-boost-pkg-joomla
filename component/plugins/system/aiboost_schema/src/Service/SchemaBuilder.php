@@ -1,16 +1,12 @@
 <?php
 /**
- * AI Boost — SchemaBuilder (Free baseline)
+ * AI Boost — SchemaBuilder
  *
- * Builds the Free-tier JSON-LD blocks for the current page request and
- * returns them as PHP arrays. The Extension class fires
- * `EVENT_FILTER_SCHEMA_BLOCKS` after collecting these blocks so the
- * closed-source aiboost_schema_pro plugin can decorate the Organization
- * block (upgraded @type, openingHours, aggregateRating, type-specific
- * properties, translations) and append Pro-only blocks (FAQPage,
- * QAPage, Article, HowTo, Event).
+ * Builds the JSON-LD blocks for the current page request and returns them as
+ * PHP arrays. The Organization block can be upgraded to a more specific
+ * schema.org type via the shared `schema_type` setting.
  *
- * Free-tier output (always):
+ * Baseline output:
  *   - Organization (@type=Organization)         — identity, address, logo, social
  *   - WebSite + SearchAction (homepage only)
  *   - BreadcrumbList                            — from Joomla pathway
@@ -29,6 +25,62 @@ use Joomla\Database\DatabaseInterface;
 
 class SchemaBuilder
 {
+    private const SCHEMA_TYPE_ALIASES = [
+        'organization'            => 'Organization',
+        'localbusiness'           => 'LocalBusiness',
+        'foodestablishment'       => 'FoodEstablishment',
+        'restaurant'              => 'Restaurant',
+        'educationalorganization' => 'EducationalOrganization',
+        'educationalorg'          => 'EducationalOrganization',
+        'school'                  => 'EducationalOrganization',
+        'lodgingbusiness'         => 'LodgingBusiness',
+        'hotel'                   => 'LodgingBusiness',
+        'medicalclinic'           => 'MedicalClinic',
+        'medical'                 => 'MedicalClinic',
+        'legalservice'            => 'LegalService',
+        'lawyer'                  => 'LegalService',
+        'sportsactivitylocation'  => 'SportsActivityLocation',
+        'sportsactivity'          => 'SportsActivityLocation',
+        'gym'                     => 'SportsActivityLocation',
+        'dentist'                 => 'Dentist',
+        'realestateagent'         => 'RealEstateAgent',
+        'realestate'              => 'RealEstateAgent',
+        'automotivebusiness'      => 'AutomotiveBusiness',
+        'store'                   => 'Store',
+        'touristattraction'       => 'TouristAttraction',
+        'professionalservice'     => 'ProfessionalService',
+        'person'                  => 'Person',
+        'portfolio'               => 'Person',
+        'newsmediaorganization'   => 'NewsMediaOrganization',
+        'news'                    => 'NewsMediaOrganization',
+    ];
+
+    private const LOCAL_BUSINESS_TYPES = [
+        'LocalBusiness' => true,
+        'FoodEstablishment' => true,
+        'Restaurant' => true,
+        'LodgingBusiness' => true,
+        'MedicalClinic' => true,
+        'LegalService' => true,
+        'SportsActivityLocation' => true,
+        'Dentist' => true,
+        'RealEstateAgent' => true,
+        'AutomotiveBusiness' => true,
+        'Store' => true,
+        'TouristAttraction' => true,
+        'ProfessionalService' => true,
+    ];
+
+    private const BUSINESS_HOURS_DAYS = [
+        'mon' => 'Monday',
+        'tue' => 'Tuesday',
+        'wed' => 'Wednesday',
+        'thu' => 'Thursday',
+        'fri' => 'Friday',
+        'sat' => 'Saturday',
+        'sun' => 'Sunday',
+    ];
+
     /** @var array<string,mixed> */
     private array               $settings;
     private AppContextInterface $ctx;
@@ -48,7 +100,7 @@ class SchemaBuilder
     }
 
     /**
-     * Build the Free-tier baseline schema blocks.
+    * Build the schema blocks.
      *
      * @return array<int, array<string, mixed>>  One PHP array per JSON-LD block.
      */
@@ -77,11 +129,7 @@ class SchemaBuilder
     }
 
     /**
-     * Organization JSON-LD — emitted on every page.
-     *
-     * Free tier always emits @type=Organization. The Pro plugin listens on
-     * EVENT_FILTER_SCHEMA_BLOCKS and upgrades @type via SiteTypePresetService
-     * + decorates with openingHours, aggregateRating, translations, etc.
+     * Organization JSON-LD, upgraded to the selected schema.org type when set.
      *
      * @return array<string, mixed>|null
      */
@@ -92,9 +140,11 @@ class SchemaBuilder
             return null;
         }
 
+        $schemaType = $this->resolveSchemaType((string) ($this->settings['schema_type'] ?? 'Organization'));
+
         $schema = [
             '@context' => 'https://schema.org',
-            '@type'    => 'Organization',
+            '@type'    => $schemaType,
             'name'     => $orgName,
         ];
 
@@ -153,7 +203,189 @@ class SchemaBuilder
             $schema['sameAs'] = $sameAs;
         }
 
+        $this->decorateBusinessDetails($schema, $schemaType);
+
         return $schema;
+    }
+
+    private function resolveSchemaType(string $type): string
+    {
+        $normalized = strtolower(preg_replace('/[^a-z0-9]/i', '', trim($type)) ?: '');
+        return self::SCHEMA_TYPE_ALIASES[$normalized] ?? 'Organization';
+    }
+
+    /** @param array<string, mixed> $schema */
+    private function decorateBusinessDetails(array &$schema, string $schemaType): void
+    {
+        $ratingValue = trim((string) ($this->settings['rating_value'] ?? ''));
+        $ratingCount = trim((string) ($this->settings['rating_count'] ?? ''));
+        if ($ratingValue !== '' && $ratingCount !== '' && (float) $ratingValue > 0 && (int) $ratingCount > 0) {
+            $schema['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => $ratingValue,
+                'reviewCount' => $ratingCount,
+                'bestRating' => trim((string) ($this->settings['rating_best'] ?? '5')) ?: '5',
+                'worstRating' => trim((string) ($this->settings['rating_worst'] ?? '1')) ?: '1',
+            ];
+        }
+
+        if (isset(self::LOCAL_BUSINESS_TYPES[$schemaType])) {
+            $hours = $this->buildBusinessHours();
+            if ($hours) {
+                $schema['openingHoursSpecification'] = $hours;
+            }
+
+            $priceRange = trim((string) ($this->settings['specific_price_range'] ?? ''));
+            if ($priceRange !== '') {
+                $schema['priceRange'] = $priceRange;
+            }
+        }
+
+        if (in_array($schemaType, ['Restaurant', 'FoodEstablishment', 'LodgingBusiness'], true)) {
+            $cuisine = trim((string) ($this->settings['specific_serves_cuisine'] ?? ''));
+            if ($cuisine !== '') {
+                $schema['servesCuisine'] = $cuisine;
+            }
+        }
+
+        if ($schemaType === 'LodgingBusiness') {
+            $starRating = trim((string) ($this->settings['specific_star_rating'] ?? ''));
+            if ($starRating !== '' && (int) $starRating > 0) {
+                $schema['starRating'] = ['@type' => 'Rating', 'ratingValue' => $starRating];
+            }
+
+            $checkin = trim((string) ($this->settings['specific_checkin_time'] ?? ''));
+            if ($checkin !== '') {
+                $schema['checkinTime'] = $checkin;
+            }
+
+            $checkout = trim((string) ($this->settings['specific_checkout_time'] ?? ''));
+            if ($checkout !== '') {
+                $schema['checkoutTime'] = $checkout;
+            }
+
+            $petsAllowed = trim((string) ($this->settings['specific_pets_allowed'] ?? ''));
+            if (in_array($petsAllowed, ['true', 'false'], true)) {
+                $schema['petsAllowed'] = $petsAllowed === 'true';
+            }
+        }
+
+        if (in_array($schemaType, ['MedicalClinic', 'Dentist', 'LegalService', 'EducationalOrganization', 'SportsActivityLocation', 'AutomotiveBusiness', 'ProfessionalService'], true)) {
+            $service = trim((string) ($this->settings['specific_available_service'] ?? ''));
+            if ($service !== '') {
+                $schema['availableService'] = $service;
+            }
+        }
+
+        if (in_array($schemaType, ['LocalBusiness', 'FoodEstablishment', 'Restaurant', 'MedicalClinic', 'LegalService', 'EducationalOrganization', 'SportsActivityLocation', 'Dentist', 'RealEstateAgent', 'AutomotiveBusiness', 'ProfessionalService', 'Store', 'TouristAttraction'], true)) {
+            $areaServed = trim((string) ($this->settings['specific_area_served'] ?? ''));
+            if ($areaServed !== '') {
+                $schema['areaServed'] = $areaServed;
+            }
+        }
+
+        if (isset(self::LOCAL_BUSINESS_TYPES[$schemaType])) {
+            $paymentAccepted = trim((string) ($this->settings['specific_payment_accepted'] ?? ''));
+            if ($paymentAccepted !== '') {
+                $schema['paymentAccepted'] = $paymentAccepted;
+            }
+        }
+
+        if (in_array($schemaType, ['FoodEstablishment', 'Restaurant', 'LodgingBusiness', 'SportsActivityLocation', 'Store', 'TouristAttraction'], true)) {
+            $amenities = $this->csvList((string) ($this->settings['specific_amenity_feature'] ?? ''));
+            if ($amenities) {
+                $schema['amenityFeature'] = array_map(
+                    static fn(string $amenity): array => [
+                        '@type' => 'LocationFeatureSpecification',
+                        'name' => $amenity,
+                        'value' => true,
+                    ],
+                    $amenities
+                );
+            }
+        }
+
+        if ($schemaType === 'Person') {
+            $jobTitle = trim((string) ($this->settings['specific_job_title'] ?? ''));
+            if ($jobTitle !== '') {
+                $schema['jobTitle'] = $jobTitle;
+            }
+
+            $affiliation = trim((string) ($this->settings['specific_affiliation'] ?? ''));
+            if ($affiliation !== '') {
+                $schema['affiliation'] = ['@type' => 'Organization', 'name' => $affiliation];
+            }
+        }
+
+        if (in_array($schemaType, ['Person', 'MedicalClinic', 'LegalService', 'EducationalOrganization', 'Dentist', 'ProfessionalService'], true)) {
+            $knowsAbout = $this->csvList((string) ($this->settings['specific_knows_about'] ?? ''));
+            if ($knowsAbout) {
+                $schema['knowsAbout'] = $knowsAbout;
+            }
+        }
+
+        if ($schemaType === 'NewsMediaOrganization') {
+            $foundingDate = trim((string) ($this->settings['specific_founding_date'] ?? ''));
+            if ($foundingDate !== '') {
+                $schema['foundingDate'] = $foundingDate;
+            }
+
+            $masthead = trim((string) ($this->settings['specific_masthead_url'] ?? ''));
+            if ($masthead !== '') {
+                $schema['masthead'] = $this->absoluteUrl($masthead);
+            }
+
+            $ethicsPolicy = trim((string) ($this->settings['specific_ethics_policy_url'] ?? ''));
+            if ($ethicsPolicy !== '') {
+                $schema['ethicsPolicy'] = $this->absoluteUrl($ethicsPolicy);
+            }
+        }
+    }
+
+    /** @return array<int, string> */
+    private function csvList(string $value): array
+    {
+        $items = array_map('trim', explode(',', $value));
+        $items = array_values(array_filter($items, static fn(string $item): bool => $item !== ''));
+
+        return array_values(array_unique($items));
+    }
+
+    /** @return array<int, array<string, string>> */
+    private function buildBusinessHours(): array
+    {
+        $specs = [];
+
+        foreach (self::BUSINESS_HOURS_DAYS as $key => $dayName) {
+            if ((int) ($this->settings["hours_{$key}_closed"] ?? 0)) {
+                continue;
+            }
+
+            $opens = trim((string) ($this->settings["hours_{$key}_opens"] ?? ''));
+            $closes = trim((string) ($this->settings["hours_{$key}_closes"] ?? ''));
+            if (!$this->isValidBusinessTime($opens) || !$this->isValidBusinessTime($closes)) {
+                continue;
+            }
+
+            $specs[] = [
+                '@type' => 'OpeningHoursSpecification',
+                'dayOfWeek' => 'https://schema.org/' . $dayName,
+                'opens' => $opens,
+                'closes' => $closes,
+            ];
+        }
+
+        return $specs;
+    }
+
+    private function isValidBusinessTime(string $time): bool
+    {
+        if (!preg_match('/^\d{1,2}:\d{2}$/', $time)) {
+            return false;
+        }
+
+        [$hour, $minute] = explode(':', $time);
+        return (int) $hour <= 23 && (int) $minute <= 59;
     }
 
     /**

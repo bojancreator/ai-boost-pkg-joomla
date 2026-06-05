@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="ab-trans-wrap">
 
     <button type="button" class="ab-trans-toggle" @click="open = !open">
@@ -11,20 +11,17 @@
           d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
       </svg>
       <span>Translations</span>
-      <span v-if="!isPro" class="ab-trans-lock" title="Pro feature — translations require AI Boost Pro" style="margin-left:6px">🔒</span>
-      <span v-else-if="filledCount > 0" class="ab-trans-count">{{ filledCount }}</span>
+      <span v-if="filledCount > 0" class="ab-trans-count">{{ filledCount }}</span>
     </button>
 
     <div v-if="open" class="ab-trans-rows">
 
-      <!-- Always show language rows; <ProGate> handles the Free-tier lock
-           overlay + upsell modal driven by ProFeatureRegistry. -->
       <div v-if="transLanguages.length === 0" class="ab-trans-empty">
         No additional languages installed in Joomla.
         <a href="?option=com_languages&view=languages" target="_blank">Manage languages →</a>
       </div>
 
-      <ProGate v-else gate-key="section:translations.per_language" mode="section">
+      <template v-else>
         <div
           v-for="lang in transLanguages"
           :key="lang.lang_code"
@@ -53,7 +50,7 @@
             @input="setT(fieldKey, lang.lang_code, $event.target.value)"
           />
         </div>
-      </ProGate>
+      </template>
 
     </div>
   </div>
@@ -62,7 +59,6 @@
 <script>
 import { computed, ref } from 'vue'
 import { languages, defaultLang, getT, setT } from '../composables/useTranslations.js'
-import { isPro as checkIsPro } from '../api.js'
 import MediaPicker from './MediaPicker.vue'
 
 export default {
@@ -76,8 +72,6 @@ export default {
 
   setup(props) {
     const open  = ref(false)
-    const isPro = computed(() => checkIsPro())
-
     // Exclude the installation default language — that's the source value
     // edited directly in the main field. defaultLang is resolved from
     // window.aiBoostDefaultLang (injected by PHP) so it works on any locale.
@@ -89,7 +83,7 @@ export default {
       transLanguages.value.filter(l => getT(props.fieldKey, l.lang_code) !== '').length
     )
 
-    return { open, isPro, transLanguages, filledCount, getT, setT }
+    return { open, transLanguages, filledCount, getT, setT }
   },
 }
 </script>

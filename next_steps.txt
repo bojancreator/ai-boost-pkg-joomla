@@ -1,10 +1,60 @@
-Ovo je plan za naredne korake.
+Ovo je jedini redosled za naredne korake. Radi se odozgo nadole.
 
-1. Kompatibilnost sa php 8.2, 8.3, 8.4, 8.5
-2. Komponentu radimo na engleskom. Kad je završimo treba da se prevede na: de, fr, it, ru, es i portugalski. Da li je arhitektura koja je napravljena spremna za ovo
-3. Kompletna provera svih funkcija i provera da li svi prevodi rade dobro
-4. Napraviti opširnu dokumentaciju. veoma detaljnu o komponenti na svih 7 jezika - da li ovo može da radi replit po instrukcija koje mu mi damo ili moramo mi?
-5. Doraditi web sajt sa ovim novim promenama koje smo napravili. nije više plugin orijentisan već kao komponenta. - Da li može replit?
-6. Integrisati lemon squezzy kad se registruje nalog i stigne uputstvo.
-7. Tvoje sugestije
-8. Krećemo sa prodajom
+Legenda:
+- [x] Završeno i verifikovano
+- [>] Aktivno sada
+- [ ] Nije započeto
+- [?] Potrebna odluka / istraživanje pre implementacije
+
+## Aktivno sada
+
+3. [>] PHP kompatibilnost
+	- Proveriti PHP 8.2, 8.3 i 8.5.
+	- PHP 8.4 preskačemo.
+	- Pogledati `test_sajtovi.md` za dostupne test sajtove.
+
+## Završeno
+
+1. [x] Help strana u komponenti
+	- Završeno u 0.73.12.
+	- Help je sada troubleshooting/validation hub, ne spisak feature-a.
+	- Verifikovano: build, staging install na Joomla 5 Pro, smoke 20/20, Playwright Help QA.
+
+2. [x] Schema Type opcije
+	- Završeno u 0.73.13, dodatno diferencirano u 0.73.14.
+	- Schema Type sada otvara bogatije uslovne opcije za business operations, expertise, Person profile i News/Media profile.
+	- U 0.73.14 su uklonjene preširoke shared opcije: cena, area served, payment i amenities više se ne prikazuju skoro svuda, već samo za tipove gde imaju smisla.
+	- Backend JSON-LD sada emituje usklađena polja: paymentAccepted, amenityFeature, petsAllowed, knowsAbout, Person jobTitle/affiliation i NewsMediaOrganization masthead/ethicsPolicy/foundingDate.
+	- Verifikovano: focused PHPUnit 32/32, Vue build, manifest codegen guard, package build, Pro-leakage verifier, install na Joomla 5 Pro, smoke 20/20 i Playwright Schema UI QA.
+
+## Sledeće posle aktivne stavke
+
+4. [?] Prevodilačka arhitektura
+	- Komponentu radimo prvo na engleskom.
+	- Posle finalnog engleskog treba prevesti na: de, fr, it, ru, es i portugalski.
+	- Pre implementacije proveriti da li je trenutna arhitektura spremna za to.
+
+5. [ ] Kompletna provera funkcija i prevoda
+	- Proveriti sve funkcije.
+	- Proveriti da li svi prevodi rade dobro.
+
+6. [?] Opširna dokumentacija na 7 jezika
+	- Napraviti veoma detaljnu dokumentaciju o komponenti.
+	- Odlučiti da li to može da radi Replit po našim instrukcijama ili moramo mi.
+
+7. [?] Web sajt
+	- Doraditi web sajt prema novim promenama.
+	- Sajt više nije plugin-orijentisan, već komponenta/proizvod.
+	- Odlučiti da li to može Replit.
+
+8. [ ] Lemon Squeezy
+	- Integrisati kad se registruje nalog i stigne uputstvo.
+
+9. [?] Sugestije
+	- Dodati samo konkretne predloge koji se uklapaju u proizvodni pravac.
+
+10. [?] Advanced standalone pluginovi
+	- Primer: Custom Code advanced plugin sa mnogo više opcija.
+	- Može da se kupi i radi odvojeno ako paket nije instaliran.
+	- Ako je paket instaliran, advanced plugin treba da se integriše i poboljša opcije.
+	- Postavke treba preuzeti u oba smera: komponenta -> plugin ili plugin -> komponenta, zavisno šta je instalirano prvo.

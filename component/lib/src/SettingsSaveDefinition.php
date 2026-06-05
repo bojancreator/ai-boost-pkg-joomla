@@ -261,10 +261,7 @@ final class SettingsSaveDefinition
         if (in_array($key, self::legacyKeys(), true)) {
             return true;
         }
-        if (($field['tier'] ?? 'free') !== 'pro') {
-            return true;
-        }
-        return in_array($key, ProFeatureRegistry::lockedSettingsKeys(), true);
+        return true;
     }
 
     /** @return array<string, array<string,mixed>> */

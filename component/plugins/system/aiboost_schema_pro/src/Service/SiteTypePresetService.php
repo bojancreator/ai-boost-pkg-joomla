@@ -3,11 +3,10 @@
  * AI Boost — SiteTypePresetService
  *
  * Maps the plugin's `schema_type` param value to a schema.org @type string and
- * carries metadata about which types require a Pro license and whether a type is
+ * carries metadata about whether a type is
  * a subclass of LocalBusiness (affects which structured-data properties are valid).
  *
- * Free tier: Organization only (fallback for any Pro type without a valid license)
- * Pro tier:  All 13 site type presets
+ * One-product tier: all site type presets.
  *
  * @package     AiBoost\Plugin\System\AiBoostSchema
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
@@ -25,7 +24,6 @@ final class SiteTypePresetService
      *
      * Keys:
      *   type  — schema.org @type value
-     *   pro   — whether a Pro license is required
      *   local — whether the type is a LocalBusiness subtype (enables opening hours,
      *           priceRange, address, geo, and aggregateRating on the schema.org spec)
      *
@@ -35,11 +33,11 @@ final class SiteTypePresetService
         // ── Free ─────────────────────────────────────────────────────────────
         'organization'        => ['type' => 'Organization',            'pro' => false, 'local' => false],
 
-        // ── Pro — 13 Site Type presets ────────────────────────────────────────
         'localbusiness'       => ['type' => 'LocalBusiness',           'pro' => true,  'local' => true],
         'restaurant'          => ['type' => 'Restaurant',              'pro' => true,  'local' => true],
         'hotel'               => ['type' => 'LodgingBusiness',         'pro' => true,  'local' => true],
         'medicalclinic'       => ['type' => 'MedicalClinic',           'pro' => true,  'local' => true],
+        'dentist'             => ['type' => 'Dentist',                 'pro' => true,  'local' => true],
         'legalservice'        => ['type' => 'LegalService',            'pro' => true,  'local' => true],
         'realestateagent'     => ['type' => 'RealEstateAgent',         'pro' => true,  'local' => true],
         'automotivebusiness'  => ['type' => 'AutomotiveBusiness',      'pro' => true,  'local' => true],
@@ -49,15 +47,52 @@ final class SiteTypePresetService
         'touristattraction'   => ['type' => 'TouristAttraction',       'pro' => true,  'local' => true],
         'foodestablishment'   => ['type' => 'FoodEstablishment',       'pro' => true,  'local' => true],
         'professionalservice' => ['type' => 'ProfessionalService',     'pro' => true,  'local' => true],
+        'person'              => ['type' => 'Person',                  'pro' => true,  'local' => false],
+        'newsmediaorganization' => ['type' => 'NewsMediaOrganization', 'pro' => true,  'local' => false],
     ];
+
+    private const ALIASES = [
+        'organization'              => 'organization',
+        'localbusiness'             => 'localbusiness',
+        'restaurant'                => 'restaurant',
+        'foodestablishment'         => 'foodestablishment',
+        'hotel'                     => 'hotel',
+        'lodgingbusiness'           => 'hotel',
+        'medical'                   => 'medicalclinic',
+        'medicalclinic'             => 'medicalclinic',
+        'lawyer'                    => 'legalservice',
+        'legalservice'              => 'legalservice',
+        'realestate'                => 'realestateagent',
+        'realestateagent'           => 'realestateagent',
+        'automotivebusiness'        => 'automotivebusiness',
+        'store'                     => 'store',
+        'educationalorganization'   => 'educationalorg',
+        'educationalorg'            => 'educationalorg',
+        'school'                    => 'educationalorg',
+        'sportsactivitylocation'    => 'sportsactivity',
+        'sportsactivity'            => 'sportsactivity',
+        'gym'                       => 'sportsactivity',
+        'dentist'                   => 'dentist',
+        'touristattraction'         => 'touristattraction',
+        'professionalservice'       => 'professionalservice',
+        'person'                    => 'person',
+        'portfolio'                 => 'person',
+        'newsmediaorganization'     => 'newsmediaorganization',
+        'news'                      => 'newsmediaorganization',
+    ];
+
+    public static function normalizeKey(string $key): string
+    {
+        $normalized = strtolower(preg_replace('/[^a-z0-9]/i', '', trim($key)) ?: '');
+        return self::ALIASES[$normalized] ?? $normalized;
+    }
 
     /**
      * Return the schema.org @type for the given key and license status.
-     *
-     * Free-tier callers requesting a Pro type receive 'Organization' as fallback.
      */
     public static function getSchemaType(string $key, bool $isPro = false): string
     {
+        $key = self::normalizeKey($key);
         $preset = self::PRESETS[$key] ?? null;
         if ($preset === null) {
             return 'Organization';
@@ -74,6 +109,7 @@ final class SiteTypePresetService
      */
     public static function isLocalBusiness(string $key, bool $isPro = false): bool
     {
+        $key = self::normalizeKey($key);
         $preset = self::PRESETS[$key] ?? null;
         if ($preset === null || ($preset['pro'] && !$isPro)) {
             return false;
@@ -86,6 +122,7 @@ final class SiteTypePresetService
      */
     public static function isProRequired(string $key): bool
     {
+        $key = self::normalizeKey($key);
         return (self::PRESETS[$key] ?? ['pro' => false])['pro'];
     }
 

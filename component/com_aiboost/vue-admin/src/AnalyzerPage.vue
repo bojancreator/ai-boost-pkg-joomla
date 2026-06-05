@@ -997,7 +997,7 @@ export default {
       const map = {
         general:  'General', org: 'Organization', schema: 'Schema',
         sitemap:  'Sitemap', social: 'Social', analytics: 'Analytics',
-        aeo:      'AEO', code: 'Code', debug: 'Debug',
+        aeo:      'AI Visibility', code: 'Code', debug: 'Debug',
       }
       return map[tab] || (tab ? tab.charAt(0).toUpperCase() + tab.slice(1) : 'Settings')
     },

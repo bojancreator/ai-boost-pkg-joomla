@@ -1,9 +1,11 @@
 <?php
 /**
- * AI Boost — Schema.org Pro Plugin
+ * AI Boost — Schema.org Legacy Decorator
  *
- * Closed-source upgrade plugin for the 'schema' SKU. This plugin physically
- * houses every Pro schema feature:
+ * Compatibility decorator for installations that still have the historical
+ * split schema package present. The active one-product package now emits the
+ * core business schema directly from `aiboost_schema`; this decorator remains
+ * to support older add-on deployments and extended JSON-LD blocks.
  *
  *   - 13 Site Type presets (LocalBusiness, Hotel, Restaurant, etc.)
  *   - openingHoursSpecification (BusinessHoursBuilder)
@@ -13,14 +15,9 @@
  *   - FAQPage, QAPage, Article, HowTo, Event blocks
  *   - Per-author Person block (custom-field driven)
  *
- * Removing this plugin from a Free install removes the entire code path —
- * no settings, no license-tier flag, no runtime patch can re-enable Pro
- * behaviour from the Free package.
- *
- * Wiring: listens on `EVENT_FILTER_SCHEMA_BLOCKS` fired by the Free
- * aiboost_schema plugin and applies `SchemaProBuilder::decorateAll()` to
- * the structured blocks array. Activation requires
- * `PluginRegistry::hasPro('schema') === true` (verified license).
+ * Wiring: listens on `EVENT_FILTER_SCHEMA_BLOCKS` fired by the core
+ * aiboost_schema plugin and applies `SchemaProBuilder::decorateAll()` to the
+ * structured blocks array when the legacy entitlement gate allows it.
  *
  * @package     AiBoost\Plugin\System\AiBoostSchemaPro
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
@@ -52,17 +49,17 @@ class AiBoostSchemaPro extends CMSPlugin
     }
 
     /**
-     * Decorate the Free baseline schema blocks with Pro enrichment and
-     * append Pro-only blocks (FAQPage, QAPage, Article, HowTo, Event).
+    * Decorate the core schema blocks and append extended blocks
+    * (FAQPage, QAPage, Article, HowTo, Event).
      *
-     * Listener for `EVENT_FILTER_SCHEMA_BLOCKS`. The Free plugin always
-     * fires this event after building its baseline blocks.
+    * Listener for `EVENT_FILTER_SCHEMA_BLOCKS`. The core plugin fires this
+    * event after building its blocks.
      */
     public function onAiBoostFilterSchemaBlocks(array $input, FilterResult $result): void
     {
         $this->boot();
 
-        // Activation gate — only run when the Pro license is verified active.
+        // Legacy activation gate; retained for older split-package installs.
         if (!PluginRegistry::hasPro('schema')) {
             return;
         }
@@ -86,18 +83,17 @@ class AiBoostSchemaPro extends CMSPlugin
             $builder      = new SchemaProBuilder($settings, $ctx, $db, $translations);
             $decorated    = $builder->decorateAll($blocks);
         } catch (\Throwable $e) {
-            // On any error, leave Free baseline untouched — never break the page.
+            // On any error, leave the core blocks untouched — never break the page.
             return;
         }
 
         $current['blocks'] = $decorated;
-        $result->setOutput($current, $this->getName(), 'apply Pro schema decoration');
+        $result->setOutput($current, $this->getName(), 'apply schema decoration');
     }
 
     /**
-     * Contribute Pro-only marker field(s) to the manifest. Same payload as
-     * before the Pro extraction; allows the SPA to surface the toggle on
-     * Pro installs even though the Free build strips its manifest entry.
+    * Contribute legacy marker field(s) to the manifest for split-package
+    * compatibility.
      *
      * @return array<int, array<string,mixed>>
      */
@@ -115,7 +111,7 @@ class AiBoostSchemaPro extends CMSPlugin
                 'default'       => '0',
                 'tier'          => 'pro',
                 'sku'           => 'schema',
-                'description'   => 'Emit a richer BreadcrumbList with per-item images and structured position metadata. Free tier emits the basic BreadcrumbList.',
+                'description'   => 'Emit a richer BreadcrumbList with per-item images and structured position metadata. The core plugin emits the basic BreadcrumbList.',
                 'feature_class' => 'BreadcrumbPro',
                 'health'        => [
                     'id'                => 'info_schema_breadcrumb_pro_active',
@@ -135,8 +131,8 @@ class AiBoostSchemaPro extends CMSPlugin
     }
 
     /**
-     * Per-request BreadcrumbPro stub trigger (codegen-managed apply()).
-     * Real Pro decoration of the Breadcrumb block runs through
+    * Per-request BreadcrumbPro stub trigger (codegen-managed apply()).
+    * Extended decoration of the Breadcrumb block runs through
      * SchemaProBuilder above — this hook stays so the codegen `apply()`
      * stub keeps its declared lifecycle.
      */

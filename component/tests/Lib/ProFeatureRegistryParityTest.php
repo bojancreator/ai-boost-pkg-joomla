@@ -6,21 +6,11 @@ use AiBoost\Lib\ProFeatureRegistry;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Static parity test between the Vue SPA's <ProGate gate-key="…"> wrappers
- * and ProFeatureRegistry's PHP manifest.
+ * Static guard for the v0.5 one-product transition.
  *
- * Why: Task #449 had to be verified manually by walking two live Joomla
- * admins and ticking 21 rows. The most common regression is a new Pro
- * option added to ProFeatureRegistry without a matching <ProGate> wrapper
- * (or vice versa) — which leaves a Pro field editable on a Free install,
- * or shows a "Pro" lock for a key the server doesn't actually strip.
- *
- * This test parses every component/com_aiboost/vue-admin/src/**\/*.vue
- * file for `gate-key="…"` attributes and asserts the resulting set is
- * exactly equal (in both directions) to ProFeatureRegistry::all() keys.
- *
- * It also asserts every `section:*` entry in all() has a matching row in
- * sectionFields(), so stripLocked() can never silently miss a Pro key.
+ * The SPA may keep the ProGate component as a pass-through compatibility
+ * wrapper, but feature/page locks and route-level proGate metadata must not
+ * reappear.
  *
  * The Vue source lives in the repo (not under PSR-4 autoload), so this is
  * a pure-PHP static scan — no Node, no build step required in CI.
@@ -115,14 +105,8 @@ final class ProFeatureRegistryParityTest extends TestCase
         return $keys;
     }
 
-    public function testEveryRegistryEntryHasMatchingVueProGateWrapper(): void
+    public function testNoVueProGateWrappersRemain(): void
     {
-        $registryKeys = array_map(
-            static fn(array $e): string => (string) $e['key'],
-            ProFeatureRegistry::all()
-        );
-        sort($registryKeys);
-
         $vueKeys = [];
         foreach ($this->collectVueFiles(true) as $f) {
             $extracted = $this->extractGateKeys($f);
@@ -136,13 +120,11 @@ final class ProFeatureRegistryParityTest extends TestCase
         $vueKeys = array_values(array_unique($vueKeys));
         sort($vueKeys);
 
-        $missingInVue = array_values(array_diff($registryKeys, $vueKeys));
         $this->assertSame(
             [],
-            $missingInVue,
-            "ProFeatureRegistry::all() lists Pro keys that have no matching <ProGate gate-key=\"…\"> "
-            . "wrapper in the Vue SPA. Either add the wrapper or remove the registry entry:\n  - "
-            . implode("\n  - ", $missingInVue)
+            $vueKeys,
+            "The one-product admin must not render feature/page <ProGate gate-key=\"…\"> locks:\n  - "
+            . implode("\n  - ", $vueKeys)
         );
     }
 
@@ -191,70 +173,29 @@ final class ProFeatureRegistryParityTest extends TestCase
             }
         }
         $this->assertSame(
-            ['AppShell.vue: :gate-key="proGateKey"'],
+            [],
             $dynamic,
-            "Only AppShell.vue may use a dynamic route-level :gate-key binding. "
-            . "Route-level gate values must be static router.js meta.proGate strings so CI can "
-            . "verify them against ProFeatureRegistry:\n  - "
+            "The one-product admin must not use dynamic route-level :gate-key bindings:\n  - "
             . implode("\n  - ", $dynamic)
         );
     }
 
     /**
-     * Task #459 — enum gating parity for the Schema Type dropdown.
-     *
-     * proOptions()['schema_type'] is the Pro subset that stripProOptions()
-     * rewrites on a Free save. The SPA dropdown in SchemaTab.vue must list
-     * EXACTLY the same Pro values (no more, no less) so the per-option
-     * lock state matches the server-side enforcement. A drift here would
-     * either leave a Pro option unlocked in the UI (silent Pro save attempt
-     * → server rewrites it without any UX feedback) or lock a Free option
-     * pointlessly.
+     * Schema Type options are all available in the one-product model.
      */
     public function testSchemaTypeProSetMatchesVueDropdown(): void
     {
         $proSet = ProFeatureRegistry::proOptions()['schema_type'] ?? [];
-        $this->assertNotEmpty(
-            $proSet,
-            'ProFeatureRegistry::proOptions()[schema_type] must list at least one Pro value, '
-            . 'otherwise enum gating is a no-op.'
-        );
-
-        $default = ProFeatureRegistry::proOptionDefaults()['schema_type'] ?? '';
-        $this->assertNotSame('', $default, 'No Free fallback documented for schema_type.');
-        $this->assertNotContains(
-            $default,
-            $proSet,
-            'schema_type Free fallback "' . $default . '" is itself a Pro value — stripProOptions() '
-            . 'would loop a Pro save back into a Pro save.'
-        );
+        $this->assertSame([], $proSet, 'Schema Type must not retain a server-side Pro option subset.');
 
         $tabPath = realpath(self::VUE_SRC . '/tabs/SchemaTab.vue');
         $this->assertNotFalse($tabPath, 'SchemaTab.vue not found.');
         $src = (string) file_get_contents($tabPath);
 
-        [$allVue, $proVue] = $this->schemaTypeOptionSets($src);
-
-        $this->assertNotEmpty(
-            $allVue,
-            'Could not parse SCHEMA_TYPE_OPTIONS in SchemaTab.vue. Has the constant been renamed?'
-        );
-
-        sort($proSet); sort($proVue);
-        $this->assertSame(
-            $proSet,
-            $proVue,
-            "Schema Type Pro subset drift between ProFeatureRegistry and SchemaTab.vue.\n"
-            . "Registry: " . implode(',', $proSet) . "\n"
-            . "Vue:      " . implode(',', $proVue)
-        );
-
-        // The Free fallback must be one of the offered options.
-        $this->assertContains(
-            $default,
-            $allVue,
-            'Free fallback "' . $default . '" is not even listed in SchemaTab.vue dropdown.'
-        );
+        $this->assertStringContainsString('SCHEMA_TYPE_OPTIONS', $src);
+        $this->assertStringNotContainsString('pro: true', $src);
+        $this->assertStringNotContainsString('PRO_SCHEMA_TYPES', $src);
+        $this->assertStringNotContainsString('(Pro)', $src);
     }
 
     /** @return array{0:list<string>,1:list<string>} */

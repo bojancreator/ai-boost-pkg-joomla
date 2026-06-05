@@ -69,7 +69,7 @@ return [
         'sku'         => 'aeo',
     ],
 
-    // ── llms-full.txt (Pro) ────────────────────────────────────────
+    // ── llms-full.txt ──────────────────────────────────────────────
     [
         'key'         => 'llms_full_txt_enabled',
         'tab'         => 'aeo',
@@ -230,7 +230,7 @@ return [
         'tier' => 'free', 'sku' => 'aeo',
     ],
 
-    // ── IndexNow (Pro) ─────────────────────────────────────────────
+    // ── IndexNow ───────────────────────────────────────────────────
     [
         'key'         => 'indexnow_enabled',
         'tab'         => 'aeo',
@@ -262,7 +262,7 @@ return [
         'sku'         => 'aeo',
     ],
 
-    // ── Markdown pages (Pro) ───────────────────────────────────────
+    // ── Markdown pages ─────────────────────────────────────────────
     [
         'key'         => 'markdown_pages_enabled',
         'tab'         => 'aeo',

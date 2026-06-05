@@ -46,7 +46,7 @@ final class InstallIntegrity
         'aiboost_code',
     ];
 
-    /** Pro upgrade plugins (mirror pkg_aiboost_pro.xml / PluginRegistry::PRO_SKUS keys). */
+    /** Legacy add-on plugins (mirror pkg_aiboost_pro.xml / PluginRegistry::PRO_SKUS keys). */
     public const PRO_SYSTEM_PLUGINS = [
         'aiboost_schema_pro',
         'aiboost_aeo_pro',
@@ -60,7 +60,7 @@ final class InstallIntegrity
     public const MODULE_ELEMENT    = 'mod_aiboost_health';
 
     /**
-     * True when the Pro upgrade package is physically installed. This is the
+     * True when the legacy add-on package is physically installed. This is the
      * signal that the *_pro plugins are *expected* (rather than orphan leftovers).
      */
     public static function isProEdition(DatabaseInterface $db): bool
@@ -97,75 +97,23 @@ final class InstallIntegrity
     public static function audit(DatabaseInterface $db, bool $isPro, string $version): array
     {
         $version = trim($version);
-
-        // Expected set: name => extension descriptor (for the query filter only).
-        $expectedPlugins = self::FREE_SYSTEM_PLUGINS;
-        if ($isPro) {
-            $expectedPlugins = array_merge($expectedPlugins, self::PRO_SYSTEM_PLUGINS);
-        }
-
+        $expectedPlugins = self::expectedPlugins($isPro);
+        $expectedNonPlugins = self::expectedNonPlugins($isPro);
         $rows = self::scanRows($db);
-
         $ok       = [];
         $missing  = [];
         $disabled = [];
-        $orphan   = [];
         $mismatch = [];
 
-        // 1. Expected system plugins.
         foreach ($expectedPlugins as $element) {
-            $row = $rows['plugin'][$element] ?? null;
-            if ($row === null) {
-                $missing[] = $element;
-                continue;
-            }
-            if ((int) ($row['enabled'] ?? 0) !== 1) {
-                $disabled[] = $element;
-                continue;
-            }
-            $rowVer = self::manifestVersion($row);
-            if ($version !== '' && $rowVer !== '' && $rowVer !== $version) {
-                $mismatch[] = ['element' => $element, 'version' => $rowVer];
-                continue;
-            }
-            $ok[] = $element;
-        }
-
-        // 2. Component is core; the Health module is a Pro-only surface.
-        $expectedNonPlugins = ['component' => self::COMPONENT_ELEMENT];
-        if ($isPro) {
-            $expectedNonPlugins['module'] = self::MODULE_ELEMENT;
+            self::collectExpectedResult($rows['plugin'][$element] ?? null, $element, $version, true, $ok, $missing, $disabled, $mismatch);
         }
 
         foreach ($expectedNonPlugins as $type => $element) {
-            $row = $rows[$type][$element] ?? null;
-            if ($row === null) {
-                $missing[] = $element;
-                continue;
-            }
-            // The component is always "enabled"; the module may be unpublished but
-            // that is an admin layout choice, not an integrity failure, so we only
-            // version-check these two.
-            $rowVer = self::manifestVersion($row);
-            if ($version !== '' && $rowVer !== '' && $rowVer !== $version) {
-                $mismatch[] = ['element' => $element, 'version' => $rowVer];
-                continue;
-            }
-            $ok[] = $element;
+            self::collectExpectedResult($rows[$type][$element] ?? null, $element, $version, false, $ok, $missing, $disabled, $mismatch);
         }
 
-        // 3. Orphans — any aiboost_* system plugin present but not expected.
-        //    Integration bridges (aiboost_int_*) are separate products: skip them.
-        foreach (array_keys($rows['plugin']) as $element) {
-            if (in_array($element, $expectedPlugins, true)) {
-                continue;
-            }
-            if (str_starts_with($element, 'aiboost_int_')) {
-                continue;
-            }
-            $orphan[] = $element;
-        }
-
+        $orphan = self::orphanPlugins($rows['plugin'], $expectedPlugins);
         sort($missing);
         sort($disabled);
         sort($orphan);
@@ -184,48 +132,160 @@ final class InstallIntegrity
     }
 
     /**
+     * @return list<string>
+     */
+    private static function expectedPlugins(bool $isPro): array
+    {
+        return $isPro ? array_merge(self::FREE_SYSTEM_PLUGINS, self::PRO_SYSTEM_PLUGINS) : self::FREE_SYSTEM_PLUGINS;
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    private static function expectedNonPlugins(bool $isPro): array
+    {
+        $expected = ['component' => self::COMPONENT_ELEMENT];
+        if ($isPro) {
+            $expected['module'] = self::MODULE_ELEMENT;
+        }
+        return $expected;
+    }
+
+    /**
+     * @param array<string,mixed>|null $row
+     * @param list<string>             $ok
+     * @param list<string>             $missing
+     * @param list<string>             $disabled
+     * @param list<array{element:string, version:string}> $mismatch
+     */
+    private static function collectExpectedResult(?array $row, string $element, string $version, bool $requireEnabled, array &$ok, array &$missing, array &$disabled, array &$mismatch): void
+    {
+        if ($row === null) {
+            $missing[] = $element;
+            return;
+        }
+        if (self::expectedRowDisabled($row, $requireEnabled)) {
+            $disabled[] = $element;
+            return;
+        }
+        $rowVer = self::mismatchedVersion($row, $version);
+        if ($rowVer !== '') {
+            $mismatch[] = ['element' => $element, 'version' => $rowVer];
+            return;
+        }
+        $ok[] = $element;
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private static function expectedRowDisabled(array $row, bool $requireEnabled): bool
+    {
+        return $requireEnabled && (int) ($row['enabled'] ?? 0) !== 1;
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     */
+    private static function mismatchedVersion(array $row, string $expectedVersion): string
+    {
+        $rowVer = self::manifestVersion($row);
+        return $expectedVersion !== '' && $rowVer !== '' && $rowVer !== $expectedVersion ? $rowVer : '';
+    }
+
+    /**
+     * @param array<string,array<string,mixed>> $plugins
+     * @param list<string>                      $expectedPlugins
+     * @return list<string>
+     */
+    private static function orphanPlugins(array $plugins, array $expectedPlugins): array
+    {
+        $orphan = [];
+        foreach (array_keys($plugins) as $element) {
+            if (!in_array($element, $expectedPlugins, true) && !str_starts_with($element, 'aiboost_int_')) {
+                $orphan[] = $element;
+            }
+        }
+        return $orphan;
+    }
+
+    /**
      * @return array{plugin: array<string,array<string,mixed>>, component: array<string,array<string,mixed>>, module: array<string,array<string,mixed>>}
      */
     private static function scanRows(DatabaseInterface $db): array
     {
         $out = ['plugin' => [], 'component' => [], 'module' => []];
         try {
-            // No SQL LIKE — the `aiboost_` prefix is filtered in PHP so the scan
-            // is portable across sql_mode settings (NO_BACKSLASH_ESCAPES etc.).
-            $query = $db->getQuery(true)
-                ->select([
-                    $db->quoteName('element'),
-                    $db->quoteName('type'),
-                    $db->quoteName('folder'),
-                    $db->quoteName('enabled'),
-                    $db->quoteName('manifest_cache'),
-                ])
-                ->from($db->quoteName('#__extensions'))
-                ->where(
-                    '(' . $db->quoteName('type') . ' = ' . $db->quote('plugin')
-                    . ' AND ' . $db->quoteName('folder') . ' = ' . $db->quote('system') . ')'
-                    . ' OR (' . $db->quoteName('type') . ' = ' . $db->quote('component')
-                    . ' AND ' . $db->quoteName('element') . ' = ' . $db->quote(self::COMPONENT_ELEMENT) . ')'
-                    . ' OR (' . $db->quoteName('type') . ' = ' . $db->quote('module')
-                    . ' AND ' . $db->quoteName('element') . ' = ' . $db->quote(self::MODULE_ELEMENT) . ')'
-                );
-            foreach ((array) $db->setQuery($query)->loadAssocList() as $row) {
-                $type = (string) ($row['type'] ?? '');
-                $el   = (string) ($row['element'] ?? '');
-                if ($el === '' || !isset($out[$type])) {
-                    continue;
-                }
-                // Only AI Boost system plugins are relevant; skip every other
-                // third-party / core system plugin returned by the broad query.
-                if ($type === 'plugin' && !str_starts_with($el, 'aiboost_')) {
-                    continue;
-                }
-                $out[$type][$el] = $row;
+            foreach ((array) $db->setQuery(self::scanRowsQuery($db))->loadAssocList() as $row) {
+                self::collectScannedRow($out, $row);
             }
         } catch (\Throwable $e) {
             error_log('[AI Boost InstallIntegrity] scan failed: ' . $e->getMessage());
         }
         return $out;
+    }
+
+    private static function scanRowsQuery(DatabaseInterface $db)
+    {
+        return $db->getQuery(true)
+            ->select([
+                $db->quoteName('element'),
+                $db->quoteName('type'),
+                $db->quoteName('folder'),
+                $db->quoteName('enabled'),
+                $db->quoteName('manifest_cache'),
+            ])
+            ->from($db->quoteName('#__extensions'))
+            ->where(
+                '(' . $db->quoteName('type') . ' = ' . $db->quote('plugin')
+                . ' AND ' . $db->quoteName('folder') . ' = ' . $db->quote('system') . ')'
+                . ' OR (' . $db->quoteName('type') . ' = ' . $db->quote('component')
+                . ' AND ' . $db->quoteName('element') . ' = ' . $db->quote(self::COMPONENT_ELEMENT) . ')'
+                . ' OR (' . $db->quoteName('type') . ' = ' . $db->quote('module')
+                . ' AND ' . $db->quoteName('element') . ' = ' . $db->quote(self::MODULE_ELEMENT) . ')'
+            );
+    }
+
+    /**
+     * @param array{plugin: array<string,array<string,mixed>>, component: array<string,array<string,mixed>>, module: array<string,array<string,mixed>>} $out
+     * @param array<string,mixed> $row
+     */
+    private static function collectScannedRow(array &$out, array $row): void
+    {
+        $target = self::scannedRowTarget($row, $out);
+        if ($target === null) {
+            return;
+        }
+        [$type, $el] = $target;
+        $out[$type][$el] = $row;
+    }
+
+    /**
+     * @param array<string,mixed> $row
+     * @param array<string,mixed> $out
+     * @return array{string,string}|null
+     */
+    private static function scannedRowTarget(array $row, array $out): ?array
+    {
+        $type = (string) ($row['type'] ?? '');
+        $el   = (string) ($row['element'] ?? '');
+        if (self::unknownScannedTarget($type, $el, $out)) {
+            return null;
+        }
+        return self::irrelevantSystemPlugin($type, $el) ? null : [$type, $el];
+    }
+
+    /**
+     * @param array<string,mixed> $out
+     */
+    private static function unknownScannedTarget(string $type, string $element, array $out): bool
+    {
+        return $element === '' || !isset($out[$type]);
+    }
+
+    private static function irrelevantSystemPlugin(string $type, string $element): bool
+    {
+        return $type === 'plugin' && !str_starts_with($element, 'aiboost_');
     }
 
     /**

@@ -7,15 +7,8 @@ use AiBoost\Lib\SettingsSaveDefinition;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Parity test: every Pro-tier field in the manifest (`tier=pro`) must be
- * gated somewhere in ProFeatureRegistry — either as a direct `field` entry
- * in all() or inside a `section:*` group via sectionFields().
- *
- * Why: a Pro option declared in the manifest but missing from the registry
- * is silently editable on Free installs because stripLocked() never sees
- * its key. The codegen creates Vue partials with <ProGate gate-key="…">
- * for these keys, so the SPA looks correct, but the server save endpoint
- * accepts the value. This test fails before the bug reaches a build.
+ * Compatibility test for historical Pro-tier manifest metadata during the
+ * v0.5 one-product transition.
  *
  * The opposite direction (registry → manifest) is intentionally limited here:
  * ProFeatureRegistry also lists `section:*` entries and legacy single-key
@@ -45,18 +38,10 @@ final class ManifestProRegistryParityTest extends TestCase
         return $all;
     }
 
-    public function testEveryProManifestFieldIsGatedByRegistry(): void
+    public function testLegacyProManifestFieldsDoNotCreateSaveLocks(): void
     {
-        $orphans = $this->proManifestFieldsMissingRegistryGating();
-
-        sort($orphans);
-        $this->assertSame(
-            [],
-            $orphans,
-            "Pro manifest fields with no ProFeatureRegistry gating — stripLocked() "
-            . "will silently accept them on Free installs:\n  - "
-            . implode("\n  - ", $orphans)
-        );
+        $this->assertSame([], ProFeatureRegistry::lockedSettingsKeys());
+        $this->assertSame([], ProFeatureRegistry::proOptions());
     }
 
     public function testEverySectionFieldsKeyIsAKnownManifestKey(): void

@@ -125,6 +125,9 @@ class Pkg_AiboostInstallerScript
         // Task #482 — backfill page-level default policy and rewrite legacy
         // per-bot 'default' values to '' so the new radio UI is unambiguous.
         $this->migrateCrawlerDefaultPolicy();
+        // v0.73.10 — one-product cleanup: remove extension-manager rows left
+        // behind by the old split Free/Pro/add-on package layout.
+        $this->removeLegacySplitPackageArtifacts();
         $this->enablePlugins();
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
@@ -135,25 +138,20 @@ class Pkg_AiboostInstallerScript
             // strip.
             $this->cleanupStaticFiles();
 
-            // Task #454 — Article OG custom fields are a Pro feature.
-            // On Free installs we (a) skip the field upsert and (b) remove any
-            // rows we previously installed so the Free admin's article editor
-            // is clean. #__fields_values (user-entered overrides) are NEVER
-            // touched — they remain in the DB and reappear if the user later
-            // upgrades to Pro.
+            // Legacy package split compatibility: add-on installs keep the
+            // article OG fields available; base-only installs remove field rows
+            // created by older add-on builds without touching user content.
             if ($this->isProInstall()) {
                 $this->ensureOgCustomFields();
             } else {
                 $this->removeOgCustomFieldsForFree();
-                // The admin Health module is a Pro-only surface (it now ships in
-                // pkg_aiboost_pro and is published by pkg_script_pro). On a Free
-                // install we actively remove any instance + the module extension
-                // that older base packages used to ship, so Free has no module.
+                // The admin Health module now ships from the legacy add-on
+                // package. Base-only updates remove leftover module instances
+                // from older package layouts.
                 $this->removeHealthModuleForFree();
             }
 
-            // Task #455 — relabel the Components → AI Boost menu entry so
-            // admins see at a glance whether they're on Free or Pro.
+            // Keep the Components menu label normalized to the one-product name.
             $this->applyEditionMenuLabel();
         }
 
@@ -483,8 +481,8 @@ class Pkg_AiboostInstallerScript
     }
 
     /**
-     * Task #454 — Remove AI Boost OG custom fields + their group from a
-     * Free install.
+    * Task #454 — Remove legacy add-on AI Boost OG custom fields + their group
+    * from a base-only install.
      *
      * Ownership is verified BOTH ways:
      *   - fields must carry our ownership marker `note LIKE 'aiboost_version:%'`
@@ -603,22 +601,19 @@ class Pkg_AiboostInstallerScript
     }
 
     /**
-     * Task #455 — Set the admin Components → AI Boost menu label to reflect
-     * the installed edition: "AI Boost Free" (Free) or "AI Boost Pro" (Pro).
-     *
-     * Joomla renders #__menu.title through Text::_(), so we store a language
-     * key (COM_AIBOOST_MENU_FREE / COM_AIBOOST_MENU_PRO) — both defined in
-     * com_aiboost.sys.ini — rather than literal text. The component slug
+      * Set the admin Components → AI Boost menu label to the one-product name.
+      *
+      * Joomla renders #__menu.title through Text::_(), so we store a language
+      * key rather than literal text. The component slug
      * (option=com_aiboost), alias, and link all stay untouched, so existing
      * bookmarks, ACL rules, and routes keep working.
      *
-     * Idempotent: re-running on the same edition is a no-op. Switching tiers
-     * (e.g. installing Pro after Free, or letting Pro lapse) flips the label
-     * automatically on the next package install/update.
+      * Idempotent: re-running on the same install is a no-op. Legacy Free/Pro
+      * menu keys are normalized on the next package install/update.
      */
     private function applyEditionMenuLabel(): void
     {
-        $newTitle = $this->isProInstall() ? 'COM_AIBOOST_MENU_PRO' : 'COM_AIBOOST_MENU_FREE';
+          $newTitle = 'COM_AIBOOST_MENU';
 
         try {
             $db = Factory::getDbo();
@@ -1167,14 +1162,12 @@ class Pkg_AiboostInstallerScript
     }
 
     /**
-     * Free edition — actively remove the admin Health module.
+    * Base-only package update — actively remove the admin Health module.
      *
-     * The Health module is a Pro-only surface: it now ships in pkg_aiboost_pro
-     * and is published by pkg_script_pro. Older base packages shipped + published
-     * it, so existing Free installs (and Free installs upgraded from a build that
-     * still bundled it) may carry leftover instances and the module extension.
-     * This deletes every admin instance (#__modules + #__modules_menu) and then
-     * uninstalls the module extension itself so Free has no module at all.
+    * The Health module now ships in the legacy add-on package. Older base
+    * packages shipped + published it, so base-only updates may carry leftover
+    * instances and the module extension. This deletes every admin instance
+    * (#__modules + #__modules_menu) and then uninstalls the module extension.
      *
      * Idempotent and safe: when nothing is present it is a no-op. Each step is
      * guarded so one failure never aborts the rest of postflight.
@@ -1221,6 +1214,111 @@ class Pkg_AiboostInstallerScript
             }
         } catch (\Throwable $e) {
             self::logEvent('warning', '[AiBoost] removeHealthModuleForFree failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Remove legacy split-package artifacts that are no longer shipped by the
+     * one-product base package. These rows appear in Extensions → Manage as
+     * stale 0.73.x Pro/add-on plugins after updating to the unified package.
+     *
+     * Safe on every install/update: Joomla uninstall is attempted first so file
+     * cleanup can happen normally; if the manifest is already gone or uninstall
+     * fails, the orphan extension/schema rows are removed so the admin list no
+     * longer shows dead AI Boost leftovers.
+     */
+    private function removeLegacySplitPackageArtifacts(): void
+    {
+        $legacyPlugins = [
+            'aiboost_schema_pro',
+            'aiboost_aeo_pro',
+            'aiboost_social_pro',
+            'aiboost_hreflang_pro',
+            'aiboost_code_pro',
+            'aiboost_int_falang',
+        ];
+
+        try {
+            foreach ($legacyPlugins as $element) {
+                $this->removeLegacyExtension('plugin', $element, 'system', 0);
+            }
+
+            $this->removeHealthModuleForFree();
+            $this->removeLegacyExtension('module', 'mod_aiboost_health', '', 1);
+            $this->removeLegacyExtension('package', 'pkg_aiboost_pro', '', 0);
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] removeLegacySplitPackageArtifacts failed: ' . $e->getMessage());
+        }
+    }
+
+    private function removeLegacyExtension(string $type, string $element, string $folder = '', int $clientId = 0): void
+    {
+        try {
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('extension_id'))
+                ->from($db->quoteName('#__extensions'))
+                ->where($db->quoteName('type') . ' = ' . $db->quote($type))
+                ->where($db->quoteName('element') . ' = ' . $db->quote($element));
+
+            if ($folder !== '') {
+                $query->where($db->quoteName('folder') . ' = ' . $db->quote($folder));
+            }
+            if ($type !== 'package') {
+                $query->where($db->quoteName('client_id') . ' = ' . (int) $clientId);
+            }
+
+            $ids = array_map('intval', $db->setQuery($query)->loadColumn());
+            if (!$ids) {
+                return;
+            }
+
+            $installer = new \Joomla\CMS\Installer\Installer();
+            foreach ($ids as $extensionId) {
+                $removed = false;
+                try {
+                    $removed = (bool) $installer->uninstall($type, $extensionId);
+                } catch (\Throwable $e) {
+                    self::logEvent('warning', '[AiBoost] Joomla uninstall failed for legacy ' . $element . ': ' . $e->getMessage());
+                }
+
+                if (!$removed) {
+                    $this->deleteLegacyExtensionRows($extensionId);
+                    continue;
+                }
+
+                $stillPresent = (int) $db->setQuery(
+                    $db->getQuery(true)
+                        ->select('COUNT(*)')
+                        ->from($db->quoteName('#__extensions'))
+                        ->where($db->quoteName('extension_id') . ' = ' . (int) $extensionId)
+                )->loadResult();
+                if ($stillPresent > 0) {
+                    $this->deleteLegacyExtensionRows($extensionId);
+                }
+            }
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] removeLegacyExtension failed for ' . $element . ': ' . $e->getMessage());
+        }
+    }
+
+    private function deleteLegacyExtensionRows(int $extensionId): void
+    {
+        if ($extensionId <= 0) {
+            return;
+        }
+
+        $db = Factory::getDbo();
+        foreach (['#__schemas', '#__extensions'] as $table) {
+            try {
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->delete($db->quoteName($table))
+                        ->where($db->quoteName('extension_id') . ' = ' . (int) $extensionId)
+                )->execute();
+            } catch (\Throwable $e) {
+                self::logEvent('warning', '[AiBoost] deleteLegacyExtensionRows failed for ' . $table . ': ' . $e->getMessage());
+            }
         }
     }
 
@@ -1559,7 +1657,7 @@ class Pkg_AiboostInstallerScript
             }
 
             if (!$resolvesPro) {
-                return; // Genuine Free install — leave it Free.
+                return; // Base-only install with no historical activation signal.
             }
 
             $data['pro_activated'] = '1';

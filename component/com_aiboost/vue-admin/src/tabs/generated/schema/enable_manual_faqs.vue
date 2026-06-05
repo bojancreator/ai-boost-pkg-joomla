@@ -6,14 +6,12 @@
 -->
 <template>
   <div class="ab-gen-field">
-    <ProGate gate-key="enable_manual_faqs" mode="field">
-      <div class="ab-check ab-toggle mb-3">
-        <input v-model="s.enable_manual_faqs" data-ab-field="enable_manual_faqs"
-               true-value="1" false-value="0"
-               type="checkbox" class="ab-toggle__input" id="ab-gen-enable-manual-faqs" />
-        <label class="ab-check__label" for="ab-gen-enable-manual-faqs">Enable Manual FAQs</label>
-      </div>
-    </ProGate>
+    <div class="ab-check ab-toggle mb-3">
+      <input v-model="s.enable_manual_faqs" data-ab-field="enable_manual_faqs"
+             true-value="1" false-value="0"
+             type="checkbox" class="ab-toggle__input" id="ab-gen-enable-manual-faqs" />
+      <label class="ab-check__label" for="ab-gen-enable-manual-faqs">Enable Manual FAQs</label>
+    </div>
   </div>
 </template>
 

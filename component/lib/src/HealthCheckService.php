@@ -67,7 +67,7 @@ class HealthCheckService
         'critical_no_org_name'           => 'General',
         'critical_schema_disabled'       => 'Schema',
         'critical_sitemap_disabled'      => 'Sitemap',
-        'critical_robots_blocks_all'     => 'General',
+        'critical_robots_blocks_all'     => 'Crawlers & Robots',
         'critical_no_og_image'           => 'Social',
         'critical_canonical_disabled'    => 'Sitemap',
         'warning_no_org_logo'            => 'Schema',
@@ -100,18 +100,18 @@ class HealthCheckService
         'info_position_custom_code_body_slot'     => 'General',
         'info_position_custom_code_footer_slot'   => 'General',
         'duplicate_fb_domain_verification'    => 'Conflicts',
-        'info_robots_block_ahrefsbot'        => 'AEO',
-        'info_robots_block_semrushbot'       => 'AEO',
-        'info_robots_block_dotbot'           => 'AEO',
-        'info_robots_block_mj12bot'          => 'AEO',
-        'info_robots_block_blexbot'          => 'AEO',
-        'info_robots_block_rogerbot'         => 'AEO',
-        'info_robots_block_screamingfrog'    => 'AEO',
-        'info_robots_block_sitebulb'         => 'AEO',
-        'info_robots_block_siteauditor'      => 'AEO',
-        'info_robots_block_serpstatbot'      => 'AEO',
-        'info_robots_block_bytespider'       => 'AEO',
-        'info_robots_block_petalbot'         => 'AEO',
+        'info_robots_block_ahrefsbot'        => 'Crawlers & Robots',
+        'info_robots_block_semrushbot'       => 'Crawlers & Robots',
+        'info_robots_block_dotbot'           => 'Crawlers & Robots',
+        'info_robots_block_mj12bot'          => 'Crawlers & Robots',
+        'info_robots_block_blexbot'          => 'Crawlers & Robots',
+        'info_robots_block_rogerbot'         => 'Crawlers & Robots',
+        'info_robots_block_screamingfrog'    => 'Crawlers & Robots',
+        'info_robots_block_sitebulb'         => 'Crawlers & Robots',
+        'info_robots_block_siteauditor'      => 'Crawlers & Robots',
+        'info_robots_block_serpstatbot'      => 'Crawlers & Robots',
+        'info_robots_block_bytespider'       => 'Crawlers & Robots',
+        'info_robots_block_petalbot'         => 'Crawlers & Robots',
         'info_health_score_low'          => 'General',
         'info_php_version'               => 'General',
         'info_joomla_version'            => 'General',
@@ -386,7 +386,7 @@ class HealthCheckService
         return $this->make(
             'critical_robots_blocks_all', 'critical', 'robots.txt Blocking All',
             $pass, $pass, $msg,
-            $pass ? '' : $this->settingsUrl('tab-general-btn', 'enable_robots')
+            $pass ? '' : $this->settingsUrl('crawlers', 'enable_robots')
         );
     }
 
@@ -429,7 +429,7 @@ class HealthCheckService
             $fixUrl = $this->pluginManagerUrl('aiboost_core');
         } elseif (!$settingOn) {
             $msg    = 'Canonical URL management is disabled in settings — duplicate content issues may occur.';
-            $fixUrl = $this->settingsUrl('sitemap', 'enable_canonical');
+            $fixUrl = $this->settingsUrl('technical', 'enable_canonical');
         } else {
             $msg    = 'Canonical URL management is active.';
             $fixUrl = '';
@@ -778,8 +778,8 @@ class HealthCheckService
                 $msg  = 'Legacy license_tier="' . htmlspecialchars($legacyTier, ENT_QUOTES) . '" detected — '
                       . 'upgrade migration will materialise it on next install/upgrade.';
             } else {
-                $msg = 'No verified license key — you are running the Free tier. '
-                     . 'Open the Licenses tab to enter your AI Boost license key(s).';
+                 $msg = 'No verified license key is stored. '
+                     . 'Open the Licenses tab to enter your AI Boost license key for updates and support.';
             }
         }
 
@@ -817,7 +817,7 @@ class HealthCheckService
             ? 'No invalid or expired licenses detected.'
             : 'Invalid or expired license(s) detected: <strong>'
                 . htmlspecialchars(implode(', ', $invalidSkus), ENT_QUOTES)
-                . '</strong>. Pro features for these SKUs are locked. Renew the key or remove it on the Licenses tab.';
+                . '</strong>. Renew the key for updates/support or remove it on the Licenses tab.';
 
         return $this->make(
             'critical_license_invalid', 'critical', 'License Invalid / Expired',
@@ -827,9 +827,9 @@ class HealthCheckService
     }
 
     /**
-     * Task #439 — info card surfaced when no active license is on file, so
-     * the auto-update server will respond with an empty <updates/> for the
-     * Pro package. Free package updates always flow regardless.
+    * Task #439 — info card surfaced when no active license is on file, so
+    * the auto-update server can withhold licensed add-on updates while the
+    * base package continues to update normally.
      */
     private function infoAutoUpdateDisabled(): array
     {
@@ -846,8 +846,8 @@ class HealthCheckService
             }
         }
         $message = $hasActive
-            ? 'Auto-updates for Pro plugins are enabled — Joomla will check updates.aiboostnow.com on its schedule.'
-            : 'No active license on file. Free package will still update; Pro plugin updates will not appear in Joomla → Update until a key is verified.';
+            ? 'Auto-updates for licensed add-ons are enabled — Joomla will check updates.aiboostnow.com on its schedule.'
+            : 'No active license on file. The base package will still update; licensed add-on updates will not appear in Joomla → Update until a key is verified.';
         return $this->make(
             'info_auto_update_disabled', 'info', 'Auto-update server',
             true, true, $message,
@@ -916,14 +916,13 @@ class HealthCheckService
                 'info_license_renewal', 'info', 'License — renewal',
                 true, false,
                 $activated
-                    ? 'Pro is activated and your licence is current. Automatic updates and support are available.'
-                    : 'No active Pro licence to renew.',
+                    ? 'Your licence is current. Automatic updates and support are available.'
+                    : 'No active licence to renew.',
                 ''
             );
         }
 
-        $msg = 'Your Pro licence has lapsed. Your Pro features keep working permanently — '
-             . 'renewing only restores automatic updates and support. Open the Licenses tab to renew.';
+        $msg = 'Your licence has lapsed. Renewing restores automatic updates and support. Open the Licenses tab to renew.';
 
         return $this->make(
             'info_license_renewal', 'info', 'License — renewal',
@@ -1227,15 +1226,15 @@ class HealthCheckService
             return $this->make(
                 'info_social_og_pro_active', 'info', 'Pro OpenGraph enrichment',
                 true, true,
-                'Pro OpenGraph enrichment is active — og:type=article + article:* meta, og:locale, og:video, fb:app_id, twitter:site and per-article OG overrides are emitted on the front-end where configured.',
+                'OpenGraph enrichment is active — og:type=article + article:* meta, og:locale, og:video, fb:app_id, twitter:site and per-article OG overrides are emitted on the front-end where configured.',
                 $fixUrl, $fixActions
             );
         }
 
         return $this->make(
-            'info_social_og_pro_active', 'info', 'Pro OpenGraph enrichment',
+            'info_social_og_pro_active', 'info', 'OpenGraph enrichment',
             true, false,
-            'The Pro OpenGraph plugin is installed but no active license is verified — Pro OG enrichment is correctly suppressed and the front-end emits the same og:/twitter: tags as the Free tier.',
+            'OpenGraph enrichment is installed but no active license is verified for updates/support; configured front-end tags continue to use the available emitter.',
             $fixUrl, $fixActions
         );
     }
@@ -1375,21 +1374,6 @@ class HealthCheckService
             );
         }
 
-        // Pro-gated: warn when the toggle is on but Pro is not activated, so
-        // the emitter in aiboost_aeo/onBeforeCompileHead stays dark. Uses the
-        // single canonical gate (Task #565 — perpetual activation).
-        $isPro = \AiBoost\Lib\PluginRegistry::isProActive($this->settings);
-
-        if (!$isPro) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
-                false, false,
-                'AI meta tags toggle is ON but Pro is not activated — the emitter is gated on Pro, so no <meta> tags are being injected. Activate AI Boost Pro to unlock this feature.',
-                $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-                $fixActions
-            );
-        }
-
         if (!$this->isPluginEnabled('aiboost_aeo')) {
             return $this->make(
                 'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
@@ -1450,7 +1434,7 @@ class HealthCheckService
     }
 
     /**
-     * Info: Markdown discovery <link> tag in <head> (Pro feature).
+    * Info: Markdown discovery <link> tag in <head>.
      *
      * The aiboost_aeo plugin emits, when markdown_pages_enabled=1 and tier=Pro:
      *   <link rel="alternate" type="text/markdown" href="{current-url}?markdown=1">
@@ -1536,19 +1520,6 @@ class HealthCheckService
             );
         }
 
-        // Task #565 — single canonical gate (perpetual activation).
-        $isPro = \AiBoost\Lib\PluginRegistry::isProActive($this->settings);
-
-        if (!$isPro) {
-            return $this->make(
-                'info_aeo_markdown_discovery_active', 'warning', 'Markdown Discovery Link',
-                false, false,
-                'Markdown pages toggle is ON but Pro is not activated — the emitter is gated on Pro, so no <link rel="alternate" type="text/markdown"> is being injected. Activate AI Boost Pro to unlock this feature.',
-                $this->settingsUrl('tab-aeo-btn', 'markdown_pages_enabled'),
-                $fixActions
-            );
-        }
-
         if (!$this->isPluginEnabled('aiboost_aeo')) {
             return $this->make(
                 'info_aeo_markdown_discovery_active', 'warning', 'Markdown Discovery Link',
@@ -1609,7 +1580,7 @@ class HealthCheckService
     }
 
     /**
-     * Info: emit one health check per ENABLED SEO scraper-block (Free tier).
+    * Info: emit one health check per enabled SEO scraper-block.
      * Mirrors the canonical scraper_* keys consumed by RobotsTxtManager and
      * SettingsController::regenerateRobotsTxt(). Expected artifact for each
      * enabled bot:
@@ -2058,9 +2029,9 @@ class HealthCheckService
                 || trim((string) ($this->settings['meta_pixel_ids'] ?? '')) !== '';
 
         $fixActions = [[
-            'label' => 'Edit Meta Pixel settings (Social tab)',
-            'url'   => $this->settingsUrl('tab-social-btn', 'meta_pixel_id'),
-            'tab'   => 'tab-social-btn',
+            'label' => 'Edit Meta Pixel settings (Analytics tab)',
+            'url'   => $this->settingsUrl('tab-analytics-btn', 'meta_pixel_id'),
+            'tab'   => 'tab-analytics-btn',
             'field' => 'meta_pixel_id',
         ]];
 
@@ -2069,7 +2040,7 @@ class HealthCheckService
                 'info_position_meta_pixel_noscript_body', 'info', 'Meta Pixel noscript position',
                 true, false,
                 'Meta Pixel is not configured — the <noscript><img> fallback is not being injected.',
-                $this->settingsUrl('tab-social-btn', 'meta_pixel_id'), $fixActions
+                $this->settingsUrl('tab-analytics-btn', 'meta_pixel_id'), $fixActions
             );
         }
 
@@ -2129,7 +2100,7 @@ class HealthCheckService
                 'info_position_meta_pixel_noscript_body', 'warning', 'Meta Pixel noscript position',
                 false, false,
                 'Meta Pixel <noscript><img> fallback was found in <head> instead of <body>. Facebook recommends placing the noscript fallback in <body> — clear caches and reinstall the package to pick up the v0.32.16+ position fix (#379).',
-                $this->settingsUrl('tab-social-btn', 'meta_pixel_id'), $fixActions
+                $this->settingsUrl('tab-analytics-btn', 'meta_pixel_id'), $fixActions
             );
         }
         if ($inBody && $inHead) {
@@ -2137,7 +2108,7 @@ class HealthCheckService
                 'info_position_meta_pixel_noscript_body', 'warning', 'Meta Pixel noscript position',
                 false, false,
                 'Meta Pixel <noscript><img> fallback was found in BOTH <head> and <body>. A cached page or a second plugin may be emitting a duplicate fallback. Clear caches; if it persists, check the Conflicts panel.',
-                $this->settingsUrl('tab-social-btn', 'meta_pixel_id'), $fixActions
+                $this->settingsUrl('tab-analytics-btn', 'meta_pixel_id'), $fixActions
             );
         }
 
@@ -2145,7 +2116,7 @@ class HealthCheckService
             'info_position_meta_pixel_noscript_body', 'warning', 'Meta Pixel noscript position',
             false, false,
             'Meta Pixel is enabled but the <noscript><img> fallback was NOT found in the live homepage HTML — caching, a template override, or another extension may be stripping it.',
-            $this->settingsUrl('tab-social-btn', 'meta_pixel_id'), $fixActions
+            $this->settingsUrl('tab-analytics-btn', 'meta_pixel_id'), $fixActions
         );
     }
 
@@ -2516,81 +2487,38 @@ class HealthCheckService
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Task #428 — Pro / Integration architecture checks
+    // Task #428 — Legacy entitlement / Integration architecture checks
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Informational: how many manifest fields are currently locked because
-     * the user does not have the relevant Pro SKU installed.
+    * Informational: legacy tier-based feature locking has been retired.
      */
     private function infoProFeaturesLocked(): array
     {
-        $locked = 0;
-        try {
-            if (class_exists('AiBoost\\Lib\\Manifest\\Registry')) {
-                foreach (\AiBoost\Lib\Manifest\Registry::all() as $f) {
-                    if (!empty($f['locked']) && ($f['lock_reason'] ?? '') === 'pro') {
-                        $locked++;
-                    }
-                }
-            }
-        } catch (\Throwable) { /* silent */ }
-
-        $pass    = $locked === 0;
-        $message = $pass
-            ? 'All Pro features are currently unlocked on this site.'
-            : sprintf('%d Pro feature(s) are currently locked. Install AI Boost Pro to enable them.', $locked);
+        $message = 'Legacy tier-based feature locking is disabled; feature settings remain saveable in the one-product admin.';
 
         return $this->make(
-            'info_pro_features_locked', 'info', 'Pro features locked',
-            $pass, false, $message,
+            'info_pro_features_locked', 'info', 'Legacy feature locks',
+            true, false, $message,
             'https://aiboostnow.com/pricing'
         );
     }
 
     /**
-     * Info: Pro gating registry is wired up.
+    * Info: legacy gating registry is present as a compatibility shim.
      *
-     * Verifies that ProFeatureRegistry exists, returns entries, and that
-     * every entry has the required shape (key/tab/scope/label/lock_reason).
-     * Smoke-test for regressions when someone removes or renames the registry.
+    * Smoke-test for regressions when someone removes or renames the registry
+    * while old migrations/tests may still reference it.
      */
     private function infoProGatingActive(): array
     {
-        $count   = 0;
-        $invalid = [];
-        try {
-            if (class_exists('AiBoost\\Lib\\ProFeatureRegistry')) {
-                foreach (\AiBoost\Lib\ProFeatureRegistry::all() as $entry) {
-                    $count++;
-                    foreach (['key', 'tab', 'scope', 'label', 'lock_reason'] as $req) {
-                        if (!isset($entry[$req]) || $entry[$req] === '') {
-                            $invalid[] = (string) ($entry['key'] ?? '?');
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable) { /* silent */ }
-
-        $pass = $count > 0 && empty($invalid);
-        if ($count === 0) {
-            $msg = 'Pro feature registry is empty — Pro UI gating is NOT active. Restore lib/ProFeatureRegistry.php.';
-        } elseif (!empty($invalid)) {
-            $msg = sprintf(
-                'Pro feature registry has %d malformed entries: %s',
-                count($invalid),
-                implode(', ', array_slice($invalid, 0, 5))
-            );
-        } else {
-            $msg = sprintf(
-                'Pro feature registry active — %d gated surfaces (fields + sections) tracked.',
-                $count
-            );
-        }
+        $pass = class_exists('AiBoost\\Lib\\ProFeatureRegistry');
+        $msg = $pass
+            ? 'Legacy feature registry compatibility shim is available; tier-based UI gating is retired.'
+            : 'Legacy feature registry compatibility shim is missing.';
 
         return $this->make(
-            'info_pro_gating_active', 'info', 'Pro feature gating registry',
+            'info_pro_gating_active', 'info', 'Legacy feature registry',
             $pass, false, $msg,
             ''
         );
@@ -2643,7 +2571,7 @@ class HealthCheckService
      * Task #454 — Info: Article OG custom fields visibility matches license.
      *
      * Article custom fields (aiboost_og_title/description/image/type/video,
-     * aiboost_twitter_card) are a Pro feature. The package installer creates
+    * aiboost_twitter_card) are maintained by the package installer, which creates
      * them on Pro installs and removes them on Free installs. This check
      * verifies the fields' presence in `#__fields` matches the current
      * license tier — if they drift (e.g. Free site shows them), Fix It
@@ -2692,24 +2620,24 @@ class HealthCheckService
         if ($isPro) {
             $pass = $present === count($fieldNames);
             $msg  = $pass
-                ? sprintf('All %d Pro article OG custom fields are installed.', count($fieldNames))
+                ? sprintf('All %d article OG custom fields are installed.', count($fieldNames))
                 : sprintf(
-                    'Pro license active but only %d of %d article OG custom fields are installed. Reinstall the AI Boost package to reconcile.',
+                    'Only %d of %d article OG custom fields are installed. Reinstall the AI Boost package to reconcile.',
                     $present,
                     count($fieldNames)
                 );
         } else {
             $pass = $present === 0;
             $msg  = $pass
-                ? 'Free tier: article OG custom fields are correctly hidden (Pro feature).'
+                ? 'Article OG custom fields are not installed.'
                 : sprintf(
-                    'Free tier but %d Pro article OG custom field(s) are still present in the article editor. Reinstall the AI Boost package to clean them up.',
+                    '%d article OG custom field(s) are present in the article editor.',
                     $present
                 );
         }
 
         return $this->make(
-            'info_article_custom_fields_pro', 'info', 'Article OG custom fields (Pro)',
+            'info_article_custom_fields_pro', 'info', 'Article OG custom fields',
             $pass, false, $msg,
             $pass ? '' : 'index.php?option=com_installer&view=install'
         );
@@ -2730,12 +2658,12 @@ class HealthCheckService
 
         $pass = empty($broken);
         $msg  = $pass
-            ? 'All installed AI Boost Pro plugins are enabled.'
-            : 'Installed but disabled Pro plugins: ' . implode(', ', $broken)
+                        ? 'All installed AI Boost legacy add-on plugins are enabled.'
+                        : 'Installed but disabled legacy add-on plugins: ' . implode(', ', $broken)
               . '. Enable them in Joomla Extensions → Plugins.';
 
         return $this->make(
-            'critical_pro_plugin_disabled', 'critical', 'Pro plugin disabled in Joomla',
+                        'critical_pro_plugin_disabled', 'critical', 'Legacy add-on plugin disabled in Joomla',
             $pass, false, $msg,
             'index.php?option=com_plugins&filter[folder]=system&filter[search]=aiboost'
         );
@@ -2823,9 +2751,9 @@ class HealthCheckService
     }
 
     /**
-     * Info / warning when the dev-only License Simulator (Task #432) is
-     * actively overriding any SKU state. Defensive — surfaces to users if
-     * the simulator is accidentally left on in a production environment.
+    * Info / warning when the legacy dev-only license override map is active.
+    * Defensive — surfaces to users if an override is accidentally left on in
+    * a production environment.
      */
     private function infoLicenseSimulationActive(): array
     {
@@ -2847,25 +2775,25 @@ class HealthCheckService
             }
         } catch (\Throwable) { /* silent */ }
 
-        // Pass when the simulator is off, OR when it's on and JDEBUG is on
+                // Pass when the override is off, OR when it's on and JDEBUG is on
         // (developer is expected to know what they're doing in debug mode).
         $pass = !$active || $debug;
         $msg  = $pass
             ? ($active
-                ? 'License Simulator is active (JDEBUG on) — overrides: ' . implode(', ', $skus)
-                : 'License Simulator is off.')
-            : 'License Simulator is overriding real license state OUTSIDE Joomla debug mode. '
+                                ? 'License test override is active (JDEBUG on) — overrides: ' . implode(', ', $skus)
+                                : 'License test override is off.')
+                        : 'License test override is replacing real license state OUTSIDE Joomla debug mode. '
               . 'Active overrides: ' . implode(', ', $skus) . '. '
-              . 'Open the Dashboard simulator card and reset, or enable Joomla debug mode.';
+                            . 'Clear the stored override map or enable Joomla debug mode.';
 
         return $this->make(
             'info_license_simulation_active',
             $pass ? 'info' : 'warning',
-            'License Simulator',
+            'License test override',
             $pass,
             $active,
             $msg,
-            'index.php?option=com_aiboost&view=dashboard#ab-license-simulator'
+            'index.php?option=com_aiboost&view=health'
         );
     }
 
@@ -2874,8 +2802,8 @@ class HealthCheckService
      * license is registered to. In real licensing this catches accidental
      * use of a single-site license on a second site (multi-site warning).
      *
-     * Today the only producer of a "license-registered domain" is the
-     * License Simulator (Task #432) via PluginRegistry::simulatedDomainOverride().
+    * Today the only producer of a "license-registered domain" is the
+    * legacy test override via PluginRegistry::simulatedDomainOverride().
      * Once Lemon Squeezy enforcement lands (Task #108), the same check
      * will compare against the real registered domain too.
      */
@@ -2897,7 +2825,7 @@ class HealthCheckService
                 true,
                 false,
                 'No license-registered domain override is set; site domain check is OK.',
-                'index.php?option=com_aiboost&view=dashboard#ab-license-simulator'
+                'index.php?option=com_aiboost&view=health'
             );
         }
 
@@ -2919,7 +2847,7 @@ class HealthCheckService
         $msg     = $matches
             ? 'License-registered domain matches the current site (' . $siteHost . ').'
             : 'License is registered to "' . $simHost . '" but this site is "' . ($siteHost ?: 'unknown') . '". '
-              . 'Update the license site, move the license, or clear the simulator override.';
+              . 'Update the license site, move the license, or clear the test override.';
 
         return $this->make(
             'warning_license_domain_mismatch',
@@ -2928,16 +2856,13 @@ class HealthCheckService
             $pass,
             !$pass,
             $msg,
-            'index.php?option=com_aiboost&view=dashboard#ab-license-simulator'
+            'index.php?option=com_aiboost&view=health'
         );
     }
 
     /**
-     * Warn when the Pro package is physically installed but Pro has never been
-     * activated — in this state all Pro features stay off (the install behaves
-     * exactly like Free) and the admin needs a nudge to enter their key once on
-     * the Licenses tab. Task #565 — perpetual activation: once `pro_activated`
-     * is set this passes forever, even after the licence later expires.
+    * Warn when the legacy Pro package is physically installed but no license
+    * has been activated for updates/support tracking.
      */
     private function warningProInstallNoLicense(): array
     {
@@ -2954,13 +2879,12 @@ class HealthCheckService
         } catch (\Throwable) { /* silent */ }
 
         $pass = !$proInstalled || $activated;
-        $msg  = $pass
+        $msg = $pass
             ? ($proInstalled
-                ? 'AI Boost Pro is installed and activated — Pro features are permanently unlocked.'
-                : 'AI Boost Pro is not installed — Free tier only.')
-            : 'AI Boost Pro is installed but has never been activated. '
-              . 'All Pro features are off and the frontend behaves like Free until you enter your licence key once on the Licenses tab. '
-              . 'After that, Pro stays unlocked permanently.';
+                ? 'AI Boost legacy add-on package is installed and license activation is recorded.'
+                : 'AI Boost legacy add-on package is not installed.')
+                        : 'AI Boost legacy Pro package is installed but no activation is recorded. '
+                            . 'Enter your licence key on the Licenses tab for updates/support tracking.';
 
         return [
             'id'                  => 'warning_pro_install_no_license',

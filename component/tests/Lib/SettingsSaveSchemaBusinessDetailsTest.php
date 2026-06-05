@@ -29,7 +29,7 @@ final class SettingsSaveSchemaBusinessDetailsTest extends TestCase
     }
 
     #[DataProvider('businessDetails')]
-    public function testActiveBusinessDetailsAreManifestBackedAndLocked(string $key, string $type): void
+    public function testActiveBusinessDetailsAreManifestBackedAndUnlocked(string $key, string $type): void
     {
         $field = SettingsSaveDefinition::field($key);
         $expected = [
@@ -46,7 +46,7 @@ final class SettingsSaveSchemaBusinessDetailsTest extends TestCase
         ksort($actual);
 
         $this->assertSame($expected, $actual);
-        $this->assertContains($key, ProFeatureRegistry::lockedSettingsKeys());
+        $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
     }
 
     /** @return array<string,array{key:string,type:string}> */
@@ -58,6 +58,14 @@ final class SettingsSaveSchemaBusinessDetailsTest extends TestCase
             'check-out time' => ['key' => 'specific_checkout_time', 'type' => 'text'],
             'pets allowed' => ['key' => 'specific_pets_allowed', 'type' => 'select'],
             'area served' => ['key' => 'specific_area_served', 'type' => 'text'],
+            'payment accepted' => ['key' => 'specific_payment_accepted', 'type' => 'text'],
+            'amenity feature' => ['key' => 'specific_amenity_feature', 'type' => 'text'],
+            'job title' => ['key' => 'specific_job_title', 'type' => 'text'],
+            'affiliation' => ['key' => 'specific_affiliation', 'type' => 'text'],
+            'knows about' => ['key' => 'specific_knows_about', 'type' => 'text'],
+            'founding date' => ['key' => 'specific_founding_date', 'type' => 'text'],
+            'masthead url' => ['key' => 'specific_masthead_url', 'type' => 'text'],
+            'ethics policy url' => ['key' => 'specific_ethics_policy_url', 'type' => 'text'],
         ];
     }
 }

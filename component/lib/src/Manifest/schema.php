@@ -37,24 +37,24 @@ return [
         'default'     => 'Organization',
         'tier'        => 'free',
         'sku'         => 'schema',
-        // Free/Pro partitioning of this dropdown is enforced by
-        // ProFeatureRegistry::proOptions()['schema_type'] +
-        // stripProOptions() (Task #459). Keep the [Free]/[Pro] suffixes
-        // here in lockstep with that map; the SPA dropdown rebuilds
-        // these labels from SCHEMA_TYPE_OPTIONS in SchemaTab.vue.
         'options'     => [
-            'Organization'              => 'Organization (generic) [Free]',
-            'LocalBusiness'             => 'LocalBusiness [Free]',
-            'FoodEstablishment'         => 'Restaurant / Cafe [Free]',
-            'EducationalOrganization'   => 'School / University [Free]',
-            'LodgingBusiness'           => 'Hotel / Accommodation [Pro]',
-            'MedicalClinic'             => 'Medical Clinic [Pro]',
-            'LegalService'              => 'Lawyer / Law Firm [Pro]',
-            'SportsActivityLocation'    => 'Gym / Sports Club [Pro]',
-            'Dentist'                   => 'Dentist [Pro]',
-            'RealEstateAgent'           => 'Real Estate Agency [Pro]',
-            'Person'                    => 'Person / Portfolio [Pro]',
-            'NewsMediaOrganization'     => 'News / Media [Pro]',
+            'Organization'              => 'Organization (generic)',
+            'LocalBusiness'             => 'LocalBusiness',
+            'FoodEstablishment'         => 'Restaurant / Cafe',
+            'Restaurant'                => 'Restaurant (specific)',
+            'EducationalOrganization'   => 'School / University',
+            'LodgingBusiness'           => 'Hotel / Accommodation',
+            'MedicalClinic'             => 'Medical Clinic',
+            'LegalService'              => 'Lawyer / Law Firm',
+            'SportsActivityLocation'    => 'Gym / Sports Club',
+            'Dentist'                   => 'Dentist',
+            'RealEstateAgent'           => 'Real Estate Agency',
+            'AutomotiveBusiness'        => 'Automotive Business',
+            'Store'                     => 'Store / Shop',
+            'TouristAttraction'         => 'Tourist Attraction',
+            'ProfessionalService'       => 'Professional Service',
+            'Person'                    => 'Person / Portfolio',
+            'NewsMediaOrganization'     => 'News / Media',
         ],
     ],
     [
@@ -140,6 +140,86 @@ return [
         'tab'         => 'schema',
         'section'     => 'business_details',
         'label'       => 'Area Served',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_payment_accepted',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Payment Accepted',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_amenity_feature',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Amenity Features',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_job_title',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Job Title',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_affiliation',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Affiliation',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_knows_about',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Topics / Expertise',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_founding_date',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Founding Date',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_masthead_url',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Masthead URL',
+        'type'        => 'text',
+        'default'     => '',
+        'tier'        => 'pro',
+        'sku'         => 'schema',
+    ],
+    [
+        'key'         => 'specific_ethics_policy_url',
+        'tab'         => 'schema',
+        'section'     => 'business_details',
+        'label'       => 'Ethics Policy URL',
         'type'        => 'text',
         'default'     => '',
         'tier'        => 'pro',
@@ -272,7 +352,7 @@ return [
     // gating existed (#459). Medical/Legal/etc. are now part of the
     // `schema_type` dropdown's Pro subset and need no separate flag.
 
-    // ── Author Entity (Pro) ────────────────────────────────────────
+    // ── Author Entity ──────────────────────────────────────────────
     [
         'key'         => 'schema_author_entity_enabled',
         'tab'         => 'schema',
@@ -285,7 +365,7 @@ return [
         'description' => 'Reads Joomla user custom fields (aiboost_job_title, _bio, _website, _linkedin, _wikipedia) to build E-E-A-T-grade Person schema.',
     ],
 
-    // ── Opening hours advanced (Pro) ───────────────────────────────
+    // ── Opening hours advanced ─────────────────────────────────────
     [
         'key'         => 'schema_hours_mode',
         'tab'         => 'schema',
@@ -297,7 +377,7 @@ return [
         'sku'         => 'schema',
         'options'     => [
             'simple'   => 'Simple (one text line)',
-            'advanced' => 'Advanced — day-by-day schedule [Pro]',
+            'advanced' => 'Advanced — day-by-day schedule',
             'none'     => 'Not applicable / Hide',
         ],
     ],
@@ -415,7 +495,7 @@ return [
             'both'    => 'Both FAQPage and QAPage',
         ],
     ],
-    // ── HowTo (Pro) ────────────────────────────────────────────────
+    // ── HowTo ──────────────────────────────────────────────────────
     [
         'key'         => 'schema_howto_enabled',
         'tab'         => 'schema',
@@ -436,7 +516,7 @@ return [
         'tier'        => 'pro',
         'sku'         => 'schema',
     ],
-    // ── Event (Pro) ────────────────────────────────────────────────
+    // ── Event ──────────────────────────────────────────────────────
     [
         'key'         => 'events_enabled',
         'tab'         => 'schema',
@@ -495,20 +575,20 @@ return [
     // - Health check auto-registered via HealthCheckService::registerFromManifest()
     // - en-GB .ini placeholder keys auto-added
     // The opt-in opening/closing markers below cause build-package-zip.py
-    // to strip this whole entry out of the FREE package ZIP (Task #462). The
-    // Pro plugin re-contributes the same field via onAiBoostRegisterFields at
-    // runtime, so the SPA still shows the toggle when Pro is installed.
+    // to strip this whole entry out of the base package ZIP (Task #462). The
+    // legacy add-on plugin re-contributes the same field via
+    // onAiBoostRegisterFields at runtime.
     // @pro:start
     [
         'key'           => 'schema_breadcrumb_pro',
         'tab'           => 'schema',
         'section'       => 'breadcrumb',
-        'label'         => 'Enhanced BreadcrumbList (Pro)',
+        'label'         => 'Enhanced BreadcrumbList',
         'type'          => 'toggle',
         'default'       => '0',
         'tier'          => 'pro',
         'sku'           => 'schema',
-        'description'   => 'Emit a richer BreadcrumbList with per-item images and structured position metadata. Free tier emits the basic BreadcrumbList.',
+        'description'   => 'Emit a richer BreadcrumbList with per-item images and structured position metadata.',
         'feature_class' => 'BreadcrumbPro',
         'health'        => [
             'id'                => 'info_schema_breadcrumb_pro_active',

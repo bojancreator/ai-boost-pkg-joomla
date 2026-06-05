@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="package" version="3.9" method="upgrade">
-    <name>AI Boost for Joomla — Pro Upgrade</name>
+      <name>AI Boost for Joomla — Legacy Add-on Package</name>
     <packagename>aiboost_pro</packagename>
     <author>AI Boost Team</author>
     <creationDate>May 2026</creationDate>
@@ -9,7 +9,7 @@
     <authorEmail>info@aiboostnow.com</authorEmail>
     <authorUrl>https://aiboostnow.com</authorUrl>
     <version>0.45.0</version>
-    <description>AI Boost Pro Upgrade Package — installs the closed-source Pro plugins for Schema, AEO, OpenGraph, Hreflang and Code Manager. Requires AI Boost (free) package already installed. Each Pro plugin requires a license key (entered in Components → AI Boost → Licenses) before any feature unlocks.</description>
+      <description>AI Boost legacy add-on package — installs the closed-source add-on plugins for Schema, AEO, OpenGraph, Hreflang and Code Manager. Requires the AI Boost package to be installed first. License keys are managed in Components → AI Boost → Licenses for updates and support.</description>
     <php_minimum>8.1.0</php_minimum>
     <joomla_minimum>5.0.0</joomla_minimum>
     <url>https://aiboostnow.com</url>

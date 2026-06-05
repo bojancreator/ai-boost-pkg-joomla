@@ -47,6 +47,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -59,6 +60,13 @@ VUE_TABS    = COMPONENT / "com_aiboost" / "vue-admin" / "src" / "tabs"
 VUE_GEN     = VUE_TABS / "generated"
 HEALTH_DIR  = LIB_DIR / "Manifest" / "Health"
 DUMP_PHP    = Path(__file__).with_name("dump-manifest.php")
+
+
+def php_binary() -> str:
+    php = shutil.which("php")
+    if not php:
+        sys.exit("ERROR: php executable not found on PATH")
+    return php
 
 # Map manifest sku → physical Pro plugin folder name
 SKU_TO_PRO_DIR = {
@@ -85,8 +93,11 @@ TAB_TO_FREE_DIR = {
 # Tabs that host hand-written controls for each manifest tab. Used by the
 # coverage check for complex types (json / media) the codegen can't emit.
 TAB_TO_VUE_FILES = {
+    "general":  ["GeneralTab.vue"],
+    "org":      ["OrgTab.vue"],
     "schema":   ["SchemaTab.vue"],
     "aeo":      ["AeoTab.vue"],
+    "analytics": ["AnalyticsTab.vue"],
     "og":       ["SocialTab.vue"],
     "social":   ["SocialTab.vue", "AnalyticsTab.vue"],
     "hreflang": ["AeoTab.vue", "SitemapTab.vue"],
@@ -110,9 +121,18 @@ COMPLEX_COVERAGE_ALLOWLIST = {
 def load_manifest() -> list[dict]:
     if not DUMP_PHP.exists():
         sys.exit(f"ERROR: {DUMP_PHP} not found")
-    out = subprocess.run(
-        ["php", str(DUMP_PHP)], capture_output=True, text=True, check=False
-    )
+    cmd = [php_binary(), str(DUMP_PHP)]
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    except PermissionError:
+        if sys.platform != "win32":
+            raise
+        out = subprocess.run(
+            ["cmd.exe", "/d", "/s", "/c", subprocess.list2cmdline(cmd)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
     if out.returncode != 0:
         sys.exit(f"ERROR: dump-manifest.php failed:\n{out.stderr}")
     try:
@@ -267,7 +287,7 @@ def _vue_html_attr_escape(v: str) -> str:
 
 
 def _vue_body_for(field: dict) -> str:
-    """Render the field's body without the outer card / ProGate wrapper."""
+    """Render the field's body without the outer card wrapper."""
     key   = field["key"]
     label = _vue_html_attr_escape(field.get("label") or key)
     desc  = _vue_html_attr_escape(field.get("description") or "")
@@ -352,15 +372,7 @@ def gen_vue_partial(field: dict, write: bool) -> tuple[str, str]:
     key = field["key"]
     target = VUE_GEN / tab / f"{key}.vue"
 
-    tier = field.get("tier") or "free"
     body = _vue_body_for(field)
-    if tier == "pro":
-        gate_key = key  # ProGate field-level gating uses the settings key
-        body = (
-            f'    <ProGate gate-key="{gate_key}" mode="field">\n'
-            + "".join("  " + ln if ln.strip() else ln for ln in body.splitlines(keepends=True))
-            + '    </ProGate>\n'
-        )
 
     component_name = "Generated" + "".join(p.capitalize() for p in key.split("_"))
 
@@ -418,7 +430,6 @@ def gen_health_stub(field: dict, write: bool) -> tuple[str, str]:
     label     = field.get("label", "")
     hid       = h["id"]
     category  = h.get("category", "General")
-    message   = (h.get("message") or "").replace("'", "\\'")
     expected  = (h.get("expected_artifact") or "").replace("'", "\\'")
 
     stub = f"""<?php
@@ -483,9 +494,9 @@ final class {cls}
 # ── Coverage / verification ────────────────────────────────────────────
 
 def verify_health_coverage(fields: list[dict]) -> list[str]:
-    """Advisory: list Pro fields with no `health` block."""
+    """Advisory: list legacy tiered fields with no `health` block."""
     return [
-        f"  Pro field '{f.get('key')}' (sku={f.get('sku')}) has no `health` block"
+        f"  Legacy tier field '{f.get('key')}' (sku={f.get('sku')}) has no `health` block"
         for f in fields
         if (f.get("tier") or "free") == "pro" and not f.get("health")
     ]

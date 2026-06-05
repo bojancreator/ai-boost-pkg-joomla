@@ -67,34 +67,33 @@ return [
         'tier' => 'free', 'sku' => 'og',
     ],
     [
-        'key' => 'enable_meta_pixel', 'tab' => 'social', 'section' => 'pixel',
-        // Task #473 — Meta Pixel is a Pro feature now (re-tier).
+        'key' => 'enable_meta_pixel', 'tab' => 'analytics', 'section' => 'pixel',
         'label' => 'Enable Meta (Facebook) Pixel', 'type' => 'toggle', 'default' => '0',
         'tier' => 'pro', 'sku' => 'og',
     ],
     [
-        'key' => 'meta_pixel_id', 'tab' => 'social', 'section' => 'pixel',
+        'key' => 'meta_pixel_id', 'tab' => 'analytics', 'section' => 'pixel',
         'label' => 'Primary Meta Pixel ID', 'type' => 'text', 'default' => '',
         'tier' => 'pro', 'sku' => 'og',
     ],
     [
-        'key' => 'meta_pixel_ids', 'tab' => 'social', 'section' => 'pixel',
+        'key' => 'meta_pixel_ids', 'tab' => 'analytics', 'section' => 'pixel',
         'label' => 'Meta Pixel IDs', 'type' => 'json', 'default' => '[""]',
         'tier' => 'pro', 'sku' => 'og',
     ],
     [
-        'key' => 'pixel_consent_mode', 'tab' => 'social', 'section' => 'pixel',
+        'key' => 'pixel_consent_mode', 'tab' => 'analytics', 'section' => 'pixel',
         'label' => 'GDPR Consent Mode', 'type' => 'select', 'default' => 'none',
         'tier' => 'pro', 'sku' => 'og',
         'options' => ['none' => 'None'],
     ],
     [
-        'key' => 'meta_pixel_standard_events', 'tab' => 'social', 'section' => 'pixel_events',
+        'key' => 'meta_pixel_standard_events', 'tab' => 'analytics', 'section' => 'pixel_events',
         'label' => 'Meta Pixel Standard Events', 'type' => 'json', 'default' => '{}',
         'tier' => 'pro', 'sku' => 'og',
     ],
     [
-        'key' => 'meta_custom_events', 'tab' => 'social', 'section' => 'pixel_custom',
+        'key' => 'meta_custom_events', 'tab' => 'analytics', 'section' => 'pixel_custom',
         'label' => 'Meta Pixel Custom Events', 'type' => 'json', 'default' => '[]',
         'tier' => 'pro', 'sku' => 'og',
     ],

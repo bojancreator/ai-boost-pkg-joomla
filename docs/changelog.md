@@ -1,9 +1,9 @@
 # AI Boost for Joomla — Changelog
 
-All notable changes to **AI Boost for Joomla** are documented here.  
+All notable changes to **AI Boost for Joomla** are documented here.
 Latest version is always at the top. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-**Download:** [aiboostnow.com](https://aiboostnow.com)  
+**Download:** [aiboostnow.com](https://aiboostnow.com)
 **Requires:** Joomla 5.0–6.x · PHP 8.1+
 
 ---
@@ -11,6 +11,66 @@ Latest version is always at the top. Format follows [Keep a Changelog](https://k
 ## [Unreleased]
 
 > Changes staged for the next release will appear here.
+
+---
+
+## v0.73.14 — 2026-06-05
+
+### Changed
+- **Schema Type options now feel meaningfully different** — shared fields were narrowed so Price Range, Service Area, Payment Accepted, Amenities, and hours labels only appear where they fit the selected schema type.
+- **Type-specific labels for common business fields** — operations and opening-hours sections now use context-aware labels such as Dining Hours, Clinic Hours, Workshop Hours, Guest Payment & Amenities, and Visitor Access & Amenities.
+
+### Verified
+- Vue admin build passed after Schema Type UI differentiation.
+
+---
+
+## v0.73.13 — 2026-06-05
+
+### Added
+- **Richer Schema Type conditional options** — selecting business, service, Person, or News/Media schema types now reveals more relevant fields instead of only generic hints.
+- **Additional Schema.org outputs** — the schema builder can now emit lodging cuisine and pets policy, payment methods, amenity features, expanded service/area coverage, Person job title/affiliation/expertise, and NewsMediaOrganization masthead, ethics policy, and founding date.
+
+### Verified
+- Focused PHPUnit passed for schema builder and settings-save coverage (`32 tests`). Vue admin build passed and manifest codegen guard confirmed all generated artifacts are present.
+
+---
+
+## v0.73.12 — 2026-06-05
+
+### Changed
+- **Help page rebuilt as a troubleshooting hub** — Help now guides admins by situation, common problem, launch validation area, and support request preparation instead of presenting another feature list.
+- **Help links aligned with the v0.5 admin IA** — internal actions now point to the current SPA routes for Health, Analyzer, Autopilot, Import, Schema.org, Sitemap, Crawlers & Robots, Social Meta, Analytics & Tracking, AI Visibility, and URL Checker.
+
+### Added
+- **Copyable support request template** — admins can copy a structured support checklist with site URL, tested frontend URL, version details, Health result, Analyzer result, active cache/SEO/page-builder plugins, and recent changes.
+
+### Verified
+- Built `pkg_aiboost-0.73.12.zip`, installed it on Joomla 5 Pro staging, passed smoke matrix `20/20`, settings save, and Playwright Help page QA with no console issues.
+
+---
+
+## v0.73.11 — 2026-06-05
+
+### Added
+- **One-product admin experience for v0.5** — the admin UI now presents AI Boost for Joomla as a single commercial package instead of exposing visible Free/Pro locks, badges, or per-feature upgrade prompts.
+- **Autopilot setup checklist** — new guided setup route for Site Identity, Schema.org core, Sitemap, and Social Meta readiness.
+- **Expanded Schema.org business types** — Schema Type now supports Restaurant, AutomotiveBusiness, Store, TouristAttraction, ProfessionalService, Person, NewsMediaOrganization, and legacy aliases consistently across UI and backend JSON-LD output.
+
+### Changed
+- **Admin navigation reorganized for v0.5** — settings are grouped around Setup, SEO, AI Visibility, Tools, and Advanced areas, with backward-compatible route aliases for older links.
+- **Schema.org output normalized** — the shipped schema plugin now emits selected business/person Schema.org types directly from the core builder and includes relevant business details such as cuisine, availableService, areaServed, priceRange, rating, and opening hours.
+- **Integrations page simplified** — first-party integration cards now focus on supported bridge targets; unsupported legacy integration buttons were removed from the active admin flow.
+- **Legacy split-package wording cleaned up** — schema code comments now describe the current one-product model while preserving compatibility shims for historical installs.
+
+### Fixed
+- **Installer cleanup of old split-package rows** — upgrades now remove stale Joomla Extension Manager entries from the previous split Free/Pro package layout, including legacy `*_PRO` plugins, `pkg_aiboost_pro`, `aiboost_int_falang`, and `AI Boost Health` rows.
+- **Schema Type backend mismatch** — backend schema generation now accepts both Schema.org values saved by the current UI and older lowercase legacy keys.
+- **Health/module leftovers after upgrade** — installer cleanup verifies whether Joomla uninstall actually removed old rows and deletes orphan extension/schema records when needed.
+
+### Verified
+- Focused Joomla 5 Pro QA passed: package install, smoke matrix `20/20`, settings save, Schema tab Playwright QA, JSON-LD output for Restaurant / AutomotiveBusiness / Person, stale extension row check, and clean uninstall / upgrade preservation verifier.
+- Build pipeline passed: manifest codegen guard, Vue admin bundle build, package assembly, strict Pro-leakage verifier, PHP syntax checks, and focused PHPUnit schema tests (`44 tests`, `348 assertions`).
 
 ---
 
@@ -141,29 +201,22 @@ Early development versions (April 2026). Core plugin scaffold including basic Sc
 
 | Requirement | Minimum |
 |-------------|---------|
-| Joomla | 4.0 |
+| Joomla | 5.0 |
 | PHP | 8.1 |
 | MySQL | 5.7 / MariaDB 10.4 |
 | Joomla Maximum | 6.x (tested on 6.1) |
 
 ---
 
-## License Tiers
+## Licensing
 
-| Feature | Free (Starter) | Developer | Agency |
-|---------|:--------------:|:---------:|:------:|
-| Schema.org (5 general types) | ✓ | ✓ | ✓ |
-| XML Sitemap + hreflang | ✓ | ✓ | ✓ |
-| OpenGraph + Twitter Cards | ✓ | ✓ | ✓ |
-| robots.txt management | ✓ | ✓ | ✓ |
-| GA4, GTM, GSC, Meta Pixel | ✓ | ✓ | ✓ |
-| 8 specialized Site Types | — | ✓ | ✓ |
-| Advanced Business Hours | — | ✓ | ✓ |
-| Manual FAQ builder | — | ✓ | ✓ |
-| Events schema | — | ✓ | ✓ |
-| IndexNow | — | ✓ | ✓ |
-| llms.txt generation | — | ✓ | ✓ |
-| Sites covered | 1 | 5 | Unlimited |
-| Price | €59 | €119 | €199 |
+AI Boost for Joomla is now one commercial package. Visible per-feature Free/Pro
+locking is retired from the admin experience; historical license and Pro markers
+may remain as compatibility shims during the transition.
+
+| Product | Entitlement |
+|---------|-------------|
+| AI Boost for Joomla | One commercial license unlocks the Joomla package experience |
+| Integration bridges | Sold separately when they depend on paid third-party extensions |
 
 Purchase at [aiboostnow.com](https://aiboostnow.com).

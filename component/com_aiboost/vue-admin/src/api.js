@@ -166,26 +166,7 @@ export function getSettings() {
 }
 
 export function isPro() {
-  // v0.55.2 — primary source of truth is the server-computed
-  // `window.aiBoostBootstrap.isPro` flag (HtmlView::buildBootstrap walks
-  // `license_state[*]` and applies `dev_license_preview`). It's always
-  // populated on first page load, regardless of which route is mounted.
-  //
-  // The legacy `window.aiBoostSettings` fallback is only populated by
-  // routes that declare `meta.legacyUrl` (Dashboard, Settings, Health).
-  // The new page-level <ProGate> wrappers mount on routes like
-  // /redirects, /urlchecker, /licenses, /analyzers, /integrations which
-  // do NOT load aiBoostSettings — so reading license_tier from there
-  // always returned undefined → every page rendered LOCKED even with a
-  // verified Pro license. That was the v0.55.0/v0.55.1 regression.
-  const boot = window.aiBoostBootstrap || {}
-  if (boot.isPro === true) return true
-  if (boot.license && boot.license.isPro === true) return true
-
-  const s    = window.aiBoostSettings || {}
-  const tier = (s.license_tier || '').toLowerCase()
-  if (tier === 'pro' || tier === 'developer' || tier === 'agency') return true
-  return String(s.dev_license_preview) === '1'
+  return true
 }
 
 /**

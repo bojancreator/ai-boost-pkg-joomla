@@ -113,7 +113,7 @@
                   <span class="ab-badge" :class="canonicalBadge(r.canonical_status)">{{ r.canonical_status }}</span>
                   <a
                     v-if="r.canonical_status === 'missing' || r.canonical_status === 'mismatch'"
-                    href="index.php?option=com_aiboost&view=settings&tab=sitemap&field=enable_canonical"
+                    href="index.php?option=com_aiboost&view=settings&tab=technical&field=enable_canonical"
                     class="ab-fix-link d-block mt-1"
                     title="Open Settings → Sitemap → Enable Canonical URLs"
                   >⚙️ Fix It →</a>

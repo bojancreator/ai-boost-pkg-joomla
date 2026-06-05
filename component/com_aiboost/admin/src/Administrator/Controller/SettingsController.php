@@ -104,11 +104,8 @@ class SettingsController extends BaseController
                 }
             }
 
-            // ── Pro gating: server-side enforcement ───────────────────────
-            // Strip any Pro-only keys from the save payload when the install is Free,
-            // even if the SPA failed to gate them. License tier is read from the
-            // EXISTING settings row (before merge) so a Free install cannot promote
-            // itself to Pro inside the same save call.
+            // Legacy compatibility: keep historical license state available to
+            // old integrations without using it to strip manifest-backed saves.
             $isProForSave = $this->isProSetting($existingForMerge);
 
             // License tier and debug-tier overrides are NEVER writable from the
@@ -1492,7 +1489,7 @@ class SettingsController extends BaseController
             $w[] = 'Sitemap contains zero URLs. Check Content to Include toggles, exclusion lists, and that articles are published.';
         }
         if ((int) $stats['url_count'] > 50000) {
-            $w[] = 'More than 50,000 URLs in a single sitemap — Google rejects this. Enable Sitemap Index (Pro) to split into chunks.';
+            $w[] = 'More than 50,000 URLs in a single sitemap — Google rejects this. Enable Sitemap Index to split into chunks.';
         }
         if (strlen($xml) > 50 * 1024 * 1024) {
             $w[] = 'Sitemap exceeds 50 MB — Google rejects this size. Enable Sitemap Index to split.';
@@ -1514,12 +1511,12 @@ class SettingsController extends BaseController
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // LICENSE SIMULATOR (Task #432) — dev-only, gated on JDEBUG
+    // LEGACY LICENSE TEST OVERRIDE API — dev-only, gated on JDEBUG
     // ─────────────────────────────────────────────────────────────────────
 
     /**
-     * Return the current license_simulation map + the resolved capabilities
-     * so the Dashboard simulator card can render its toggle state.
+    * Return the current license_simulation map + the resolved capabilities
+    * for legacy QA tooling.
      * URL: index.php?option=com_aiboost&task=settings.simulatorGet&format=json
      * Method: POST (Session::checkToken() expects the form token in the body).
      */
@@ -1715,7 +1712,7 @@ class SettingsController extends BaseController
             $base['status']                = 'active';
             $base['expires_at']            = gmdate('c', time() + 365 * 86400);
             $base['activations_remaining'] = 4;
-            $base['message']               = 'License is active. Pro features for "' . $sku . '" are now unlocked.';
+            $base['message']               = 'License is active. Updates and support are available for "' . $sku . '".';
         } elseif (str_starts_with($upper, 'AB-EXPIRED')) {
             $base['status']     = 'expired';
             $base['expires_at'] = gmdate('c', time() - 30 * 86400);
@@ -1810,7 +1807,7 @@ class SettingsController extends BaseController
     {
         // Hard gate: only when Joomla debug mode is on.
         if (!(defined('JDEBUG') && JDEBUG === true)) {
-            $this->sendJsonResponse(false, 'License Simulator is only available when Joomla debug mode is on.');
+            $this->sendJsonResponse(false, 'License test overrides are only available when Joomla debug mode is on.');
             return false;
         }
         if (!Session::checkToken()) {

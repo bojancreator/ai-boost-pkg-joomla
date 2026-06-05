@@ -1,8 +1,7 @@
-<template>
+﻿<template>
   <div class="ab-analytics-tab">
 
-    <!-- Site Verification — Task #473: whole card Pro (GA4 only on Free) -->
-    <ProGate gate-key="section:analytics.non_ga4" mode="section">
+    <!-- Site Verification -->
     <div class="ab-card">
       <div class="ab-card-header">✅ Site Verification</div>
       <div class="ab-card-body">
@@ -12,7 +11,7 @@
           <label class="ab-check__label" for="an-gsc">Enable Google Search Console Verification</label>
         </div>
 
-        <div class="mb-3">
+        <div class="mb-3" data-ab-field="meta_pixel_ids">
           <label class="ab-label">GSC Verification Codes</label>
           <div v-for="(code, i) in gscCodes" :key="i" class="d-flex align-items-center gap-2 mb-2">
             <input v-model="gscCodes[i]" type="text" class="ab-input font-monospace"
@@ -22,7 +21,7 @@
               @click="removeGscCode(i)" :disabled="gscCodes.length <= 1" title="Remove">−</button>
           </div>
           <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost mt-1" @click="addGscCode">+ Add Verification Code</button>
-          <div class="ab-help">Paste the <code>content=</code> value only — without &lt;meta&gt; tags. Free plan: first code only.</div>
+          <div class="ab-help">Paste the <code>content=</code> value only — without &lt;meta&gt; tags.</div>
         </div>
 
         <div class="mb-3">
@@ -40,9 +39,8 @@
         </div>
       </div>
     </div>
-    </ProGate>
 
-    <!-- Google Analytics 4 — Free tier -->
+    <!-- Google Analytics 4 -->
     <div class="ab-card">
       <div class="ab-card-header">📊 Google Analytics 4</div>
       <div class="ab-card-body">
@@ -51,17 +49,12 @@
             type="checkbox" class="ab-toggle__input" id="an-ga4">
           <label class="ab-check__label" for="an-ga4">Enable Google Analytics 4</label>
         </div>
-        <!-- Task #473 — Free = "Enable GA4" toggle only. Measurement ID and
-             GDPR Consent Mode are Pro fields (gated individually so the labels
-             still render with a Pro lock instead of vanishing). -->
-        <ProGate gate-key="ga4_measurement_id">
+        <!-- Measurement ID and consent mode remain editable in the one-product admin. -->
           <div class="mb-3">
             <label class="ab-label">GA4 Measurement ID</label>
             <input v-model="s.ga4_measurement_id" data-ab-field="ga4_measurement_id" type="text" class="ab-input font-monospace"
               placeholder="G-XXXXXXXXXX" style="max-width:210px" autocomplete="off">
           </div>
-        </ProGate>
-        <ProGate gate-key="ga4_consent_mode">
           <div class="mb-0">
             <label class="ab-label">GDPR Consent Mode</label>
             <select v-model="s.ga4_consent_mode" class="ab-select" style="max-width:340px">
@@ -70,12 +63,10 @@
             </select>
             <div class="ab-help">Use <em>Via GTM</em> if you manage GA4 through Google Tag Manager to avoid duplicate tracking.</div>
           </div>
-        </ProGate>
       </div>
     </div>
 
-    <!-- Google Tag Manager — Task #473: Pro -->
-    <ProGate gate-key="section:analytics.gtm" mode="section">
+    <!-- Google Tag Manager -->
     <div class="ab-card">
       <div class="ab-card-header">🏷 Google Tag Manager</div>
       <div class="ab-card-body">
@@ -91,25 +82,153 @@
         </div>
       </div>
     </div>
-    </ProGate>
+
+    <!-- Meta Pixel -->
+    <div class="ab-card">
+      <div class="ab-card-header">📣 Meta Pixel</div>
+      <div class="ab-card-body">
+        <div class="ab-check ab-toggle mb-3">
+          <input v-model="s.enable_meta_pixel" data-ab-field="enable_meta_pixel" true-value="1" false-value="0"
+            type="checkbox" class="ab-toggle__input" id="an-pixel">
+          <label class="ab-check__label" for="an-pixel">Enable Meta Pixel</label>
+        </div>
+
+        <div class="mb-3">
+          <label class="ab-label">Meta Pixel IDs</label>
+          <div v-for="(id, i) in pixelIds" :key="i" class="d-flex align-items-center gap-2 mb-2">
+            <input v-model="pixelIds[i]" type="text" class="ab-input font-monospace"
+              :data-ab-field="i === 0 ? 'meta_pixel_id' : null"
+              style="max-width:260px" placeholder="123456789012345">
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost ab-btn--danger-ghost" style="min-width:32px"
+              @click="removePixelId(i)" :disabled="pixelIds.length <= 1" title="Remove">−</button>
+          </div>
+          <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost mt-1" @click="addPixelId">+ Add Pixel ID</button>
+          <div class="ab-help">Add one or more Meta Pixel IDs for this site.</div>
+        </div>
+
+        <div class="mb-0">
+          <label class="ab-label">Consent Mode</label>
+          <select v-model="s.pixel_consent_mode" class="ab-select" style="max-width:340px">
+            <option value="none">None (direct inject)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta Pixel Standard Events -->
+    <div class="ab-card">
+      <div class="ab-card-header">⚡ Meta Pixel Standard Events</div>
+      <div class="ab-card-body">
+        <p class="ab-help mb-3">Select which standard Meta Pixel events to fire on page load.</p>
+        <div style="max-width:640px;overflow-x:auto;">
+          <table class="table table-sm table-bordered mb-0" style="font-size:.88em;color:var(--body-color,#212529);background:var(--body-bg,#fff)">
+            <thead style="background:var(--secondary-bg,#f8f9fa);color:var(--body-color,#212529)">
+              <tr>
+                <th style="width:28%">Event</th>
+                <th>When to fire</th>
+                <th style="width:56px;text-align:center">On</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(desc, ev) in pixelEvents" :key="ev">
+                <td class="fw-semibold" style="white-space:nowrap;vertical-align:middle;padding:4px 8px">{{ ev }}</td>
+                <td class="text-muted" style="vertical-align:middle;padding:4px 8px;font-size:.83em">{{ desc }}</td>
+                <td style="text-align:center;vertical-align:middle;padding:4px 8px">
+                  <label class="ab-toggle d-inline-flex justify-content-center mb-0">
+                    <input type="checkbox"
+                      :checked="pixelEventsMap[ev]"
+                      @change="togglePixelEvent(ev, $event.target.checked)">
+                    <span class="ab-toggle__track"></span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta Pixel Custom Events -->
+    <div class="ab-card">
+      <div class="ab-card-header">🎯 Meta Pixel Custom Events</div>
+      <div class="ab-card-body">
+        <p class="ab-help mb-3">Fire custom pixel events on specific URL patterns.</p>
+        <div v-for="(ev, i) in customEvents" :key="i" class="row g-2 mb-2" style="max-width:700px">
+          <div class="col-4">
+            <input v-model="ev.name" type="text" class="ab-input form-control-sm" placeholder="EventName">
+          </div>
+          <div class="col-5">
+            <input v-model="ev.url" type="text" class="ab-input form-control-sm" placeholder="URL pattern (e.g. /checkout)">
+          </div>
+          <div class="col-3">
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost ab-btn--danger-ghost w-100" @click="removeEvent(i)">Remove</button>
+          </div>
+        </div>
+        <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost mt-1" @click="addEvent">+ Add Custom Event</button>
+        <div class="ab-help mt-1">Name: custom event name. URL pattern: fires when page URL contains this string.</div>
+      </div>
+    </div>
 
   </div>
 </template>
 
 <script>
+const PIXEL_EVENTS = {
+  'Purchase': 'Fire on order confirmation / thank-you page',
+  'Lead': 'Fire on lead form submission page',
+  'ViewContent': 'Fire on article / product detail pages',
+  'Search': 'Fire on search results page',
+  'AddToCart': 'Fire when a product is added to cart',
+  'AddToWishlist': 'Fire when added to wishlist',
+  'InitiateCheckout': 'Fire on checkout start page',
+  'AddPaymentInfo': 'Fire on payment info step',
+  'CompleteRegistration': 'Fire on registration success page',
+  'Contact': 'Fire on contact / enquiry page load',
+  'FindLocation': 'Fire on store finder page',
+  'Schedule': 'Fire on booking / scheduling page',
+  'StartTrial': 'Fire on trial start page',
+  'SubmitApplication': 'Fire on application submit page',
+  'Subscribe': 'Fire on subscription page',
+}
+
+function normalizeGscCodes(settings) {
+  let codes = ['']
+
+  try {
+    const parsed = JSON.parse(settings.gsc_codes || '[""]')
+    codes = Array.isArray(parsed) && parsed.length ? parsed : [settings.gsc_verification_code || '']
+  } catch {}
+
+  return codes.length ? codes : ['']
+}
+
+function normalizePixelIds(settings) {
+  let pixelIds = ['']
+  try {
+    const parsed = JSON.parse(settings.meta_pixel_ids || '[""]')
+    pixelIds = Array.isArray(parsed) && parsed.length ? parsed : [settings.meta_pixel_id || '']
+  } catch {}
+  return pixelIds.length ? pixelIds : ['']
+}
+
 export default {
   name: 'AnalyticsTab',
   props: { s: { type: Object, required: true } },
 
   data() {
-    let gscCodes = ['']
-    try {
-      const parsed = JSON.parse(this.s.gsc_codes || '[""]')
-      gscCodes = Array.isArray(parsed) && parsed.length ? parsed : [this.s.gsc_verification_code || '']
-    } catch {}
-    if (!gscCodes.length) gscCodes = ['']
+    let evMap = {}
+    try { evMap = JSON.parse(this.s.meta_pixel_standard_events || '{}') || {} } catch {}
 
-    return { gscCodes }
+    let customEvents = []
+    try { customEvents = JSON.parse(this.s.meta_custom_events || '[]') || [] } catch {}
+
+    return {
+      gscCodes: normalizeGscCodes(this.s),
+      pixelEvents: PIXEL_EVENTS,
+      pixelEventsMap: evMap,
+      customEvents,
+      pixelIds: normalizePixelIds(this.s),
+    }
   },
 
   watch: {
@@ -120,11 +239,32 @@ export default {
       },
       deep: true,
     },
+    pixelEventsMap: {
+      handler(v) { this.s.meta_pixel_standard_events = JSON.stringify(v) },
+      deep: true,
+    },
+    customEvents: {
+      handler(v) { this.s.meta_custom_events = JSON.stringify(v) },
+      deep: true,
+    },
+    pixelIds: {
+      handler(v) { this.s.meta_pixel_ids = JSON.stringify(v) },
+      deep: true,
+    },
   },
 
   methods: {
     addGscCode()     { this.gscCodes.push('') },
     removeGscCode(i) { if (this.gscCodes.length > 1) this.gscCodes.splice(i, 1) },
+    togglePixelEvent(ev, on) {
+      if (on) this.pixelEventsMap[ev] = true
+      else delete this.pixelEventsMap[ev]
+      this.pixelEventsMap = { ...this.pixelEventsMap }
+    },
+    addEvent()        { this.customEvents.push({ name: '', url: '' }) },
+    removeEvent(i)    { this.customEvents.splice(i, 1) },
+    addPixelId()      { this.pixelIds.push('') },
+    removePixelId(i)  { if (this.pixelIds.length > 1) this.pixelIds.splice(i, 1) },
   },
 }
 </script>

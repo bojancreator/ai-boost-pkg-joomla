@@ -1,7 +1,6 @@
-<template>
+﻿<template>
   <div class="ab-debug-tab">
     <!-- Task #473 — Debug tab is whole-tab Pro. -->
-    <ProGate gate-key="section:debug" mode="section">
     <div class="ab-alert ab-alert--info">
       <strong>About this tab</strong> — Debug options below are designed to stay
       enabled on a live site. They control verbose logging, HTML comment output,
@@ -128,8 +127,6 @@
       "Developer Pro simulation" note in replit.md for the supported QA
       override (direct DB edit of #__aiboost_settings).
     -->
-
-    </ProGate>
   </div>
 </template>
 

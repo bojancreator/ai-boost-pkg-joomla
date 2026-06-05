@@ -56,10 +56,9 @@ class HtmlView extends BaseHtmlView
      * vue-admin/src/composables/useLegacyGlobals.js.
      */
     /**
-     * Returns true when the AI Boost Pro add-on package (or any of its
-     * Pro plugins) is installed and enabled. Independent of license key
-     * status — a fresh Pro install with no key still returns true here
-     * so the Licenses page can be reached to enter that key.
+    * Returns true when the legacy AI Boost add-on package (or any of its
+    * add-on plugins) is installed and enabled. Independent of license key
+    * status so the Licenses page can be reached to enter that key.
      */
     private function detectProInstall(): bool
     {
@@ -150,9 +149,8 @@ class HtmlView extends BaseHtmlView
             // Settings table may not exist on first run — ignore.
         }
 
-        // Pro feature registry — single source of truth for UI gating.
-        // The SPA's <ProGate> wrapper reads this list to decide which fields
-        // and sections to lock on Free installs.
+        // Legacy feature registry payload kept for compatibility during the
+        // one-product transition.
         $proFeatures = [];
         try {
             if (class_exists('AiBoost\\Lib\\ProFeatureRegistry')) {
@@ -206,6 +204,7 @@ class HtmlView extends BaseHtmlView
             ],
             'labels' => [
                 'dashboard'    => Text::_('COM_AIBOOST_NAV_DASHBOARD'),
+                'autopilot'    => Text::_('COM_AIBOOST_NAV_AUTOPILOT'),
                 'settings'     => Text::_('COM_AIBOOST_NAV_SETTINGS'),
                 'health'       => Text::_('COM_AIBOOST_NAV_HEALTH'),
                 'redirects'    => Text::_('COM_AIBOOST_NAV_REDIRECTS'),

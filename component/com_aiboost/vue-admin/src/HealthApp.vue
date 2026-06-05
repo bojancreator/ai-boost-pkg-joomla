@@ -123,12 +123,16 @@
                   <span class="icon-link" aria-hidden="true"></span>URL Checker
                 </a>
                 <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm"
-                        @click="currentSection = 'jsonld'">
+                  @click="selectSection('jsonld')">
                   <span class="icon-code" aria-hidden="true"></span>JSON-LD Validator
                 </button>
                 <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm"
-                        @click="currentSection = 'aivisibility'">
+                  @click="selectSection('aivisibility')">
                   <span class="icon-lightning" aria-hidden="true"></span>AI Visibility
+                </button>
+                <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm"
+                        @click="selectSection('errors')">
+                  <span class="icon-warning" aria-hidden="true"></span>Error Log
                 </button>
               </div>
             </div>
@@ -257,20 +261,20 @@
                 </div>
                 <div>
                   <h5 class="mb-1">{{ aiScoreLabel }}</h5>
-                  <p class="text-muted small mb-0">Based on AEO signals: Schema.org, llms.txt, IndexNow, robots.txt, author markup</p>
+                  <p class="text-muted small mb-0">Based on AI Visibility / GEO signals: Schema.org, llms.txt, IndexNow, robots.txt, author markup</p>
                 </div>
               </div>
 
               <div v-if="aeoChecks.length === 0" class="ab-alert ab-alert--info">
-                No AEO checks found. Make sure the AEO plugin is enabled and health checks have been run.
+                No AI Visibility checks found. Make sure the AI Visibility plugin is enabled and health checks have been run.
               </div>
             </div>
           </div>
 
-          <!-- AEO checks -->
+          <!-- AI Visibility checks -->
           <div v-if="aeoChecks.length" class="ab-card mb-3">
             <div class="ab-card__header">
-              <strong>AEO Checks ({{ aeoChecks.filter(c => c.pass || c.dismissed).length }}/{{ aeoChecks.length }} OK)</strong>
+              <strong>AI Visibility Checks ({{ aeoChecks.filter(c => c.pass || c.dismissed).length }}/{{ aeoChecks.length }} OK)</strong>
             </div>
             <div class="ab-card__body" style="padding:0">
               <div class="ab-hc-check-list">
@@ -319,6 +323,8 @@
           </div>
         </div>
 
+        <ErrorsPage v-else-if="currentSection === 'errors'" />
+
       </div><!-- end main content -->
     </div><!-- end layout -->
 
@@ -334,7 +340,9 @@
 </template>
 
 <script>
-import { reactive, computed, ref, onMounted } from 'vue'
+import { reactive, computed, ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import ErrorsPage from './ErrorsPage.vue'
 
 const CATEGORY_ORDER = ['General', 'Conflicts', 'Schema', 'Sitemap', 'Social', 'Analytics', 'AEO', 'License']
 const CATEGORY_ICONS = {
@@ -350,10 +358,13 @@ const CATEGORY_ICONS = {
 
 export default {
   name: 'HealthApp',
+  components: { ErrorsPage },
 
   setup () {
     const raw   = window.aiBoostHealth || {}
     const score = raw.score ?? 0
+    const route = useRoute()
+    const router = useRouter()
 
     const checks        = reactive((raw.checks || []).map(c => ({ ...c, busy: false })))
     const rerunning     = ref(false)
@@ -361,7 +372,7 @@ export default {
     const actionMsg     = ref('')
     const actionMsgType = ref('')
     const collapsed     = reactive({})
-    const currentSection = ref('health')
+    const currentSection = ref(resolveRouteSection())
 
     // ── Count-up animation ───────────────────────────────────────────────────
     const displayScore = ref(0)
@@ -560,15 +571,36 @@ export default {
       if (action.target_tab) {
         const tab   = String(action.target_tab)
         const field = action.target_field ? String(action.target_field) : ''
-        // The Errors tab lives in the SPA shell (view=app, hash route).
-        // Other future tabs may live elsewhere; keep this branch explicit.
         if (tab === 'errors') {
           const fieldQs = field ? '&field=' + encodeURIComponent(field) : ''
-          return 'index.php?option=com_aiboost&view=app' + fieldQs + '#/errors'
+          return 'index.php?option=com_aiboost&view=app#/health/errors' + fieldQs
         }
       }
       return action.url || '#'
     }
+
+    function resolveSection (section) {
+      return ['health', 'jsonld', 'aivisibility', 'errors'].includes(section) ? section : 'health'
+    }
+
+    function resolveRouteSection () {
+      if (route.path === '/health/errors') return 'errors'
+      return resolveSection(route.query.section)
+    }
+
+    function selectSection (section) {
+      const next = resolveSection(section)
+      currentSection.value = next
+      if (next === 'errors') {
+        router.replace('/health/errors')
+        return
+      }
+      router.replace({ path: '/health', query: next === 'health' ? {} : { section: next } })
+    }
+
+    watch(() => route.fullPath, () => {
+      currentSection.value = resolveRouteSection()
+    })
 
     function toggleDismiss (check) {
       if (check.busy) return
@@ -667,6 +699,7 @@ export default {
       rowClass, rowIcon,
       rerun, toggleDismiss, copyReport,
       fixActionHref,
+      selectSection,
     }
   },
 }

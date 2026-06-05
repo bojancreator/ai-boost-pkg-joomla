@@ -241,7 +241,7 @@ const HEALTH_CHECKS = [
     settingsCheck: (s) => nonEmpty(s.fb_domain_verification),
     expected: { type: 'selector', selector: 'meta[name="facebook-domain-verification"]' },
     expectedLabel: 'meta[name="facebook-domain-verification"]',
-    target: { tab: 'social', field: 'fb_domain_verification' },
+    target: { tab: 'analytics', field: 'fb_domain_verification' },
   },
 
   /* ── Analytics ────────────────────────────────────────────── */
@@ -273,7 +273,7 @@ const HEALTH_CHECKS = [
     validate: (_v, s) => isNumStr(s.meta_pixel_id) ? null : 'Meta Pixel ID must be a numeric string (6+ digits).',
     expected: { type: 'regex', regex: /connect\.facebook\.net\/[^/]+\/fbevents\.js|fbq\s*\(\s*['"]init['"]/ },
     expectedLabel: 'fbevents.js / fbq("init", …)',
-    target: { tab: 'social', field: 'enable_meta_pixel' },
+    target: { tab: 'analytics', field: 'enable_meta_pixel' },
   },
   {
     id: 'gsc_verification',
@@ -286,10 +286,10 @@ const HEALTH_CHECKS = [
     target: { tab: 'analytics', field: 'enable_google_verification' },
   },
 
-  /* ── AEO ──────────────────────────────────────────────────── */
+  /* ── AI Visibility ────────────────────────────────────────── */
   {
     id: 'aeo_meta_verified',
-    plugin: 'AEO',
+    plugin: 'AI Visibility',
     title: 'ai-content-verified meta tag',
     settingsKey: 'aeo_ai_meta_enabled',
     expected: { type: 'selector', selector: 'meta[name="ai-content-verified"]' },
@@ -298,7 +298,7 @@ const HEALTH_CHECKS = [
   },
   {
     id: 'aeo_meta_optimized',
-    plugin: 'AEO',
+    plugin: 'AI Visibility',
     title: 'ai-content-optimized meta tag',
     settingsKey: 'aeo_ai_meta_enabled',
     expected: { type: 'selector', selector: 'meta[name="ai-content-optimized"]' },
@@ -307,7 +307,7 @@ const HEALTH_CHECKS = [
   },
   {
     id: 'aeo_llms_meta',
-    plugin: 'AEO',
+    plugin: 'AI Visibility',
     title: 'llms-txt discovery meta tag',
     settingsKey: 'aeo_ai_meta_enabled',
     expected: { type: 'selector', selector: 'meta[name="llms-txt"]' },
@@ -316,7 +316,7 @@ const HEALTH_CHECKS = [
   },
   {
     id: 'aeo_xrobots',
-    plugin: 'AEO',
+    plugin: 'AI Visibility',
     title: 'X-Robots-Tag HTTP header',
     settingsKey: 'aeo_ai_meta_enabled',
     expected: { type: 'header', name: 'x-robots-tag', regex: /index/i },
@@ -326,7 +326,7 @@ const HEALTH_CHECKS = [
   },
   {
     id: 'aeo_markdown_alternate',
-    plugin: 'AEO',
+    plugin: 'AI Visibility',
     title: '<link rel="alternate" type="text/markdown">',
     settingsKey: 'markdown_pages_enabled',
     expected: { type: 'selector', selector: 'link[rel="alternate"][type="text/markdown"]' },
@@ -336,7 +336,7 @@ const HEALTH_CHECKS = [
   },
   {
     id: 'aeo_llms_txt_file',
-    plugin: 'AEO',
+    plugin: 'AI Visibility',
     title: 'Public /llms.txt file responds',
     settingsKey: 'llmstxt_enabled',
     expected: { type: 'urlReachable', path: '/llms.txt' },
@@ -345,8 +345,8 @@ const HEALTH_CHECKS = [
   },
   {
     id: 'aeo_llms_full_file',
-    plugin: 'AEO',
-    title: 'Public /llms-full.txt file responds (Pro)',
+    plugin: 'AI Visibility',
+    title: 'Public /llms-full.txt file responds',
     settingsKey: 'llms_full_txt_enabled',
     expected: { type: 'urlReachable', path: '/llms-full.txt' },
     expectedLabel: 'HTTP 200 on /llms-full.txt',
@@ -354,12 +354,12 @@ const HEALTH_CHECKS = [
   },
   {
     id: 'aeo_robots_file',
-    plugin: 'AEO',
+    plugin: 'AI Visibility',
     title: 'Public /robots.txt file responds',
     settingsKey: 'enable_robots',
     expected: { type: 'urlReachable', path: '/robots.txt' },
     expectedLabel: 'HTTP 200 on /robots.txt',
-    target: { tab: 'general', field: 'enable_robots' },
+    target: { tab: 'crawlers', field: 'enable_robots' },
   },
 
   /* ── Sitemap ──────────────────────────────────────────────── */
@@ -390,7 +390,7 @@ const HEALTH_CHECKS = [
     settingsKey: 'enable_canonical',
     expected: { type: 'selector', selector: 'link[rel="canonical"]' },
     expectedLabel: 'link[rel="canonical"]',
-    target: { tab: 'sitemap', field: 'enable_canonical' },
+    target: { tab: 'technical', field: 'enable_canonical' },
   },
 
   /* ── Title / Meta description ─────────────────────────────── */

@@ -516,7 +516,7 @@ Never manually edit `<version>` in XML manifests — the build script injects fr
 The outer package ZIP (`pkg_aiboost-*.zip`) fails on staging. Use individual plugin ZIPs via `install-to-staging.py --all-plugins`. The individual ZIPs install fine on Joomla 5 and 6.
 
 **L006 — PHP 8.5 CI (Task #103)**
-PHP 8.5 was added to the test matrix in `bojancreator/aiboost-joomla` GitHub Actions. If new PHP syntax is used, verify it passes on 8.1–8.5. Avoid deprecated dynamic properties — use explicit property declarations.
+PHP 8.5 was added to the test matrix in `bojancreator/ai-boost-pkg-joomla` GitHub Actions. If new PHP syntax is used, verify it passes on 8.1–8.5. Avoid deprecated dynamic properties — use explicit property declarations.
 
 **L462 — Manifest-first codegen + build-time Pro stripping (Task #462)**
 `component/lib/src/Manifest/*.php` is the single source of truth. New fields can declare `feature_class`, `health`, and `i18n` blocks; `scripts/codegen-from-manifest.py` then auto-generates the Pro feature stub at `component/plugins/system/aiboost_{sku}_pro/src/Features/{Class}.php`, appends en-GB `.ini` keys, and `HealthCheckService::registerFromManifest()` registers the Health entry at runtime.
@@ -719,7 +719,7 @@ At the end of every task that modifies plugin or component PHP code, add a final
 
 > **Update Joomla skill** — If any new lessons were learned (new gotcha, new pattern, new script), add them to `.agents/skills/joomla-development/SKILL.md` under "Lessons Learned / Gotchas" with a task reference.
 
-See also: `replit.md` (global plan: codegen recipe, Pro-gating rule, Health rule, Definition of Done) and `.local/docs/architecture.md` (runtime map).
+See also: `OPERATING.md` (global plan: codegen recipe, Pro-gating rule, Health rule, Definition of Done).
 
 **L022 — Plugin rename requires pkg_script `postflight` cleanup (Task #438)** — When you change a Joomla plugin's slug (e.g. `aiboost_perf` → `aiboost_core`), Joomla's package installer does NOT automatically uninstall the old plugin. It happily ships both. You must add a `postflight()` step that: (1) `SELECT extension_id FROM #__extensions WHERE element='<old_slug>' AND type='plugin' AND folder='system'`; (2) read its `enabled` column and transfer it to the new plugin row; (3) call `(new \Joomla\CMS\Installer\Installer())->uninstall('plugin', $oldId)`. Wrap in try/catch and enqueueMessage on failure so users can clean up manually. Idempotent — no-op if the old row is absent. Settings stored in `#__aiboost_settings` (not plugin params) are unaffected by the slug change and need no migration.
 

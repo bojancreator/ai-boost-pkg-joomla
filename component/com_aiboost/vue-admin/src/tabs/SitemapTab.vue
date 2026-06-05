@@ -1,5 +1,216 @@
-<template>
+﻿<template>
   <div class="ab-sitemap-tab">
+    <!-- XML Sitemap -->
+    <div class="ab-card">
+      <div class="ab-card-header">🗺 XML Sitemap</div>
+      <div class="ab-card-body">
+        <div class="ab-check ab-toggle mb-2">
+          <input v-model="s.enable_sitemap" data-ab-field="enable_sitemap" true-value="1" false-value="0"
+            type="checkbox" class="ab-toggle__input" id="sm-enable">
+          <label class="ab-check__label" for="sm-enable">Enable XML Sitemap</label>
+        </div>
+
+        <div class="ab-sec mt-3">Content to Include</div>
+        <div class="row g-2 mb-3">
+          <div class="col-md-3">
+            <div class="ab-check ab-toggle">
+              <input v-model="s.include_articles" true-value="1" false-value="0"
+                type="checkbox" class="ab-toggle__input" id="sm-articles">
+              <label class="ab-check__label" for="sm-articles">Articles</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="ab-check ab-toggle">
+              <input v-model="s.include_categories" true-value="1" false-value="0"
+                type="checkbox" class="ab-toggle__input" id="sm-cats">
+              <label class="ab-check__label" for="sm-cats">Categories</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="ab-check ab-toggle">
+              <input v-model="s.include_menu_items" true-value="1" false-value="0"
+                type="checkbox" class="ab-toggle__input" id="sm-menus">
+              <label class="ab-check__label" for="sm-menus">Menu Items</label>
+            </div>
+          </div>
+          <div class="col-md-3">
+              <div class="ab-check ab-toggle">
+                <input v-model="s.include_tags" data-ab-field="include_tags" true-value="1" false-value="0"
+                  type="checkbox" class="ab-toggle__input" id="sm-tags">
+                <label class="ab-check__label" for="sm-tags">Tags</label>
+              </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="ab-label">URL Limit</label>
+            <input v-model="s.sitemap_limit" type="number" class="ab-input" min="0" max="50000" step="100" placeholder="1000">
+            <div class="ab-help">0 = unlimited.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="ab-label">Default changefreq</label>
+            <select v-model="s.default_changefreq" class="ab-select">
+              <option value="always">Always</option>
+              <option value="hourly">Hourly</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+              <option value="never">Never</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="ab-label">Default Priority</label>
+            <div class="d-flex align-items-center gap-2">
+              <input v-model="s.default_priority" type="range" class="form-range" min="0" max="1" step="0.1" style="flex:1">
+              <span class="text-muted" style="min-width:28px;font-size:.85rem">{{ (parseFloat(s.default_priority || 0.8)).toFixed(1) }}</span>
+            </div>
+          </div>
+        </div>
+          <div class="ab-sec">Per-Type Priority</div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-3" v-for="(label, key) in priorityFields" :key="key">
+              <label class="ab-label">{{ label }}</label>
+              <div class="d-flex align-items-center gap-2">
+                <input v-model="s[key]" type="range" class="form-range" min="0" max="1" step="0.1" style="flex:1">
+                <span class="text-muted" style="min-width:28px;font-size:.85rem">{{ (parseFloat(s[key] || 0)).toFixed(1) }}</span>
+              </div>
+            </div>
+          </div>
+
+        <div class="ab-sec">Exclusions</div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="ab-label">Exclude Article Category IDs <span style="opacity:.5;font-weight:400;">(comma-separated)</span></label>
+            <input v-model="s.exclude_category_ids" type="text" class="ab-input" placeholder="5, 12, 43">
+          </div>
+          <div class="col-md-6">
+            <label class="ab-label">Exclude Menu Item IDs <span style="opacity:.5;font-weight:400;">(comma-separated)</span></label>
+            <input v-model="s.exclude_menu_ids" type="text" class="ab-input" placeholder="3, 7">
+          </div>
+        </div>
+          <div class="ab-sec">Advanced</div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-4">
+              <div class="ab-check ab-toggle">
+                <input v-model="s.enable_sitemap_index" true-value="1" false-value="0"
+                  type="checkbox" class="ab-toggle__input" id="sm-index">
+                <label class="ab-check__label" for="sm-index">Sitemap Index (multiple sitemaps)</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="ab-check ab-toggle">
+                <input v-model="s.enable_image_sitemap" true-value="1" false-value="0"
+                  type="checkbox" class="ab-toggle__input" id="sm-images">
+                <label class="ab-check__label" for="sm-images">Include Image Sitemap data</label>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="ab-check ab-toggle">
+                <input v-model="s.enable_hreflang" data-ab-field="enable_hreflang" true-value="1" false-value="0"
+                  type="checkbox" class="ab-toggle__input" id="sm-hreflang">
+                <label class="ab-check__label" for="sm-hreflang">Add hreflang to sitemap</label>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+
+    <!-- News Sitemap -->
+    <div class="ab-card">
+      <div class="ab-card-header">📰 Google News Sitemap</div>
+      <div class="ab-card-body">
+        <div class="ab-check ab-toggle mb-3">
+          <input v-model="s.enable_news_sitemap" true-value="1" false-value="0"
+            type="checkbox" class="ab-toggle__input" id="sm-news">
+          <label class="ab-check__label" for="sm-news">Enable Google News Sitemap</label>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="ab-label">News Category ID</label>
+            <input v-model="s.news_category_id" type="number" class="ab-input" placeholder="0" min="0">
+            <div class="ab-help">Joomla category containing news articles.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="ab-label">Publication Name</label>
+            <input v-model="s.news_publication_name" type="text" class="ab-input"
+              placeholder="Leave empty to use Joomla site name">
+            <TranslationExpander field-key="news_publication_name" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ping (legacy, demoted) -->
+    <div class="ab-card">
+      <div class="ab-card-header">📡 Search Engine Ping <span class="ab-badge-legacy ms-1">Legacy</span></div>
+      <div class="ab-card-body">
+        <p class="ab-help" style="margin-top:0;">
+          Google removed sitemap ping support in June 2023 and Bing followed. These toggles are
+          retained for niche engines and legacy deployments only — leave them off unless you have a
+          specific reason. See the search engine guidance at the bottom of this page for the
+          recommended workflow.
+        </p>
+        <div class="row g-2 mb-3">
+          <div class="col-md-4">
+            <div class="ab-check ab-toggle">
+              <input v-model="s.ping_google" true-value="1" false-value="0"
+                type="checkbox" class="ab-toggle__input" id="sm-ping-google">
+              <label class="ab-check__label" for="sm-ping-google">Ping Google on sitemap request</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="ab-check ab-toggle">
+              <input v-model="s.ping_bing" true-value="1" false-value="0"
+                type="checkbox" class="ab-toggle__input" id="sm-ping-bing">
+              <label class="ab-check__label" for="sm-ping-bing">Ping Bing on sitemap request</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+              <div class="ab-check ab-toggle">
+                <input v-model="s.ping_on_publish" true-value="1" false-value="0"
+                  type="checkbox" class="ab-toggle__input" id="sm-ping-publish">
+                <label class="ab-check__label" for="sm-ping-publish">Ping on article publish</label>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 404 Monitoring -->
+    <div class="ab-card">
+      <div class="ab-card-header">🚧 404 Monitoring</div>
+      <div class="ab-card-body">
+        <div class="ab-check ab-toggle mb-2">
+          <input v-model="s.redirect_404_log_enabled" data-ab-field="redirect_404_log_enabled"
+            true-value="1" false-value="0"
+            type="checkbox" class="ab-toggle__input" id="sm-404-log">
+          <label class="ab-check__label" for="sm-404-log">Log 404 Errors</label>
+        </div>
+        <div class="ab-help">
+          When enabled, AI Boost records every 404 (Page Not Found) hit on the front-end into
+          <code>#__aiboost_404_log</code>. View the list under <strong>Redirects → Recent 404 errors</strong>
+          and use it to create permanent redirects so AI engines and search bots don't hit dead URLs.
+        </div>
+      </div>
+    </div>
+
+    <!-- Canonical URL -->
+    <div class="ab-card">
+      <div class="ab-card-header">🔗 Canonical URL</div>
+      <div class="ab-card-body">
+        <div class="ab-check ab-toggle mb-3">
+          <input v-model="s.enable_canonical" data-ab-field="enable_canonical" true-value="1" false-value="0"
+            type="checkbox" class="ab-toggle__input" id="sm-canonical">
+          <label class="ab-check__label" for="sm-canonical">Enable canonical URL management</label>
+        </div>
+        <label class="ab-label">Canonical URL Map <span style="opacity:.5;font-weight:400;">(one override per line)</span></label>
+        <textarea v-model="s.canonical_url_map" class="ab-input font-monospace" rows="5"
+          placeholder="/old-path → /new-path&#10;/shop → /products"></textarea>
+        <div class="ab-help mt-1">Format: <code>/source-path → /canonical-path</code> or full URLs.</div>
+      </div>
+    </div>
 
     <!-- ── Live Preview ─────────────────────────────────────────────── -->
     <div class="ab-card">
@@ -105,9 +316,9 @@
       </div>
     </div>
 
-    <!-- ── Google Search Console guidance ──────────────────────────── -->
+    <!-- ── Search engine guidance ──────────────────────────────────── -->
     <div class="ab-card">
-      <div class="ab-card-header">📡 Submitting to Google in 2026</div>
+      <div class="ab-card-header">📡 Submitting to search engines in 2026</div>
       <div class="ab-card-body">
         <div class="ab-alert ab-alert--info">
           <strong>Google retired the sitemap ping endpoint in June 2023.</strong> The old
@@ -130,7 +341,7 @@
           <li>
             <strong>Use IndexNow for real-time URL push</strong> (Bing, Yandex, Seznam, Naver, and DuckDuckGo).
             Google does <em>not</em> participate in IndexNow yet, but for the other engines this is the
-            actual sub-minute submission mechanism. Configure it in the <em>AEO</em> tab.
+            actual sub-minute submission mechanism. Configure it in the <em>AI Visibility / GEO</em> tab.
           </li>
           <li>
             <strong>For Bing</strong>, also submit the sitemap once in Bing Webmaster Tools.
@@ -151,234 +362,10 @@
           </button>
         </div>
         <p class="ab-help mt-2">
-          The <em>Search Engine Ping</em> toggles below are kept for backward compatibility with
+          The <em>Search Engine Ping</em> toggles above are kept for backward compatibility with
           smaller engines that still accept legacy pings. They are <strong>not required</strong> for
           Google or Bing in 2026 — leave them off unless you specifically need them.
         </p>
-      </div>
-    </div>
-
-    <!-- XML Sitemap -->
-    <div class="ab-card">
-      <div class="ab-card-header">🗺 XML Sitemap</div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-2">
-          <input v-model="s.enable_sitemap" data-ab-field="enable_sitemap" true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input" id="sm-enable">
-          <label class="ab-check__label" for="sm-enable">Enable XML Sitemap</label>
-        </div>
-
-        <div class="ab-sec mt-3">Content to Include</div>
-        <div class="row g-2 mb-3">
-          <div class="col-md-3">
-            <div class="ab-check ab-toggle">
-              <input v-model="s.include_articles" true-value="1" false-value="0"
-                type="checkbox" class="ab-toggle__input" id="sm-articles">
-              <label class="ab-check__label" for="sm-articles">Articles</label>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="ab-check ab-toggle">
-              <input v-model="s.include_categories" true-value="1" false-value="0"
-                type="checkbox" class="ab-toggle__input" id="sm-cats">
-              <label class="ab-check__label" for="sm-cats">Categories</label>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="ab-check ab-toggle">
-              <input v-model="s.include_menu_items" true-value="1" false-value="0"
-                type="checkbox" class="ab-toggle__input" id="sm-menus">
-              <label class="ab-check__label" for="sm-menus">Menu Items</label>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <ProGate gate-key="include_tags">
-              <div class="ab-check ab-toggle">
-                <input v-model="s.include_tags" data-ab-field="include_tags" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-tags">
-                <label class="ab-check__label" for="sm-tags">Tags</label>
-              </div>
-            </ProGate>
-          </div>
-        </div>
-
-        <div class="row g-3 mb-3">
-          <div class="col-md-4">
-            <label class="ab-label">URL Limit</label>
-            <input v-model="s.sitemap_limit" type="number" class="ab-input" min="0" max="50000" step="100" placeholder="1000">
-            <div class="ab-help">0 = unlimited.</div>
-          </div>
-          <div class="col-md-4">
-            <label class="ab-label">Default changefreq</label>
-            <select v-model="s.default_changefreq" class="ab-select">
-              <option value="always">Always</option>
-              <option value="hourly">Hourly</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="yearly">Yearly</option>
-              <option value="never">Never</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="ab-label">Default Priority</label>
-            <div class="d-flex align-items-center gap-2">
-              <input v-model="s.default_priority" type="range" class="form-range" min="0" max="1" step="0.1" style="flex:1">
-              <span class="text-muted" style="min-width:28px;font-size:.85rem">{{ (parseFloat(s.default_priority || 0.8)).toFixed(1) }}</span>
-            </div>
-          </div>
-        </div>
-
-        <ProGate gate-key="section:sitemap.priority_pertype" mode="section">
-          <div class="ab-sec">Per-Type Priority</div>
-          <div class="row g-3 mb-3">
-            <div class="col-md-3" v-for="(label, key) in priorityFields" :key="key">
-              <label class="ab-label">{{ label }}</label>
-              <div class="d-flex align-items-center gap-2">
-                <input v-model="s[key]" type="range" class="form-range" min="0" max="1" step="0.1" style="flex:1">
-                <span class="text-muted" style="min-width:28px;font-size:.85rem">{{ (parseFloat(s[key] || 0)).toFixed(1) }}</span>
-              </div>
-            </div>
-          </div>
-        </ProGate>
-
-        <div class="ab-sec">Exclusions</div>
-        <div class="row g-3 mb-3">
-          <div class="col-md-6">
-            <label class="ab-label">Exclude Article Category IDs <span style="opacity:.5;font-weight:400;">(comma-separated)</span></label>
-            <input v-model="s.exclude_category_ids" type="text" class="ab-input" placeholder="5, 12, 43">
-          </div>
-          <div class="col-md-6">
-            <label class="ab-label">Exclude Menu Item IDs <span style="opacity:.5;font-weight:400;">(comma-separated)</span></label>
-            <input v-model="s.exclude_menu_ids" type="text" class="ab-input" placeholder="3, 7">
-          </div>
-        </div>
-
-        <ProGate gate-key="section:sitemap.advanced" mode="section">
-          <div class="ab-sec">Advanced</div>
-          <div class="row g-2 mb-3">
-            <div class="col-md-4">
-              <div class="ab-check ab-toggle">
-                <input v-model="s.enable_sitemap_index" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-index">
-                <label class="ab-check__label" for="sm-index">Sitemap Index (multiple sitemaps)</label>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="ab-check ab-toggle">
-                <input v-model="s.enable_image_sitemap" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-images">
-                <label class="ab-check__label" for="sm-images">Include Image Sitemap data</label>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="ab-check ab-toggle">
-                <input v-model="s.enable_hreflang" data-ab-field="enable_hreflang" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-hreflang">
-                <label class="ab-check__label" for="sm-hreflang">Add hreflang to sitemap</label>
-              </div>
-            </div>
-          </div>
-        </ProGate>
-      </div>
-    </div>
-
-    <!-- News Sitemap -->
-    <ProGate gate-key="section:sitemap.news" mode="section">
-    <div class="ab-card">
-      <div class="ab-card-header">📰 Google News Sitemap</div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-3">
-          <input v-model="s.enable_news_sitemap" true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input" id="sm-news">
-          <label class="ab-check__label" for="sm-news">Enable Google News Sitemap</label>
-        </div>
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="ab-label">News Category ID</label>
-            <input v-model="s.news_category_id" type="number" class="ab-input" placeholder="0" min="0">
-            <div class="ab-help">Joomla category containing news articles.</div>
-          </div>
-          <div class="col-md-6">
-            <label class="ab-label">Publication Name</label>
-            <input v-model="s.news_publication_name" type="text" class="ab-input"
-              placeholder="Leave empty to use Joomla site name">
-            <TranslationExpander field-key="news_publication_name" />
-          </div>
-        </div>
-      </div>
-    </div>
-    </ProGate>
-
-    <!-- Ping (legacy, demoted) -->
-    <div class="ab-card">
-      <div class="ab-card-header">📡 Search Engine Ping <span class="ab-badge-legacy ms-1">Legacy</span></div>
-      <div class="ab-card-body">
-        <p class="ab-help" style="margin-top:0;">
-          Google removed sitemap ping support in June 2023 and Bing followed. These toggles are
-          retained for niche engines and legacy deployments only — leave them off unless you have a
-          specific reason. See the <em>Submitting to Google in 2026</em> card above for the
-          recommended workflow.
-        </p>
-        <div class="row g-2 mb-3">
-          <div class="col-md-4">
-            <div class="ab-check ab-toggle">
-              <input v-model="s.ping_google" true-value="1" false-value="0"
-                type="checkbox" class="ab-toggle__input" id="sm-ping-google">
-              <label class="ab-check__label" for="sm-ping-google">Ping Google on sitemap request</label>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="ab-check ab-toggle">
-              <input v-model="s.ping_bing" true-value="1" false-value="0"
-                type="checkbox" class="ab-toggle__input" id="sm-ping-bing">
-              <label class="ab-check__label" for="sm-ping-bing">Ping Bing on sitemap request</label>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <ProGate gate-key="ping_on_publish">
-              <div class="ab-check ab-toggle">
-                <input v-model="s.ping_on_publish" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-ping-publish">
-                <label class="ab-check__label" for="sm-ping-publish">Ping on article publish</label>
-              </div>
-            </ProGate>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 404 Monitoring -->
-    <div class="ab-card">
-      <div class="ab-card-header">🚧 404 Monitoring</div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-2">
-          <input v-model="s.redirect_404_log_enabled" data-ab-field="redirect_404_log_enabled"
-            true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input" id="sm-404-log">
-          <label class="ab-check__label" for="sm-404-log">Log 404 Errors</label>
-        </div>
-        <div class="ab-help">
-          When enabled, AI Boost records every 404 (Page Not Found) hit on the front-end into
-          <code>#__aiboost_404_log</code>. View the list under <strong>Redirects → Recent 404 errors</strong>
-          and use it to create permanent redirects so AI engines and search bots don't hit dead URLs.
-        </div>
-      </div>
-    </div>
-
-    <!-- Canonical URL -->
-    <div class="ab-card">
-      <div class="ab-card-header">🔗 Canonical URL</div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-3">
-          <input v-model="s.enable_canonical" data-ab-field="enable_canonical" true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input" id="sm-canonical">
-          <label class="ab-check__label" for="sm-canonical">Enable canonical URL management</label>
-        </div>
-        <label class="ab-label">Canonical URL Map <span style="opacity:.5;font-weight:400;">(one override per line)</span></label>
-        <textarea v-model="s.canonical_url_map" class="ab-input font-monospace" rows="5"
-          placeholder="/old-path → /new-path&#10;/shop → /products"></textarea>
-        <div class="ab-help mt-1">Format: <code>/source-path → /canonical-path</code> or full URLs.</div>
       </div>
     </div>
 
