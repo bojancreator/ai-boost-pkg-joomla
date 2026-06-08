@@ -51,6 +51,19 @@ Thumbs.db
 # Local vendor/license keys for integration test plugin downloads
 /test-plugins/api_keys.txt
 
+# PHPUnit cache (regenerated automatically on each run)
+.phpunit.result.cache
+
+# Smoke test run artifacts (screenshots, results.json — regenerated per run)
+/artifacts/smoke-*/
+/artifacts/*.cjs
+
+# Python bytecode cache
+scripts/__pycache__/
+
+# Test site credentials (real admin passwords) — use test_sajtovi.example.md as template
+/test_sajtovi.md
+
 # Deliverables (ZIP-ovi, PDF-ovi, marketing materijali — ne idu u git)
 /deliverables/
 # Exception: text reports and docs in deliverables/docs/ are tracked

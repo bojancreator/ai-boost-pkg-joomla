@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<access component="com_forseo">
-    <section name="component">
-        <action name="core.manage" title="JACTION_MANAGE" description="JACTION_MANAGE_COMPONENT_DESC"/>
-        <action name="forseo.edit.frontend" title="COM_FORSEO_ACL_EDIT_FRONTEND" description=""/>
-    </section>
-</access>
