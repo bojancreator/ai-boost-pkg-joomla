@@ -1628,7 +1628,7 @@ class SettingsController extends BaseController
                 return;
             }
 
-            $state = $this->mockValidateLicense($sku, $key);
+            $state = $this->resolveLicenseState($sku, $key);
             PluginRegistry::saveLicenseState($sku, $state);
 
             $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -1685,7 +1685,32 @@ class SettingsController extends BaseController
     }
 
     /**
-     * Mock Lemon Squeezy validator — mirrors artifacts/api-server/src/routes/license.ts.
+     * Resolve the license state for a verify request.
+     *
+     * Production path: a real Lemon Squeezy validate/activate call via
+     * LicenseValidator::verify() — Pro only unlocks on a confirmed live,
+     * active license (fail-closed on any error). Under Joomla debug mode,
+     * AB-prefixed keys fall back to the offline mock so the Licenses UI can
+     * still be exercised in QA without a real purchase.
+     *
+     * @return array<string,mixed>
+     */
+    private function resolveLicenseState(string $sku, string $key): array
+    {
+        if (defined('JDEBUG') && JDEBUG === true && str_starts_with(strtoupper($key), 'AB-')) {
+            return $this->mockValidateLicense($sku, $key);
+        }
+
+        $existing     = PluginRegistry::loadLicenseStates()[$sku] ?? [];
+        $instanceId   = is_array($existing) ? (string) ($existing['instance_id'] ?? '') : '';
+        $instanceName = rtrim(\Joomla\CMS\Uri\Uri::root(), '/');
+
+        return \AiBoost\Lib\LicenseValidator::verify($key, $instanceName, $instanceId);
+    }
+
+    /**
+     * Mock Lemon Squeezy validator — dev/QA only (JDEBUG). Mirrors the prefix
+     * conventions the offline Licenses UI uses when no live key is available.
      * Prefix conventions:
      *   AB-VALID-*    → active (1y expiry, 4 activations remaining)
      *   AB-EXPIRED-*  → expired (30d ago)

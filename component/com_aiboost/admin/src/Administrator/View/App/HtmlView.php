@@ -162,6 +162,10 @@ class HtmlView extends BaseHtmlView
 
         return [
             'version'          => Version::VERSION,
+            // True only under Joomla debug mode — the Licenses UI uses this to
+            // show the offline mock-validation hint. Production verifies keys
+            // against the real Lemon Squeezy licence API.
+            'debug'            => (defined('JDEBUG') && JDEBUG === true),
             'tokenName'        => $tokenName,
             'csrfToken'        => $tokenName,
             'baseUrl'          => Route::_('index.php?option=com_aiboost', false),

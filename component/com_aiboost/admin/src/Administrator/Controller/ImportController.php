@@ -36,6 +36,11 @@ class ImportController extends BaseController
         'license_state',
         'license_simulation',
         'pro_skus',
+        // Perpetual-activation flags — must never transfer between installs, or
+        // an export from one activated Pro site would unlock Pro on another.
+        'pro_activated',
+        'pro_activated_at',
+        'pro_activated_version',
         'dev_license_preview',
         'dev_force_free_tier',
         'install_id',

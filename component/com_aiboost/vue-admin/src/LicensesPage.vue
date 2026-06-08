@@ -47,7 +47,7 @@
                 type="text"
                 class="ab-input ab-input--mono"
                 v-model="core.key"
-                placeholder="AB-VALID-…"
+                placeholder="Paste your license key"
                 :disabled="core.busy"
                 style="min-width: 260px;"
               />
@@ -115,7 +115,7 @@
                 type="text"
                 class="ab-input ab-input--mono"
                 v-model="row.key"
-                placeholder="AB-VALID-…"
+                placeholder="Paste your license key"
                 :disabled="row.busy"
                 style="min-width: 240px;"
               />
@@ -235,7 +235,9 @@ export default {
     const core = ref(emptyCore())
     const integrations = ref([])
     const loadError = ref('')
-    const mockNotice = ref(true)
+    // Only shown under Joomla debug mode — production validates keys against
+    // the real Lemon Squeezy licence API, so no mock hint is displayed.
+    const mockNotice = ref(Boolean((window.aiBoostBootstrap || {}).debug))
 
     const boot = window.aiBoostBootstrap || {}
     const heartbeat = ref(boot.licenseHeartbeat || {})
