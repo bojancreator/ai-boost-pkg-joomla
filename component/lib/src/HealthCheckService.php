@@ -1629,9 +1629,9 @@ class HealthCheckService
             $label = 'robots.txt blocks ' . $ua;
 
             $fixActions = [[
-                'label' => 'Edit scraper toggle (AEO tab)',
-                'url'   => $this->settingsUrl('tab-aeo-btn', $key),
-                'tab'   => 'tab-aeo-btn',
+                'label' => 'Edit scraper toggle (Crawlers & Robots tab)',
+                'url'   => $this->settingsUrl('tab-crawlers-btn', $key),
+                'tab'   => 'tab-crawlers-btn',
                 'field' => $key,
             ]];
 
@@ -1664,7 +1664,7 @@ class HealthCheckService
                     $id, 'warning', $label,
                     false, false,
                     htmlspecialchars($ua, ENT_QUOTES) . ' is enabled in settings but no matching "User-agent: ' . htmlspecialchars($ua, ENT_QUOTES) . '" + "Disallow: /" block was found in /robots.txt. Save settings to regenerate the file.',
-                    $this->settingsUrl('tab-aeo-btn', $key),
+                    $this->settingsUrl('tab-crawlers-btn', $key),
                     $fixActions
                 );
             }

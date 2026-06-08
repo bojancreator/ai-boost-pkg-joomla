@@ -83,7 +83,11 @@ class OgTagBuilder
             $ogDesc = $ogDescOverride;
         }
 
+        // og:url should match <link rel="canonical"> — strip any query/fragment
+        // so paginated/filtered pages (?start=…, ?limit=…) don't send a
+        // non-canonical URL to social/AI crawlers.
         $ogUrl       = $this->ctx->getCurrentUrl();
+        $ogUrl       = preg_replace('/[?#].*$/s', '', $ogUrl) ?? $ogUrl;
         $ogImageRaw  = self::normaliseImagePath(
             (string) ($this->settings['default_og_image'] ?? $this->settings['og_default_image'] ?? '')
         );

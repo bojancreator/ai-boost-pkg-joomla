@@ -344,7 +344,7 @@ import { reactive, computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ErrorsPage from './ErrorsPage.vue'
 
-const CATEGORY_ORDER = ['General', 'Conflicts', 'Schema', 'Sitemap', 'Social', 'Analytics', 'AEO', 'License']
+const CATEGORY_ORDER = ['General', 'Conflicts', 'Schema', 'Sitemap', 'Social', 'Analytics', 'AEO', 'Crawlers & Robots', 'Integrations', 'License']
 const CATEGORY_ICONS = {
   General:   'icon-home',
   Conflicts: 'icon-warning',
@@ -353,6 +353,8 @@ const CATEGORY_ICONS = {
   Social:    'icon-share',
   Analytics: 'icon-chart-line',
   AEO:       'icon-lightning',
+  'Crawlers & Robots': 'icon-shield',
+  Integrations: 'icon-link',
   License:   'icon-key',
 }
 
@@ -471,6 +473,13 @@ export default {
         (c.id || '').match(/schema_plugin|org_name|org_logo|author/i)))
 
     const aiScore = computed(() => {
+      // Prefer the authoritative weighted score computed server-side
+      // (info_ai_visibility_score) so the AI Visibility panel and the Health
+      // info row never show two different numbers for the same thing.
+      const phpCheck = checks.find(c => c.id === 'info_ai_visibility_score')
+      const m = phpCheck && (phpCheck.message || '').match(/(\d+)\s*\/\s*100/)
+      if (m) return parseInt(m[1], 10)
+      // Fallback: pass-ratio of AEO checks (older builds without the PHP score).
       const total  = aeoChecks.value.length
       if (!total) return 0
       const passed = aeoChecks.value.filter(c => c.pass || c.status === 'info').length

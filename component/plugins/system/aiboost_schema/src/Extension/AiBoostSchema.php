@@ -53,6 +53,21 @@ class AiBoostSchema extends CMSPlugin
 
         $settings = $this->getAiBoostSettings();
 
+        // Master Schema.org switch. Default '1' (and absent => enabled, so legacy
+        // settings blobs are unaffected); when explicitly turned off, emit no
+        // JSON-LD at all. Pro blocks flow through this plugin's filter dispatch,
+        // so returning here also suppresses them.
+        if (empty($settings['enable_schema'] ?? '1')) {
+            if (!empty($settings['debug_mode'])) {
+                error_log('[AI Boost: aiboost_schema] enable_schema is off — skipping all JSON-LD output');
+            }
+            HeadBlockBuilder::noteSkip(
+                HeadBlockBuilder::SECTION_SCHEMA,
+                'Schema.org output disabled in settings (enable_schema)'
+            );
+            return;
+        }
+
         // Last-write-wins per request; all plugins read the same setting (#384).
         $hide = !empty($settings['hide_comments']);
         HeadBlockBuilder::setHideComments($hide);

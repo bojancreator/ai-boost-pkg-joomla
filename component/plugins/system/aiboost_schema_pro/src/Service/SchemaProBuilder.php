@@ -445,7 +445,9 @@ class SchemaProBuilder
         }
 
         $articleType = $this->resolveArticleType((int) $row->id);
+        // Schema 'url' should match the canonical URL — strip any query/fragment.
         $articleUrl  = $this->ctx->getCurrentUrl();
+        $articleUrl  = preg_replace('/[?#].*$/s', '', $articleUrl) ?? $articleUrl;
 
         $schema = [
             '@context' => 'https://schema.org',

@@ -101,6 +101,35 @@ class DuplicateTagScanner
     // DETECTION
     // ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * Count page <title> elements, excluding inline SVG <title> children
+     * (icons/illustrations) which are not the document title and must not
+     * trip the duplicate-title check.
+     */
+    private function countPageTitles(\DOMDocument $doc): int
+    {
+        $count = 0;
+        foreach ($doc->getElementsByTagName('title') as $title) {
+            if (!$this->isInsideSvg($title)) {
+                $count++;
+            }
+        }
+        return $count;
+    }
+
+    /**
+     * True when $node has an <svg> ancestor anywhere up the tree.
+     */
+    private function isInsideSvg(\DOMNode $node): bool
+    {
+        for ($parent = $node->parentNode; $parent !== null; $parent = $parent->parentNode) {
+            if ($parent->nodeType === XML_ELEMENT_NODE && strtolower($parent->nodeName) === 'svg') {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private function detectDuplicates(string $html): array
     {
         libxml_use_internal_errors(true);
@@ -117,7 +146,10 @@ class DuplicateTagScanner
         $results = [];
 
         // ── <title> ──────────────────────────────────────────────────────────
-        $titleCount = $doc->getElementsByTagName('title')->length;
+        // Count only real page titles — getElementsByTagName('title') also
+        // matches inline SVG <title> children (very common in modern templates),
+        // which previously produced a false "duplicate title" critical.
+        $titleCount = $this->countPageTitles($doc);
         if ($titleCount > 1) {
             $results[] = $this->make(
                 'duplicate_title', 'critical', 'Duplicate <title> Tag',
