@@ -101,9 +101,15 @@ class AiBoostSchema extends CMSPlugin
 
         $bodies = [];
         foreach ($schemas as $schema) {
+            // JSON_HEX_TAG | JSON_HEX_AMP escape <, >, & to \u00XX so an
+            // author-controlled value containing "</script>" (e.g. an article
+            // title, meta description, or auto-detected FAQ answer) cannot break
+            // out of this <script type="application/ld+json"> element — closes a
+            // stored-XSS vector. Slashes stay unescaped for clean schema URLs.
             $json = json_encode(
                 $schema,
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
+                    | JSON_HEX_TAG | JSON_HEX_AMP
             );
             if ($json !== false) {
                 $bodies[] = '<script type="application/ld+json">' . "\n" . $json . "\n" . '</script>';
