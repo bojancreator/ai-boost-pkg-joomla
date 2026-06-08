@@ -6,9 +6,13 @@ without losing data.
 
 ## Before you uninstall — export your settings
 
-Uninstalling **permanently deletes all AI Boost data** from the database.
-Open the admin and export first so you can restore everything on a future
-install or on a different site:
+Uninstalling **preserves your data** — every AI Boost table is left in the
+database, so a later reinstall on the **same** site restores all settings,
+redirects, translations and logs automatically. Only your Pro **licence keys**
+are cleared on uninstall.
+
+Even so, export first whenever you plan to **move to another site** or simply
+want a portable backup you control:
 
 1. Go to **Components → AI Boost → Import / Export**.
 2. Click **Download settings (JSON)**. Save the file somewhere safe.
@@ -26,32 +30,56 @@ When you uninstall the **pkg_aiboost** package from
 
 - The admin component `com_aiboost` and its 7 system plugins
   (Schema, Sitemap, Social, Analytics, AEO, Core, Code).
-- All AI Boost database tables:
-  - `#__aiboost_settings` (every plugin option)
-  - `#__aiboost_translations` (per-language field overrides)
-  - `#__aiboost_redirects` (your redirect list and hit counters)
-  - `#__aiboost_url_scans` (URL Checker history)
-  - `#__aiboost_404_log` (logged 404 hits)
+- Your Pro **licence keys only** — the six licence/dev keys are cleared from
+  the `main` row of `#__aiboost_settings` so a reinstall comes up unlicensed.
+  **Every other setting in that table is kept.**
 - The article custom fields group **AI Boost — OpenGraph** and the six
-  `aiboost_og_*` custom fields (per-article OG overrides stored on
-  articles are also dropped — see "What stays" below for one exception).
+  `aiboost_og_*` custom fields, together with the per-article OG values
+  stored against them.
 - Generated files in the site root that AI Boost authored:
-  - `robots.txt` — only when it still starts with the
-    `# Managed by AI Boost for Joomla` header marker. A hand-edited
-    `robots.txt` is **never** touched.
+  - `robots.txt` — only the fenced **AI Boost managed block** is stripped;
+    the file is deleted outright only when it was entirely ours. A hand-edited
+    `robots.txt` is **never** removed.
   - `llms.txt`
-  - `sitemap.xml` / `sitemap-index.xml` (only when produced by AI Boost).
+  - `sitemap.xml` / `sitemap-index.xml` (only when produced by AI Boost,
+    identified by our marker).
 
 ## What stays on the site
 
+- **All AI Boost data tables are preserved — nothing is dropped:**
+  - `#__aiboost_settings` (every plugin option except the cleared licence keys)
+  - `#__aiboost_translations` (per-language field overrides)
+  - `#__aiboost_redirects` (your redirect list and hit counters)
+  - `#__aiboost_url_scans` (URL Checker history)
+  - `#__aiboost_404_log` / `#__aiboost_error_log` (logged 404 hits and errors)
+
+  This is deliberate: reinstalling AI Boost on the same site brings back every
+  setting, redirect, translation and log automatically. To remove this data on
+  purpose, see **Fully removing all data** below.
 - Your Joomla configuration, articles, menus, modules, templates — none
   of this is touched.
-- Any `robots.txt` you wrote yourself (without the AI Boost header).
+- Any `robots.txt` you wrote yourself (outside the AI Boost managed block).
 - The Pro Upgrade package (`pkg_aiboost_pro`), if it is installed, stays
   until you uninstall it separately from
   **Extensions → Manage → Manage**.
 - Joomla's built-in `#__menu` row for **Components → AI Boost** is
   removed by the standard component uninstaller along with the component.
+
+## Fully removing all data
+
+AI Boost keeps your tables on uninstall so reinstalls are lossless. If you want
+to wipe everything (for example before retiring a site), drop the tables
+manually after uninstalling. In phpMyAdmin or your DB tool, replace `jos_` with
+your real table prefix and run:
+
+```sql
+DROP TABLE IF EXISTS jos_aiboost_settings;
+DROP TABLE IF EXISTS jos_aiboost_translations;
+DROP TABLE IF EXISTS jos_aiboost_redirects;
+DROP TABLE IF EXISTS jos_aiboost_url_scans;
+DROP TABLE IF EXISTS jos_aiboost_404_log;
+DROP TABLE IF EXISTS jos_aiboost_error_log;
+```
 
 ## Recommended order (mixed Free + Pro installs)
 
@@ -76,10 +104,14 @@ When you uninstall the **pkg_aiboost** package from
 
 ## Troubleshooting
 
-- **"Could not drop table" warning during uninstall.** Joomla shows the
-  exact table name in the warning. Open phpMyAdmin (or your DB tool),
-  run `DROP TABLE IF EXISTS jos_aiboost_<name>;` (replace `jos_` with
-  your prefix) and you are done.
+- **"Could not drop table" notice during install or update.** This refers to
+  a one-time migration of the legacy translations table — not to uninstall,
+  which never drops your tables. Joomla shows the exact table name; open
+  phpMyAdmin (or your DB tool), run `DROP TABLE IF EXISTS jos_<name>;`
+  (replace `jos_` with your prefix) and you are done.
+- **I want my data gone after uninstalling.** Uninstall keeps your tables on
+  purpose. See **Fully removing all data** above for the exact `DROP TABLE`
+  statements.
 - **Old `robots.txt` is still being served.** That means the file did
   not carry the AI Boost header marker, so the uninstaller left it
   untouched on purpose. Delete or edit it manually.
