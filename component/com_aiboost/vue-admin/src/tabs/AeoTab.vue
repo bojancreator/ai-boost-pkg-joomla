@@ -2,7 +2,7 @@
   <div class="ab-aeo-tab">
 
     <div class="ab-page-intro mb-3">
-      <h2 class="ab-page-intro__title">AI Visibility / GEO</h2>
+      <h2 class="ab-page-intro__title">AI Visibility</h2>
       <p class="ab-page-intro__text">
         Signals that help AI search and generative engines understand, index, and cite your site.
       </p>

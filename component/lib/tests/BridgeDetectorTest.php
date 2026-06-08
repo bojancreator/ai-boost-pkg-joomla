@@ -152,8 +152,13 @@ class BridgeDetectorTest extends TestCase
 
     public function testFileExistsReturnsTrueForExistingFile(): void
     {
-        // BridgeDetector.php itself exists relative to JPATH_ROOT
-        $relative = str_replace(JPATH_ROOT . '/', '', __FILE__);
+        // This file exists relative to JPATH_ROOT. JPATH_ROOT and __FILE__ come
+        // from dirname()/the magic constant, which yield OS-native separators —
+        // normalise both to forward slashes before computing the relative path so
+        // the prefix strip works on Windows (backslashes) as well as POSIX.
+        $root     = str_replace('\\', '/', JPATH_ROOT);
+        $file     = str_replace('\\', '/', __FILE__);
+        $relative = str_replace($root . '/', '', $file);
         $this->assertTrue(BridgeDetector::fileExists($relative));
     }
 

@@ -11,6 +11,7 @@
         <testsuite name="Service DI Tests">
             <directory>component/tests/Service</directory>
             <directory>component/tests/Lib</directory>
+            <directory>component/lib/tests</directory>
         </testsuite>
     </testsuites>
 

@@ -112,6 +112,21 @@ _PRO_OPEN_TO_EOF_RE = re.compile(
 )
 
 
+def _is_test_artifact(rel_posix: str) -> bool:
+    """True if a packaged-relative path is a test/dev-only artifact.
+
+    Catches PHPUnit suites that live next to runtime classes (e.g.
+    component/lib/tests/BridgeDetectorTest.php) so they never leak into the
+    installable ZIP. Matches any `tests/`/`test/` path segment plus
+    *Test.php / *TestCase.php filenames anywhere in the tree.
+    """
+    parts = rel_posix.split("/")
+    if "tests" in parts or "test" in parts:
+        return True
+    name = parts[-1]
+    return name.endswith("Test.php") or name.endswith("TestCase.php")
+
+
 def strip_pro_blocks(text: str) -> str:
     """Remove every @pro:start ... @pro:end block from a PHP source string.
 
@@ -140,6 +155,8 @@ def add_dir_to_zip(
     for fpath in sorted(src_dir.rglob("*")):
         if fpath.is_file():
             rel_path = fpath.relative_to(src_dir)
+            if _is_test_artifact(rel_path.as_posix()):
+                continue
             arcname = arc_prefix + "/" + rel_path.as_posix() if arc_prefix else rel_path.as_posix()
             if manifest_version and len(rel_path.parts) == 1 and fpath.suffix.lower() == ".xml":
                 content = fpath.read_text(encoding="utf-8", errors="replace")
@@ -200,6 +217,8 @@ def build_component_zip(version: str, tmp_dir: Path) -> Path:
                 rel = fpath.relative_to(admin_dir).as_posix()
                 if fpath.name == "script.php":
                     continue
+                if _is_test_artifact(rel):
+                    continue
                 arcname = "admin/" + rel
                 if fpath.suffix == ".php":
                     content = fpath.read_text(encoding="utf-8", errors="replace")
@@ -235,7 +254,10 @@ def build_component_zip(version: str, tmp_dir: Path) -> Path:
         if LIB_DIR.exists():
             for fpath in sorted(LIB_DIR.rglob("*")):
                 if fpath.is_file():
-                    arcname = "admin/lib/" + fpath.relative_to(LIB_DIR).as_posix()
+                    rel = fpath.relative_to(LIB_DIR).as_posix()
+                    if _is_test_artifact(rel):
+                        continue
+                    arcname = "admin/lib/" + rel
                     existing = set(zf.namelist())
                     if arcname in existing:
                         continue
@@ -385,6 +407,14 @@ def build_package_zip(version: str, dry_run: bool = False) -> Path:
                 )
                 zf.writestr("pkg_script.php", script_content)
 
+            # GPL v2+ license text ships in the package root (GPL compliance /
+            # JED requirement). Sourced from LICENSE.txt at the workspace root.
+            license_file = WORKSPACE / "LICENSE.txt"
+            if license_file.exists():
+                zf.write(license_file, "LICENSE.txt")
+            else:
+                print(f"  ⚠️  LICENSE.txt not found at {license_file} — package will ship without it")
+
             # Sub-ZIPs in packages/ subfolder
             zf.write(com_zip, f"packages/{com_zip.name}")
             for plg_zip in plg_zips:
@@ -474,6 +504,13 @@ def build_pro_package_zip(version: str, dry_run: bool = False) -> Path:
                     script_content,
                 )
                 zf.writestr("pkg_script_pro.php", script_content)
+
+            # GPL v2+ license text ships in the Pro package root too.
+            license_file = WORKSPACE / "LICENSE.txt"
+            if license_file.exists():
+                zf.write(license_file, "LICENSE.txt")
+            else:
+                print(f"  ⚠️  LICENSE.txt not found at {license_file} — package will ship without it")
 
             for plg_zip in pro_zips:
                 zf.write(plg_zip, f"packages/{plg_zip.name}")
