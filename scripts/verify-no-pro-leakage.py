@@ -18,6 +18,15 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+# Force UTF-8 stdout/stderr so the ✓/⚠ in the output don't raise
+# UnicodeEncodeError on a default Windows console (cp1252) — a crash on the
+# success print would otherwise be misread by the build as a Pro-leak failure.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
+
 ADVISORY_MODE = False  # STRICT mode (Task #462) — build fails on any Pro token in free ZIP
 
 # Tokens that, if present in the free package, indicate Pro logic leaked in.

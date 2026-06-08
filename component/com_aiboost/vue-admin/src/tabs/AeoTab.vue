@@ -124,157 +124,6 @@
       </div>
     </div>
 
-    <!-- ── Section: robots.txt ───────────────────────────────────── -->
-    <div class="ab-card mb-3">
-      <div class="ab-card-header">
-        robots.txt Management
-      </div>
-      <div class="ab-card-body">
-        <div class="ab-help mb-3">
-          Block SEO data-mining bots via robots.txt. Toggle each crawler individually.
-        </div>
-
-        <!-- Individual SEO scraper checkboxes -->
-        <div class="row g-2 mb-3">
-          <div v-for="bot in SEO_SCRAPERS" :key="bot.key" class="col-6 col-sm-4">
-            <label :for="'scraper-' + bot.key"
-                   class="ab-scraper-box d-flex align-items-center gap-2 p-2 border rounded small mb-0"
-                   :class="{ 'ab-scraper-blocked': s[bot.key] === '1' }"
-                   style="cursor:pointer">
-              <div class="ab-check mb-0">
-                <input
-                  type="checkbox"
-                  class="ab-toggle__input"
-                  :id="'scraper-' + bot.key"
-                  :data-ab-field="bot.key"
-                  v-model="s[bot.key]"
-                  true-value="1" false-value="0"
-                />
-              </div>
-              <span class="lh-sm">
-                <span class="fw-semibold d-block">{{ bot.label }}</span>
-                <span class="text-muted" style="font-size:.7rem">{{ bot.agent }}</span>
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Unified Custom robots.txt Rules (Task #481 — merged the old
-             "Advanced — custom user-agent rules" collapsible and the standalone
-             "Custom robots.txt Rules" textarea into one sub-section. Both
-             setting keys (`robots_custom_scrapers`, `robots_custom_rules`) are
-             still saved separately so RobotsTxtBuilder / RobotsTxtManager see
-             no behaviour change. -->
-        <div class="ab-subcard">
-          <div class="ab-subcard-head">
-            <strong>Custom robots.txt Rules</strong>
-            <span class="text-muted small ms-2">(appended verbatim to robots.txt)</span>
-          </div>
-
-          <div class="mt-2 mb-3">
-            <label class="ab-label">Additional user-agent blocks</label>
-            <textarea
-              v-model="s.robots_custom_scrapers" data-ab-field="robots_custom_scrapers"
-              class="ab-input font-monospace" rows="4"
-              placeholder="User-agent: CustomBot&#10;Disallow: /"
-            ></textarea>
-            <div class="ab-help mt-1">
-              For bots not in the checkbox list above. One
-              <code>User-agent:</code> + <code>Disallow:</code> pair per bot.
-            </div>
-          </div>
-
-          <div>
-            <label class="ab-label">Free-form rules</label>
-            <textarea
-              v-model="s.robots_custom_rules" data-ab-field="robots_custom_rules"
-              class="ab-input font-monospace" rows="4"
-              placeholder="Sitemap: https://example.com/sitemap.xml&#10;Crawl-delay: 10"
-            ></textarea>
-            <div class="ab-help">
-              Anything else you want in robots.txt — sitemap lines, crawl-delay,
-              host directives, comments…
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Section: AI Crawler Rules (Free — consolidated in Task #463) ── -->
-    <div class="ab-card mb-3">
-      <div class="ab-card-header">
-        AI Crawler Rules
-      </div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-3">
-          <input
-            v-model="s.ai_crawlers_enabled" data-ab-field="ai_crawlers_enabled"
-            true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input" id="aeo-crawlers-enabled"
-          />
-          <label class="ab-check__label" for="aeo-crawlers-enabled">Enable per-bot rules</label>
-        </div>
-        <div class="ab-help mb-3">
-          Control which AI engines may crawl your content. Default = follow global robots.txt rules.
-        </div>
-
-        <template v-if="s.ai_crawlers_enabled === '1'">
-          <!-- Task #482 — page-level default policy for crawlers without
-               an explicit per-bot rule. Replaces the per-row "Default"
-               option, which was unclear to admins. -->
-          <div class="ab-default-policy mb-3" data-ab-field="aeo_crawler_default_policy">
-            <div class="ab-default-policy__label">Default policy for unspecified crawlers</div>
-            <div class="ab-radio-group" role="radiogroup" aria-label="Default policy for unspecified crawlers">
-              <label class="ab-radio">
-                <input type="radio" v-model="s.aeo_crawler_default_policy" value="allow" />
-                <span>Allow all</span>
-              </label>
-              <label class="ab-radio">
-                <input type="radio" v-model="s.aeo_crawler_default_policy" value="block" />
-                <span>Block all</span>
-              </label>
-            </div>
-            <div class="ab-help">
-              Crawlers not given an explicit Allow or Block below will use this default.
-            </div>
-          </div>
-
-          <div class="ab-bot-list" data-ab-field="crawler_bot_rules">
-            <div
-              v-for="bot in BOTS" :key="bot.id"
-              class="ab-bot-row"
-            >
-              <div class="ab-bot-info">
-                <span class="ab-bot-name">{{ bot.label }}</span>
-                <span class="ab-bot-company">{{ bot.company }}</span>
-              </div>
-              <div class="ab-radio-group ab-bot-radio-group" role="radiogroup" :aria-label="bot.label + ' policy'">
-                <label class="ab-radio">
-                  <input type="radio" :name="'bot-' + bot.id" :value="'allow'" v-model="botRules[bot.id]" />
-                  <span>Allow</span>
-                </label>
-                <label class="ab-radio">
-                  <input type="radio" :name="'bot-' + bot.id" :value="'block'" v-model="botRules[bot.id]" />
-                  <span>Block</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="ab-sec mt-3">Custom Rules <span style="opacity:.5;font-weight:400">(appended verbatim after the per-bot section above)</span></div>
-          <textarea
-            v-model="s.crawler_rules" data-ab-field="crawler_rules"
-            class="ab-input font-monospace" rows="5"
-            placeholder="User-agent: CCBot&#10;Disallow: /"
-          ></textarea>
-          <div class="ab-help mt-1">
-            One block per bot. Format: <code>User-agent: Name</code> then <code>Disallow: /path</code> or <code>Allow: /path</code>.
-            Use this for bots not in the list above (Common Crawl, Wayback Machine, social previews, …).
-          </div>
-        </template>
-      </div>
-    </div>
-
     <!-- ── Section: IndexNow (Pro — gated via ProGate registry) ── -->
     <div class="ab-card mb-3">
       <div class="ab-card-header">IndexNow — Instant Search Indexing</div>
@@ -375,41 +224,9 @@
 
 <script>
 // Legacy tier gating for this tab has been retired
-// (registry keys: section:aeo.llms_full, .crawler_rules, .indexnow, .markdown).
+// (registry keys: section:aeo.llms_full, .indexnow, .markdown).
 // No local isPro check or :disabled wiring is required here.
 import TranslationExpander from '../components/TranslationExpander.vue'
-
-const SEO_SCRAPERS = [
-  { key: 'scraper_ahrefsbot',      label: 'Ahrefs',          agent: 'AhrefsBot' },
-  { key: 'scraper_semrushbot',     label: 'Semrush',         agent: 'SemrushBot' },
-  { key: 'scraper_dotbot',         label: 'Dotbot',          agent: 'DotBot' },
-  { key: 'scraper_mj12bot',        label: 'Majestic',        agent: 'MJ12bot' },
-  { key: 'scraper_blexbot',        label: 'BLEXBot',         agent: 'BLEXBot' },
-  { key: 'scraper_rogerbot',       label: 'Moz',             agent: 'rogerbot' },
-  { key: 'scraper_screamingfrog',  label: 'Screaming Frog',  agent: 'Screaming Frog SEO Spider' },
-  { key: 'scraper_sitebulb',       label: 'Sitebulb',        agent: 'Sitebulb' },
-  { key: 'scraper_siteauditor',    label: 'SE Ranking',      agent: 'SiteAuditBot' },
-  { key: 'scraper_serpstatbot',    label: 'Serpstat',        agent: 'SerpstatBot' },
-  { key: 'scraper_bytespider',     label: 'Bytespider',      agent: 'Bytespider' },
-  { key: 'scraper_petalbot',       label: 'PetalBot',        agent: 'PetalBot' },
-]
-
-const BOTS = [
-  { id: 'gptbot',        label: 'GPTBot',              company: 'OpenAI' },
-  { id: 'claudebot',     label: 'ClaudeBot',           company: 'Anthropic' },
-  { id: 'perplexitybot', label: 'PerplexityBot',       company: 'Perplexity' },
-  { id: 'geminibot',     label: 'Google-Extended',     company: 'Google (Gemini)' },
-  { id: 'bingbot',       label: 'Bingbot',             company: 'Microsoft' },
-  { id: 'facebookbot',   label: 'FacebookBot',         company: 'Meta' },
-  { id: 'applebot',      label: 'Applebot-Extended',   company: 'Apple' },
-  { id: 'duckassistbot', label: 'DuckAssistBot',       company: 'DuckDuckGo' },
-  { id: 'youbot',        label: 'YouBot',              company: 'You.com' },
-]
-
-// Task #482 — per-bot rule starts unspecified ('') so the page-level
-// default policy applies. Legacy 'default' values are normalized to '' on
-// load so the Allow/Block radios render as unselected (= "follow default").
-const DEFAULT_BOT_RULES = Object.fromEntries(BOTS.map((b) => [b.id, '']))
 
 export default {
   name: 'AeoTab',
@@ -425,38 +242,9 @@ export default {
     try { faqItems = JSON.parse(this.s.llmstxt_faq_items || '[]') } catch { /**/ }
     if (!Array.isArray(faqItems)) faqItems = []
 
-    let botRules = {}
-    try { botRules = JSON.parse(this.s.crawler_bot_rules || '{}') } catch { /**/ }
-
-    // Task #482 — normalize per-bot values for the new Allow/Block radio UI:
-    //   'allow' / 'block'  → keep as-is
-    //   'disallow'         → 'block' (legacy synonym still honoured by the builder)
-    //   'default' / other  → '' (radios unselected → follow page-level policy)
-    for (const k of Object.keys(botRules)) {
-      const v = String(botRules[k] ?? '').toLowerCase().trim()
-      if (v === 'allow' || v === 'block') {
-        botRules[k] = v
-      } else if (v === 'disallow') {
-        botRules[k] = 'block'
-      } else {
-        botRules[k] = ''
-      }
-    }
-
-    // Task #482 — page-level default policy: backfill 'allow' when missing
-    // so existing installs that never set the new key behave as before.
-    if (typeof this.s.aeo_crawler_default_policy === 'undefined'
-        || this.s.aeo_crawler_default_policy === null
-        || this.s.aeo_crawler_default_policy === '') {
-      this.s.aeo_crawler_default_policy = 'allow'
-    }
-
     return {
-      BOTS,
-      SEO_SCRAPERS,
       customPages,
       faqItems,
-      botRules: { ...DEFAULT_BOT_RULES, ...botRules },
     }
   },
 
@@ -467,10 +255,6 @@ export default {
     },
     faqItems: {
       handler(v) { this.s.llmstxt_faq_items = JSON.stringify(v) },
-      deep: true,
-    },
-    botRules: {
-      handler(v) { this.s.crawler_bot_rules = JSON.stringify(v) },
       deep: true,
     },
   },
@@ -518,7 +302,7 @@ export default {
 .ab-upgrade-bar a { color: #0d6efd; }
 [data-bs-theme=dark] .ab-upgrade-bar { background: #2a2000; border-top-color: #4a3800; }
 
-/* Task #473 — robots.txt + AEO inputs must be readable in dark mode.
+/* Task #473 — AEO inputs must be readable in dark mode.
    Joomla's Bootstrap data-bs-theme=dark variant doesn't always reach our
    custom `.ab-input` / `.ab-select` classes, so force theme-safe colours. */
 [data-bs-theme=dark] .ab-input,
@@ -533,34 +317,4 @@ export default {
   background-color: #21262d !important;
   border-color: #388bfd !important;
 }
-.ab-scraper-box { transition: border-color .15s, background .15s; cursor: default; }
-.ab-scraper-blocked { background: rgba(220,53,69,.06); border-color: rgba(220,53,69,.3) !important; }
-[data-bs-theme=dark] .ab-scraper-blocked { background: rgba(220,53,69,.12); border-color: rgba(220,53,69,.4) !important; }
-details > summary { list-style: none; }
-details > summary::-webkit-details-marker { display: none; }
-.ab-bot-list { display: flex; flex-direction: column; gap: .25rem; }
-.ab-bot-row {
-  display: flex; align-items: center; gap: 1rem;
-  padding: .4rem .5rem; border-bottom: 1px solid var(--border-color, #dee2e6); color: var(--body-color, #212529);
-}
-.ab-bot-row:last-child { border-bottom: none; }
-.ab-bot-info { flex: 1; }
-.ab-bot-name    { font-weight: 500; font-size: .875rem; display: block; color: var(--body-color, #212529); }
-.ab-bot-company { font-size: .75rem; color: var(--secondary-color, #6c757d); }
-.ab-bot-select  { width: 110px; }
-
-/* Task #482 — Allow/Block radio groups for AI crawler rules. */
-.ab-radio-group { display: inline-flex; gap: .75rem; flex-wrap: wrap; }
-.ab-radio { display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; font-size: .875rem; color: var(--body-color, #212529); margin: 0; }
-.ab-radio input[type=radio] { margin: 0; }
-.ab-default-policy {
-  padding: .6rem .75rem;
-  border: 1px solid var(--border-color, #dee2e6);
-  border-radius: 6px;
-  background: var(--secondary-bg, #f8f9fa);
-}
-.ab-default-policy__label { font-weight: 500; margin-bottom: .35rem; color: var(--body-color, #212529); }
-[data-bs-theme=dark] .ab-default-policy { background: #1a1d21; border-color: #2d3338; }
-[data-bs-theme=dark] .ab-radio { color: #e6edf3; }
-.ab-bot-radio-group { min-width: 150px; justify-content: flex-end; }
 </style>

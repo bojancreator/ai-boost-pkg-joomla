@@ -1,6 +1,6 @@
-# Schema.org Tab — Structured Data, FAQ & Events
+# Schema.org — Structured Data, FAQ & Events
 
-The **Schema.org** tab controls the structured data output JoomlaBoost injects into every page. Structured data is machine-readable information formatted as JSON-LD that search engines and AI assistants use to understand and categorize your content.
+The **Schema.org** settings control the structured data output AI Boost for Joomla injects into every page. Structured data is machine-readable information formatted as JSON-LD that search engines and AI assistants use to understand and categorize your content.
 
 ---
 
@@ -9,7 +9,7 @@ The **Schema.org** tab controls the structured data output JoomlaBoost injects i
 **Field:** `enable_schema`  
 **Default:** Yes
 
-Master toggle for all Schema.org output. When **Yes**, JoomlaBoost injects a `<script type="application/ld+json">` block in the `<head>` of every page.
+Master toggle for all Schema.org output. When **Yes**, AI Boost for Joomla injects a `<script type="application/ld+json">` block in the `<head>` of every page.
 
 Disable only if you have another plugin managing Schema.org and want to avoid conflicts.
 
@@ -24,7 +24,7 @@ Determines the primary Schema.org type used for your site-wide Organization bloc
 
 | Option | When to use |
 |--------|-------------|
-| **Auto-detect (recommended)** | JoomlaBoost selects the best type based on your other settings |
+| **Auto-detect (recommended)** | AI Boost for Joomla selects the best type based on your other settings |
 | **Organization (generic)** | Companies, agencies, services, non-profits without a fixed physical location |
 | **LocalBusiness (physical location)** | Any brick-and-mortar business customers visit in person |
 | **Hotel (accommodation)** | Hotels, hostels, bed & breakfasts, vacation rentals, camping sites |
@@ -101,7 +101,7 @@ FAQ Schema enables **FAQ rich results** in Google Search — expandable Q&A entr
 **Field:** `faq_auto_detect`  
 **Default:** Yes
 
-When **Yes**, JoomlaBoost scans each article's rendered HTML for common FAQ markup patterns:
+When **Yes**, AI Boost for Joomla scans each article's rendered HTML for common FAQ markup patterns:
 
 | Pattern detected | HTML structure |
 |------------------|----------------|
@@ -115,11 +115,9 @@ When a pattern is detected, a `FAQPage` JSON-LD block is injected automatically 
 
 ---
 
-## Manual FAQ — Developer / Agency Feature
+## Manual FAQ
 
-> **🔒 Requires Developer or Agency license.**  
 > **Visible when:** Show Advanced Options = Yes  
-> Starter and unlicensed users see an upgrade notice instead.
 
 ### Enable Manual FAQs
 
@@ -164,10 +162,7 @@ Controls on which pages the manually entered FAQ is injected:
 
 ---
 
-## Events Schema — Developer / Agency Feature
-
-> **🔒 Requires Developer or Agency license.**  
-> Starter and unlicensed users see an upgrade notice instead.
+## Events Schema
 
 Events with proper `Event` Schema are eligible for **Google's Event rich results** — high-visibility placement in the search results events carousel, especially on mobile. They also appear in Google Maps and AI Overviews.
 
@@ -176,7 +171,7 @@ Events with proper `Event` Schema are eligible for **Google's Event rich results
 **Field:** `schema_events_enabled`  
 **Default:** No
 
-When **Yes**, JoomlaBoost injects `Event` JSON-LD blocks based on the JSON you define per language.
+When **Yes**, AI Boost for Joomla injects `Event` JSON-LD blocks based on the JSON you define per language.
 
 ### Events JSON Format
 
@@ -224,7 +219,7 @@ After saving your Schema.org settings, validate your output with these tools:
 
 ---
 
-## Recommended Settings (Schema.org Tab)
+## Recommended Settings
 
 | Setting | Recommended value |
 |---------|------------------|
@@ -233,11 +228,11 @@ After saving your Schema.org settings, validate your output with these tools:
 | FAQ Auto-Detect | Yes |
 | Star Rating (Hotel) | Set accurately |
 | Check-in / Check-out (Hotel) | Set accurately |
-| Manual FAQ | Use for homepage or site-wide FAQs *(Developer/Agency)* |
-| Events | Enable if you run events *(Developer/Agency)* |
+| Manual FAQ | Use for homepage or site-wide FAQs |
+| Events | Enable if you run events |
 
 ---
 
-*← [Organization Tab](organization.md) | [Documentation Index](index.md) | [Sitemap Tab →](sitemap.md)*
+*← [Organization](organization.md) | [Documentation Index](index.md) | [Sitemap →](sitemap.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla v0.73.15 — © 2025–2026 AI Boost (aiboostnow.com).*

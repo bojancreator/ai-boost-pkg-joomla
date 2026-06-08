@@ -14,6 +14,23 @@ Latest version is always at the top. Format follows [Keep a Changelog](https://k
 
 ---
 
+## v0.73.15 — 2026-06-05
+
+### Changed
+- **Project baseline reconciled for release readiness** — ROADMAP/next-steps tracking now treats `0.73.14` as the current truth, records completed Help, Schema Type, and Admin IA work, and points the next active slice at release-readiness / PHP compatibility.
+- **Admin IA duplicate cleanup** — robots.txt, SEO scraper, and AI crawler controls now live only under Crawlers & Robots; canonical URL and 404 monitoring controls now live only under Technical SEO; Sitemap and AEO no longer duplicate those settings.
+- **Manifest ownership aligned with the v0.5 IA** — crawler/robots settings are manifest-owned by `crawlers`, canonical/404 settings are manifest-owned by `technical`, and derived Vue partials were regenerated in the matching generated folders.
+- **Documentation/product wording cleanup** — priority public docs now use AI Boost for Joomla, one-product license/support wording, `0.73.15`, current admin areas, and the current ownership split for AI Visibility, Crawlers & Robots, and Technical SEO.
+
+### Verified
+- Codacy CLI analysis passed for modified Vue/PHP/Python files; only pre-existing size/complexity advisory warnings remain in large utility/test files.
+- `python scripts/codegen-from-manifest.py --check` passed with existing advisory Health gaps only.
+- `php vendor/bin/phpunit --configuration phpunit.xml --filter SettingsSaveDefinitionTest --testdox` passed (`18 tests`, `349 assertions`).
+- `pnpm run build` passed in `component/com_aiboost/vue-admin` and rebuilt `admin-vue.js`.
+- Targeted docs grep passed for stale product/tier/tab wording in the priority docs; remaining keyword hits are contextual Facebook Debugger and generic agency wording, not Free/Pro or legacy product copy.
+
+---
+
 ## v0.73.14 — 2026-06-05
 
 ### Changed

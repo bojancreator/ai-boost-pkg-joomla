@@ -1,7 +1,7 @@
 <?php
 /**
  * AI Boost — Core (free) manifest.
- * Fields shared across the General tab and license/dev section.
+ * Fields shared across core settings, technical SEO, and crawler policy.
  */
 
 defined('_JEXEC') or die;
@@ -49,17 +49,7 @@ return [
     ],
     [
         'key' => 'manual_domain', 'tab' => 'general', 'section' => 'domain',
-        'label' => 'Manual Domain', 'type' => 'url', 'default' => '',
-        'tier' => 'free', 'sku' => 'core',
-    ],
-    [
-        'key' => 'enable_robots', 'tab' => 'general', 'section' => 'robots',
-        'label' => 'Enable robots.txt management', 'type' => 'toggle', 'default' => '1',
-        'tier' => 'free', 'sku' => 'core',
-    ],
-    [
-        'key' => 'robots_auto_sync', 'tab' => 'general', 'section' => 'robots',
-        'label' => 'Auto-sync physical robots.txt file', 'type' => 'toggle', 'default' => '0',
+        'label' => 'Manual Domain', 'type' => 'text', 'default' => '',
         'tier' => 'free', 'sku' => 'core',
     ],
 
@@ -135,7 +125,19 @@ return [
         'tier' => 'free', 'sku' => 'core',
     ],
 
-    // ── Sitemap, canonical, and crawl hygiene (Free) ─────────────────
+    // ── Crawler policy (Free) ────────────────────────────────────────
+    [
+        'key' => 'enable_robots', 'tab' => 'crawlers', 'section' => 'robots',
+        'label' => 'Enable robots.txt management', 'type' => 'toggle', 'default' => '1',
+        'tier' => 'free', 'sku' => 'core',
+    ],
+    [
+        'key' => 'robots_auto_sync', 'tab' => 'crawlers', 'section' => 'robots',
+        'label' => 'Auto-sync physical robots.txt file', 'type' => 'toggle', 'default' => '0',
+        'tier' => 'free', 'sku' => 'core',
+    ],
+
+    // ── Sitemap (Free) ───────────────────────────────────────────────
     [
         'key' => 'enable_sitemap', 'tab' => 'sitemap', 'section' => 'xml',
         'label' => 'Enable XML Sitemap', 'type' => 'toggle', 'default' => '1',
@@ -200,18 +202,19 @@ return [
         'label' => 'Ping Bing on sitemap request', 'type' => 'toggle', 'default' => '1',
         'tier' => 'free', 'sku' => 'core',
     ],
+    // ── Technical SEO (Free) ─────────────────────────────────────────
     [
-        'key' => 'redirect_404_log_enabled', 'tab' => 'sitemap', 'section' => 'redirects',
+        'key' => 'redirect_404_log_enabled', 'tab' => 'technical', 'section' => 'redirects',
         'label' => 'Log 404 Errors', 'type' => 'toggle', 'default' => '1',
         'tier' => 'free', 'sku' => 'core',
     ],
     [
-        'key' => 'enable_canonical', 'tab' => 'sitemap', 'section' => 'canonical',
+        'key' => 'enable_canonical', 'tab' => 'technical', 'section' => 'canonical',
         'label' => 'Enable canonical URL management', 'type' => 'toggle', 'default' => '1',
         'tier' => 'free', 'sku' => 'core',
     ],
     [
-        'key' => 'canonical_url_map', 'tab' => 'sitemap', 'section' => 'canonical',
+        'key' => 'canonical_url_map', 'tab' => 'technical', 'section' => 'canonical',
         'label' => 'Canonical URL Map', 'type' => 'textarea', 'default' => '',
         'tier' => 'free', 'sku' => 'core',
     ],

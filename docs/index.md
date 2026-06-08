@@ -1,6 +1,6 @@
 # AI Boost for Joomla — Documentation
 
-**Version:** 0.27.0  
+**Version:** 0.73.15
 **Compatible with:** Joomla 5.x, 6.x | PHP 8.1+  
 **Publisher:** AI Boost — [aiboostnow.com](https://aiboostnow.com)
 
@@ -8,7 +8,7 @@
 
 ## What is AI Boost for Joomla?
 
-**AI Boost for Joomla** is an all-in-one SEO and AEO (Answer Engine Optimization) system plugin for Joomla. It automatically generates structured data, XML sitemaps, OpenGraph tags, AI-readable signals, and analytics integrations — everything in one place, with no coding required.
+**AI Boost for Joomla** is an all-in-one SEO and AEO (Answer Engine Optimization) package for Joomla. It automatically generates structured data, XML sitemaps, OpenGraph tags, AI-readable signals, crawler rules, and analytics integrations in one admin experience, with no coding required.
 
 **Key benefits:**
 - Get found by Google, Bing, ChatGPT, Perplexity, and Google AI Overviews
@@ -21,23 +21,19 @@
 
 ---
 
-## License Tiers
+## License Model
 
-| Feature | Free | Developer | Agency |
-|---------|:----:|:---------:|:------:|
-| Schema.org, Sitemap, OpenGraph, Robots.txt | ✓ | ✓ | ✓ |
-| GA4, GTM, GSC Verification | ✓ | ✓ | ✓ |
-| FAQ Auto-detect | ✓ | ✓ | ✓ |
-| Meta Pixel | ✓ | ✓ | ✓ |
-| 8 Specialized Site Types | — | ✓ | ✓ |
-| Advanced Business Hours | — | ✓ | ✓ |
-| IndexNow | — | ✓ | ✓ |
-| llms.txt | — | ✓ | ✓ |
-| Manual FAQ (multilingual) | — | ✓ | ✓ |
-| Events Schema | — | ✓ | ✓ |
-| Number of sites | 1 | 5 | Unlimited |
+AI Boost for Joomla is distributed as one product. A license keeps your site eligible for product updates and support; the installed package exposes the full admin workflow without Free/Pro feature-lock panels.
 
-> Features marked **Developer / Agency** display an upgrade notice in the admin panel for free users.
+| Area | Included |
+| --- | --- |
+| Structured data | Schema.org JSON-LD, FAQ detection, Events, LocalBusiness and Hotel support |
+| Search discovery | XML sitemap, hreflang, canonical controls, 404 monitoring, IndexNow |
+| AI visibility | `llms.txt`, `llms-full.txt`, Markdown Pages, AI Signals |
+| Crawler policy | Dynamic `robots.txt`, scraper rules, AI crawler rules |
+| Social and analytics | OpenGraph, Twitter Cards, GA4, GTM, GSC verification, Meta Pixel |
+
+See [License & Support](license-plans.md) for activation, renewal, and support details.
 
 ---
 
@@ -45,16 +41,21 @@
 
 ### Getting Started
 - [Getting Started Guide](getting-started.md) — Installation, license activation, first 5-minute setup
-- [License Plans & Feature Gating](license-plans.md) — Tiers, what's included, how to activate
+- [License & Support](license-plans.md) — Product license, updates, support, and activation
 
-### Admin Panel — Tab by Tab
-- [Plugin Tab](plugin-tab.md) — Quick Setup, Vertical Presets, Domain, Robots.txt
-- [Organization Tab](organization.md) — Business identity, contact info, social links, location
-- [Schema.org Tab](schema-org.md) — Structured data, FAQ Schema, Events Schema
-- [Sitemap Tab](sitemap.md) — XML Sitemap, Hreflang tags
-- [Social & Meta Tab](social-meta.md) — OpenGraph, Twitter Cards, Meta Pixel
-- [Analytics & Indexing Tab](analytics-indexing.md) — GSC, GA4, GTM, IndexNow, LLMs.txt
-- [Debug & Performance Tab](debug-performance.md) — Caching, Debug mode, Staging badge
+### Admin Panel — Main Areas
+- Setup — license, quick setup, vertical presets, domain and environment
+- SEO — organization, Schema.org, XML sitemap, hreflang, social metadata, analytics
+- AI Visibility — `llms.txt`, `llms-full.txt`, Markdown Pages, AI Signals, IndexNow
+- Tools — Crawlers & Robots, Technical SEO, debug, cache and verification tools
+- Advanced — compatibility, diagnostics and power-user controls
+
+### Feature Guides
+- [Organization](organization.md) — Business identity, contact info, social links, location
+- [Schema.org](schema-org.md) — Structured data, FAQ Schema, Events Schema
+- [Sitemap](sitemap.md) — XML Sitemap and Hreflang tags
+- [Social & Meta](social-meta.md) — OpenGraph, Twitter Cards, Meta Pixel
+- [Analytics & Indexing](analytics-indexing.md) — GSC, GA4, GTM, IndexNow
 
 ### Guides
 - [Vertical Presets Guide](vertical-presets.md) — Hotel, Restaurant, Blog, E-commerce, Generic presets
@@ -73,13 +74,13 @@
 After installation and initial setup, verify these URLs work:
 
 | URL | Expected result |
-|-----|-----------------|
+| --- | --- |
 | `yoursite.com/sitemap.xml` | XML sitemap with your pages |
 | `yoursite.com/robots.txt` | AI-aware robots.txt with `Allow:` rules |
-| `yoursite.com/llms.txt` | AI-readable site summary *(Developer/Agency)* |
+| `yoursite.com/llms.txt` | AI-readable site summary |
 | View source → `application/ld+json` | Schema.org JSON-LD block |
 
 ---
 
-*AI Boost for Joomla v0.27.0 — © 2025–2026 AI Boost (aiboostnow.com). All rights reserved.*  
-*[aiboostnow.com/docs](https://aiboostnow.com/docs) | info@aiboostnow.com*
+*AI Boost for Joomla v0.73.15 — © 2025–2026 AI Boost (aiboostnow.com). All rights reserved.*
+*[Documentation](https://aiboostnow.com/docs) | [info@aiboostnow.com](mailto:info@aiboostnow.com)*

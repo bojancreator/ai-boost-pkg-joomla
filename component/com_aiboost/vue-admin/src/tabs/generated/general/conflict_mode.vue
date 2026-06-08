@@ -10,9 +10,9 @@
       <label class="ab-label" for="ab-gen-conflict-mode">Conflict Resolution Mode</label>
       <select v-model="s.conflict_mode" data-ab-field="conflict_mode"
               class="ab-select" id="ab-gen-conflict-mode">
-        <option value="cooperative">Cooperative â€” skip our tag when one exists (recommended)</option>
-        <option value="aggressive">Aggressive â€” always emit our tag (may produce duplicates)</option>
-        <option value="off">Off â€” disable conflict handling entirely</option>
+        <option value="cooperative">Cooperative — skip our tag when one exists (recommended)</option>
+        <option value="aggressive">Aggressive — always emit our tag (may produce duplicates)</option>
+        <option value="off">Off — disable conflict handling entirely</option>
       </select>
       <div class="ab-help">How AI Boost behaves when another extension is already emitting the same meta tag, JSON-LD block, or analytics snippet.</div>
     </div>

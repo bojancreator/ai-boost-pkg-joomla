@@ -1,7 +1,7 @@
 <?php
 /**
- * AI Boost — AEO manifest (llms.txt, robots.txt, AI crawler rules, IndexNow,
- * Markdown pages, AI signals).
+ * AI Boost — AEO manifest (llms.txt, IndexNow, Markdown pages, AI signals,
+ * crawler policy).
  */
 
 defined('_JEXEC') or die;
@@ -92,12 +92,12 @@ return [
     ],
 
     // ── AI crawler rules (Free, consolidated in Task #463) ───────
-    // Single card in AeoTab.vue: master toggle + per-bot allow/block/default
+    // Single card in CrawlersRobotsTab.vue: master toggle + per-bot allow/block/default
     // matrix (`crawler_bot_rules` JSON map) + free-form custom robots.txt
     // textarea (`crawler_rules`). All three keys are Free.
     [
         'key'           => 'ai_crawlers_enabled',
-        'tab'           => 'aeo',
+        'tab'           => 'crawlers',
         'section'       => 'crawlers',
         'label'         => 'Enable AI crawler rules',
         'type'          => 'toggle',
@@ -110,7 +110,7 @@ return [
             'message'           => 'AI Crawler Rules are active — per-bot allow/block directives are appended to robots.txt.',
             'expected_artifact' => 'robots.txt section "# AI Crawler Rules — AI Boost (per-bot configuration)" with User-agent + Allow/Disallow blocks',
             'fix_actions'       => [
-                ['label' => 'Open AEO tab → AI Crawler Rules', 'target_tab' => 'aeo', 'target_field' => 'ai_crawlers_enabled'],
+                ['label' => 'Open Crawlers & Robots → AI Crawler Rules', 'target_tab' => 'crawlers', 'target_field' => 'ai_crawlers_enabled'],
             ],
         ],
     ],
@@ -118,7 +118,7 @@ return [
     // rule (Task #482). Replaces the legacy per-row "Default" select option.
     [
         'key'         => 'aeo_crawler_default_policy',
-        'tab'         => 'aeo',
+        'tab'         => 'crawlers',
         'section'     => 'crawlers',
         'label'       => 'Default policy for unspecified crawlers',
         'type'        => 'select',
@@ -129,7 +129,7 @@ return [
     ],
     [
         'key'         => 'crawler_bot_rules',
-        'tab'         => 'aeo',
+        'tab'         => 'crawlers',
         'section'     => 'crawlers',
         'label'       => 'Per-bot AI crawler rules',
         'type'        => 'json',
@@ -139,7 +139,7 @@ return [
     ],
     [
         'key'         => 'crawler_rules',
-        'tab'         => 'aeo',
+        'tab'         => 'crawlers',
         'section'     => 'crawlers',
         'label'       => 'Custom robots.txt rules',
         'type'        => 'textarea',
@@ -151,7 +151,7 @@ return [
     // ── robots.txt scraper controls (Free) ────────────────────────
     [
         'key'         => 'robots_custom_scrapers',
-        'tab'         => 'aeo',
+        'tab'         => 'crawlers',
         'section'     => 'robots',
         'label'       => 'Additional user-agent blocks',
         'type'        => 'textarea',
@@ -161,7 +161,7 @@ return [
     ],
     [
         'key'         => 'robots_custom_rules',
-        'tab'         => 'aeo',
+        'tab'         => 'crawlers',
         'section'     => 'robots',
         'label'       => 'Free-form robots.txt rules',
         'type'        => 'textarea',
@@ -170,62 +170,62 @@ return [
         'sku'         => 'aeo',
     ],
     [
-        'key' => 'scraper_ahrefsbot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_ahrefsbot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block AhrefsBot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_semrushbot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_semrushbot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block SemrushBot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_dotbot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_dotbot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block DotBot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_mj12bot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_mj12bot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block MJ12bot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_blexbot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_blexbot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block BLEXBot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_rogerbot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_rogerbot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block rogerbot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_screamingfrog', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_screamingfrog', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block Screaming Frog SEO Spider', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_sitebulb', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_sitebulb', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block Sitebulb', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_siteauditor', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_siteauditor', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block SiteAuditBot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_serpstatbot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_serpstatbot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block SerpstatBot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_bytespider', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_bytespider', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block Bytespider', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],
     [
-        'key' => 'scraper_petalbot', 'tab' => 'aeo', 'section' => 'robots_scrapers',
+        'key' => 'scraper_petalbot', 'tab' => 'crawlers', 'section' => 'robots_scrapers',
         'label' => 'Block PetalBot', 'type' => 'toggle', 'default' => '0',
         'tier' => 'free', 'sku' => 'aeo',
     ],

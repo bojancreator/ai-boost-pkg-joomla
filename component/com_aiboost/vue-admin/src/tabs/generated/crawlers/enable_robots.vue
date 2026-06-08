@@ -1,23 +1,23 @@
 <!--
   AI Boost — auto-generated form field.
-  Source : component/lib/src/Manifest/aeo.php (key=ai_crawlers_enabled)
+  Source : component/lib/src/Manifest/crawlers.php (key=enable_robots)
   Codegen: scripts/codegen-from-manifest.py
   DO NOT EDIT — re-run codegen to regenerate.
 -->
 <template>
   <div class="ab-gen-field">
     <div class="ab-check ab-toggle mb-3">
-      <input v-model="s.ai_crawlers_enabled" data-ab-field="ai_crawlers_enabled"
+      <input v-model="s.enable_robots" data-ab-field="enable_robots"
              true-value="1" false-value="0"
-             type="checkbox" class="ab-toggle__input" id="ab-gen-ai-crawlers-enabled" />
-      <label class="ab-check__label" for="ab-gen-ai-crawlers-enabled">Enable AI crawler rules</label>
+             type="checkbox" class="ab-toggle__input" id="ab-gen-enable-robots" />
+      <label class="ab-check__label" for="ab-gen-enable-robots">Enable robots.txt management</label>
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'GeneratedAiCrawlersEnabled',
+  name: 'GeneratedEnableRobots',
   props: { s: { type: Object, required: true } },
 }
 </script>

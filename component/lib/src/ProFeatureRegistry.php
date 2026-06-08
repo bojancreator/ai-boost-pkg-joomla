@@ -77,7 +77,7 @@ final class ProFeatureRegistry
             // ── AEO tab ─────────────────────────────────────────────────
             ['key' => 'section:aeo.llms_full',      'tab' => 'aeo',      'label' => 'llms-full.txt full-site index',     'lock_reason' => 'pro', 'scope' => 'section'],
             // Task #463: AI Crawler Rules consolidated into a single Free
-            // card in AeoTab.vue. `crawler_bot_rules`, `ai_crawlers_enabled`
+            // card in CrawlersRobotsTab.vue. `crawler_bot_rules`, `ai_crawlers_enabled`
             // and `crawler_rules` are all Free now — no Pro registry entry.
             ['key' => 'section:aeo.indexnow',       'tab' => 'aeo',      'label' => 'IndexNow instant indexing',         'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'section:aeo.markdown',       'tab' => 'aeo',      'label' => 'Markdown Pages for AI agents',      'lock_reason' => 'pro', 'scope' => 'section'],

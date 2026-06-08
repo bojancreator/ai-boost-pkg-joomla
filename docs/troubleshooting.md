@@ -32,14 +32,14 @@ This page covers the most frequently reported issues with AI Boost for Joomla an
 
 **Causes and fixes:**
 
-1. **Category filter active** — You selected specific categories in the Sitemap tab.  
-   *Fix:* Go to **Sitemap tab → Article Options → Select Categories** and clear the selection (leave empty = all categories).
+1. **Category filter active** — You selected specific categories in the Sitemap settings.
+   *Fix:* Go to **SEO → Sitemap → Article Options → Select Categories** and clear the selection (leave empty = all categories).
 
 2. **Articles excluded by ID** — IDs listed in the Exclude field.  
-   *Fix:* Go to **Sitemap tab → Advanced → Exclude Article IDs** and verify the list.
+   *Fix:* Go to **SEO → Sitemap → Advanced → Exclude Article IDs** and verify the list.
 
 3. **Max Articles limit reached** — Articles past the cap are excluded.  
-   *Fix:* Go to **Sitemap tab → Advanced → Max Articles** and set to `0` (unlimited).
+   *Fix:* Go to **SEO → Sitemap → Advanced → Max Articles** and set to `0` (unlimited).
 
 4. **Articles not published** — Unpublished articles are never included.  
    *Fix:* Verify article status in Content → Articles.
@@ -65,8 +65,8 @@ This page covers the most frequently reported issues with AI Boost for Joomla an
 ### Schema.org JSON-LD is not appearing in page source
 
 **Diagnosis steps:**
-1. Open AI Boost for Joomla settings → **Schema.org tab** → confirm **Enable Schema Markup = Yes**.
-2. Enable **Debug Mode** and **HTML Wrap Markers** in the **Debug tab** → Save.
+1. Open AI Boost for Joomla settings → **SEO → Schema.org** → confirm **Enable Schema Markup = Yes**.
+2. Enable **Debug Mode** and **HTML Wrap Markers** in **Tools → Debug & Performance** → Save.
 3. Visit the affected page → View Page Source → search for `AI Boost for Joomla`.
 4. If marked blocks appear with empty content, check the Organization Name is filled in.
 5. If no blocks appear at all, a conflicting plugin may be stripping `<script>` tags.
@@ -87,11 +87,11 @@ This page covers the most frequently reported issues with AI Boost for Joomla an
 **Common errors and fixes:**
 
 | Error | Fix |
-|-------|-----|
-| Missing `name` property | Fill in Organization Name (Organization tab) |
-| Missing `address` for LocalBusiness | Fill in Country Code and City (Organization tab) |
-| Missing `starRating` for Hotel | Set Star Rating in Schema.org tab |
-| `AggregateRating` must have `ratingCount` | Fill in Number of Reviews (Organization tab → Advanced) |
+| ------- | ----- |
+| Missing `name` property | Fill in Organization Name in **SEO → Organization** |
+| Missing `address` for LocalBusiness | Fill in Country Code and City in **SEO → Organization** |
+| Missing `starRating` for Hotel | Set Star Rating in **SEO → Schema.org** |
+| `AggregateRating` must have `ratingCount` | Fill in Number of Reviews in **SEO → Organization → Advanced** |
 | Event missing `startDate` | Ensure all events have `startDate` in ISO 8601 format |
 
 **Validation tool:** [search.google.com/test/rich-results](https://search.google.com/test/rich-results)
@@ -141,7 +141,7 @@ AI Boost for Joomla deduplicates its own output but cannot remove tags added by 
 **Cause:** Consent mode is set to YooTheme but the user has not accepted cookies.
 
 **Steps:**
-1. Confirm **Enable GA4 = Yes** in the Analytics tab.
+1. Confirm **Enable GA4 = Yes** in **Tools → Analytics**.
 2. Confirm the Measurement ID format is correct: `G-XXXXXXXXXX`.
 3. Check the **GA4 Consent Mode** setting:
    - If set to **YooTheme Pro 5**: GA4 only loads after the user accepts "Statistics" consent — this is correct behaviour.
@@ -171,7 +171,7 @@ Visit `yoursite.com/{your-api-key}.txt` in a browser. It should return your API 
 Open [Bing Webmaster Tools](https://www.bing.com/webmasters) → IndexNow → view recent submissions. If submissions appear but pages are still slow to index, the delay is on Bing's side — IndexNow is a suggestion, not a guarantee.
 
 **Check 3 — License tier:**
-IndexNow requires a Developer or Agency license. Verify your license tier is shown correctly in the Plugin tab.
+Verify that your license is active in the **Setup** area and that the IndexNow API key file is accessible.
 
 ---
 
@@ -181,10 +181,9 @@ IndexNow requires a Developer or Agency license. Verify your license tier is sho
 
 **Causes and fixes:**
 
-1. **Feature disabled** — Confirm **Enable LLMs.txt = Yes** in the Analytics tab.
-2. **License tier** — LLMs.txt requires Developer or Agency. Check your license badge.
-3. **SEF URLs** — Joomla's SEF URL routing must be enabled (Global Configuration → Site → SEF URLs = Yes).
-4. **Static file conflict** — If a physical `llms.txt` file exists in the root, delete it.
+1. **Feature disabled** — Confirm **Enable LLMs.txt = Yes** in **AI Visibility**.
+2. **SEF URLs** — Joomla's SEF URL routing must be enabled (Global Configuration → Site → SEF URLs = Yes).
+3. **Static file conflict** — If a physical `llms.txt` file exists in the root, delete it.
 
 ---
 
@@ -209,7 +208,7 @@ IndexNow requires a Developer or Agency license. Verify your license tier is sho
 **Cause:** Caching is disabled or the cache TTL is very low.
 
 **Fix:**
-1. Go to **Debug & Performance tab**.
+1. Go to **Tools → Debug & Performance**.
 2. Set **Enable Caching = Yes**.
 3. Set **Cache TTL = 3600** (or higher for stable sites).
 4. Click Save.
@@ -223,13 +222,13 @@ IndexNow requires a Developer or Agency license. Verify your license tier is sho
 If your issue is not listed here:
 
 | Channel | Details |
-|---------|---------|
+| --------- | --------- |
 | Documentation | [aiboostnow.com/docs](https://aiboostnow.com/docs) |
 | Support email | support@aiboostnow.com |
 | Response time | 1–3 business days |
 
 When contacting support, include:
-- AI Boost for Joomla version (visible in Plugin tab)
+- AI Boost for Joomla version (visible in the Setup area)
 - Joomla version (`yoursite.com/administrator` → bottom right corner)
 - PHP version (System → System Information)
 - Description of the issue and steps to reproduce
@@ -238,4 +237,4 @@ When contacting support, include:
 
 *← [Multilingual Sites](multilingual.md) | [Documentation Index](index.md) | [Compatibility Matrix →](compatibility.md)*
 
-*AI Boost for Joomla v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla v0.73.15 — © 2025–2026 AI Boost (aiboostnow.com).*

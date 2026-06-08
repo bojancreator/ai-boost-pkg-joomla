@@ -32,6 +32,14 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+# Force UTF-8 stdout/stderr so the ✓/✗ and box-drawing chars in build output
+# don't raise UnicodeEncodeError on a default Windows console (cp1252).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
+
 # ── Paths ──────────────────────────────────────────────────────────────────
 WORKSPACE    = Path(__file__).resolve().parent.parent
 COMPONENT    = WORKSPACE / "component"
@@ -296,11 +304,23 @@ def build_vue_admin() -> None:
         return
     print("  → Building Vue admin bundle ...")
     pnpm_bin = "pnpm.cmd" if os.name == "nt" else "pnpm"
-    result = _sp.run([pnpm_bin, "run", "build"], cwd=str(vue_dir), capture_output=True, text=True)
+    # --config.verify-deps-before-run=false skips pnpm's workspace-wide deps
+    # precheck. The vue-admin package only needs its own already-installed deps;
+    # without this, an unrelated broken sibling workspace package would abort the
+    # build before vite even runs.
+    result = _sp.run(
+        [pnpm_bin, "--config.verify-deps-before-run=false", "run", "build"],
+        cwd=str(vue_dir), capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
     if result.returncode != 0:
-        print(f"  [WARN] Vue build failed:\n{result.stderr}")
-    else:
-        print("  ✓ Vue admin bundle built")
+        sys.exit(
+            f"  ✗ Vue admin build FAILED (pnpm exit {result.returncode}) — refusing to ship a stale "
+            f"admin bundle.\n{result.stdout}\n{result.stderr}"
+        )
+    bundle = WORKSPACE / "component" / "com_aiboost" / "media" / "js" / "admin-vue.js"
+    if not bundle.exists() or bundle.stat().st_size == 0:
+        sys.exit(f"  ✗ Vue build reported success but {bundle} is missing/empty — aborting build.")
+    print(f"  ✓ Vue admin bundle built ({bundle.stat().st_size // 1024} KB)")
 
 
 def build_package_zip(version: str, dry_run: bool = False) -> Path:

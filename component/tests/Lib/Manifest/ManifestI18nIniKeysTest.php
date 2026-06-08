@@ -24,6 +24,8 @@ final class ManifestI18nIniKeysTest extends TestCase
         'aeo'      => 'aiboost_aeo',
         'og'       => 'aiboost_social',
         'social'   => 'aiboost_social',
+        'technical' => 'aiboost_core',
+        'crawlers' => 'aiboost_aeo',
         'hreflang' => 'aiboost_aeo',
         'code'     => 'aiboost_code',
         'core'     => 'aiboost_core',

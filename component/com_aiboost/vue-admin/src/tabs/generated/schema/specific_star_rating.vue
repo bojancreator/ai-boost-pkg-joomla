@@ -10,7 +10,12 @@
       <label class="ab-label" for="ab-gen-specific-star-rating">Star Rating</label>
       <select v-model="s.specific_star_rating" data-ab-field="specific_star_rating"
               class="ab-select" id="ab-gen-specific-star-rating">
-
+        <option value="">Not specified</option>
+        <option value="1">1 Star</option>
+        <option value="2">2 Stars</option>
+        <option value="3">3 Stars</option>
+        <option value="4">4 Stars</option>
+        <option value="5">5 Stars</option>
       </select>
     </div>
   </div>

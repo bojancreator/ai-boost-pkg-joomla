@@ -1,6 +1,6 @@
 <!--
   AI Boost — auto-generated form field.
-  Source : component/lib/src/Manifest/sitemap.php (key=redirect_404_log_enabled)
+  Source : component/lib/src/Manifest/technical.php (key=redirect_404_log_enabled)
   Codegen: scripts/codegen-from-manifest.py
   DO NOT EDIT — re-run codegen to regenerate.
 -->

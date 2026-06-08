@@ -52,6 +52,15 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Force UTF-8 stdout/stderr so the box-drawing chars and ✓/❌ emoji in the
+# progress output don't raise UnicodeEncodeError on a default Windows console
+# (cp1252). No-op where the stream is already UTF-8 or doesn't support reconfigure.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
+
 WORKSPACE   = Path(__file__).resolve().parent.parent
 COMPONENT   = WORKSPACE / "component"
 PLUGINS_DIR = COMPONENT / "plugins" / "system"
@@ -85,6 +94,8 @@ TAB_TO_FREE_DIR = {
     "aeo":      "aiboost_aeo",
     "og":       "aiboost_social",
     "social":   "aiboost_social",   # manifest uses tab=social for OG fields
+    "technical": "aiboost_core",
+    "crawlers": "aiboost_aeo",
     "hreflang": "aiboost_aeo",      # hreflang is rendered inside AEO tab today
     "code":     "aiboost_code",
     "core":     "aiboost_core",
@@ -94,6 +105,8 @@ TAB_TO_FREE_DIR = {
 # coverage check for complex types (json / media) the codegen can't emit.
 TAB_TO_VUE_FILES = {
     "general":  ["GeneralTab.vue"],
+    "technical": ["TechnicalSeoTab.vue"],
+    "crawlers": ["CrawlersRobotsTab.vue", "crawlers/RobotsManagementCard.vue", "crawlers/ScraperRulesCard.vue", "crawlers/AiCrawlerRulesCard.vue"],
     "org":      ["OrgTab.vue"],
     "schema":   ["SchemaTab.vue"],
     "aeo":      ["AeoTab.vue"],
@@ -123,7 +136,7 @@ def load_manifest() -> list[dict]:
         sys.exit(f"ERROR: {DUMP_PHP} not found")
     cmd = [php_binary(), str(DUMP_PHP)]
     try:
-        out = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        out = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", check=False)
     except PermissionError:
         if sys.platform != "win32":
             raise
@@ -131,6 +144,7 @@ def load_manifest() -> list[dict]:
             ["cmd.exe", "/d", "/s", "/c", subprocess.list2cmdline(cmd)],
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
     if out.returncode != 0:

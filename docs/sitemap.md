@@ -1,6 +1,6 @@
-# Sitemap Tab — XML Sitemap & Hreflang Tags
+# Sitemap — XML Sitemap & Hreflang Tags
 
-The **Sitemap** tab manages two closely related features: the dynamic XML sitemap that search engines and AI crawlers use to discover your content, and hreflang tags that tell search engines which language version of a page to show to each user.
+The **Sitemap** settings manage two closely related features: the dynamic XML sitemap that search engines and AI crawlers use to discover your content, and hreflang tags that tell search engines which language version of a page to show to each user.
 
 ---
 
@@ -9,7 +9,7 @@ The **Sitemap** tab manages two closely related features: the dynamic XML sitema
 **Field:** `enable_hreflang`  
 **Default:** Yes
 
-When **Yes**, JoomlaBoost injects `<link rel="alternate" hreflang="...">` tags inside the `<head>` of every page.
+When **Yes**, AI Boost for Joomla injects `<link rel="alternate" hreflang="...">` tags inside the `<head>` of every page.
 
 **Example output:**
 ```html
@@ -32,7 +32,7 @@ When **Yes**, JoomlaBoost injects `<link rel="alternate" hreflang="...">` tags i
 **Field:** `enable_sitemap`  
 **Default:** Yes
 
-When **Yes**, JoomlaBoost serves a dynamic XML sitemap at `yoursite.com/sitemap.xml`.
+When **Yes**, AI Boost for Joomla serves a dynamic XML sitemap at `yoursite.com/sitemap.xml`.
 
 Key characteristics:
 - Generated on-the-fly and cached — always reflects your current published content
@@ -40,7 +40,7 @@ Key characteristics:
 - Automatically submitted via your `robots.txt` `Sitemap:` declaration
 - Google and Bing pick it up within hours to days of first activation
 
-> **Conflict with static files:** If a physical `sitemap.xml` file exists in your site root, it overrides the dynamic version. Delete it to let JoomlaBoost take control.
+> **Conflict with static files:** If a physical `sitemap.xml` file exists in your site root, it overrides the dynamic version. Delete it to let AI Boost for Joomla take control.
 
 ---
 
@@ -71,7 +71,7 @@ Adds Joomla menu items (Home, About, Contact, etc.) to the sitemap. Captures pag
 
 ## Advanced Sitemap Options
 
-> **Visible when:** Show Advanced Options = Yes (set on Plugin tab)
+> **Visible when:** Show Advanced Options = Yes (set in the Setup area)
 
 ### Menu Depth
 
@@ -174,7 +174,7 @@ The `<changefreq>` value tells search engines how often content in each category
 
 ## Submitting Your Sitemap
 
-JoomlaBoost automatically includes the sitemap URL in `robots.txt`, which causes search engines to discover it automatically. For faster pickup, also submit it manually:
+AI Boost for Joomla automatically includes the sitemap URL in `robots.txt`, which causes search engines to discover it automatically. For faster pickup, also submit it manually:
 
 | Engine | Where to submit |
 |--------|----------------|
@@ -186,7 +186,7 @@ Submit URL: `https://yourdomain.com/sitemap.xml`
 
 ---
 
-## Recommended Settings (Sitemap Tab)
+## Recommended Settings
 
 | Setting | Recommended value |
 |---------|------------------|
@@ -202,6 +202,6 @@ Submit URL: `https://yourdomain.com/sitemap.xml`
 
 ---
 
-*← [Schema.org Tab](schema-org.md) | [Documentation Index](index.md) | [Social & Meta Tab →](social-meta.md)*
+*← [Schema.org](schema-org.md) | [Documentation Index](index.md) | [Social & Meta →](social-meta.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla v0.73.15 — © 2025–2026 AI Boost (aiboostnow.com).*

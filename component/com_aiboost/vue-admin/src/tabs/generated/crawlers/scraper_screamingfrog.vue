@@ -1,6 +1,6 @@
 <!--
   AI Boost — auto-generated form field.
-  Source : component/lib/src/Manifest/aeo.php (key=scraper_screamingfrog)
+  Source : component/lib/src/Manifest/crawlers.php (key=scraper_screamingfrog)
   Codegen: scripts/codegen-from-manifest.py
   DO NOT EDIT — re-run codegen to regenerate.
 -->

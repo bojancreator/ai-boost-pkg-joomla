@@ -172,11 +172,11 @@ final class SettingsSaveDefinitionTest extends TestCase
 
     public function testAeoRobotsActiveKeysAreManifestBacked(): void
     {
-        $this->assertAeoManifestField('robots_custom_scrapers', 'robots', 'textarea', '', 'free');
-        $this->assertAeoManifestField('robots_custom_rules', 'robots', 'textarea', '', 'free');
+        $this->assertCrawlersManifestField('robots_custom_scrapers', 'robots', 'textarea', '', 'free');
+        $this->assertCrawlersManifestField('robots_custom_rules', 'robots', 'textarea', '', 'free');
 
         foreach ($this->seoScraperKeys() as $key) {
-            $this->assertAeoManifestField($key, 'robots_scrapers', 'toggle', '0', 'free');
+            $this->assertCrawlersManifestField($key, 'robots_scrapers', 'toggle', '0', 'free');
         }
 
         $this->assertSame('compatibility', SettingsSaveDefinition::field('robots_block_scrapers')['source'] ?? null);
@@ -389,6 +389,24 @@ final class SettingsSaveDefinitionTest extends TestCase
         ]);
     }
 
+    private function assertCrawlersManifestField(
+        string $key,
+        string $section,
+        string $type,
+        string $default,
+        string $tier
+    ): void {
+        $this->assertManifestAttributes($key, [
+            'source'  => 'manifest',
+            'tab'     => 'crawlers',
+            'section' => $section,
+            'type'    => $type,
+            'default' => $default,
+            'tier'    => $tier,
+            'sku'     => 'aeo',
+        ]);
+    }
+
     private function assertSocialManifestField(
         string $key,
         string $section,
@@ -471,9 +489,9 @@ final class SettingsSaveDefinitionTest extends TestCase
             'exclude_menu_ids' => ['tab' => 'sitemap', 'section' => 'xml_exclusions', 'type' => 'text', 'default' => ''],
             'ping_google' => ['tab' => 'sitemap', 'section' => 'ping_legacy', 'type' => 'toggle', 'default' => '1'],
             'ping_bing' => ['tab' => 'sitemap', 'section' => 'ping_legacy', 'type' => 'toggle', 'default' => '1'],
-            'redirect_404_log_enabled' => ['tab' => 'sitemap', 'section' => 'redirects', 'type' => 'toggle', 'default' => '1'],
-            'enable_canonical' => ['tab' => 'sitemap', 'section' => 'canonical', 'type' => 'toggle', 'default' => '1'],
-            'canonical_url_map' => ['tab' => 'sitemap', 'section' => 'canonical', 'type' => 'textarea', 'default' => ''],
+            'redirect_404_log_enabled' => ['tab' => 'technical', 'section' => 'redirects', 'type' => 'toggle', 'default' => '1'],
+            'enable_canonical' => ['tab' => 'technical', 'section' => 'canonical', 'type' => 'toggle', 'default' => '1'],
+            'canonical_url_map' => ['tab' => 'technical', 'section' => 'canonical', 'type' => 'textarea', 'default' => ''],
         ];
     }
 
@@ -482,9 +500,9 @@ final class SettingsSaveDefinitionTest extends TestCase
     {
         return [
             'auto_domain_detection' => ['tab' => 'general', 'section' => 'domain', 'type' => 'toggle', 'default' => '1'],
-            'manual_domain' => ['tab' => 'general', 'section' => 'domain', 'type' => 'url', 'default' => ''],
-            'enable_robots' => ['tab' => 'general', 'section' => 'robots', 'type' => 'toggle', 'default' => '1'],
-            'robots_auto_sync' => ['tab' => 'general', 'section' => 'robots', 'type' => 'toggle', 'default' => '0'],
+            'manual_domain' => ['tab' => 'general', 'section' => 'domain', 'type' => 'text', 'default' => ''],
+            'enable_robots' => ['tab' => 'crawlers', 'section' => 'robots', 'type' => 'toggle', 'default' => '1'],
+            'robots_auto_sync' => ['tab' => 'crawlers', 'section' => 'robots', 'type' => 'toggle', 'default' => '0'],
         ];
     }
 

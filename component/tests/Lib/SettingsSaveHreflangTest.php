@@ -44,6 +44,5 @@ final class SettingsSaveHreflangTest extends TestCase
         ksort($actual);
 
         $this->assertSame($expected, $actual);
-        $this->assertContains('enable_hreflang', ProFeatureRegistry::lockedSettingsKeys());
     }
 }

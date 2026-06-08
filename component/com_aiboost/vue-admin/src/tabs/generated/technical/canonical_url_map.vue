@@ -1,6 +1,6 @@
 <!--
   AI Boost — auto-generated form field.
-  Source : component/lib/src/Manifest/sitemap.php (key=canonical_url_map)
+  Source : component/lib/src/Manifest/technical.php (key=canonical_url_map)
   Codegen: scripts/codegen-from-manifest.py
   DO NOT EDIT — re-run codegen to regenerate.
 -->
