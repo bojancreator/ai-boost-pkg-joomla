@@ -63,11 +63,14 @@ import requests
 
 # Line-buffer stdout so progress is visible when this (multi-minute) verifier is
 # run detached in the background — the only way the slow Free target fits inside
-# the runner's 2-minute foreground command budget.
-try:
-    sys.stdout.reconfigure(line_buffering=True)  # type: ignore[attr-defined]
-except Exception:
-    pass
+# the runner's 2-minute foreground command budget. Also force UTF-8 so the
+# status emoji/box-drawing chars don't raise UnicodeEncodeError on a default
+# Windows console (cp1252).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", line_buffering=True)  # type: ignore[attr-defined]
+    except (AttributeError, ValueError):
+        pass
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, ".."))

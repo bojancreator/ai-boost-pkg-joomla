@@ -72,7 +72,7 @@ izvršava; statusi su stvarni.
 | 3e | Strip test fajlova iz produkcijskog ZIP-a (`BridgeDetectorTest.php` itd.) + ožičiti ga u `phpunit.xml` | 🔲 Pending |
 | 3f | Dead workspace cleanup — `@workspace/db` iz `scripts/package.json` + seed skripte + lockfile | 🔲 Pending |
 | 3g | (Odloženo post-launch) phpcbf CRLF/style reformat ~1965 prekršaja + `.gitattributes`; dead-code (ProFeatureRegistry, simulator, ProGate.vue) | ⏸ Deferred |
-| 4 | QA + release — rebuild Free/Pro u lockstep-u, `verify-clean-uninstall` oba targeta, kontradiktoran `docs/uninstall-guide.md`, pun staging QA (Joomla 5/6, Free/Pro) | 🔲 Pending |
+| 4 | QA + release | 🟡 In progress — ✅ lockstep Free/Pro build (0.73.15, LICENSE + 0 test artefakata verifikovano u ZIP-ovima); ✅ `uninstall-guide.md` ispravljen; ✅ clean-uninstall PASS na živom Free staging-u (data preserved + licence wiped); ⏳ ostaje: Pro-target QA sa pravim LS ključem, license-activation/XSS/Health staging provere, version bump, release |
 
 **Odloženo van v0.5 (potvrđeno):**
 - Update server (`api.aiboostnow.com`) — ne postoji; v1 ide ručnim ZIP update-om.
@@ -99,6 +99,7 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Date | Decision |
 |------|----------|
+| 2026-06-08 | **Pricing (supersedes 2026-05-25 €45 single-license):** 3 site-count tiers, yearly subscription, iste Pro funkcije — **AI Boost PRO** 3 sajta €65, **AI Boost Pro+** 10 sajtova €120, **AI Boost Unlimited** ∞ €180. Kod ne hardkoduje tier/cenu (čita LS `activation_limit`); 3-tier je čisto LS konfiguracija, bez izmene koda |
 | 2026-06-08 | Licenca: `verifyLicense()` vezan na **pravu** Lemon Squeezy proveru (`LicenseValidator::verify`, fail-closed); mock `AB-VALID` radi **samo** pod JDEBUG; `pro_activated*` dodat u import denylist da se Pro otključavanje ne prenosi između sajtova |
 | 2026-06-08 | Stored XSS kroz JSON-LD zatvoren na encode sloju (`JSON_HEX_TAG`), ne diramo decode redosled u FaqAutoDetect (čuva legitiman tekst tipa „5 < 10") |
 | 2026-06-08 | GPL v2+ `LICENSE.txt` se skida sa gnu.org direktno na disk (verbatim tekst ne sme kroz model output — content filter) i ide u root oba ZIP-a; manifest `<files folder="packages">` se NE dira (to je za sub-extension ZIP-ove) |
@@ -120,7 +121,8 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Blocker | Otključava |
 |---------|-----------|
-| Staging env vars (`STAGING_URL`, `STAGING_ADMIN_USER`, `STAGING_ADMIN_PASS`) nisu setovani u shell-u | Faza 4 automatizovani staging install/QA |
+| Lemon Squeezy proizvodi (3 tier-a) još ne postoje | Pro-target staging QA sa pravim ključem + stvarna prodaja |
+| ~~Staging env vars~~ | ✅ Rešeno — kredencijali u `CREDENTIALS.local.md`; Free staging QA prošao |
 
 ---
 
@@ -128,6 +130,9 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Date | Command / Action | Result |
 |------|-----------------|--------|
+| 2026-06-08 | `verify-clean-uninstall.py --target free --uninstall-only` vs **živi** offroadbalkans.com (Joomla) | ✅ PASS — install 0.73.15 OK; posle uninstall: ekstenzija uklonjena, llms/sitemap/robots očišćeni, **sve #__aiboost_* tabele + seed redovi preživeli, licencni ključevi obrisani** (potvrđuje uninstall-guide ispravku end-to-end) |
+| 2026-06-08 | `verify-clean-uninstall.py --target pro` Pro-seed korak | ⚠️ Pro-seam zatvoren namerno — verifier flipuje Pro importom `pro_activated`, a Faza 1A ga je dodala u IMPORT_DENYLIST. **Potvrda da bezbednosna ispravka radi** (Pro se ne može preneti importom). Pro-translation QA sad traži pravi LS ključ; QA tooling `seed_pro()` treba update post-launch |
+| 2026-06-08 | Fix: `verify-clean-uninstall.py` cp1252 UnicodeEncodeError (UTF-8 shim, isti kao Faza 0) | ✅ Pass — skript radi na Windows konzoli |
 | 2026-06-08 | `python -c ast.parse build-package-zip.py` posle LICENSE izmena | ✅ Pass — syntax OK |
 | 2026-06-08 | GPL-2.0 download → `LICENSE.txt` | ✅ Pass — 17984 B, 280 linija, validan verbatim GPL v2 |
 | 2026-06-05..08 | PHPUnit (`vendor/bin/phpunit`) | ✅ Pass — 183 testa, 4542 assertion-a |
