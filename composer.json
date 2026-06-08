@@ -28,9 +28,9 @@
     }
   },
   "scripts": {
-    "test":    "@php plugin/src/plugins/system/joomlaboost/tests/canonical-regex-test.php",
+    "test":    "@php scripts/run-standalone-tests.php",
     "phpunit": "vendor/bin/phpunit",
     "phpcs":   "phpcs --standard=phpcs.xml",
-    "phpstan": "phpstan analyse --configuration=phpstan.neon --no-progress"
+    "phpstan": "phpstan analyse --configuration=phpstan.neon --no-progress --memory-limit=512M"
   }
 }

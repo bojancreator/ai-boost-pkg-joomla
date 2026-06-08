@@ -17,7 +17,6 @@ parameters:
         - '#Access to an undefined property object::\$[a-zA-Z_]+#'
 
     excludePaths:
-        - plugin/src/
         - .local/
         - deliverables/
         - scripts/
