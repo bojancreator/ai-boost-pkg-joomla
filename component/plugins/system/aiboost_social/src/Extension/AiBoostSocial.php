@@ -63,9 +63,20 @@ class AiBoostSocial extends CMSPlugin
         HeadBlockBuilder::setHideComments($hide);
         BodyBlockBuilder::setHideComments($hide);
 
+        // Master switches: `enable_opengraph` governs og:* tags, while Twitter
+        // Cards are governed separately by `enable_twitter_cards`. When BOTH are
+        // off there is nothing to inject. The og render-gate itself lives in
+        // OgTagBuilder::renderProps (keyed on the `enable_og` prop).
+        $ogEnabled = (int) ($settings['enable_opengraph'] ?? 1);
+        $twEnabled = (int) ($settings['enable_twitter_cards'] ?? 1);
+        if (!$ogEnabled && !$twEnabled) {
+            return;
+        }
+
         // Cooperative conflict-resolution: skip when another extension already
         // emits og:title (Joomla core OG, 4SEO, Sh404SEF, EFSEO, …). See #362.
-        if (DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_OG_TITLE, $settings)) {
+        // Only relevant while OG output is enabled.
+        if ($ogEnabled && DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_OG_TITLE, $settings)) {
             if (!empty($settings['debug_mode'])) {
                 error_log('[AI Boost: aiboost_social] Cooperative mode — og:title already present, skipping injection');
             }

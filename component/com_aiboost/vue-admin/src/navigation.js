@@ -1,9 +1,11 @@
 export function settingsTo(tab) {
-  return { path: '/settings', query: tab === 'general' ? {} : { tab } }
+  // 'technical' is the default (no-query) tab — the merged General + Technical SEO page.
+  return { path: '/settings', query: tab === 'technical' ? {} : { tab } }
 }
 
 export const settingsRouteAliases = [
-  { path: '/general', tab: 'general' },
+  // The old General tab was merged into Technical SEO.
+  { path: '/general', tab: 'technical' },
   { path: '/site-identity', tab: 'org' },
   { path: '/organization', tab: 'org' },
   { path: '/schema', tab: 'schema' },
@@ -41,7 +43,7 @@ const sidebarGroupFactories = [
     { id: 'technical', to: settingsTo('technical'), tab: 'technical', icon: 'icon-cog', label: 'Technical SEO' },
     { id: 'schema', to: settingsTo('schema'), tab: 'schema', icon: 'icon-code', label: 'Schema.org' },
     { id: 'sitemap', to: settingsTo('sitemap'), tab: 'sitemap', icon: 'icon-list', label: 'Sitemap' },
-    { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'icon-share', label: 'Social Meta' },
+    { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'icon-share', label: 'Social Meta / OG' },
     { id: 'analytics', to: settingsTo('analytics'), tab: 'analytics', icon: 'icon-chart', label: 'Analytics & Tracking' },
   ] }),
   () => ({ title: 'AI VISIBILITY', items: [

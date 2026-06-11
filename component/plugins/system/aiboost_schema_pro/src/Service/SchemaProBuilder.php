@@ -5,14 +5,14 @@
  * Decorates the core schema blocks and appends extended schema blocks.
  * Invoked from AiBoostSchemaPro::onAiBoostFilterSchemaBlocks.
  *
- * Decorates Organization block:
- *   - Upgraded @type via SiteTypePresetService (13 Site Type presets)
- *   - openingHoursSpecification (LocalBusiness subtypes)
- *   - aggregateRating
- *   - Type-specific fields (priceRange, servesCuisine, starRating,
- *     checkinTime, checkoutTime, availableService, areaServed)
+ * Overlays the identity block (any business type recognised by
+ * SiteTypePresetService, not only Organization / LocalBusiness):
  *   - Per-language org_name / org_description / org_address_* / org_logo
  *     via TranslationService + FalangBridge fallback
+ *
+ * The free SchemaBuilder owns the upgraded @type, @id and all type-specific
+ * properties (hours, ratings, cuisine, services, amenities, payments); the Pro
+ * layer no longer re-emits them, so the two builders cannot diverge.
  *
  * Appends extended blocks (in order):
  *   - FAQPage  / QAPage (controlled by schema_faq_output_type)
@@ -75,7 +75,10 @@ class SchemaProBuilder
         $out = [];
         foreach ($freeBlocks as $block) {
             $type = (string) ($block['@type'] ?? '');
-            if ($type === 'Organization' || $type === 'LocalBusiness') {
+            // Overlay translations on the identity block whatever its specific
+            // type (Restaurant, LodgingBusiness, Dentist, …) — not only the
+            // generic Organization / LocalBusiness ones.
+            if (SiteTypePresetService::isBusinessIdentityType($type)) {
                 $out[] = $this->decorateOrganization($block);
             } else {
                 $out[] = $block;
@@ -128,119 +131,79 @@ class SchemaProBuilder
      */
     private function decorateOrganization(array $block): array
     {
-        $typeKey = SiteTypePresetService::normalizeKey((string) ($this->settings['schema_type'] ?? 'organization'));
-        $type    = SiteTypePresetService::getSchemaType($typeKey, true);
-        $isLocal = SiteTypePresetService::isLocalBusiness($typeKey, true);
+        // The free SchemaBuilder already emits the upgraded @type, @id, and
+        // every type-specific property (hours, ratings, cuisine, services,
+        // amenities, payments, …). The Pro layer's sole job here is to overlay
+        // the active-language translation of the identity fields.
+        if ($this->translations === null) {
+            return $block;
+        }
 
-        $block['@type'] = $type;
+        $lc = $this->ctx->getActiveLanguage();
 
-        // ── Multilingual: TranslationService primary, Falang fallback ─────────
-        $orgNameRaw    = trim((string) ($this->settings['org_name']            ?? ''));
-        $orgDescRaw    = trim((string) ($this->settings['org_description']     ?? ''));
-        $addrStreetRaw = trim((string) ($this->settings['org_address_street']  ?? ''));
-        $addrCityRaw   = trim((string) ($this->settings['org_address_city']    ?? ''));
-        $logoRaw       = trim((string) ($this->settings['org_logo']            ?? ''));
+        $orgNameRaw    = trim((string) ($this->settings['org_name']           ?? ''));
+        $orgDescRaw    = trim((string) ($this->settings['org_description']    ?? ''));
+        $addrStreetRaw = trim((string) ($this->settings['org_address_street'] ?? ''));
+        $addrCityRaw   = trim((string) ($this->settings['org_address_city']   ?? ''));
+        $logoRaw       = trim((string) ($this->settings['org_logo']           ?? ''));
 
-        if ($this->translations !== null) {
-            $lc = $this->ctx->getActiveLanguage();
+        $orgName = $this->translations->get('org_name', $lc, '')
+                ?: $this->falang->translate('org_name', $orgNameRaw);
+        if ($orgName !== '') {
+            $block['name'] = $orgName;
+        }
 
-            $orgName = $this->translations->get('org_name', $lc, '')
-                    ?: $this->falang->translate('org_name', $orgNameRaw);
-            if ($orgName !== '') {
-                $block['name'] = $orgName;
+        $orgDesc = $this->translations->get('org_description', $lc, '')
+                ?: $this->falang->translate('org_description', $orgDescRaw);
+        if ($orgDesc !== '') {
+            $block['description'] = $orgDesc;
+        }
+
+        $logo = $this->translations->get('org_logo', $lc, $logoRaw);
+        if ($logo !== '') {
+            $block['logo'] = ['@type' => 'ImageObject', 'url' => $this->absoluteUrl($logo)];
+        }
+
+        // Patch translated address fields (preserves region/zip/country from
+        // the core block's PostalAddress when present).
+        $addrStreet = $this->translations->get('org_address_street', $lc, '')
+                   ?: $this->falang->translate('org_address_street', $addrStreetRaw);
+        $addrCity   = $this->translations->get('org_address_city', $lc, '')
+                   ?: $this->falang->translate('org_address_city', $addrCityRaw);
+
+        if (isset($block['address']) && is_array($block['address'])) {
+            if ($addrStreet !== '') {
+                $block['address']['streetAddress'] = $addrStreet;
             }
-
-            $orgDesc = $this->translations->get('org_description', $lc, '')
-                    ?: $this->falang->translate('org_description', $orgDescRaw);
-            if ($orgDesc !== '') {
-                $block['description'] = $orgDesc;
+            if ($addrCity !== '') {
+                $block['address']['addressLocality'] = $addrCity;
             }
+        }
 
-            $logo = $this->translations->get('org_logo', $lc, $logoRaw);
-            if ($logo !== '') {
-                $block['logo'] = ['@type' => 'ImageObject', 'url' => $this->absoluteUrl($logo)];
-            }
-
-            // Patch translated address fields (preserves region/zip/country
-            // from the core block if PostalAddress was emitted).
-            $addrStreet = $this->translations->get('org_address_street', $lc, '')
-                       ?: $this->falang->translate('org_address_street', $addrStreetRaw);
-            $addrCity   = $this->translations->get('org_address_city', $lc, '')
-                       ?: $this->falang->translate('org_address_city', $addrCityRaw);
-
-            if (isset($block['address']) && is_array($block['address'])) {
-                if ($addrStreet !== '') {
-                    $block['address']['streetAddress']  = $addrStreet;
+        // Faza 2c — translate makesOffer service NAMES (text content). The Free
+        // builder emits makesOffer in filtered order (rows without a name are
+        // skipped); the admin keys each translation by that same filtered index
+        // (service_{i}_name), so makesOffer[i] aligns with service_{i}_name.
+        if (isset($block['makesOffer']) && is_array($block['makesOffer'])) {
+            foreach ($block['makesOffer'] as $i => &$offer) {
+                if (isset($offer['itemOffered']['name'])) {
+                    $tr = $this->translations->get('service_' . $i . '_name', $lc, '');
+                    if ($tr !== '') {
+                        $offer['itemOffered']['name'] = $tr;
+                    }
                 }
-                if ($addrCity !== '') {
-                    $block['address']['addressLocality'] = $addrCity;
-                }
             }
+            unset($offer);
         }
 
-        // ── AggregateRating ──────────────────────────────────────────────────
-        $ratingValue = trim((string) ($this->settings['rating_value'] ?? ''));
-        $ratingCount = trim((string) ($this->settings['rating_count'] ?? ''));
-        if ($ratingValue !== '' && $ratingCount !== '' && (float) $ratingValue > 0 && (int) $ratingCount > 0) {
-            $best  = trim((string) ($this->settings['rating_best']  ?? '5')) ?: '5';
-            $worst = trim((string) ($this->settings['rating_worst'] ?? '1')) ?: '1';
-            $block['aggregateRating'] = [
-                '@type'       => 'AggregateRating',
-                'ratingValue' => $ratingValue,
-                'reviewCount' => $ratingCount,
-                'bestRating'  => $best,
-                'worstRating' => $worst,
-            ];
+        // Faza 2b (rest) — translate slogan + awards (text content).
+        $sloganTr = $this->translations->get('schema_slogan', $lc, '');
+        if ($sloganTr !== '' && isset($block['slogan'])) {
+            $block['slogan'] = $sloganTr;
         }
-
-        // ── LocalBusiness extras ─────────────────────────────────────────────
-        if ($isLocal) {
-            $hours = (new BusinessHoursBuilder())->build($this->settings);
-            if ($hours) {
-                $block['openingHoursSpecification'] = $hours;
-            }
-
-            $priceRange = trim((string) ($this->settings['specific_price_range'] ?? ''));
-            if ($priceRange !== '') {
-                $block['priceRange'] = $priceRange;
-            }
-        }
-
-        // ── Type-specific required fields ────────────────────────────────────
-        if (in_array($typeKey, ['restaurant', 'foodestablishment'], true)) {
-            $cuisine = trim((string) ($this->settings['specific_serves_cuisine'] ?? ''));
-            if ($cuisine !== '') {
-                $block['servesCuisine'] = $cuisine;
-            }
-        }
-
-        if ($typeKey === 'hotel') {
-            $starRating = trim((string) ($this->settings['specific_star_rating'] ?? ''));
-            if ($starRating !== '' && (int) $starRating > 0) {
-                $block['starRating'] = ['@type' => 'Rating', 'ratingValue' => $starRating];
-            }
-            $checkin = trim((string) ($this->settings['specific_checkin_time'] ?? ''));
-            if ($checkin !== '') {
-                $block['checkinTime'] = $checkin;
-            }
-            $checkout = trim((string) ($this->settings['specific_checkout_time'] ?? ''));
-            if ($checkout !== '') {
-                $block['checkoutTime'] = $checkout;
-            }
-        }
-
-        if (in_array($typeKey, ['medicalclinic', 'legalservice', 'automotivebusiness', 'professionalservice'], true)) {
-            $service = trim((string) ($this->settings['specific_available_service'] ?? ''));
-            if ($service !== '') {
-                $block['availableService'] = $service;
-            }
-        }
-
-        if (in_array($typeKey, ['realestateagent', 'automotivebusiness', 'professionalservice', 'store', 'touristattraction', 'localbusiness'], true)) {
-            $areaServed = trim((string) ($this->settings['specific_area_served'] ?? ''));
-            if ($areaServed !== '') {
-                $block['areaServed'] = $areaServed;
-            }
+        $awardTr = $this->translations->get('schema_award', $lc, '');
+        if ($awardTr !== '' && isset($block['award'])) {
+            $block['award'] = array_values(array_filter(array_map('trim', explode(',', $awardTr))));
         }
 
         return $block;
@@ -516,7 +479,9 @@ class SchemaProBuilder
             $logo    = $this->translations->get('org_logo', $lc2, $logo);
         }
         if ($orgName !== '') {
-            $publisher = ['@type' => 'Organization', 'name' => $orgName];
+            // Carry the shared Organization @id so this publisher merges with
+            // the page's Organization node into one entity graph.
+            $publisher = ['@type' => 'Organization', '@id' => $this->organizationId(), 'name' => $orgName];
             if ($orgUrl !== '') $publisher['url']  = $orgUrl;
             if ($logo !== '')   $publisher['logo'] = ['@type' => 'ImageObject', 'url' => $this->absoluteUrl($logo)];
             $schema['publisher'] = $publisher;
@@ -877,5 +842,16 @@ class SchemaProBuilder
             return $path;
         }
         return $this->ctx->getBaseUrl() . '/' . ltrim($path, '/');
+    }
+
+    /**
+     * Stable @id for the publishing Organization node — must match the value
+     * SchemaBuilder emits on the Organization block so consumers merge them.
+     */
+    private function organizationId(): string
+    {
+        $orgUrl = trim((string) ($this->settings['org_url'] ?? ''));
+        $base   = $orgUrl !== '' ? $orgUrl : $this->ctx->getBaseUrl();
+        return rtrim($base, '/') . '/#organization';
     }
 }

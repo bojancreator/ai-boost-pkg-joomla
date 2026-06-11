@@ -2,16 +2,19 @@
   <div class="ab-card">
     <div class="ab-card-header">robots.txt Management</div>
     <div class="ab-card-body">
-      <div class="ab-check ab-toggle mb-2">
+      <p class="ab-help mb-3">
+        Manages the rules AI Boost writes into your site's <code>robots.txt</code> — the first file search engines
+        and bots read. <strong>On</strong> = AI Boost maintains its managed block in robots.txt;
+        <strong>Off</strong> = it leaves the file untouched. Use <em>Preview robots.txt</em> below to see the live file.
+      </p>
+      <div class="ab-check ab-toggle mb-3">
         <input v-model="s.enable_robots" data-ab-field="enable_robots" true-value="1" false-value="0"
           type="checkbox" class="ab-toggle__input" id="cr-robots">
         <label class="ab-check__label" for="cr-robots">Enable robots.txt management</label>
       </div>
-      <div class="ab-check ab-toggle mb-3">
-        <input v-model="s.robots_auto_sync" data-ab-field="robots_auto_sync" true-value="1" false-value="0"
-          type="checkbox" class="ab-toggle__input" id="cr-robots-sync">
-        <label class="ab-check__label" for="cr-robots-sync">Auto-sync physical robots.txt file</label>
-      </div>
+      <!-- "Auto-sync physical robots.txt file" (robots_auto_sync) removed: it
+           had no runtime consumer. The physical robots.txt is regenerated on
+           save whenever robots.txt management is enabled. -->
 
       <div class="ab-subcard">
         <div class="ab-subcard-head">
@@ -34,7 +37,7 @@
 </template>
 
 <script>
-import { makeAdminUrl } from '../../api.js'
+import { makeAdminUrl, getCsrfTokenName } from '../../api.js'
 import RobotsPreviewResult from './RobotsPreviewResult.vue'
 
 function siteRootUrl(fileName) {
@@ -69,7 +72,7 @@ export default {
       this.robots.error = ''
       this.fixApplied = {}
       try {
-        const token = window.aiBoostToken
+        const token = getCsrfTokenName()
         const url = makeAdminUrl('settings.previewRobots') + (token ? '&' + token + '=1' : '')
         const response = await fetch(url, { credentials: 'same-origin' })
         this.applyRobotsPreview(await response.json())

@@ -45,14 +45,22 @@ class MediaController extends BaseController
         $this->registerTask('delete', 'deleteItem');
     }
 
-    /** Allowed image extensions (lowercase). */
+    /**
+     * Allowed image extensions for LISTING/SELECTING (lowercase).
+     * SVG is listable (so an already-present SVG logo can be picked) but is NOT
+     * uploadable — see UPLOAD_EXT. Uploading SVG would let a Manager store an
+     * image/svg+xml file containing <script> in the site origin (stored XSS),
+     * since SVG bytes can carry active content that the finfo MIME sniff cannot
+     * neutralise. We therefore refuse SVG uploads and leave SVG provisioning to
+     * Joomla core's own media manager (which has its own controls).
+     */
     private const IMAGE_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
     /** Allowed document extensions. */
     private const DOC_EXT = ['pdf', 'zip'];
 
-    /** All allowed upload extensions combined. */
-    private const UPLOAD_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+    /** Extensions accepted by upload() — raster only, NO svg (XSS hardening). */
+    private const UPLOAD_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
     /** Max upload size in bytes (5 MB default). Public so HtmlView can pass it to JS. */
     public const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -214,15 +222,15 @@ class MediaController extends BaseController
             return;
         }
 
-        // MIME sniff check for images
-        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
-            $finfo = new \finfo(FILEINFO_MIME_TYPE);
-            $mime  = $finfo->file($tmpPath);
-            $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-            if (!in_array($mime, $allowedMime, true)) {
-                $this->jsonError('File content does not match its extension.');
-                return;
-            }
+        // MIME sniff: the uploaded bytes must actually be a raster image. Because
+        // UPLOAD_EXT is raster-only (no svg), every accepted upload is validated
+        // here, so no file carrying active/script content can be stored.
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($tmpPath);
+        $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($mime, $allowedMime, true)) {
+            $this->jsonError('File content does not match its extension.');
+            return;
         }
 
         // Sanitise filename: keep alphanumeric, dash, underscore, dot
@@ -480,21 +488,36 @@ class MediaController extends BaseController
             return null;
         }
 
-        // Must be inside images root
-        $root = rtrim(JPATH_SITE, '/');
-        $abs  = $root . '/' . ($rel ?: 'images');
-
-        // Realpath to resolve any symlinks; allow even if dir does not exist yet (upload)
-        $realRoot = realpath($root) ?: $root;
-        $realAbs  = realpath($abs);
-        if ($realAbs !== false && !str_starts_with($realAbs, $realRoot . '/')) {
-            return null;
+        // Anything not under images/ collapses to the images root
+        if ($rel !== 'images' && !str_starts_with($rel, 'images/')) {
+            $rel = 'images';
         }
 
-        // Require path to start with images/
-        if ($rel !== 'images' && !str_starts_with($rel, 'images/')) {
-            // Default to images root
-            return $root . '/images';
+        $root       = rtrim(JPATH_SITE, '/');
+        $imagesRoot = (realpath($root) ?: $root) . DIRECTORY_SEPARATOR . 'images';
+        $abs        = $root . '/' . $rel;
+
+        // Canonicalise the deepest EXISTING ancestor and require it to live inside
+        // the real images root. This closes the realpath()===false hole where a
+        // not-yet-created target (or a path under a pre-planted symlink) would
+        // otherwise skip containment and let mkdir -p / upload escape images/.
+        // Mirrors the symlink-aware containment already used by resolveItemPath().
+        $probe = $abs;
+        while ($probe !== '' && !file_exists($probe)) {
+            $parent = \dirname($probe);
+            if ($parent === $probe) {
+                break;
+            }
+            $probe = $parent;
+        }
+        $realProbe = realpath($probe);
+        if ($realProbe === false) {
+            return null;
+        }
+        if ($realProbe !== $imagesRoot
+            && !str_starts_with($realProbe, $imagesRoot . DIRECTORY_SEPARATOR)
+        ) {
+            return null;
         }
 
         return $abs;

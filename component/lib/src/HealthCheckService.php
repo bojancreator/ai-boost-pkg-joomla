@@ -470,6 +470,13 @@ class HealthCheckService
             );
         }
 
+        // The media picker stores logos root-relative (/images/...) — absolutize
+        // before the HEAD check, mirroring the builders' absoluteUrl(), so the
+        // reachability check actually runs (FILTER_VALIDATE_URL rejects bare paths).
+        if (!str_starts_with($logo, 'http://') && !str_starts_with($logo, 'https://')) {
+            $logo = rtrim($this->ctx->getBaseUrl(), '/') . '/' . ltrim($logo, '/');
+        }
+
         $httpStatus = $this->fetchHeadStatus($logo);
 
         if ($httpStatus === null) {
@@ -1449,15 +1456,15 @@ class HealthCheckService
      */
     private function infoAeoFaqAutoDetect(): array
     {
-        $enabled = (string) ($this->settings['llmstxt_faq_auto_detect'] ?? '0') === '1';
+        $enabled = (string) ($this->settings['faq_auto_detect'] ?? '0') === '1';
         $llmsOn  = (string) ($this->settings['llmstxt_enabled'] ?? '0') === '1';
         $faqOn   = (int) ($this->settings['llmstxt_include_faq'] ?? 1) === 1;
 
         $fixActions = [[
-            'label' => 'Toggle FAQ Auto-Detect (AEO tab)',
-            'url'   => $this->settingsUrl('tab-aeo-btn', 'llmstxt_faq_auto_detect'),
-            'tab'   => 'tab-aeo-btn',
-            'field' => 'llmstxt_faq_auto_detect',
+            'label' => 'Toggle FAQ Auto-Detect (Schema tab)',
+            'url'   => $this->settingsUrl('tab-schema-btn', 'faq_auto_detect'),
+            'tab'   => 'tab-schema-btn',
+            'field' => 'faq_auto_detect',
         ]];
 
         if (!$enabled) {
@@ -1465,7 +1472,7 @@ class HealthCheckService
                 'info_aeo_faq_auto_detect_active', 'info', 'llms.txt FAQ Auto-Detect',
                 true, false,
                 'FAQ Auto-Detect is OFF — only manually-entered FAQ items are added to llms.txt. Enable it to have AI Boost scan your 25 most recent articles for <h2>/<h3>/<h4> question headings and append the answers automatically.',
-                $this->settingsUrl('tab-aeo-btn', 'llmstxt_faq_auto_detect'),
+                $this->settingsUrl('tab-schema-btn', 'faq_auto_detect'),
                 $fixActions
             );
         }

@@ -45,4 +45,46 @@ final class SiteTypePresetServiceTest extends TestCase
     {
         $this->assertSame('Organization', SiteTypePresetService::getSchemaType('UnknownThing', true));
     }
+
+    /**
+     * The Pro decorator overlays translations on whichever block is the
+     * business identity node. These specific types must be recognised so a
+     * Restaurant / Dentist / Person block gets translated, not only the
+     * generic Organization / LocalBusiness ones.
+     *
+     * @return iterable<string, array{0: string}>
+     */
+    public static function identityTypeProvider(): iterable
+    {
+        yield 'Organization' => ['Organization'];
+        yield 'LocalBusiness' => ['LocalBusiness'];
+        yield 'Restaurant' => ['Restaurant'];
+        yield 'LodgingBusiness' => ['LodgingBusiness'];
+        yield 'Dentist' => ['Dentist'];
+        yield 'MedicalClinic' => ['MedicalClinic'];
+        yield 'Person' => ['Person'];
+        yield 'NewsMediaOrganization' => ['NewsMediaOrganization'];
+    }
+
+    #[DataProvider('identityTypeProvider')]
+    public function testIsBusinessIdentityTypeRecognisesEverySiteType(string $type): void
+    {
+        $this->assertTrue(SiteTypePresetService::isBusinessIdentityType($type));
+    }
+
+    /** @return iterable<string, array{0: string}> */
+    public static function nonIdentityTypeProvider(): iterable
+    {
+        yield 'WebSite' => ['WebSite'];
+        yield 'BreadcrumbList' => ['BreadcrumbList'];
+        yield 'FAQPage' => ['FAQPage'];
+        yield 'Article' => ['Article'];
+        yield 'empty' => [''];
+    }
+
+    #[DataProvider('nonIdentityTypeProvider')]
+    public function testIsBusinessIdentityTypeRejectsNonIdentityBlocks(string $type): void
+    {
+        $this->assertFalse(SiteTypePresetService::isBusinessIdentityType($type));
+    }
 }

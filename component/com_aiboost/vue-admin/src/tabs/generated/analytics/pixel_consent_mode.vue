@@ -11,6 +11,7 @@
       <select v-model="s.pixel_consent_mode" data-ab-field="pixel_consent_mode"
               class="ab-select" id="ab-gen-pixel-consent-mode">
         <option value="none">None</option>
+        <option value="consent_required">Consent required (revoke until granted)</option>
       </select>
     </div>
   </div>

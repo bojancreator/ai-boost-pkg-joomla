@@ -23,6 +23,13 @@ import time
 import urllib.parse
 import requests
 
+# UTF-8 console (Windows cp1252 default chokes on the emoji status lines below).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", line_buffering=True)
+    except Exception:
+        pass
+
 ADMIN_URL  = os.environ["STAGING_URL"]
 _parsed    = urllib.parse.urlparse(ADMIN_URL)
 _base      = f"{_parsed.scheme}://{_parsed.netloc}"

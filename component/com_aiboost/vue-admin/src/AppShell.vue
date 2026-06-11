@@ -81,8 +81,9 @@ export default {
   display: flex;
   align-items: stretch;
   gap: 0;
-  margin-top: 1rem;
-  min-height: calc(100vh - 2rem);
+  /* Trim the empty band between the Joomla toolbar and the SPA. */
+  margin-top: .25rem;
+  min-height: calc(100vh - 1.25rem);
 }
 .ab-spa-main {
   flex: 1;

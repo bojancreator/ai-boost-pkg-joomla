@@ -49,7 +49,8 @@ final class ProFeatureRegistry
             ['key' => 'faq_items',                  'tab' => 'schema',   'label' => 'Manual FAQ Items',                  'lock_reason' => 'pro', 'scope' => 'field'],
             ['key' => 'schema_faq_output_type',     'tab' => 'schema',   'label' => 'FAQ Schema Output Type',            'lock_reason' => 'pro', 'scope' => 'field'],
             ['key' => 'section:schema.faq',         'tab' => 'schema',   'label' => 'FAQ / QAPage Schema',               'lock_reason' => 'pro', 'scope' => 'section'],
-            ['key' => 'section:schema.hours_advanced', 'tab' => 'schema','label' => 'Advanced day-by-day Opening Hours', 'lock_reason' => 'pro', 'scope' => 'section'],
+            // Advanced day-by-day opening hours are FREE (emitted by the free
+            // SchemaBuilder; UI not locked) — do not advertise them as Pro.
             ['key' => 'section:schema.author_entity', 'tab' => 'schema', 'label' => 'Author Entity (Person schema)',     'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'section:schema.howto',       'tab' => 'schema',   'label' => 'HowTo Schema',                      'lock_reason' => 'pro', 'scope' => 'section'],
             ['key' => 'section:schema.event',       'tab' => 'schema',   'label' => 'Event Schema',                      'lock_reason' => 'pro', 'scope' => 'section'],
@@ -80,7 +81,8 @@ final class ProFeatureRegistry
             // card in CrawlersRobotsTab.vue. `crawler_bot_rules`, `ai_crawlers_enabled`
             // and `crawler_rules` are all Free now — no Pro registry entry.
             ['key' => 'section:aeo.indexnow',       'tab' => 'aeo',      'label' => 'IndexNow instant indexing',         'lock_reason' => 'pro', 'scope' => 'section'],
-            ['key' => 'section:aeo.markdown',       'tab' => 'aeo',      'label' => 'Markdown Pages for AI agents',      'lock_reason' => 'pro', 'scope' => 'section'],
+            // Markdown Pages + AI Signals are FREE (emitted by the free aiboost_aeo
+            // plugin, no licence gate) — do not advertise Markdown as Pro.
 
             // ── Analytics tab — Task #473: only the "Enable GA4" toggle is Free.
             ['key' => 'ga4_measurement_id',         'tab' => 'analytics','label' => 'GA4 Measurement ID',                 'lock_reason' => 'pro', 'scope' => 'field'],
@@ -175,7 +177,6 @@ final class ProFeatureRegistry
                 'faq_auto_detect', 'enable_manual_faqs', 'faq_items',
                 'schema_faq_output_type', 'manual_faq_scope',
             ],
-            'section:schema.hours_advanced'       => self::advancedOpeningHoursFields(),
             'section:schema.author_entity'        => ['schema_author_entity_enabled'],
             'section:schema.howto'                => ['schema_howto', 'schema_howto_enabled'],
             'section:schema.event'                => [
@@ -260,9 +261,6 @@ final class ProFeatureRegistry
             'section:aeo.indexnow'                => [
                 'indexnow_enabled', 'indexnow_api_key', 'indexnow_auto_submit',
             ],
-            'section:aeo.markdown'                => [
-                'markdown_pages_enabled',
-            ],
         ];
     }
 
@@ -272,31 +270,6 @@ final class ProFeatureRegistry
         return [
             'section:translations.per_language'   => [],
         ];
-    }
-
-    /** @return array<int,string> */
-    private static function advancedOpeningHoursFields(): array
-    {
-        $keys = ['schema_hours_temp_closed', 'schema_holiday_closed'];
-        $dayAliases = [
-            ['mon', 'mo', 'monday'],
-            ['tue', 'tu', 'tuesday'],
-            ['wed', 'we', 'wednesday'],
-            ['thu', 'th', 'thursday'],
-            ['fri', 'fr', 'friday'],
-            ['sat', 'sa', 'saturday'],
-            ['sun', 'su', 'sunday'],
-        ];
-
-        foreach ($dayAliases as $aliases) {
-            foreach ($aliases as $day) {
-                $keys[] = 'hours_' . $day . '_opens';
-                $keys[] = 'hours_' . $day . '_closes';
-                $keys[] = 'hours_' . $day . '_closed';
-            }
-        }
-
-        return $keys;
     }
 
     /**

@@ -68,7 +68,6 @@
 
     <!-- ── Tab panels ───────────────────────────────────────────── -->
     <div class="ab-tab-content">
-      <GeneralTab   v-show="activeTab === 'general'"   :s="s" />
       <OrgTab       v-show="activeTab === 'org'"        :s="s" />
       <SchemaTab    v-show="activeTab === 'schema'"     :s="s" />
       <TechnicalSeoTab v-show="activeTab === 'technical'" :s="s" />
@@ -87,7 +86,6 @@
 <script>
 import { saveSettings } from './api.js'
 import { loadTranslationData, getAllTranslations } from './composables/useTranslations.js'
-import GeneralTab   from './tabs/GeneralTab.vue'
 import OrgTab       from './tabs/OrgTab.vue'
 import SchemaTab    from './tabs/SchemaTab.vue'
 import TechnicalSeoTab from './tabs/TechnicalSeoTab.vue'
@@ -114,6 +112,11 @@ const ICONS = {
 }
 
 const FIELD_TAB_ALIASES = {
+  // The old "General" tab was merged into "Technical SEO" — its fields now
+  // resolve there so existing deep-links / Health "Fix It" targets still land.
+  auto_domain_detection: 'technical',
+  manual_domain: 'technical',
+  conflict_mode: 'technical',
   enable_canonical: 'technical',
   canonical_url_map: 'technical',
   redirect_404_log_enabled: 'technical',
@@ -157,7 +160,7 @@ const DEFAULTS = {
 
 export default {
   name: 'AiBoostSettings',
-  components: { GeneralTab, OrgTab, SchemaTab, TechnicalSeoTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab },
+  components: { OrgTab, SchemaTab, TechnicalSeoTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab },
 
   mounted() {
     // Hash-based deep link: #tab=<id>   (e.g. #tab=analytics)
@@ -225,18 +228,17 @@ export default {
 
   data() {
     return {
-      activeTab:   'general',
+      activeTab:   'technical',
       saving: false,
       message: '',
       msgCls: '',
       s: Object.assign({}, DEFAULTS, window.aiBoostSettings || {}),
       tabs: [
-        { id: 'general',   label: 'General',       icon: ICONS.general,   color: '#6366f1' },
         { id: 'org',       label: 'Site Identity', icon: ICONS.org,       color: '#3b82f6' },
         { id: 'schema',    label: 'Schema.org',    icon: ICONS.schema,    color: '#8b5cf6' },
         { id: 'technical', label: 'Technical SEO', icon: ICONS.general,   color: '#0ea5e9' },
         { id: 'sitemap',   label: 'Sitemap',       icon: ICONS.sitemap,   color: '#14b8a6' },
-        { id: 'social',    label: 'Social Meta',   icon: ICONS.social,    color: '#ec4899' },
+        { id: 'social',    label: 'Social Meta / OG', icon: ICONS.social,  color: '#ec4899' },
         { id: 'analytics', label: 'Analytics & Tracking', icon: ICONS.analytics, color: '#f97316' },
         { id: 'aeo',       label: 'AI Visibility', icon: ICONS.aeo,       color: '#06b6d4' },
         { id: 'crawlers',  label: 'Crawlers & Robots', icon: ICONS.urlchecker, color: '#22c55e' },
@@ -277,7 +279,7 @@ export default {
     // without remounting this component.
     '$route.query.tab'(tab) {
       if (!this.$route || this.$route.name !== 'settings') return
-      const id = resolveSettingsTab(tab || 'general', this.$route.query.field)
+      const id = resolveSettingsTab(tab || 'technical', this.$route.query.field)
       if (this.tabs.some(t => t.id === id)) this.activeTab = id
     },
   },
@@ -289,9 +291,9 @@ export default {
       // running inside the SPA. In legacy standalone mode there is no
       // router, so we simply set activeTab above.
       if (this.$router && this.$route && this.$route.name === 'settings'
-          && (this.$route.query.tab || 'general') !== id) {
+          && (this.$route.query.tab || 'technical') !== id) {
         this.$router
-          .replace({ path: '/settings', query: id === 'general' ? {} : { tab: id } })
+          .replace({ path: '/settings', query: id === 'technical' ? {} : { tab: id } })
           .catch(() => {})
       }
     },
@@ -667,6 +669,21 @@ export default {
 
 /* ── Pro-lock overlay ────────────────────────────────────────── */
 .ab-vue-settings .ab-disabled { opacity: .42; pointer-events: none; user-select: none; }
+
+/* ── Inline "Pro" pill (reused across tabs) ──────────────────── */
+.ab-vue-settings .ab-pro-tag {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #b8860b;
+  background: #fffbf0;
+  border: 1px solid #ffe8a1;
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+[data-bs-theme=dark] .ab-vue-settings .ab-pro-tag { background: #2a2000; border-color: #4a3800; }
 
 /* ── Section separator ───────────────────────────────────────── */
 .ab-vue-settings .ab-sec {

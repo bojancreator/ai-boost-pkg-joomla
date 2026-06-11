@@ -22,6 +22,11 @@ return [
         'tier' => 'free', 'sku' => 'og',
     ],
     [
+        'key' => 'default_og_image_alt', 'tab' => 'social', 'section' => 'og',
+        'label' => 'Default OG Image Alt Text', 'type' => 'text', 'default' => '',
+        'tier' => 'free', 'sku' => 'og',
+    ],
+    [
         'key' => 'og_description_override', 'tab' => 'social', 'section' => 'og',
         'label' => 'Default OG Description Override', 'type' => 'textarea', 'default' => '',
         'tier' => 'free', 'sku' => 'og',
@@ -85,7 +90,7 @@ return [
         'key' => 'pixel_consent_mode', 'tab' => 'analytics', 'section' => 'pixel',
         'label' => 'GDPR Consent Mode', 'type' => 'select', 'default' => 'none',
         'tier' => 'pro', 'sku' => 'og',
-        'options' => ['none' => 'None'],
+        'options' => ['none' => 'None', 'consent_required' => 'Consent required (revoke until granted)'],
     ],
     [
         'key' => 'meta_pixel_standard_events', 'tab' => 'analytics', 'section' => 'pixel_events',

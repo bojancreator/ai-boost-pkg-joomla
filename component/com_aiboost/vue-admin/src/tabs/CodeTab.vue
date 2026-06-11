@@ -1,8 +1,9 @@
 ﻿<template>
   <div class="ab-code-tab">
-    <!-- Task #473 — Custom Code Injection is whole-tab Pro. -->
+    <!-- Custom Code Injection — the whole tab is Pro. -->
+    <ProGate mode="card" label="Custom Code">
     <div class="ab-card">
-      <div class="ab-card-header">💉 Custom Code Injection</div>
+      <div class="ab-card-header">💉 Custom Code Injection <span class="ab-pro-tag">Pro</span></div>
       <div class="ab-card-body">
         <div class="ab-check ab-toggle mb-4">
           <input v-model="s.enable_custom_code" true-value="1" false-value="0"
@@ -79,10 +80,13 @@
 
       </div>
     </div>
+    </ProGate>
   </div>
 </template>
 
 <script>
+import ProGate from '../components/ProGate.vue'
+
 const ScopeSelector = {
   name: 'ScopeSelector',
   props: {
@@ -154,7 +158,7 @@ const ScopeSelector = {
 
 export default {
   name: 'CodeTab',
-  components: { ScopeSelector },
+  components: { ScopeSelector, ProGate },
   props: { s: { type: Object, required: true } },
 
   data() {

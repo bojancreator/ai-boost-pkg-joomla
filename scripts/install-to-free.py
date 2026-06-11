@@ -20,6 +20,13 @@ import os
 import sys
 import runpy
 
+# UTF-8 console (Windows cp1252 default chokes on emoji status lines).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", line_buffering=True)
+    except Exception:
+        pass
+
 required = ("FREE_URL", "FREE_ADMIN_USER", "FREE_ADMIN_PASS")
 missing = [k for k in required if not os.environ.get(k)]
 if missing:

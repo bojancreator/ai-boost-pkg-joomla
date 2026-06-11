@@ -13,7 +13,7 @@ import argparse
 import urllib.parse
 from playwright.sync_api import sync_playwright
 
-CHROME = "/nix/store/qa9cnw4v5xkxyip6mb9kxqfq1z4x2dx1-chromium-138.0.7204.100/bin/chromium"
+CHROME = None  # use Playwright's bundled Chromium
 
 TOP_ROUTES = [
     ("dashboard", "#/dashboard"),
@@ -55,8 +55,10 @@ def main():
     results = {}
 
     with sync_playwright() as p:
-        b = p.chromium.launch(executable_path=CHROME, headless=True,
-                              args=["--no-sandbox", "--disable-dev-shm-usage"])
+        launch_kwargs = dict(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])
+        if CHROME:
+            launch_kwargs["executable_path"] = CHROME
+        b = p.chromium.launch(**launch_kwargs)
         ctx = b.new_context(viewport={"width": 1440, "height": 900})
         pg = ctx.new_page()
 

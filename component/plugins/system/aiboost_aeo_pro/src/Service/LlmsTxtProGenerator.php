@@ -175,7 +175,7 @@ class LlmsTxtProGenerator
 
         if ((int) ($this->settings['llmstxt_include_faq'] ?? 1)) {
             $faqItems = $this->getFaqItems($lc, $applyTrans);
-            if ((int) ($this->settings['llmstxt_faq_auto_detect'] ?? 0)) {
+            if ((int) ($this->settings['faq_auto_detect'] ?? 0)) {
                 $detected = $this->detectFaqFromArticles();
                 if (!empty($detected)) {
                     $seen = [];
@@ -316,7 +316,10 @@ class LlmsTxtProGenerator
             $lines[] = '';
         }
 
-        $articles = $this->fetchAllArticles(500);
+        // Honour the configured cap (UI range 10–5000; default 500).
+        $maxFull  = (int) ($this->settings['llms_full_max_articles'] ?? 500);
+        $maxFull  = max(10, min(5000, $maxFull));
+        $articles = $this->fetchAllArticles($maxFull);
         if (!empty($articles)) {
             $lines[] = '## Articles';
             $lines[] = '';
@@ -659,7 +662,10 @@ class LlmsTxtProGenerator
      */
     private function getFaqItems(string $lc = '', bool $applyTrans = false): array
     {
-        $json = trim((string) ($this->settings['llmstxt_faq_items'] ?? ''));
+        // FAQ is defined once in Schema.org (faq_items) and reused here — single
+        // source of truth (Korak 3.2 #7). The legacy llmstxt_faq_items key is no
+        // longer read.
+        $json = trim((string) ($this->settings['faq_items'] ?? ''));
         if ($json === '' || $json === '[]') {
             return [];
         }

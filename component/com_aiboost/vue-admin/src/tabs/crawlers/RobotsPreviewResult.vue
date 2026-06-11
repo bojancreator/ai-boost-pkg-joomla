@@ -6,6 +6,10 @@
       <span class="ab-chip">{{ robots.summary.user_agents.length }} User-agent blocks</span>
       <span class="ab-chip">{{ robots.summary.sitemaps.length }} Sitemap lines</span>
     </div>
+
+    <!-- The actual robots.txt file content. -->
+    <pre v-if="robots.body" class="ab-robots-body mt-3">{{ robots.body }}</pre>
+
     <div v-if="robots.issues.length" class="mt-3">
       <div v-for="issue in robots.issues" :key="issue.id" class="ab-alert" :class="issueClass(issue)">
         <strong>{{ issue.title }}</strong>
@@ -39,6 +43,22 @@ export default {
 <style scoped>
 .ab-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .ab-chip { background: #f1f3f5; color: #495057; font-size: 11.5px; padding: 3px 9px; border-radius: 10px; font-weight: 500; }
+.ab-robots-body {
+  background: var(--secondary-bg, #f8f9fa);
+  color: var(--body-color, #212529);
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  max-height: 340px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+[data-bs-theme=dark] .ab-robots-body { background: #1a1d21; border-color: #2d3338; color: #e6edf3; }
+[data-bs-theme=dark] .ab-chip { background: #2d3338; color: #c9d1d9; }
 .ab-alert { padding: 9px 13px; border-radius: 6px; font-size: 12.5px; line-height: 1.5; margin-top: 8px; }
 .ab-alert--info { background: #e7f1ff; border: 1px solid #b6d4fe; color: #084298; }
 .ab-alert--warn { background: #fff3cd; border: 1px solid #ffe69c; color: #664d03; }

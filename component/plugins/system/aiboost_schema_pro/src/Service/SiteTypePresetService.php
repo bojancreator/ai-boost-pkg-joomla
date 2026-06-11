@@ -135,4 +135,30 @@ final class SiteTypePresetService
     {
         return array_keys(self::PRESETS);
     }
+
+    /**
+     * Return every distinct schema.org @type produced by the presets
+     * (Organization, LocalBusiness, Restaurant, … Person, NewsMediaOrganization).
+     *
+     * @return string[]
+     */
+    public static function schemaTypes(): array
+    {
+        return array_values(array_unique(array_map(
+            static fn(array $preset): string => $preset['type'],
+            self::PRESETS
+        )));
+    }
+
+    /**
+     * True when the given schema.org @type is one of the business/identity
+     * types the Organization block can be upgraded to. Used to recognise the
+     * identity block among emitted JSON-LD blocks regardless of which specific
+     * type the site selected (so e.g. translations apply to a Restaurant or
+     * Dentist block, not only the generic Organization / LocalBusiness ones).
+     */
+    public static function isBusinessIdentityType(string $type): bool
+    {
+        return in_array($type, self::schemaTypes(), true);
+    }
 }

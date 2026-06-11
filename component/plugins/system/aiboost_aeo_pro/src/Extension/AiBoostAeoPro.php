@@ -37,15 +37,12 @@ namespace AiBoost\Plugin\System\AiBoostAeoPro\Extension;
 
 defined('_JEXEC') or die;
 
-use AiBoost\Lib\DocumentInspector;
-use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterResult;
 use AiBoost\Lib\JoomlaAppContext;
 use AiBoost\Lib\PluginRegistry;
 use AiBoost\Lib\TranslationService;
 use AiBoost\Plugin\System\AiBoostAeoPro\Service\IndexNowService;
 use AiBoost\Plugin\System\AiBoostAeoPro\Service\LlmsTxtProGenerator;
-use AiBoost\Plugin\System\AiBoostAeoPro\Service\MarkdownConverterService;
 use AiBoost\Plugin\System\AiBoostAeoPro\Service\RobotsBotRules;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -56,9 +53,6 @@ class AiBoostAeoPro extends CMSPlugin
     protected $autoloadLanguage = true;
 
     private bool $booted = false;
-
-    /** Set in onAfterInitialise when the request should be served as Markdown. */
-    private bool $isMarkdownRequest = false;
 
     /**
      * onAfterInitialise — Pro virtual file routes + Markdown detection.
@@ -79,16 +73,17 @@ class AiBoostAeoPro extends CMSPlugin
 
         $settings = $this->getAiBoostSettings();
 
-        $apiKey   = trim((string) ($settings['indexnow_api_key'] ?? ''));
+        $indexNowOn = (int) ($settings['indexnow_enabled'] ?? 0);
+        $apiKey     = trim((string) ($settings['indexnow_api_key'] ?? ''));
 
-        // Root URL — only the Markdown detector applies.
+        // Markdown serving moved to the Free aiboost_aeo plugin (Korak 3.2 #3).
         if ($path === '') {
-            $this->detectMarkdownRequest('', $settings);
             return;
         }
 
         $isLlmsFull = ($path === 'llms-full.txt');
-        $isKeyFile  = ($apiKey !== '' && $path === $apiKey . '.txt');
+        // The /{key}.txt verification file is only served when IndexNow is on.
+        $isKeyFile  = ($indexNowOn && $apiKey !== '' && $path === $apiKey . '.txt');
 
         // /llms-{sef}.txt — per-language llms.txt
         $langSef    = null;
@@ -99,7 +94,6 @@ class AiBoostAeoPro extends CMSPlugin
         }
 
         if (!$isLlmsFull && !$isKeyFile && !$isLlmsLang) {
-            $this->detectMarkdownRequest($path, $settings);
             return;
         }
 
@@ -174,73 +168,9 @@ class AiBoostAeoPro extends CMSPlugin
             header('X-Robots-Tag: index, follow');
         }
 
-        $doc = $app->getDocument();
-        $aeoBodies = [];
-
-        if ((int) ($settings['aeo_ai_meta_enabled'] ?? 0)) {
-            if (DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_AI_META_VERIFIED, $settings)) {
-                HeadBlockBuilder::noteSkip(
-                    HeadBlockBuilder::SECTION_AEO,
-                    'AI meta tags already emitted by another extension'
-                );
-            } else {
-                $baseUrl = rtrim(Uri::root(), '/');
-                $llmsUrl = htmlspecialchars($baseUrl . '/llms.txt', ENT_QUOTES);
-                $aeoBodies[] = '<meta name="ai-content-verified" content="true">' . "\n"
-                             . '<meta name="ai-content-optimized" content="true">' . "\n"
-                             . '<meta name="llms-txt" content="' . $llmsUrl . '">';
-            }
-        }
-
-        if ((int) ($settings['markdown_pages_enabled'] ?? 0)) {
-            try {
-                $current  = Uri::getInstance();
-                $href     = $current->toString(['scheme', 'host', 'port', 'path']);
-                $sep      = str_contains($href, '?') ? '&' : '?';
-                $hrefAttr = htmlspecialchars($href . $sep . 'markdown=1', ENT_QUOTES);
-                $aeoBodies[] = '<link rel="alternate" type="text/markdown" href="' . $hrefAttr . '">';
-            } catch (\Throwable $e) {
-                // Document may not be HTML; silently skip.
-            }
-        }
-
-        if (!empty($aeoBodies)) {
-            HeadBlockBuilder::pushSection(
-                HeadBlockBuilder::SECTION_AEO,
-                implode("\n", $aeoBodies)
-            );
-        }
-    }
-
-    /**
-     * onAfterRender — convert HTML to Markdown for AI agent requests (Pro).
-     */
-    public function onAfterRender(): void
-    {
-        $this->boot();
-        if (!$this->isMarkdownRequest) {
-            return;
-        }
-        $app = Factory::getApplication();
-        if (!$app->isClient('site')) {
-            return;
-        }
-
-        try {
-            $html = (string) $app->getBody();
-            if ($html === '') {
-                return;
-            }
-            $markdown = (new MarkdownConverterService())->convert($html);
-
-            $app->setHeader('Content-Type', 'text/markdown; charset=utf-8', true);
-            $app->setHeader('Cache-Control', 'public, max-age=3600', true);
-            try { $app->setHeader('X-Content-Type-Options', 'nosniff', true); } catch (\Throwable $e) {}
-
-            $app->setBody($markdown);
-        } catch (\Throwable $e) {
-            // On any conversion error, let the original HTML through.
-        }
+        // AI Signals + the Markdown discovery <link> moved to the Free
+        // aiboost_aeo plugin (Korak 3.2 #3). This Pro hook now only sets the
+        // X-Robots-Tag header above.
     }
 
     /**
@@ -260,6 +190,9 @@ class AiBoostAeoPro extends CMSPlugin
             return;
         }
         $settings = $this->getAiBoostSettings();
+        if (!(int) ($settings['indexnow_enabled'] ?? 0)) {
+            return;
+        }
         if (!(int) ($settings['indexnow_auto_submit'] ?? 0)) {
             return;
         }
@@ -290,6 +223,9 @@ class AiBoostAeoPro extends CMSPlugin
             return;
         }
         $settings = $this->getAiBoostSettings();
+        if (!(int) ($settings['indexnow_enabled'] ?? 0)) {
+            return;
+        }
         if (!(int) ($settings['indexnow_auto_submit'] ?? 0)) {
             return;
         }
@@ -430,56 +366,6 @@ class AiBoostAeoPro extends CMSPlugin
             $cache = [];
         }
         return $cache;
-    }
-
-    /**
-     * Markdown request detection — sets $isMarkdownRequest and rewrites
-     * URLs ending in .md so Joomla's router can resolve them.
-     *
-     * @param array<string,mixed> $settings
-     */
-    private function detectMarkdownRequest(string $path, array $settings): void
-    {
-        if (!(int) ($settings['markdown_pages_enabled'] ?? 0)) {
-            return;
-        }
-
-        $accept   = (string) ($_SERVER['HTTP_ACCEPT'] ?? '');
-        $acceptMd = stripos($accept, 'text/markdown') !== false;
-        $queryMd  = isset($_GET['markdown']) && (string) $_GET['markdown'] === '1';
-        $suffixMd = str_ends_with(strtolower($path), '.md');
-
-        if (!$acceptMd && !$queryMd && !$suffixMd) {
-            return;
-        }
-
-        try {
-            if (!Factory::getApplication()->isClient('site')) {
-                return;
-            }
-        } catch (\Throwable $e) {
-            return;
-        }
-
-        $this->isMarkdownRequest = true;
-
-        if ($suffixMd) {
-            $newPath = '/' . substr($path, 0, -3);
-            $qs      = (string) ($_SERVER['QUERY_STRING'] ?? '');
-            $newUri  = $newPath . ($qs !== '' ? '?' . $qs : '');
-
-            $_SERVER['REQUEST_URI'] = $newUri;
-            try {
-                Factory::getApplication()->input->server->set('REQUEST_URI', $newUri);
-            } catch (\Throwable $e) {}
-
-            try {
-                $ref  = new \ReflectionClass(Uri::class);
-                $prop = $ref->getProperty('instances');
-                $prop->setAccessible(true);
-                $prop->setValue(null, []);
-            } catch (\Throwable $e) {}
-        }
     }
 
     private function buildArticleUrl(int $id): string

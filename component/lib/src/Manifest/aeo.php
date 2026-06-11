@@ -48,26 +48,9 @@ return [
         'tier'        => 'free',
         'sku'         => 'aeo',
     ],
-    [
-        'key'         => 'llmstxt_faq_auto_detect',
-        'tab'         => 'aeo',
-        'section'     => 'llmstxt',
-        'label'       => 'Auto-Detect FAQ from Articles',
-        'type'        => 'toggle',
-        'default'     => '0',
-        'tier'        => 'free',
-        'sku'         => 'aeo',
-    ],
-    [
-        'key'         => 'llmstxt_faq_items',
-        'tab'         => 'aeo',
-        'section'     => 'llmstxt',
-        'label'       => 'Manual FAQ Items',
-        'type'        => 'json',
-        'default'     => '[]',
-        'tier'        => 'free',
-        'sku'         => 'aeo',
-    ],
+    // FAQ for /llms.txt is now sourced from the single Schema.org FAQ
+    // (faq_items / faq_auto_detect) — Korak 3.2 #7. The old llmstxt_faq_*
+    // keys were removed; both generators read the schema keys.
 
     // ── llms-full.txt ──────────────────────────────────────────────
     [
@@ -270,7 +253,7 @@ return [
         'label'       => 'Serve pages as Markdown for AI agents',
         'type'        => 'toggle',
         'default'     => '0',
-        'tier'        => 'pro',
+        'tier'        => 'free',
         'sku'         => 'aeo',
     ],
 

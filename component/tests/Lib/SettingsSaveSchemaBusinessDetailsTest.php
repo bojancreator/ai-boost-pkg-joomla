@@ -66,6 +66,10 @@ final class SettingsSaveSchemaBusinessDetailsTest extends TestCase
             'founding date' => ['key' => 'specific_founding_date', 'type' => 'text'],
             'masthead url' => ['key' => 'specific_masthead_url', 'type' => 'text'],
             'ethics policy url' => ['key' => 'specific_ethics_policy_url', 'type' => 'text'],
+            'currencies accepted' => ['key' => 'specific_currencies_accepted', 'type' => 'text'],
+            'medical specialty' => ['key' => 'specific_medical_specialty', 'type' => 'text'],
+            'menu url' => ['key' => 'specific_menu_url', 'type' => 'text'],
+            'accepts reservations' => ['key' => 'specific_accepts_reservations', 'type' => 'select'],
         ];
     }
 }

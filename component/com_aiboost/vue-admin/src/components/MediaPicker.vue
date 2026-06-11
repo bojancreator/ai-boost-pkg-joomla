@@ -1,29 +1,15 @@
 <template>
   <div class="ab-media-picker">
     <!--
-      Hidden DOM input that lives at the fieldId we pass to com_media / JCE.
-      JCE's hand-back code does `document.getElementById(element).value = url` on
-      the OPENER window before calling jInsertFieldValue. Without this node, JCE
-      throws "Cannot set properties of null" and the URL never propagates back.
-      We watch this input's value to mirror it into Vue state.
+      Native Joomla media field (joomla-field-media web component), rendered
+      server-side and mounted here but VISUALLY HIDDEN. It is the functional
+      engine only: its "Select" button opens the real Joomla media manager
+      (folder tree + thumbnails) and routes to JCE when installed. All visible
+      UI is our own preview box below, so there is no duplicated control.
     -->
-    <input :id="fieldId" ref="hiddenSink" type="hidden" :value="modelValue">
-    <div class="ab-media-picker__input-row">
-      <input
-        :value="modelValue"
-        @input="$emit('update:modelValue', $event.target.value)"
-        type="url"
-        class="ab-input"
-        :placeholder="placeholder"
-      >
-      <button type="button" class="ab-btn ab-btn--secondary" @click="openMedia" title="Open Joomla Media Manager">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"/>
-        </svg>
-        Browse Media
-      </button>
-    </div>
-    <div v-if="recommendedSize && !compact" class="ab-help ab-media-picker__hint">{{ recommendedSize }}</div>
+    <div v-if="hasNativeField" ref="nativeHost" class="ab-media-picker__native-hidden" aria-hidden="true"></div>
+
+    <!-- Single visual control: preview box (click to open the media manager) -->
     <div
       v-if="!compact"
       class="ab-media-picker__preview"
@@ -34,9 +20,9 @@
       role="button"
       tabindex="0"
       :title="modelValue ? 'Click to change image' : 'Click to choose an image'"
-      @click="openMedia"
-      @keydown.enter.prevent="openMedia"
-      @keydown.space.prevent="openMedia"
+      @click="triggerSelect"
+      @keydown.enter.prevent="triggerSelect"
+      @keydown.space.prevent="triggerSelect"
     >
       <img v-if="modelValue && !previewError" :src="modelValue" :alt="label || 'Preview'" @error="onPreviewError" @load="previewError = false">
       <div v-if="modelValue && !previewError" class="ab-media-picker__bg-toggle" role="group" aria-label="Preview background">
@@ -81,17 +67,40 @@
           <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z"/>
         </svg>
         <span class="ab-media-picker__placeholder-text">
-          No image selected — paste URL above or click <strong>Browse Media</strong>
+          No image selected — click here or <strong>Select</strong> to open the media manager
         </span>
       </div>
       <slot name="overlay"></slot>
+    </div>
+
+    <div v-if="recommendedSize && !compact" class="ab-help ab-media-picker__hint">{{ recommendedSize }}</div>
+
+    <!-- URL field (paste an external URL) + Select button -->
+    <div class="ab-media-picker__input-row">
+      <input
+        :value="modelValue"
+        @input="onUrlInput($event.target.value)"
+        type="url"
+        class="ab-input"
+        :placeholder="placeholder"
+      >
+      <button
+        type="button"
+        class="ab-btn ab-btn--secondary ab-media-picker__select-btn"
+        @click="triggerSelect"
+        :disabled="!hasNativeField"
+        :title="hasNativeField ? 'Open the Joomla media manager' : 'Media manager unavailable — paste a URL'"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.825a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"/>
+        </svg>
+        Select
+      </button>
     </div>
   </div>
 </template>
 
 <script>
-let __abMpCounter = 0
-
 export default {
   name: 'MediaPicker',
   props: {
@@ -100,392 +109,139 @@ export default {
     label: { type: String, default: '' },
     recommendedSize: { type: String, default: '' },
     compact: { type: Boolean, default: false },
+    // Settings key (e.g. 'org_logo') used to look up the server-rendered native
+    // Joomla media field in window.aiBoostBootstrap.mediaFields.
+    fieldKey: { type: String, default: '' },
   },
   emits: ['update:modelValue'],
   data() {
     return {
       previewError: false,
       bgMode: 'light',
-      fieldId: 'ab-mp-' + (++__abMpCounter) + '-' + Math.random().toString(36).slice(2, 8),
+      hasNativeField: false,
     }
   },
   watch: {
-    modelValue() { this.previewError = false },
+    modelValue(v) {
+      this.previewError = false
+      // Keep the hidden native input in sync (e.g. URL typed, cleared, or set
+      // from elsewhere) so the field's own state matches Vue state.
+      if (this._nativeInput && this._nativeInput.value !== (v || '')) {
+        this._nativeInput.value = v || ''
+      }
+    },
   },
   mounted() {
-    // Always-on sink watcher: JCE/3rd-party media browsers can hand back even
-    // without a prior openMedia() click in the same instance (e.g. they remember
-    // the fieldId from a previous popup). Patch the hidden input's value setter
-    // up-front so any direct .value = url assignment is propagated to Vue state.
-    this._installSinkWatcher()
+    this.mountNativeField()
   },
   beforeUnmount() {
-    this._cleanupListeners()
-    if (this._popup && !this._popup.closed) { try { this._popup.close() } catch (e) {} }
+    this.stopNativeSync()
+    if (this._nativeInput && this._onNativeChange) {
+      this._nativeInput.removeEventListener('change', this._onNativeChange)
+      this._nativeInput.removeEventListener('input', this._onNativeChange)
+    }
   },
   methods: {
     /**
-     * Open Joomla Media Manager in a popup window.
-     * Uses Joomla 4/5/6 selection-mode params (asset, fieldid, author) so the SPA
-     * fires postMessage / jInsertFieldValue when the user picks a file.
-     * We also inject our own Insert/Cancel toolbar into the popup as a guarantee
-     * that the user always sees a clear action — Joomla SPA's own Select button
-     * can be hidden depending on theme / version.
+     * Mount the server-rendered native Joomla media field for this fieldKey.
+     * Setting innerHTML lets the browser upgrade the <joomla-field-media> custom
+     * element (the field.media assets are queued by App\HtmlView). The element
+     * owns the Select button + modal + JCE routing; we mirror its input value
+     * into Vue state so the SPA save flow stays the source of truth.
      */
-    openMedia() {
-      const fieldId = this.fieldId
-      this._cleanupListeners()
-
-      // Open popup centered, sized to give the media SPA room.
-      // Params explained:
-      //   option=com_media + view=media + tmpl=component → Joomla 4/5/6 SPA selection mode
-      //   asset=com_content, author=1                    → permission context for media
-      //   mediatypes=0                                   → Joomla SPA: "all media types"
-      //   fieldid                                        → return-id used by jInsertFieldValue
-      //
-      //   JCE compatibility: when JCE editor is installed it intercepts com_media
-      //   and routes to its own File Browser. JCE filters files by `mediatype`
-      //   (singular!) and `filter` (extensions). Without these JCE shows folders
-      //   but no files. We pass an explicit image-friendly set so users see images.
-      const url = 'index.php?option=com_media&view=media&tmpl=component'
-        + '&asset=com_content'
-        + '&mediatypes=0'
-        + '&fieldid=' + encodeURIComponent(fieldId)
-        + '&author=1'
-        + '&mediatype=images'
-        + '&filter=' + encodeURIComponent('jpg,jpeg,png,gif,webp,svg,avif,bmp,ico')
-      const w = 1100, h = 740
-      const left = Math.max(0, Math.round((screen.width  - w) / 2))
-      const top  = Math.max(0, Math.round((screen.height - h) / 2))
-      this._popup = window.open(
-        url, 'aiboost_media_picker_' + fieldId,
-        'width=' + w + ',height=' + h
-        + ',left=' + left + ',top=' + top
-        + ',resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
-      )
-      if (!this._popup) { return }
-      this._popup.focus()
-
-      // (0) Watch the hidden sink input. JCE (and some Joomla 3-era media
-      // browsers) hand back by doing `document.getElementById(fieldId).value = url`
-      // directly — that doesn't fire input/change events, so we hijack the input's
-      // value setter to detect the assignment and propagate it into Vue state.
-      this._installSinkWatcher()
-
-      // (1) postMessage listener — Joomla 4/5/6 SPA fires these when user selects.
-      // Source-window check: the message must come from OUR popup OR any window
-      // nested inside it (J5/6 media SPA posts from inner iframes, not the top
-      // popup window). v0.55.8 — loosened from strict equality to ancestor walk,
-      // which is what was silently dropping every legit media-selected message
-      // on Free + recent Joomla builds.
-      const isFromOurPopup = (src) => {
-        if (!this._popup || !src) return false
-        try {
-          let w = src
-          for (let i = 0; i < 10 && w; i++) {
-            if (w === this._popup) return true
-            if (w.parent === w) return false
-            w = w.parent
-          }
-        } catch (e) { /* cross-origin access blocked — fail closed */ return false }
-        return false
+    mountNativeField() {
+      const map = (typeof window !== 'undefined' && window.aiBoostBootstrap && window.aiBoostBootstrap.mediaFields) || {}
+      const markup = this.fieldKey ? map[this.fieldKey] : ''
+      if (!markup) {
+        this.hasNativeField = false
+        return
       }
-      this._messageHandler = (event) => {
-        if (!event.data) return
-        if (event.source && !isFromOurPopup(event.source)) return
-        const d = event.data
-        let url = ''
-        // Joomla 4/5/6 media SPA — has shipped under several type names over
-        // the years. Accept any of them; the payload key (`selectedData`,
-        // `data`, `item`, or root-level `url`) also varies.
-        const looksMedia =
-             d.type        === 'mediaSelected'
-          || d.type        === 'media-selected'
-          || d.name        === 'media-select'
-          || d.messageType === 'joomla:file:selected'
-          || d.messageType === 'joomla:content-select'
-        if (looksMedia) {
-          const sel = d.selectedData || d.data || d.item || d
-          url = sel.url || sel.path || sel.src || ''
+      this.hasNativeField = true
+      this.$nextTick(() => {
+        const host = this.$refs.nativeHost
+        if (!host) return
+        host.innerHTML = markup
+        const input = host.querySelector('.field-media-input') || host.querySelector('input[type="text"], input[type="url"]')
+        if (!input) return
+        this._nativeInput = input
+        if (this.modelValue && input.value !== this.modelValue) {
+          input.value = this.modelValue
         }
-        if (!url && typeof d.url  === 'string') url = d.url
-        if (!url && typeof d.path === 'string') url = d.path
-        if (url) this._applyUrl(this._normalizeUrl(url))
-      }
-      window.addEventListener('message', this._messageHandler)
-
-      // (2) Global jInsertFieldValue callback — required for legacy "Insert" button.
-      // Ownership-safe: capture the previous global, install our own handler that
-      // delegates to the previous one for IDs we don't own. On cleanup, only restore
-      // if the current global is still our handler (another picker may have replaced it).
-      const prevGlobal = window.jInsertFieldValue
-      const myHandler = (value, returnedFieldId) => {
-        if (!returnedFieldId || returnedFieldId === fieldId) {
-          this._applyUrl(this._normalizeUrl(value))
-        } else if (typeof prevGlobal === 'function') {
-          prevGlobal(value, returnedFieldId)
-        }
-      }
-      window.jInsertFieldValue = myHandler
-      this._prevGlobalInsert = prevGlobal
-      this._myHandler = myHandler
-
-      // (3) Inject our own Insert / Cancel toolbar into the popup as a guarantee.
-      // Wait for popup DOM ready, then inject. Same origin so DOM access is allowed.
-      this._injectToolbar()
-
-      // (4) Poll for popup closed so we clean up listeners
-      this._pollTimer = window.setInterval(() => {
-        if (!this._popup || this._popup.closed) this._cleanupListeners()
-      }, 500)
+        // Fast path: some media managers DO fire change/input on write-back.
+        this._onNativeChange = () => this.syncFromNative()
+        input.addEventListener('change', this._onNativeChange)
+        input.addEventListener('input', this._onNativeChange)
+      })
     },
 
     /**
-     * Watch the hidden sink input for direct .value assignments.
-     * JCE's hand-back code does `document.getElementById(element).value = url`
-     * on the opener — without an event. We replace the input's value setter
-     * with one that calls our handler whenever a non-empty URL is written.
+     * Make a media-manager value usable as an <img> src + Schema/OG path.
+     * JCE / the media manager frequently returns a ROOT path WITHOUT the leading
+     * slash (e.g. "images/foo.png"); <img src> then resolves against the admin
+     * URL (/administrator/…) and 404s, which sets previewError and hides BOTH the
+     * preview image and the dark/light background toggle. Prepend the slash so it
+     * resolves from the site root. Absolute / protocol-relative / data|blob URIs
+     * are left untouched.
      */
-    _installSinkWatcher() {
-      const el = this.$refs.hiddenSink
-      if (!el || el.__abSinkPatched) return
-      const proto = window.HTMLInputElement && window.HTMLInputElement.prototype
-      const desc = proto && Object.getOwnPropertyDescriptor(proto, 'value')
-      if (!desc || !desc.set) return
-      const origSet = desc.set
-      const origGet = desc.get
-      const onWrite = (v) => {
-        const s = (v == null) ? '' : String(v)
-        if (s && s !== this.modelValue) {
-          this._applyUrl(this._normalizeUrl(s))
-        }
-      }
-      try {
-        Object.defineProperty(el, 'value', {
-          configurable: true,
-          get() { return origGet.call(this) },
-          set(v) { origSet.call(this, v); onWrite(v) },
-        })
-        el.__abSinkPatched = true
-        this._sinkEl = el
-      } catch (e) {}
+    normalizeMediaUrl(v) {
+      v = (v || '').trim()
+      if (!v) return ''
+      if (/^[a-z][a-z0-9+.-]*:/i.test(v) || v.startsWith('//')) return v
+      if (v.startsWith('/')) return v
+      return '/' + v.replace(/^\.?\//, '')
     },
 
-    _injectToolbar() {
-      const popup = this._popup
-      if (!popup || popup.closed) return
-
-      // Retry from the OPENER window, not the popup. popup.setTimeout is
-      // lost whenever the popup navigates (e.g. com_media → com_jce redirect),
-      // so timers scheduled inside it never fire. A 400ms interval in our own
-      // window keeps trying across every navigation. Each attempt re-checks
-      // whether our bar is still present (popup navigation wipes the DOM).
-      if (this._injectTimer) {
-        try { window.clearInterval(this._injectTimer) } catch (e) {}
-        this._injectTimer = null
+    /** Pull the current native input value into Vue state if it changed. */
+    syncFromNative() {
+      if (!this._nativeInput) return
+      const v = this.normalizeMediaUrl(this._nativeInput.value)
+      if (v !== (this.modelValue || '')) {
+        this.$emit('update:modelValue', v)
+        this.previewError = false
       }
-      this._injectTimer = window.setInterval(() => {
-        if (!this._popup || this._popup.closed) {
-          window.clearInterval(this._injectTimer)
-          this._injectTimer = null
+    },
+
+    /**
+     * Open the native/JCE media manager by clicking the hidden field's Select
+     * button, then start a bounded poll. JCE's browser writes the picked URL
+     * back to the input WITHOUT always firing a DOM event, so polling is what
+     * reliably surfaces the selection into our preview.
+     */
+    triggerSelect() {
+      const host = this.$refs.nativeHost
+      const btn = host && (host.querySelector('.button-select') || host.querySelector('button'))
+      if (!btn) return
+      btn.click()
+      this.startNativeSync()
+    },
+
+    startNativeSync() {
+      this.stopNativeSync()
+      let ticks = 0
+      this._syncTimer = window.setInterval(() => {
+        ticks++
+        if (!this._nativeInput) { this.stopNativeSync(); return }
+        const v = this.normalizeMediaUrl(this._nativeInput.value)
+        if (v !== (this.modelValue || '')) {
+          this.$emit('update:modelValue', v)
+          this.previewError = false
+          this.stopNativeSync() // got the write-back
           return
         }
-        let doc
-        try { doc = this._popup.document } catch (e) { return }
-        if (!doc || !doc.body) return
-        // Bar already present in current document — nothing to do this tick.
-        if (doc.getElementById('aiboost-mp-bar')) return
-        // Inject now. Wrap in try so a transient navigation doesn't break us.
-        try { attempt(doc) } catch (e) {}
-      }, 400)
-
-      const attempt = (doc) => {
-        if (doc.getElementById('aiboost-mp-bar')) return
-
-        const style = doc.createElement('style')
-        style.textContent = `
-          #aiboost-mp-bar {
-            position: fixed; left: 0; right: 0; bottom: 0; z-index: 999999;
-            display: flex; gap: 10px; align-items: center;
-            padding: 10px 16px; background: #1e2532; color: #fff;
-            box-shadow: 0 -4px 14px rgba(0,0,0,.25);
-            font: 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-          }
-          #aiboost-mp-bar button {
-            padding: 8px 18px; border: 0; border-radius: 6px; cursor: pointer;
-            font-weight: 600; font-size: 14px; font-family: inherit;
-          }
-          #aiboost-mp-insert { background: #4f8cff; color: #fff; }
-          #aiboost-mp-insert:disabled { opacity: .45; cursor: not-allowed; }
-          #aiboost-mp-cancel { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.3); }
-          #aiboost-mp-status { margin-left: auto; opacity: .85; font-size: 13px;
-            max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-          body { padding-bottom: 70px !important; }
-        `
-        doc.head.appendChild(style)
-
-        const bar = doc.createElement('div')
-        bar.id = 'aiboost-mp-bar'
-        bar.innerHTML =
-          '<button type="button" id="aiboost-mp-insert" disabled>Insert selected image</button>' +
-          '<button type="button" id="aiboost-mp-cancel">Cancel</button>' +
-          '<span id="aiboost-mp-status">Click an image first, then press Insert.</span>'
-        doc.body.appendChild(bar)
-
-        const insertBtn = doc.getElementById('aiboost-mp-insert')
-        const cancelBtn = doc.getElementById('aiboost-mp-cancel')
-        const statusEl  = doc.getElementById('aiboost-mp-status')
-
-        // Track last selected image URL from clicks inside the media browser.
-        let lastUrl = ''
-        const setLast = (u) => {
-          if (!u) return
-          lastUrl = u
-          insertBtn.disabled = false
-          const norm = this._normalizeUrl(u)
-          const short = norm.length > 70 ? '…' + norm.slice(-68) : norm
-          statusEl.textContent = 'Selected: ' + short
-        }
-
-        // Click handler covers many media SPA implementations across J4-6 + JCE.
-        // JCE file items use selectors: li.file, .upload-file, .item.file, [data-id].
-        const FILE_SEL = '.media-browser-image, .media-browser-item, .media-browser-image-thumb,'
-          + ' li.file, .file, .upload-file, .item.file,'
-          + ' [data-src], [data-url], [data-id]'
-        const extractUrl = (node) => {
-          if (!node) return ''
-          let u = node.getAttribute && (
-            node.getAttribute('data-url') ||
-            node.getAttribute('data-src') ||
-            node.getAttribute('data-path') ||
-            node.getAttribute('data-href') ||
-            node.getAttribute('href')
-          )
-          if (!u) {
-            const img = node.querySelector && node.querySelector('img')
-            u = img && (img.getAttribute('data-src') || img.getAttribute('src'))
-          }
-          // JCE files often store path in data-id with the relative URL
-          if (!u && node.getAttribute) {
-            const dataId = node.getAttribute('data-id')
-            if (dataId && /\.(jpe?g|png|gif|webp|svg|avif|bmp|ico)(\?|$)/i.test(dataId)) u = dataId
-          }
-          return u || ''
-        }
-        const onClick = (e) => {
-          const node = e.target.closest(FILE_SEL)
-          if (!node) return
-          const u = extractUrl(node)
-          if (u) setLast(u)
-        }
-        doc.addEventListener('click', onClick, true)
-
-        // Listen for Joomla's own media selection events fired inside the popup doc
-        const onMediaEvt = (evt) => {
-          const det = evt.detail || {}
-          const item = det.item || det.selectedData || det.data || det
-          const u = item.url || item.path || item.src || ''
-          if (u) setLast(u)
-        }
-        doc.addEventListener('onMediaFileSelected', onMediaEvt)
-
-        // Confirm / cancel
-        insertBtn.addEventListener('click', () => {
-          if (!lastUrl) return
-          this._applyUrl(this._normalizeUrl(lastUrl))
-        })
-        cancelBtn.addEventListener('click', () => {
-          try { this._popup && this._popup.close() } catch (err) {}
-          this._cleanupListeners()
-        })
-
-        // Double-click a file = instant insert
-        doc.addEventListener('dblclick', (e) => {
-          const node = e.target.closest(FILE_SEL)
-          if (!node) return
-          const u = extractUrl(node)
-          if (u) this._applyUrl(this._normalizeUrl(u))
-        }, true)
-      }
-      // attempt() is invoked by the setInterval above; no immediate call needed
+        if (ticks > 600) this.stopNativeSync() // ~3 min safety stop (300ms × 600)
+      }, 300)
     },
 
-    /**
-     * Normalize a URL returned by Joomla media manager.
-     * Joomla 4+ paths look like "local-images:/folder/file.jpg" — the public
-     * URL is usually "/images/folder/file.jpg". If we already get an absolute
-     * URL, return as-is. If we get a thumbnail path, strip the thumb prefix.
-     */
-    _normalizeUrl(raw) {
-      if (!raw) return ''
-      let u = String(raw).trim()
-      if (/^https?:\/\//i.test(u) || u.startsWith('//')) return u
-
-      // Strip thumbnail wrapper if media SPA gave us a /media/com_media/v3/thumbnails/... URL
-      const thumbIdx = u.indexOf('/media/com_media/')
-      if (thumbIdx >= 0) {
-        // Use as-is if it's already a working asset URL
-        return u
+    stopNativeSync() {
+      if (this._syncTimer) {
+        window.clearInterval(this._syncTimer)
+        this._syncTimer = null
       }
-
-      // Adapter scheme like "local-images:/foo.jpg" → "images/foo.jpg"
-      const m = u.match(/^([a-z0-9_-]+):\/?(.*)$/i)
-      if (m) {
-        const adapter = m[1]            // e.g. local-images
-        let rest = m[2].replace(/^\/+/, '')
-        // "local-images" → "images" folder. Generic fallback: strip "local-" prefix.
-        const folder = adapter.replace(/^local-/, '')
-        if (rest.startsWith(folder + '/')) {
-          u = '/' + rest
-        } else {
-          u = '/' + folder + '/' + rest
-        }
-      }
-      if (!u.startsWith('/') && !/^https?:/i.test(u)) u = '/' + u
-      // Convert to absolute if popup origin is known
-      try {
-        if (this._popup && this._popup.location && this._popup.location.origin) {
-          return this._popup.location.origin + u
-        }
-      } catch (e) {}
-      return u
     },
 
-    _applyUrl(url) {
-      if (!url) return
-      this.$emit('update:modelValue', url)
-      this.previewError = false
-      try { this._popup && this._popup.close() } catch (e) {}
-      this._cleanupListeners()
-    },
-
-    _cleanupListeners() {
-      if (this._messageHandler) {
-        window.removeEventListener('message', this._messageHandler)
-        this._messageHandler = null
-      }
-      // Restore the global jInsertFieldValue only if it still points to OUR handler;
-      // otherwise another picker (or other code) has taken ownership and we must
-      // not clobber it.
-      if (this._myHandler !== undefined) {
-        if (window.jInsertFieldValue === this._myHandler) {
-          if (typeof this._prevGlobalInsert === 'function') {
-            window.jInsertFieldValue = this._prevGlobalInsert
-          } else {
-            try { delete window.jInsertFieldValue } catch (e) { window.jInsertFieldValue = undefined }
-          }
-        }
-        this._myHandler = undefined
-        this._prevGlobalInsert = undefined
-      }
-      if (this._pollTimer) {
-        window.clearInterval(this._pollTimer)
-        this._pollTimer = null
-      }
-      if (this._injectTimer) {
-        try { window.clearInterval(this._injectTimer) } catch (e) {}
-        this._injectTimer = null
-      }
+    /** Manual URL paste: emit (the watcher mirrors it into the native input). */
+    onUrlInput(v) {
+      this.$emit('update:modelValue', v)
     },
 
     onPreviewError() {
@@ -494,6 +250,7 @@ export default {
 
     clearImage() {
       this.$emit('update:modelValue', '')
+      if (this._nativeInput) this._nativeInput.value = ''
       this.previewError = false
     },
   },
@@ -506,6 +263,21 @@ export default {
   flex-direction: column;
   gap: 8px;
 }
+/* Native joomla-field-media host — present + interactable but visually hidden
+   (NOT display:none, so its Select button can be clicked programmatically and
+   the media-manager dialog still opens). */
+.ab-media-picker__native-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 .ab-media-picker__input-row {
   display: flex;
   gap: 8px;
@@ -516,12 +288,16 @@ export default {
   flex: 1 1 240px;
   min-width: 0;
 }
-.ab-media-picker__input-row .ab-btn {
+.ab-media-picker__select-btn {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+}
+.ab-media-picker__select-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
 }
 .ab-media-picker__hint {
   margin-top: -2px;

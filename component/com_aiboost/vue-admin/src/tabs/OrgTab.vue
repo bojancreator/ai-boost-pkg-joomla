@@ -8,23 +8,53 @@
         <div class="mb-3">
           <label class="ab-label">Organization Name</label>
           <input v-model="s.org_name" data-ab-field="org_name" type="text" class="ab-input" placeholder="Acme Inc.">
-          <TranslationExpander field-key="org_name" />
+          <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_name" /></ProGate>
         </div>
         <div class="mb-3">
           <label class="ab-label">Organization Description</label>
           <textarea v-model="s.org_description" class="ab-input" rows="3"
             placeholder="Brief description used in Schema.org markup…"></textarea>
-          <TranslationExpander field-key="org_description" />
+          <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_description" /></ProGate>
         </div>
-        <div class="mb-0" data-ab-field="org_logo">
+        <div class="mb-3" data-ab-field="org_logo">
           <label class="ab-label">Organization Logo</label>
           <MediaPicker
             v-model="s.org_logo"
+            field-key="org_logo"
             label="Organization logo"
             placeholder="https://example.com/images/logo.png"
             recommended-size="Recommended: square PNG/SVG ≥ 112×112 px."
           />
-          <TranslationExpander field-key="org_logo" field-type="media" />
+          <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_logo" field-type="media" /></ProGate>
+        </div>
+        <div class="mb-3">
+          <label class="ab-label">Logo Alt Text</label>
+          <input v-model="s.org_logo_alt" data-ab-field="org_logo_alt" type="text" class="ab-input"
+            placeholder="Describe the logo for accessibility">
+          <div class="ab-help">Used as the logo's alt / caption in Schema.org markup.</div>
+          <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_logo_alt" /></ProGate>
+        </div>
+        <div class="mb-3" data-ab-field="org_image">
+          <label class="ab-label">Business Photo <span style="opacity:.5;font-weight:400;">(optional)</span></label>
+          <MediaPicker
+            v-model="s.org_image"
+            field-key="org_image"
+            label="Business photo"
+            placeholder="https://example.com/images/storefront.jpg"
+            recommended-size="A real photo of your business (storefront / interior). Emitted as schema image — we only emit the logo otherwise."
+          />
+        </div>
+        <div class="row g-3 mb-0">
+          <div class="col-md-6">
+            <label class="ab-label">Registered Legal Name <span style="opacity:.5;font-weight:400;">(optional)</span></label>
+            <input v-model="s.org_legal_name" data-ab-field="org_legal_name" type="text" class="ab-input" placeholder="Acme Inc.">
+            <div class="ab-help">Helps AI engines disambiguate your business entity.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="ab-label">Year / Date Established</label>
+            <input v-model="s.org_founding_date" data-ab-field="org_founding_date" type="text" class="ab-input" placeholder="1998 or 1998-03-15">
+            <div class="ab-help">"In business since…" — a trust signal AI engines quote.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -48,6 +78,17 @@
             <label class="ab-label">Phone Number</label>
             <input v-model="s.org_phone" type="tel" class="ab-input" placeholder="+1 212 555 0123">
             <div class="ab-help">E.164 format: <code>+CountryCode Area Number</code></div>
+          </div>
+        </div>
+        <div class="row g-3 mt-0">
+          <div class="col-md-6">
+            <label class="ab-label">VAT / Tax ID <span style="opacity:.5;font-weight:400;">(optional)</span></label>
+            <input v-model="s.org_vat_id" data-ab-field="org_vat_id" type="text" class="ab-input" placeholder="RS123456789">
+            <div class="ab-help">Legitimacy signal (esp. EU).</div>
+          </div>
+          <div class="col-md-6">
+            <label class="ab-label">Map / Directions URL</label>
+            <input v-model="s.org_map_url" data-ab-field="org_map_url" type="url" class="ab-input" placeholder="https://maps.google.com/...">
           </div>
         </div>
       </div>
@@ -79,12 +120,12 @@
           <div class="col-md-5">
             <label class="ab-label">Street Address</label>
             <input v-model="s.org_address_street" type="text" class="ab-input" placeholder="123 Main Street">
-            <TranslationExpander field-key="org_address_street" />
+            <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_address_street" /></ProGate>
           </div>
           <div class="col-md-4">
             <label class="ab-label">City / Locality</label>
             <input v-model="s.org_address_city" type="text" class="ab-input" placeholder="New York">
-            <TranslationExpander field-key="org_address_city" />
+            <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_address_city" /></ProGate>
           </div>
           <div class="col-md-3">
             <label class="ab-label">State / Region</label>
@@ -163,10 +204,11 @@
 <script>
 import TranslationExpander from '../components/TranslationExpander.vue'
 import MediaPicker from '../components/MediaPicker.vue'
+import ProGate from '../components/ProGate.vue'
 
 export default {
   name: 'OrgTab',
-  components: { TranslationExpander, MediaPicker },
+  components: { TranslationExpander, MediaPicker, ProGate },
   props: { s: { type: Object, required: true } },
 
   data() {

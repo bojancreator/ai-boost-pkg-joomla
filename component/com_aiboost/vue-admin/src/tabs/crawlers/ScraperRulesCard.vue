@@ -2,6 +2,19 @@
   <div class="ab-card">
     <div class="ab-card-header">SEO Scraper Rules</div>
     <div class="ab-card-body">
+      <p class="ab-help mb-2">
+        <strong>SEO-analysis crawlers</strong> (Ahrefs, Semrush, Majestic…) scrape your site for competitor and
+        backlink research — they are <strong>not</strong> search engines or AI engines. Blocking them does
+        <strong>not</strong> affect your Google/Bing ranking or AI-search visibility; it only hides your site from
+        competitor tools and saves a little crawl bandwidth.
+        <strong>Recommended: leave all allowed</strong> unless you specifically want to hide from SEO tools.
+        Tick a box (= <strong>block</strong> that bot in <code>robots.txt</code>); untick = allow.
+      </p>
+      <div class="ab-bulk-actions mb-3">
+        <span class="ab-bulk-label">Quick set:</span>
+        <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="setAllScrapers('1')">Block all</button>
+        <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="setAllScrapers('0')">Allow all</button>
+      </div>
       <div class="row g-2 mb-3">
         <div v-for="bot in SEO_SCRAPERS" :key="bot.key" class="col-6 col-sm-4">
           <label :for="'scraper-' + bot.key" class="ab-scraper-box d-flex align-items-center gap-2 p-2 border rounded small mb-0"
@@ -19,10 +32,10 @@
       <label class="ab-label">Additional user-agent blocks</label>
       <textarea v-model="s.robots_custom_scrapers" data-ab-field="robots_custom_scrapers" class="ab-input font-monospace" rows="4"
         placeholder="User-agent: CustomBot&#10;Disallow: /"></textarea>
-
-      <label class="ab-label mt-3">Free-form robots.txt rules</label>
-      <textarea v-model="s.robots_custom_rules" data-ab-field="robots_custom_rules" class="ab-input font-monospace" rows="4"
-        placeholder="Sitemap: https://example.com/sitemap.xml&#10;Crawl-delay: 10"></textarea>
+      <!-- "Free-form robots.txt rules" (robots_custom_rules) removed: it had no
+           runtime consumer (only the never-instantiated RobotsTxtManager read
+           it). The live free-form editor is "Custom robots.txt rules"
+           (crawler_rules) on the AI Crawler Rules card. -->
     </div>
   </div>
 </template>
@@ -47,10 +60,20 @@ export default {
   name: 'ScraperRulesCard',
   props: { s: { type: Object, required: true } },
   data() { return { SEO_SCRAPERS } },
+  methods: {
+    // Block all (= '1') / Allow all (= '0') the listed SEO scrapers at once.
+    setAllScrapers(value) {
+      for (const bot of SEO_SCRAPERS) {
+        this.s[bot.key] = value
+      }
+    },
+  },
 }
 </script>
 
 <style scoped>
+.ab-bulk-actions { display: inline-flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.ab-bulk-label { font-weight: 500; font-size: .85rem; }
 .ab-scraper-box { transition: border-color .15s, background .15s; cursor: pointer; }
 .ab-scraper-blocked { background: rgba(220,53,69,.06); border-color: rgba(220,53,69,.3) !important; }
 [data-bs-theme=dark] .ab-scraper-blocked { background: rgba(220,53,69,.12); border-color: rgba(220,53,69,.4) !important; }

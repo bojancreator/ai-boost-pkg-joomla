@@ -32,10 +32,12 @@ $dashData = [
     'conflicts'          => $this->conflicts,
     'tokenName'          => Session::getFormToken(),
     'urls'          => [
-        'settings'      => Route::_('index.php?option=com_aiboost&view=settings', false),
-        'health'        => Route::_('index.php?option=com_aiboost&view=health', false),
-        'redirects'     => Route::_('index.php?option=com_aiboost&view=redirects', false),
-        'import'        => Route::_('index.php?option=com_aiboost&view=import', false),
+        // SPA shell base — all internal navigation stays inside view=app (no PHP nav bar).
+        'appBase'       => Route::_('index.php?option=com_aiboost&view=app', false),
+        'settings'      => Route::_('index.php?option=com_aiboost&view=app', false) . '#/settings',
+        'health'        => Route::_('index.php?option=com_aiboost&view=app', false) . '#/health',
+        'redirects'     => Route::_('index.php?option=com_aiboost&view=app', false) . '#/redirects',
+        'import'        => Route::_('index.php?option=com_aiboost&view=app', false) . '#/import',
         'pluginManager' => Route::_('index.php?option=com_plugins&filter[folder]=system&filter[search]=ai+boost', false),
         'pluginEdit'    => Route::_('index.php?option=com_plugins&task=plugin.edit&extension_id=', false),
     ],

@@ -229,6 +229,18 @@ class HtmlView extends BaseHtmlView
             \JSON_HEX_TAG | \JSON_HEX_APOS | \JSON_HEX_QUOT | \JSON_UNESCAPED_SLASHES
         );
 
+        // Minimal bootstrap so the Vue admin's ProGate unlocks correctly in this
+        // LEGACY standalone mount (view=settings). Without it, window.aiBoostBootstrap
+        // is undefined here and isProInstalled() reads false → every Pro card shows
+        // locked even on a Pro install (Bojan's bug #8). Only isProInstall drives
+        // ProGate; the full bootstrap is still owned by the SPA (view=app).
+        $bootstrapMinJson = json_encode([
+            'isProInstall' => $this->detectProInstall(),
+            'isPro'        => false,
+            'tokenName'    => $this->token,
+            'legacy'       => true,
+        ], \JSON_HEX_TAG | \JSON_HEX_APOS | \JSON_HEX_QUOT);
+
         $doc->addScriptDeclaration(
             "window.aiBoostSettings={$settingsJson};" .
             "window.aiBoostToken={$tokenJson};" .
@@ -238,7 +250,8 @@ class HtmlView extends BaseHtmlView
             "window.aiBoostDefaultLang={$defaultLangJson};" .
             "window.aiBoostJoomlaDebug={$joomlaDebugJson};" .
             "window.aiBoostManifest={$manifestJson};" .
-            "window.aiBoostProFeatures={$proFeaturesJson};"
+            "window.aiBoostProFeatures={$proFeaturesJson};" .
+            "window.aiBoostBootstrap=Object.assign(window.aiBoostBootstrap||{},{$bootstrapMinJson});"
         );
 
         /* ── Tab switching ─────────────────────────────────────────────── */
@@ -1476,6 +1489,31 @@ JS
 JS
         );
 
+    }
+
+    /**
+     * Detect whether the Pro PACKAGE is installed (mirrors App\HtmlView::detectProInstall).
+     * Presence of the pkg_aiboost_pro package OR any aiboost_*_pro plugin row in
+     * #__extensions counts — NOT enabled-state, since a package has no meaningful
+     * enabled flag and individual Pro plugins may be toggled off without uninstalling.
+     */
+    private function detectProInstall(): bool
+    {
+        try {
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('COUNT(*)')
+                ->from($db->quoteName('#__extensions'))
+                ->where(
+                    '(' . $db->quoteName('element') . ' = ' . $db->quote('pkg_aiboost_pro')
+                    . ' OR ' . $db->quoteName('element') . ' LIKE ' . $db->quote('aiboost_%\\_pro') . ' ESCAPE ' . $db->quote('\\')
+                    . ')'
+                );
+            $db->setQuery($query);
+            return ((int) $db->loadResult()) > 0;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     private function loadSettings(): array

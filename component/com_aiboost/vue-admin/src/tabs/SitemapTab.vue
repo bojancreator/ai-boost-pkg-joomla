@@ -90,7 +90,8 @@
             <input v-model="s.exclude_menu_ids" type="text" class="ab-input" placeholder="3, 7">
           </div>
         </div>
-          <div class="ab-sec">Advanced</div>
+          <ProGate mode="card" label="Advanced sitemap">
+          <div class="ab-sec">Advanced <span class="ab-pro-tag">Pro</span></div>
           <div class="row g-2 mb-3">
             <div class="col-md-4">
               <div class="ab-check ab-toggle">
@@ -114,12 +115,14 @@
               </div>
             </div>
           </div>
+          </ProGate>
       </div>
     </div>
 
-    <!-- News Sitemap -->
+    <!-- News Sitemap (Pro) -->
+    <ProGate mode="card" label="News Sitemap">
     <div class="ab-card">
-      <div class="ab-card-header">📰 Google News Sitemap</div>
+      <div class="ab-card-header">📰 Google News Sitemap <span class="ab-pro-tag">Pro</span></div>
       <div class="ab-card-body">
         <div class="ab-check ab-toggle mb-3">
           <input v-model="s.enable_news_sitemap" true-value="1" false-value="0"
@@ -141,6 +144,7 @@
         </div>
       </div>
     </div>
+    </ProGate>
 
     <!-- Ping (legacy, demoted) -->
     <div class="ab-card">
@@ -340,11 +344,12 @@
 
 <script>
 import TranslationExpander from '../components/TranslationExpander.vue'
-import { makeAdminUrl } from '../api.js'
+import ProGate from '../components/ProGate.vue'
+import { makeAdminUrl, getCsrfTokenName } from '../api.js'
 
 export default {
   name: 'SitemapTab',
-  components: { TranslationExpander },
+  components: { TranslationExpander, ProGate },
   props: { s: { type: Object, required: true } },
 
   data() {
@@ -409,7 +414,7 @@ export default {
       this.preview.loading = true
       this.preview.error   = ''
       try {
-        const token = window.aiBoostToken
+        const token = getCsrfTokenName()
         const url   = makeAdminUrl('settings.previewSitemap') + (token ? '&' + token + '=1' : '')
         const res   = await fetch(url, { credentials: 'same-origin' })
         const data  = await res.json()

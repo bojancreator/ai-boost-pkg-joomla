@@ -78,6 +78,9 @@ class OgTagBuilder
         $ogDesc  = $this->ctx->getPageDescription();
 
         // Sitewide OG description override — base setting wins over page meta.
+        // The Free tier is sitewide-only: per-article OG (custom fields,
+        // article image/og:type) is a Pro feature handled entirely by
+        // OgTagProDecorator (aiboost_social_pro).
         $ogDescOverride = trim((string)($this->settings['og_description_override'] ?? ''));
         if ($ogDescOverride !== '') {
             $ogDesc = $ogDescOverride;
@@ -102,6 +105,9 @@ class OgTagBuilder
         if ($ogImageRaw !== '') {
             $this->addProp($ogProps, 'og:image', $this->absoluteUrl($ogImageRaw));
 
+            // Accessibility / rich-preview alt text for the default OG image.
+            $this->addProp($ogProps, 'og:image:alt', (string) ($this->settings['default_og_image_alt'] ?? ''));
+
             [$imgW, $imgH] = $this->resolveImageDimensions($ogImageRaw);
             if ($imgW > 0) {
                 $this->addProp($ogProps, 'og:image:width',  (string) $imgW);
@@ -123,6 +129,7 @@ class OgTagBuilder
         return [
             'og'             => $ogProps,
             'tw'             => $twProps,
+            'enable_og'      => (bool) ((int)($this->settings['enable_opengraph'] ?? 1)),
             'enable_twitter' => (bool) ((int)($this->settings['enable_twitter_cards'] ?? 1)),
             'context'        => [
                 'option' => $option,
@@ -135,19 +142,24 @@ class OgTagBuilder
     /**
      * Render the structured props array to ready-to-inject <meta> tags.
      *
-     * @param array{og?:array<string,string>, tw?:array<string,string>, enable_twitter?:bool} $props
+     * @param array{og?:array<string,string>, tw?:array<string,string>, enable_og?:bool, enable_twitter?:bool} $props
      * @return string[]
      */
     public static function renderProps(array $props): array
     {
         $tags = [];
 
-        foreach (($props['og'] ?? []) as $property => $content) {
-            if ((string) $content === '') {
-                continue;
+        // Master OG switch (`enable_opengraph`). When off, no og:* tags are
+        // emitted — Twitter Cards remain governed by `enable_twitter` below.
+        $enableOg = (bool) ($props['enable_og'] ?? true);
+        if ($enableOg) {
+            foreach (($props['og'] ?? []) as $property => $content) {
+                if ((string) $content === '') {
+                    continue;
+                }
+                $tags[] = '<meta property="' . htmlspecialchars((string) $property, ENT_QUOTES, 'UTF-8')
+                        . '" content="' . htmlspecialchars((string) $content, ENT_QUOTES, 'UTF-8') . '">';
             }
-            $tags[] = '<meta property="' . htmlspecialchars((string) $property, ENT_QUOTES, 'UTF-8')
-                    . '" content="' . htmlspecialchars((string) $content, ENT_QUOTES, 'UTF-8') . '">';
         }
 
         $enableTwitter = (bool) ($props['enable_twitter'] ?? true);

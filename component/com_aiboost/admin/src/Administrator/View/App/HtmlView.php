@@ -45,7 +45,8 @@ class HtmlView extends BaseHtmlView
 
     private function addToolbar(): void
     {
-        ToolbarHelper::title('AI Boost <small>v' . Version::VERSION . '</small>', 'bolt');
+        $edition = $this->detectProInstall() ? 'PRO' : 'FREE';
+        ToolbarHelper::title('AI Boost ' . $edition . ' <small>v' . Version::VERSION . '</small>', 'bolt');
     }
 
     /**
@@ -93,6 +94,75 @@ class HtmlView extends BaseHtmlView
         return $cached;
     }
 
+    /**
+     * Render native Joomla media fields (joomla-field-media web component) for
+     * every settings key the SPA exposes a MediaPicker for. Calling getInput()
+     * queues the field.media assets + media-picker options AND lets JCE (if
+     * installed) swap its own browser URL into the field — so the Vue picker's
+     * "Browse" opens the real, configured Joomla/JCE media manager.
+     *
+     * @param  array<string,mixed> $settings
+     * @return array<string,string>
+     */
+    private function buildMediaFields(array $settings): array
+    {
+        $keys = [
+            'org_logo'         => $settings['org_logo']         ?? ($settings['schema_logo_url'] ?? ''),
+            'org_image'        => $settings['org_image']        ?? '',
+            'default_og_image' => $settings['default_og_image'] ?? ($settings['og_default_image'] ?? ''),
+            'schema_org_image' => $settings['schema_org_image'] ?? '',
+        ];
+
+        $out = [];
+        foreach ($keys as $name => $value) {
+            $out[$name] = $this->buildMediaField($name, (string) $value);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Build a single native Joomla media Form field (type="media"). Returns the
+     * rendered joomla-field-media markup; getInput() side-effects queue the
+     * required web-component assets and the com_media / JCE picker options.
+     */
+    private function buildMediaField(string $name, string $value): string
+    {
+        try {
+            $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+            $xml = '<?xml version="1.0" encoding="UTF-8"?><form>'
+                 . '<field name="' . $safeName . '" type="media"'
+                 . ' preview="tooltip" class="input-xlarge" hiddenLabel="true" />'
+                 . '</form>';
+
+            $form = \Joomla\CMS\Form\Form::getInstance(
+                'ab_media_' . $name,
+                $xml,
+                ['control' => ''],
+                false,
+                false
+            );
+            $form->setValue($name, null, $value);
+
+            // Let form plugins decorate the field. JCE (when installed and
+            // configured to replace media fields) hooks onContentPrepareForm to
+            // swap its own browser URL into the field — so "Browse" opens the
+            // JCE media manager instead of native com_media, honouring whatever
+            // the site has configured as its default. A bare getInput() skips
+            // this event, which is why the field otherwise always falls back to
+            // native com_media.
+            try {
+                Factory::getApplication()->triggerEvent('onContentPrepareForm', [$form, []]);
+            } catch (\Throwable $e) {
+                // Non-fatal: fall back to the native field if a plugin errors.
+            }
+
+            return $form->getInput($name);
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
+
     private function buildBootstrap(): array
     {
         $tokenName = Session::getFormToken();
@@ -102,6 +172,7 @@ class HtmlView extends BaseHtmlView
         $proActivated      = false;
         $proActivatedAt    = null;
         $licenseHeartbeat  = new \stdClass();
+        $settings          = [];
         try {
             $db = Factory::getDbo();
             $query = $db->getQuery(true)
@@ -111,7 +182,7 @@ class HtmlView extends BaseHtmlView
             $db->setQuery($query);
             $raw = $db->loadResult();
             if ($raw) {
-                $settings = json_decode($raw, true);
+                $settings = json_decode($raw, true) ?: [];
                 if (is_array($settings)) {
                     $licenseTier = (string) ($settings['license_tier'] ?? '');
 
@@ -181,6 +252,12 @@ class HtmlView extends BaseHtmlView
             // key entered yet) stays usable and the user can paste a key.
             'isProInstall'     => $this->detectProInstall(),
             'proFeatures'      => $proFeatures,
+            // Server-rendered native Joomla media fields (joomla-field-media web
+            // component) per settings key. Calling getInput() also queues the
+            // field.media assets + media-picker options AND lets JCE (if
+            // installed) swap in its own browser URL. The Vue MediaPicker renders
+            // this markup so "Browse" opens the real Joomla/JCE media manager.
+            'mediaFields'      => $this->buildMediaFields($settings),
             'licenseHeartbeat' => $licenseHeartbeat,
             'license'          => [
                 'tier'          => $licenseTier,

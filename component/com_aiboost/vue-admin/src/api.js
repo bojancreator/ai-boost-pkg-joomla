@@ -17,7 +17,7 @@
 import { toast } from './composables/useToast.js'
 import { isOffline } from './composables/useOnlineStatus.js'
 
-function getCsrfTokenName() {
+export function getCsrfTokenName() {
   if (typeof window === 'undefined') return ''
   const boot = window.aiBoostBootstrap || {}
   return boot.tokenName || window.aiBoostToken || ''
@@ -165,8 +165,43 @@ export function getSettings() {
   return window.aiBoostSettings || {}
 }
 
+/**
+ * True when this install has working Pro (perpetual-activation gate).
+ *
+ * Reads the canonical signal the PHP shell already injects into the bootstrap
+ * blob (HtmlView::buildBootstrap → PluginRegistry::isProActive). The admin UI,
+ * the settings-save endpoint and the front-end emitters therefore all derive
+ * Pro from the SAME source and can never drift. Defaults to false (locked)
+ * when the flag is absent, so Free never accidentally shows Pro UI unlocked.
+ */
 export function isPro() {
-  return true
+  if (typeof window === 'undefined') return false
+  const boot = window.aiBoostBootstrap || {}
+  return boot.isPro === true
+}
+
+/**
+ * True when the Pro PACKAGE is installed (pkg_aiboost_pro / any *_pro plugin),
+ * regardless of whether a licence key has been activated yet.
+ *
+ * The admin UI lock (ProGate) keys on THIS, not on isPro(): on a Pro install
+ * the user should be able to see and configure Pro features immediately, even
+ * before entering a licence — the licence is still enforced at RUNTIME (the
+ * front-end emitters check PluginRegistry::hasPro). So a Free build shows the
+ * upgrade lock; a Pro build shows the real controls.
+ */
+export function isProInstalled() {
+  if (typeof window === 'undefined') return false
+  const boot = window.aiBoostBootstrap || {}
+  return boot.isProInstall === true
+}
+
+/**
+ * Marketing URL the Pro lock / upgrade prompts link to. Matches the
+ * "Upgrade license" link used in the Dashboard footer and Licenses page.
+ */
+export function proUpgradeUrl() {
+  return 'https://aiboostnow.com/pricing'
 }
 
 /**

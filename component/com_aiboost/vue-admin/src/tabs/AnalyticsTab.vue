@@ -60,8 +60,14 @@
             <select v-model="s.ga4_consent_mode" class="ab-select" style="max-width:340px">
               <option value="none">None (Direct inject — no GDPR)</option>
               <option value="gtm">Via GTM (skip direct GA4)</option>
+              <option value="yootheme">YooTheme Pro Consent Manager (Consent Mode v2)</option>
+              <option value="default_denied">Consent denied by default (custom CMP)</option>
             </select>
-            <div class="ab-help">Use <em>Via GTM</em> if you manage GA4 through Google Tag Manager to avoid duplicate tracking.</div>
+            <div class="ab-help">
+              <em>Via GTM</em> if you manage GA4 through Google Tag Manager (avoids duplicate tracking).
+              <em>YooTheme Pro Consent Manager</em> defers tracking until the visitor consents via YooTheme's
+              cookie banner. <em>Consent denied by default</em> sets Consent Mode v2 to denied for a custom CMP.
+            </div>
           </div>
       </div>
     </div>
@@ -83,9 +89,10 @@
       </div>
     </div>
 
-    <!-- Meta Pixel -->
+    <!-- Meta Pixel + events (Pro) -->
+    <ProGate mode="card" label="Meta Pixel">
     <div class="ab-card">
-      <div class="ab-card-header">📣 Meta Pixel</div>
+      <div class="ab-card-header">📣 Meta Pixel <span class="ab-pro-tag">Pro</span></div>
       <div class="ab-card-body">
         <div class="ab-check ab-toggle mb-3">
           <input v-model="s.enable_meta_pixel" data-ab-field="enable_meta_pixel" true-value="1" false-value="0"
@@ -110,7 +117,12 @@
           <label class="ab-label">Consent Mode</label>
           <select v-model="s.pixel_consent_mode" class="ab-select" style="max-width:340px">
             <option value="none">None (direct inject)</option>
+            <option value="consent_required">Consent required (revoke until granted)</option>
           </select>
+          <div class="ab-help">
+            <em>Consent required</em> emits <code>fbq('consent', 'revoke')</code> so the pixel holds events
+            until your consent manager calls <code>fbq('consent', 'grant')</code>.
+          </div>
         </div>
       </div>
     </div>
@@ -168,11 +180,14 @@
         <div class="ab-help mt-1">Name: custom event name. URL pattern: fires when page URL contains this string.</div>
       </div>
     </div>
+    </ProGate>
 
   </div>
 </template>
 
 <script>
+import ProGate from '../components/ProGate.vue'
+
 const PIXEL_EVENTS = {
   'Purchase': 'Fire on order confirmation / thank-you page',
   'Lead': 'Fire on lead form submission page',
@@ -213,6 +228,7 @@ function normalizePixelIds(settings) {
 
 export default {
   name: 'AnalyticsTab',
+  components: { ProGate },
   props: { s: { type: Object, required: true } },
 
   data() {
@@ -271,4 +287,17 @@ export default {
 
 <style scoped>
 .ab-analytics-tab { max-width: 860px; }
+.ab-pro-tag {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #b8860b;
+  background: #fffbf0;
+  border: 1px solid #ffe8a1;
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+[data-bs-theme=dark] .ab-pro-tag { background: #2a2000; border-color: #4a3800; }
 </style>

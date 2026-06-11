@@ -2,6 +2,12 @@
   <div class="ab-card">
     <div class="ab-card-header">AI Crawler Rules</div>
     <div class="ab-card-body">
+      <p class="ab-help mb-3">
+        Controls which <strong>AI training &amp; answer bots</strong> (GPTBot, ClaudeBot, PerplexityBot…) may
+        crawl your site. The rules are written into your <code>robots.txt</code>.
+        <strong>On</strong> publishes the rules below; <strong>Off</strong> removes them.
+        Per bot: <strong>Allow</strong> = the bot may crawl, <strong>Block</strong> = it is disallowed.
+      </p>
       <div class="ab-check ab-toggle mb-3">
         <input v-model="s.ai_crawlers_enabled" data-ab-field="ai_crawlers_enabled" true-value="1" false-value="0"
           type="checkbox" class="ab-toggle__input" id="cr-crawlers-enabled">
@@ -9,13 +15,12 @@
       </div>
 
       <template v-if="s.ai_crawlers_enabled === '1'">
-        <div class="ab-default-policy mb-3" data-ab-field="aeo_crawler_default_policy">
-          <div class="ab-default-policy__label">Default policy for unspecified crawlers</div>
-          <div class="ab-radio-group" role="radiogroup" aria-label="Default policy for unspecified crawlers">
-            <label class="ab-radio"><input type="radio" v-model="s.aeo_crawler_default_policy" value="allow" /> <span>Allow all</span></label>
-            <label class="ab-radio"><input type="radio" v-model="s.aeo_crawler_default_policy" value="block" /> <span>Block all</span></label>
-          </div>
+        <div class="ab-bulk-actions" data-ab-field="aeo_crawler_default_policy">
+          <span class="ab-bulk-label">Quick set all bots:</span>
+          <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="setAllBots('allow')">Allow all</button>
+          <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="setAllBots('block')">Block all</button>
         </div>
+        <div class="ab-help mb-3">Fills every bot below at once — then fine-tune individual bots if needed.</div>
 
         <div class="ab-bot-list" data-ab-field="crawler_bot_rules">
           <BotRuleRow v-for="bot in BOTS" :key="bot.id" :bot="bot" v-model="botRules[bot.id]" />
@@ -69,6 +74,16 @@ export default {
       deep: true,
     },
   },
+  methods: {
+    // "Allow all" / "Block all" — bulk-set every listed bot so each per-bot
+    // radio reflects the choice; individual bots can still be changed after.
+    setAllBots(policy) {
+      for (const bot of this.BOTS) {
+        this.botRules[bot.id] = policy
+      }
+      this.s.aeo_crawler_default_policy = policy
+    },
+  },
 }
 </script>
 
@@ -76,7 +91,6 @@ export default {
 .ab-bot-list { display: flex; flex-direction: column; gap: .25rem; }
 .ab-radio-group { display: inline-flex; gap: .75rem; flex-wrap: wrap; }
 .ab-radio { display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; font-size: .875rem; margin: 0; }
-.ab-default-policy { padding: .6rem .75rem; border: 1px solid var(--border-color, #dee2e6); border-radius: 6px; background: var(--secondary-bg, #f8f9fa); }
-.ab-default-policy__label { font-weight: 500; margin-bottom: .35rem; }
-[data-bs-theme=dark] .ab-default-policy { background: #1a1d21; border-color: #2d3338; }
+.ab-bulk-actions { display: inline-flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.ab-bulk-label { font-weight: 500; font-size: .85rem; }
 </style>

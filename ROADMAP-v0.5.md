@@ -18,10 +18,10 @@ Ostali dokumenti:
 |---|---|
 | **Repo** | `bojancreator/ai-boost-pkg-joomla` |
 | **Branch** | `v0.5-simple-autopilot` |
-| **Code version** | `0.73.15` (2026-06-05) |
+| **Code version** | `0.73.16` (2026-06-08) |
 | **v0.5 milestone phase** | **Release hardening** — IA i Free/Pro removal gotovi; preostaje pakovanje + QA |
-| **Last completed step** | Release hardening Faza 3d — ROADMAP usklađen sa stvarnim stanjem ✅ |
-| **Active slice** | Faza 3e/3f (paket čišćenje) → Faza 4 (QA + release) |
+| **Last completed step** | Site Types #609 dovršen + Schema `@id` entity graph + Pro multilingual bug fix (v0.73.16) ✅ |
+| **Active slice** | Faza 4 (QA + release) — Korak 3 fixes/features u toku |
 
 > **Napomena (2026-06-08):** Originalni Phase Board (koraci 5–10 IA prerada) je
 > bio materijalno netačan — označavao je „Not Started" za stranice koje **već
@@ -76,7 +76,7 @@ izvršava; statusi su stvarni.
 
 **Odloženo van v0.5 (potvrđeno):**
 - Update server (`api.aiboostnow.com`) — ne postoji; v1 ide ručnim ZIP update-om.
-- WordPress vertical — DB adapter curi Joomla query builder; daleko.
+- WordPress vertical — **v2.0 posle launcha**. Adapter šavovi postoje (8 CMS interfejsa + `AdapterRegistry` swap tačke + `_JEXEC||ABSPATH` guard na svih 78 lib fajlova + WP stub adapteri), ali impl fali: svi WP adapteri bacaju/no-op, `WpAppContext` vraća prazno, host sloj 0% (13 Joomla system plugina → nema WP hook ekvivalenta), `DatabaseAdapter` vraća Joomla `DatabaseInterface` (apstrakcija curi), 317 direktnih Joomla poziva u 35/78 lib fajlova još van adaptera. Zaseban projekat.
 - GDPR purge-all-data pri uninstall-u — podaci se trenutno čuvaju namerno.
 
 ---
@@ -99,6 +99,8 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Date | Decision |
 |------|----------|
+| 2026-06-08 | **Site Types (#609) dovršen + Schema entity graph + Pro multilingual bug fix (v0.73.16).** (1) Dodata 3 polja koja su falila: `medicalSpecialty` (Medical/Dentist), `hasMenu`+`acceptsReservations` (Restaurant/Food), `currenciesAccepted` (local). (2) `@id` entity graph — Organization `#organization`, WebSite `#website` + `publisher` ref, Article publisher nosi isti `@id` (Google/AI spajaju u jedan entitet). (3) Pro decorator sveden na **samo-prevod** i primenjen na **svaki** identitetski blok preko `SiteTypePresetService::isBusinessIdentityType()` — popravlja bug gde prevod nije stizao do Restaurant/Hotel/Dentist; uklonjeno ~70 linija duplirane tip-logike. **Step 8 (per-polje Health) svesno preskočen** (false-positive rizik na opcionim poljima, parity sa postojećim #609). Live front-end render QA čeka sajt gde je AiBoost aktivni schema emitter (oba test sajta otpala: offroadserbia prazan, offroadbalkans koristi YooTheme Pro schemu pa je AiBoost conflict-suppressed) |
+| 2026-06-08 | **WordPress port potvrđen kao v2.0 (posle launcha).** Provera koda: adapter šavovi su stvarni ali impl fali (detalji u „Odloženo van v0.5"). Wedge na WP = **AEO**, ne klasični SEO (Yoast/RankMath/AIOSEO dominiraju besplatno) — WP ekspanzija ide kroz AEO diferencijator. Prioritet sada: Joomla v0.5 do prodaje |
 | 2026-06-08 | **Pricing (supersedes 2026-05-25 €45 single-license):** 3 site-count tiers, yearly subscription, iste Pro funkcije — **AI Boost PRO** 3 sajta €65, **AI Boost Pro+** 10 sajtova €120, **AI Boost Unlimited** ∞ €180. Kod ne hardkoduje tier/cenu (čita LS `activation_limit`); 3-tier je čisto LS konfiguracija, bez izmene koda |
 | 2026-06-08 | Licenca: `verifyLicense()` vezan na **pravu** Lemon Squeezy proveru (`LicenseValidator::verify`, fail-closed); mock `AB-VALID` radi **samo** pod JDEBUG; `pro_activated*` dodat u import denylist da se Pro otključavanje ne prenosi između sajtova |
 | 2026-06-08 | Stored XSS kroz JSON-LD zatvoren na encode sloju (`JSON_HEX_TAG`), ne diramo decode redosled u FaqAutoDetect (čuva legitiman tekst tipa „5 < 10") |
@@ -130,6 +132,7 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Date | Command / Action | Result |
 |------|-----------------|--------|
+| 2026-06-08 | Site Types #609 + `@id` graph + Pro multilingual fix → PHPUnit + lockstep build + staging install | ✅ Code-level PASS — **234 testa / 4690 assertion-a** (＋23 nova: emit `hasMenu`/`acceptsReservations`/`currenciesAccepted`/`medicalSpecialty`, `@id` graf, `isBusinessIdentityType` gate); build 0.73.16 Free+Pro lockstep (codegen guard + Vue + Pro-leakage); install 0.73.16 na offroadserbia + offroadbalkans (Joomla 6.1.1) bez greške; import.upload prihvata nove manifest ključeve (save round-trip OK). ⏳ **Live front-end render NIJE uhvaćen** — nijedan test sajt nema AiBoost kao aktivni schema emitter (offroadserbia prazan/nekonfigurisan; offroadbalkans schema dolazi iz YooTheme Pro pa je AiBoost conflict-suppressed). `scripts/verify-schema-fields.py` napisan (snapshot→test→restore), čeka čist QA sajt |
 | 2026-06-08 | `verify-clean-uninstall.py --target free --uninstall-only` vs **živi** offroadbalkans.com (Joomla) | ✅ PASS — install 0.73.15 OK; posle uninstall: ekstenzija uklonjena, llms/sitemap/robots očišćeni, **sve #__aiboost_* tabele + seed redovi preživeli, licencni ključevi obrisani** (potvrđuje uninstall-guide ispravku end-to-end) |
 | 2026-06-08 | `verify-clean-uninstall.py --target pro` Pro-seed korak | ⚠️ Pro-seam zatvoren namerno — verifier flipuje Pro importom `pro_activated`, a Faza 1A ga je dodala u IMPORT_DENYLIST. **Potvrda da bezbednosna ispravka radi** (Pro se ne može preneti importom). Pro-translation QA sad traži pravi LS ključ; QA tooling `seed_pro()` treba update post-launch |
 | 2026-06-08 | Fix: `verify-clean-uninstall.py` cp1252 UnicodeEncodeError (UTF-8 shim, isti kao Faza 0) | ✅ Pass — skript radi na Windows konzoli |

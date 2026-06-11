@@ -161,7 +161,7 @@ final class SettingsSaveDefinitionTest extends TestCase
     {
         $this->assertAeoManifestField('llmstxt_recent_articles', 'llmstxt', 'number', '5', 'free');
         $this->assertAeoManifestField('llmstxt_custom_pages', 'llmstxt', 'json', '[]', 'free');
-        $this->assertAeoManifestField('llmstxt_faq_items', 'llmstxt', 'json', '[]', 'free');
+        // FAQ moved to the single Schema.org source (Korak 3.2 #7) — llmstxt_faq_items removed.
         $this->assertAeoManifestField('llms_full_max_articles', 'llms_full', 'number', '500', 'pro');
 
         $this->assertSame(
@@ -284,8 +284,11 @@ final class SettingsSaveDefinitionTest extends TestCase
             $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
         }
 
+        // Faza 3 tier reconcile: advanced day-by-day hours are FREE — emitted by
+        // the free SchemaBuilder, UI not locked. (schema_hours_temp_closed +
+        // schema_holiday_closed removed in v0.73.42 — dead, special hours skipped.)
         foreach ($this->activeOpeningHoursExpectations() as $key => $expected) {
-            $this->assertSchemaManifestField($key, 'schema', 'hours_advanced', $expected['type'], $expected['default'], 'pro');
+            $this->assertSchemaManifestField($key, 'schema', 'hours_advanced', $expected['type'], $expected['default'], 'free');
             $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
         }
 
@@ -556,8 +559,6 @@ final class SettingsSaveDefinitionTest extends TestCase
     private function schemaProSectionExpectations(): array
     {
         return [
-            'schema_hours_temp_closed' => ['section' => 'hours_advanced', 'type' => 'toggle', 'default' => '0'],
-            'schema_holiday_closed' => ['section' => 'hours_advanced', 'type' => 'textarea', 'default' => ''],
             'manual_faq_scope' => ['section' => 'faq', 'type' => 'select', 'default' => 'fallback_all'],
             'faq_items' => ['section' => 'faq', 'type' => 'json', 'default' => '[]'],
             'schema_faq_output_type' => ['section' => 'faq', 'type' => 'select', 'default' => 'faqpage'],

@@ -24,10 +24,12 @@ export const TRANSLATABLE_FIELDS = [
   { key: 'org_logo',            label: 'Organisation Logo URL',     tab: 'org',     pro: true },
   { key: 'org_address_street',  label: 'Address — Street',         tab: 'org',     pro: true },
   { key: 'org_address_city',    label: 'Address — City',           tab: 'org',     pro: true },
+  { key: 'org_logo_alt',        label: 'Organisation Logo Alt Text', tab: 'org',   pro: true },
 
   // ── Social / OpenGraph (SocialTab) ────────────────────────────────────────
   { key: 'site_name',                label: 'OG Site Name',                      tab: 'social',  pro: true },
   { key: 'default_og_image',         label: 'Default OG Image URL',              tab: 'social',  pro: true },
+  { key: 'default_og_image_alt',     label: 'Default OG Image Alt Text',         tab: 'social',  pro: true },
   { key: 'og_description_override',  label: 'Default OG Description Override',   tab: 'social',  pro: true },
 
   // ── Sitemap (SitemapTab) ──────────────────────────────────────────────────

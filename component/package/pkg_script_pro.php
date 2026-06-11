@@ -109,7 +109,8 @@ class Pkg_Aiboost_ProInstallerScript
         // instances left by older base builds that used to bundle the module.
         $this->publishHealthModule();
 
-        $this->relabelComponentMenu('COM_AIBOOST_MENU');
+        // Pro add-on installed → Components menu reads "AI Boost PRO".
+        $this->relabelComponentMenu('COM_AIBOOST_MENU_PRO');
 
         $app->enqueueMessage(
             'AI Boost add-on package installed. Open Components → AI Boost → Licenses '
@@ -172,7 +173,8 @@ class Pkg_Aiboost_ProInstallerScript
      */
     public function uninstall(object $parent): bool
     {
-        $this->relabelComponentMenu('COM_AIBOOST_MENU');
+        // Pro add-on removed → Components menu reverts to "AI Boost FREE".
+        $this->relabelComponentMenu('COM_AIBOOST_MENU_FREE');
         // Remove the admin Health module instances. The module extension (files
         // + #__extensions row) is removed by Joomla via its pkg_aiboost_pro.xml
         // membership; this clears the #__modules / #__modules_menu rows Joomla

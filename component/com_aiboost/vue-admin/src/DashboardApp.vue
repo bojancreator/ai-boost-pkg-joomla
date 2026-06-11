@@ -104,11 +104,15 @@
                  :style="{ borderLeftColor: plugin.meta.color }">
               <div class="ab-card__body p-4 d-flex flex-column">
 
-                <!-- Icon + label + status badge (top-right) -->
-                <div class="d-flex align-items-start gap-3 mb-2">
+                <!-- Icon + label + tier/status badges (top-right).
+                     flex-wrap keeps the status badge from being clipped when
+                     the tier badge crowds the row on narrow cards. -->
+                <div class="d-flex flex-wrap align-items-start gap-2 mb-2">
                   <span class="ab-plugin-icon" :style="{ color: plugin.meta.color }"
                         v-html="plugin.meta.icon"></span>
-                  <div class="fw-bold lh-sm flex-grow-1" style="font-size:1.05rem">{{ plugin.label }}</div>
+                  <div class="fw-bold lh-sm flex-grow-1" style="font-size:1.05rem;min-width:0">{{ plugin.label }}</div>
+                  <span v-if="!isProEdition && plugin.tier === 'pro'" class="ab-tier-badge ab-tier-badge--pro flex-shrink-0" title="This feature is Pro">PRO</span>
+                  <span v-else-if="!isProEdition && plugin.tier === 'mixed'" class="ab-tier-badge ab-tier-badge--mixed flex-shrink-0" title="Free baseline + Pro advanced options">FREE/PRO</span>
                   <span v-if="!plugin.found"       class="ab-badge flex-shrink-0">Not Installed</span>
                   <span v-else-if="plugin.enabled" class="ab-badge ab-badge--success flex-shrink-0">Enabled</span>
                   <span v-else                     class="ab-badge ab-badge--danger flex-shrink-0">Disabled</span>
@@ -401,6 +405,7 @@
 
 <script>
 import { reactive, computed, ref } from 'vue'
+import { isProInstalled } from './api'
 
 const CONFIRM_TIMEOUT = 3000
 
@@ -445,11 +450,28 @@ const PLUGIN_META = {
 
 const DEFAULT_META = { color: '#6c757d', icon: '' }
 
+// Tier badge per module: 'pro' (whole feature is Pro), 'mixed' (free core + Pro
+// extras), 'free'. Custom Code is fully Pro; the rest have a free baseline + Pro
+// advanced options.
+const PLUGIN_TIER = {
+  aiboost_code:      'pro',
+  aiboost_schema:    'mixed',
+  aiboost_sitemap:   'mixed',
+  aiboost_social:    'mixed',
+  aiboost_analytics: 'mixed',
+  aiboost_aeo:       'mixed',
+}
+
 export default {
   name: 'DashboardApp',
 
   setup() {
     const raw = window.aiBoostDashboard || {}
+
+    // On the Pro edition every module is fully unlocked, so the PRO / FREE-PRO
+    // tier badges are noise — hide them. They only inform Free users which
+    // modules have Pro extras. (Reads window.aiBoostBootstrap.isProInstall.)
+    const isProEdition = isProInstalled()
 
     const data = reactive({
       hasSettings:          raw.hasSettings          ?? false,
@@ -464,16 +486,21 @@ export default {
       multilingualLangCount: raw.multilingualLangCount ?? 0,
       multilingualCount:     raw.multilingualCount     ?? 0,
       urls: {
-        settings:      raw.urls?.settings      ?? '#',
-        health:        raw.urls?.health        ?? '#',
-        redirects:     raw.urls?.redirects     ?? '#',
-        import:        raw.urls?.import        ?? '#',
+        appBase:       raw.urls?.appBase       ?? '',
+        settings:      raw.urls?.settings      ?? '#/settings',
+        health:        raw.urls?.health        ?? '#/health',
+        redirects:     raw.urls?.redirects     ?? '#/redirects',
+        import:        raw.urls?.import        ?? '#/import',
         pluginManager: raw.urls?.pluginManager ?? '#',
       },
     })
 
     const plugins = reactive({})
     for (const [element, info] of Object.entries(raw.plugins || {})) {
+      // aiboost_core is the mandatory engine plugin — it is never disabled and
+      // has no settings tab of its own, so it is not shown as a Module Status
+      // card (its old "Configure → General" target moved into Technical SEO).
+      if (element === 'aiboost_core') continue
       plugins[element] = {
         label:        info.label        ?? element,
         desc:         info.desc         ?? '',
@@ -481,6 +508,7 @@ export default {
         found:        info.found        ?? false,
         extension_id: info.extension_id ?? null,
         meta:         PLUGIN_META[element] || DEFAULT_META,
+        tier:         PLUGIN_TIER[element] || 'free',
         busy:         false,
         confirming:   false,
         flash:        '',
@@ -570,19 +598,17 @@ export default {
 
     /**
      * Build the Configure deep-link for a plugin card.
-     * Settings URL already contains "?option=com_aiboost&view=settings", so we
-     * append &tab=<id>[&field=<key>]. The Settings app (App.vue) reads both
-     * query params on mount, switches tabs, and scroll-highlights the field.
+     * Uses the SPA shell (view=app) with a hash route so navigation stays inside
+     * the SPA — no PHP nav bar. tab and field become hash-fragment query params.
      */
     function configureUrl(meta) {
-      let url = data.urls.settings
-      if (!meta || !meta.tab) return url
-      const sep = url.includes('?') ? '&' : '?'
-      url += sep + 'tab=' + encodeURIComponent(meta.tab)
+      const appBase = data.urls.appBase || data.urls.settings.split('#')[0]
+      if (!meta || !meta.tab) return appBase + '#/settings'
+      let hash = '/settings?tab=' + encodeURIComponent(meta.tab)
       if (meta.field) {
-        url += '&field=' + encodeURIComponent(meta.field)
+        hash += '&field=' + encodeURIComponent(meta.field)
       }
-      return url
+      return appBase + '#' + hash
     }
 
     // ── Danger Zone: one-click settings backup (Task #490) ──────────────
@@ -765,15 +791,17 @@ export default {
     }
 
     const multilingualBannerHref = computed(() => {
-      const base = data.urls && data.urls.settings ? data.urls.settings : 'index.php?option=com_aiboost&view=settings'
-      const sep  = base.indexOf('?') === -1 ? '?' : '&'
-      return base + sep + 'tab=sitemap&field=enable_hreflang'
+      const appBase = (data.urls && data.urls.appBase)
+        ? data.urls.appBase
+        : 'index.php?option=com_aiboost&view=app'
+      return appBase + '#/settings?tab=sitemap&field=enable_hreflang'
     })
     const multilingualBannerTarget = computed(() => '_self')
 
     return {
       data,
       plugins,
+      isProEdition,
       multilingualBannerHref,
       multilingualBannerTarget,
       conflictCritical,
@@ -825,6 +853,30 @@ export default {
 [data-bs-theme=dark] .ab-module-card:hover {
   box-shadow: 0 4px 22px rgba(0, 0, 0, .45);
 }
+
+/* ── Tier badge (PRO / FREE-PRO) ──────────────────────────────── */
+.ab-tier-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.5;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.ab-tier-badge--pro {
+  color: #7a5b00;
+  background: #f9d46d;
+  border-color: #e6b800;
+}
+.ab-tier-badge--mixed {
+  color: #3a4a5a;
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+[data-bs-theme=dark] .ab-tier-badge--mixed { color: #cbd5e1; background: #2a3543; border-color: #3a4a5a; }
 
 /* ── Plugin icon ──────────────────────────────────────────────── */
 .ab-plugin-icon {

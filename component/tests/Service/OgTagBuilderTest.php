@@ -51,4 +51,96 @@ final class OgTagBuilderTest extends TestCase
         $this->assertSame('website', $props['og']['og:type']);
         $this->assertSame('My Site', $props['og']['og:site_name']);
     }
+
+    /**
+     * The default OG image alt text is emitted as og:image:alt when both the
+     * image and the alt setting are present (Free, sitewide).
+     */
+    public function testDefaultOgImageAltEmittedAsImageAlt(): void
+    {
+        $ctx = $this->stubContext();
+        $db  = $this->createMock(DatabaseInterface::class);
+
+        $props = (new OgTagBuilder([
+            'default_og_image'     => 'images/og-default.png',
+            'default_og_image_alt' => 'Our brand banner',
+        ], $ctx, $db))->buildProps();
+
+        $this->assertArrayHasKey('og:image', $props['og']);
+        $this->assertSame('Our brand banner', $props['og']['og:image:alt'] ?? null);
+
+        // No alt set → no og:image:alt tag (addProp skips empty values).
+        $bare = (new OgTagBuilder(['default_og_image' => 'images/og-default.png'], $ctx, $db))->buildProps();
+        $this->assertArrayNotHasKey('og:image:alt', $bare['og']);
+    }
+
+    /**
+     * `enable_opengraph` defaults to on; `enable_og` is exposed so renderProps
+     * can gate the og:* block.
+     */
+    public function testEnableOgDefaultsOnAndReflectsSetting(): void
+    {
+        $ctx = $this->stubContext();
+        $db  = $this->createMock(DatabaseInterface::class);
+
+        $on = (new OgTagBuilder([], $ctx, $db))->buildProps();
+        $this->assertTrue($on['enable_og'], 'enable_og should default to true when enable_opengraph is unset');
+
+        $off = (new OgTagBuilder(['enable_opengraph' => '0'], $ctx, $db))->buildProps();
+        $this->assertFalse($off['enable_og'], 'enable_og should be false when enable_opengraph = 0');
+    }
+
+    /**
+     * The master OG switch: when enable_og is false, renderProps emits no og:*
+     * tags but still emits Twitter Card tags (governed separately).
+     */
+    public function testRenderPropsMasterOgSwitchSuppressesOnlyOgTags(): void
+    {
+        $props = [
+            'og'             => ['og:type' => 'website', 'og:title' => 'Hello'],
+            'tw'             => ['twitter:card' => 'summary_large_image', 'twitter:title' => 'Hello'],
+            'enable_og'      => false,
+            'enable_twitter' => true,
+        ];
+
+        $tags = OgTagBuilder::renderProps($props);
+        $joined = implode("\n", $tags);
+
+        $this->assertStringNotContainsString('property="og:', $joined, 'og:* tags must be suppressed when enable_og is false');
+        $this->assertStringContainsString('name="twitter:card"', $joined, 'Twitter Card tags must still render');
+    }
+
+    /**
+     * Sanity: with both master switches on, og:* and twitter:* both render.
+     */
+    public function testRenderPropsEmitsBothWhenEnabled(): void
+    {
+        $props = [
+            'og'             => ['og:title' => 'Hello'],
+            'tw'             => ['twitter:title' => 'Hello'],
+            'enable_og'      => true,
+            'enable_twitter' => true,
+        ];
+
+        $joined = implode("\n", OgTagBuilder::renderProps($props));
+
+        $this->assertStringContainsString('property="og:title"', $joined);
+        $this->assertStringContainsString('name="twitter:title"', $joined);
+    }
+
+    private function stubContext(): AppContextInterface
+    {
+        $ctx = $this->createMock(AppContextInterface::class);
+        $ctx->method('getCurrentOption')->willReturn('com_content');
+        $ctx->method('getCurrentView')->willReturn('featured');
+        $ctx->method('getCurrentId')->willReturn(0);
+        $ctx->method('getSiteName')->willReturn('Test Site');
+        $ctx->method('getPageTitle')->willReturn('Test Page');
+        $ctx->method('getPageDescription')->willReturn('Test description');
+        $ctx->method('getCurrentUrl')->willReturn('https://example.test/');
+        $ctx->method('getBaseUrl')->willReturn('https://example.test');
+        $ctx->method('getActiveLanguage')->willReturn('en-GB');
+
+        return $ctx;
+    }
 }

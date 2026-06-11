@@ -125,9 +125,15 @@ class Pkg_AiboostInstallerScript
         // Task #482 — backfill page-level default policy and rewrite legacy
         // per-bot 'default' values to '' so the new radio UI is unambiguous.
         $this->migrateCrawlerDefaultPolicy();
-        // v0.73.10 — one-product cleanup: remove extension-manager rows left
-        // behind by the old split Free/Pro/add-on package layout.
-        $this->removeLegacySplitPackageArtifacts();
+        // Split model (Free base + Pro add-on package): only clean up ORPHANED
+        // Pro/add-on extension rows on a genuinely Free install. When the Pro
+        // package IS present (or a Pro licence is active), the *_pro plugins are
+        // the current product and MUST be preserved — otherwise a Free-base
+        // update would uninstall a paying customer's Pro and lock the whole UI
+        // (Bojan's bug #8). Mirrors the !isProInstall() gating used below.
+        if (!$this->isProInstall()) {
+            $this->removeLegacySplitPackageArtifacts();
+        }
         $this->enablePlugins();
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
@@ -613,7 +619,8 @@ class Pkg_AiboostInstallerScript
      */
     private function applyEditionMenuLabel(): void
     {
-          $newTitle = 'COM_AIBOOST_MENU';
+        // Edition-aware Components menu label: "AI Boost PRO" vs "AI Boost FREE".
+        $newTitle = $this->isProInstall() ? 'COM_AIBOOST_MENU_PRO' : 'COM_AIBOOST_MENU_FREE';
 
         try {
             $db = Factory::getDbo();

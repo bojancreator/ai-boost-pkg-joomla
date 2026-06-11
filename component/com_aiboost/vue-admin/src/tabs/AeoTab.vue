@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="ab-aeo-tab">
 
     <div class="ab-page-intro mb-3">
@@ -8,7 +8,7 @@
       </p>
     </div>
 
-    <!-- ── Section: llms.txt ─────────────────────────────────────── -->
+    <!-- ── Section: llms.txt (Free baseline) ─────────────────────── -->
     <div class="ab-card mb-3">
       <div class="ab-card-header">
         llms.txt — AI Site Index
@@ -34,7 +34,7 @@
               placeholder="A brief description of your site for AI engines (ChatGPT, Claude, Perplexity…)"
             ></textarea>
             <div class="ab-help">Appears at the top of <code>llms.txt</code> as the primary site summary.</div>
-            <TranslationExpander field-key="llmstxt_description" />
+            <ProGate mode="field" label="Translate"><TranslationExpander field-key="llmstxt_description" /></ProGate>
           </div>
 
           <div class="mb-3">
@@ -62,175 +62,149 @@
             <div class="ab-help mt-1">Manual pages to include in llms.txt with descriptions.</div>
           </div>
 
-          <!-- FAQ Auto-Detect -->
-          <div class="ab-check ab-toggle mb-2">
-            <input
-              v-model="s.llmstxt_faq_auto_detect" data-ab-field="llmstxt_faq_auto_detect"
-              true-value="1" false-value="0"
-              type="checkbox" class="ab-toggle__input" id="aeo-faq-auto"
-            />
-            <label class="ab-check__label" for="aeo-faq-auto">
-              Auto-Detect FAQ from Articles
-            </label>
-            <div class="ab-help">
-              Scans the 25 most recent published articles and extracts Q&amp;A pairs from
-              <code>&lt;h2&gt;/&lt;h3&gt;/&lt;h4&gt;</code> question headings followed by
-              paragraph answers. Detected items are appended after manual FAQs (duplicates are skipped).
-              Capped at 30 pairs total.
-            </div>
-          </div>
-
-          <!-- FAQ Items -->
-          <div class="mb-1" data-ab-field="llmstxt_faq_items">
-            <label class="ab-label">Manual FAQ Items</label>
-            <div
-              v-for="(faq, i) in faqItems" :key="i"
-              class="ab-faq-row mb-2 p-2 rounded border"
-            >
-              <div class="d-flex gap-2 mb-1">
-                <input v-model="faq.question" placeholder="Question…" class="ab-input form-control-sm" />
-                <button @click="removeFaq(i)" type="button" class="ab-btn ab-btn--sm ab-btn--ghost ab-btn--danger-ghost">×</button>
-              </div>
-              <textarea v-model="faq.answer" placeholder="Answer…" class="ab-input form-control-sm" rows="2"></textarea>
-            </div>
-            <button @click="addFaq" type="button" class="ab-btn ab-btn--sm ab-btn--ghost">+ Add FAQ Item</button>
-            <div class="ab-help mt-1">Q&amp;A pairs included in llms.txt for AI answer engines.</div>
+          <!-- FAQ is managed once in Schema.org and reused here (Korak 3.2 #7). -->
+          <div class="ab-info-box mb-1">
+            <strong>FAQ</strong> is now managed in one place —
+            <strong>Schema.org → FAQ / QAPage</strong>. Whatever you add there is automatically included
+            in <code>/llms.txt</code> too, so you only enter your Q&amp;A once.
           </div>
         </template>
       </div>
     </div>
 
-    <!-- ── Section: llms-full.txt (Pro — gated via ProGate registry) ── -->
-    <div class="ab-card mb-3">
-      <div class="ab-card-header">llms-full.txt — Full Site Index</div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-3">
-          <input
-            v-model="s.llms_full_txt_enabled" data-ab-field="llms_full_txt_enabled"
-            true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input"
-          />
-          <label class="ab-check__label">Enable <code>/llms-full.txt</code></label>
-        </div>
-        <div class="mb-2">
-          <label class="ab-label">Max Articles to Include</label>
-          <input
-            v-model="s.llms_full_max_articles"
-            type="number" min="10" max="5000"
-            class="ab-input" style="max-width:120px"
-          />
-          <div class="ab-help">All articles up to this limit are indexed for AI engines.</div>
+    <!-- ── Section: llms-full.txt (Pro) ── -->
+    <ProGate mode="card" label="llms-full.txt">
+      <div class="ab-card mb-3">
+        <div class="ab-card-header">llms-full.txt — Full Site Index <span class="ab-pro-tag">Pro</span></div>
+        <div class="ab-card-body">
+          <div class="ab-check ab-toggle mb-3">
+            <input
+              v-model="s.llms_full_txt_enabled" data-ab-field="llms_full_txt_enabled"
+              true-value="1" false-value="0"
+              type="checkbox" class="ab-toggle__input"
+            />
+            <label class="ab-check__label">Enable <code>/llms-full.txt</code></label>
+          </div>
+          <div class="mb-2">
+            <label class="ab-label">Max Articles to Include</label>
+            <input
+              v-model="s.llms_full_max_articles"
+              type="number" min="10" max="5000"
+              class="ab-input" style="max-width:120px"
+            />
+            <div class="ab-help">All articles up to this limit are indexed for AI engines.</div>
+          </div>
         </div>
       </div>
-    </div>
+    </ProGate>
 
-    <!-- ── Section: IndexNow (Pro — gated via ProGate registry) ── -->
-    <div class="ab-card mb-3">
-      <div class="ab-card-header">IndexNow — Instant Search Indexing</div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-3">
-          <input
-            v-model="s.indexnow_enabled"
-            data-ab-field="indexnow_enabled"
-            true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input"
-          />
-          <label class="ab-check__label">Enable IndexNow</label>
-        </div>
-        <div class="mb-3">
-          <label class="ab-label">API Key</label>
-          <div class="input-group">
+    <!-- ── Section: IndexNow (Pro) ── -->
+    <ProGate mode="card" label="IndexNow">
+      <div class="ab-card mb-3">
+        <div class="ab-card-header">IndexNow — Instant Search Indexing <span class="ab-pro-tag">Pro</span></div>
+        <div class="ab-card-body">
+          <div class="ab-check ab-toggle mb-3">
             <input
-              v-model="s.indexnow_api_key"
-              data-ab-field="indexnow_api_key"
-              type="text" class="ab-input font-monospace"
-              placeholder="Leave empty to auto-generate on save"
+              v-model="s.indexnow_enabled"
+              data-ab-field="indexnow_enabled"
+              true-value="1" false-value="0"
+              type="checkbox" class="ab-toggle__input"
             />
-            <button
-              @click="generateKey" type="button"
-              class="ab-btn ab-btn--ghost"
-            >
-              Generate
-            </button>
+            <label class="ab-check__label">Enable IndexNow</label>
+          </div>
+          <div class="mb-3">
+            <label class="ab-label">API Key</label>
+            <div class="input-group">
+              <input
+                v-model="s.indexnow_api_key"
+                data-ab-field="indexnow_api_key"
+                type="text" class="ab-input font-monospace"
+                placeholder="Leave empty to auto-generate on save"
+              />
+              <button
+                @click="generateKey" type="button"
+                class="ab-btn ab-btn--ghost"
+              >
+                Generate
+              </button>
+            </div>
+            <div class="ab-help">
+              Used for Bing, Yandex, Seznam. IndexNow key file is auto-served at
+              <code>/&lt;key&gt;.txt</code>.
+            </div>
+          </div>
+          <div class="ab-check ab-toggle">
+            <input
+              v-model="s.indexnow_auto_submit"
+              true-value="1" false-value="0"
+              type="checkbox" class="ab-toggle__input"
+            />
+            <label class="ab-check__label">Auto-submit URLs on article publish / update</label>
+          </div>
+        </div>
+      </div>
+    </ProGate>
+
+    <!-- ── Section: Markdown Pages (Free) ── -->
+      <div class="ab-card mb-3">
+        <div class="ab-card-header">Markdown Pages — AI Agent Endpoint</div>
+        <div class="ab-card-body">
+          <div class="ab-check ab-toggle mb-2">
+            <input
+              v-model="s.markdown_pages_enabled" data-ab-field="markdown_pages_enabled"
+              true-value="1" false-value="0"
+              type="checkbox" class="ab-toggle__input" id="aeo-markdown-enabled"
+            />
+            <label class="ab-check__label" for="aeo-markdown-enabled">
+              Serve pages as Markdown for AI agents
+            </label>
           </div>
           <div class="ab-help">
-            Used for Bing, Yandex, Seznam. IndexNow key file is auto-served at
-            <code>/&lt;key&gt;.txt</code>.
+            Any public page can be fetched as clean Markdown by AI tools (ChatGPT, Claude,
+            Perplexity, custom agents). Three triggers:
+            <ul class="mb-1 mt-1 ps-3">
+              <li>Append <code>.md</code> to the URL — <code>/article-slug.md</code></li>
+              <li>Add query param <code>?markdown=1</code> to any page URL</li>
+              <li>Send an <code>Accept: text/markdown</code> HTTP header</li>
+            </ul>
+            A <code>&lt;link rel="alternate" type="text/markdown"&gt;</code> tag is also added
+            to every <code>&lt;head&gt;</code> so agents auto-discover the Markdown URL.
+            Navigation, sidebars, and scripts are stripped — only the main content stays.
           </div>
         </div>
-        <div class="ab-check ab-toggle">
-          <input
-            v-model="s.indexnow_auto_submit"
-            true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input"
-          />
-          <label class="ab-check__label">Auto-submit URLs on article publish / update</label>
-        </div>
       </div>
-    </div>
 
-    <!-- ── Section: Markdown Pages (Pro — gated via ProGate registry) ── -->
-    <div class="ab-card mb-3">
-      <div class="ab-card-header">Markdown Pages — AI Agent Endpoint</div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-2">
-          <input
-            v-model="s.markdown_pages_enabled" data-ab-field="markdown_pages_enabled"
-            true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input" id="aeo-markdown-enabled"
-          />
-          <label class="ab-check__label" for="aeo-markdown-enabled">
-            Serve pages as Markdown for AI agents
-          </label>
+    <!-- ── Section: AI Signals (Free) ────────────────────────────── -->
+      <div class="ab-card mb-4">
+        <div class="ab-card-header">
+          AI Signals
         </div>
-        <div class="ab-help">
-          Any public page can be fetched as clean Markdown by AI tools (ChatGPT, Claude,
-          Perplexity, custom agents). Three triggers:
-          <ul class="mb-1 mt-1 ps-3">
-            <li>Append <code>.md</code> to the URL — <code>/article-slug.md</code></li>
-            <li>Add query param <code>?markdown=1</code> to any page URL</li>
-            <li>Send an <code>Accept: text/markdown</code> HTTP header</li>
-          </ul>
-          A <code>&lt;link rel="alternate" type="text/markdown"&gt;</code> tag is also added
-          to every <code>&lt;head&gt;</code> so agents auto-discover the Markdown URL.
-          Navigation, sidebars, and scripts are stripped — only the main content stays.
+        <div class="ab-card-body">
+          <div class="ab-check ab-toggle mb-1">
+            <input
+              v-model="s.aeo_ai_meta_enabled" data-ab-field="aeo_ai_meta_enabled"
+              true-value="1" false-value="0"
+              type="checkbox" class="ab-toggle__input" id="aeo-ai-meta"
+            />
+            <label class="ab-check__label" for="aeo-ai-meta">Enable AI meta tags</label>
+          </div>
+          <div class="ab-help">
+            Injects <code>&lt;meta name="ai-content-optimized"&gt;</code> and related signals
+            that help AI engines identify and index your content.
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- ── Section: AI Signals ───────────────────────────────────── -->
-    <div class="ab-card mb-4">
-      <div class="ab-card-header">
-        AI Signals
-      </div>
-      <div class="ab-card-body">
-        <div class="ab-check ab-toggle mb-1">
-          <input
-            v-model="s.aeo_ai_meta_enabled" data-ab-field="aeo_ai_meta_enabled"
-            true-value="1" false-value="0"
-            type="checkbox" class="ab-toggle__input" id="aeo-ai-meta"
-          />
-          <label class="ab-check__label" for="aeo-ai-meta">Enable AI meta tags</label>
-        </div>
-        <div class="ab-help">
-          Injects <code>&lt;meta name="ai-content-optimized"&gt;</code> and related signals
-          that help AI engines identify and index your content.
-        </div>
-      </div>
-    </div>
 
   </div>
 </template>
 
 <script>
-// Legacy tier gating for this tab has been retired
-// (registry keys: section:aeo.llms_full, .indexnow, .markdown).
-// No local isPro check or :disabled wiring is required here.
 import TranslationExpander from '../components/TranslationExpander.vue'
+import ProGate from '../components/ProGate.vue'
 
 export default {
   name: 'AeoTab',
-  components: { TranslationExpander },
+  components: { TranslationExpander, ProGate },
   props: { s: { type: Object, required: true } },
 
   data() {
@@ -238,13 +212,8 @@ export default {
     try { customPages = JSON.parse(this.s.llmstxt_custom_pages || '[]') } catch { /**/ }
     if (!Array.isArray(customPages)) customPages = []
 
-    let faqItems = []
-    try { faqItems = JSON.parse(this.s.llmstxt_faq_items || '[]') } catch { /**/ }
-    if (!Array.isArray(faqItems)) faqItems = []
-
     return {
       customPages,
-      faqItems,
     }
   },
 
@@ -253,17 +222,11 @@ export default {
       handler(v) { this.s.llmstxt_custom_pages = JSON.stringify(v) },
       deep: true,
     },
-    faqItems: {
-      handler(v) { this.s.llmstxt_faq_items = JSON.stringify(v) },
-      deep: true,
-    },
   },
 
   methods: {
     addPage()     { this.customPages.push({ url: '', description: '' }) },
     removePage(i) { this.customPages.splice(i, 1) },
-    addFaq()      { this.faqItems.push({ question: '', answer: '' }) },
-    removeFaq(i)  { this.faqItems.splice(i, 1) },
 
     generateKey() {
       const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -288,23 +251,29 @@ export default {
   color: var(--secondary-color, #6c757d);
   font-size: .92rem;
 }
-.ab-faq-row { background: var(--secondary-bg, #f8f9fa); color: var(--body-color, #212529); }
-.ab-pro-section { position: relative; }
-.ab-disabled    { opacity: .42; pointer-events: none; user-select: none; }
-.ab-lock        { font-size: .85rem; }
-.ab-upgrade-bar {
-  padding: .55rem 1rem .7rem;
-  background: #fffbf0;
-  border-top: 1px solid #ffe8a1;
-  text-align: center;
+.ab-info-box {
+  font-size: .82rem;
+  line-height: 1.6;
   color: var(--secondary-color, #6c757d);
+  background: var(--secondary-bg, #f8f9fa);
+  border: 1px solid var(--border-color, #dee2e6);
+  border-radius: 6px;
+  padding: 8px 11px;
 }
-.ab-upgrade-bar a { color: #0d6efd; }
-[data-bs-theme=dark] .ab-upgrade-bar { background: #2a2000; border-top-color: #4a3800; }
+.ab-pro-tag {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #b8860b;
+  background: #fffbf0;
+  border: 1px solid #ffe8a1;
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
 
-/* Task #473 — AEO inputs must be readable in dark mode.
-   Joomla's Bootstrap data-bs-theme=dark variant doesn't always reach our
-   custom `.ab-input` / `.ab-select` classes, so force theme-safe colours. */
+/* Task #473 — AEO inputs must be readable in dark mode. */
 [data-bs-theme=dark] .ab-input,
 [data-bs-theme=dark] .ab-select {
   background-color: #1a1d21 !important;
@@ -317,4 +286,5 @@ export default {
   background-color: #21262d !important;
   border-color: #388bfd !important;
 }
+[data-bs-theme=dark] .ab-pro-tag { background: #2a2000; border-color: #4a3800; }
 </style>

@@ -49,10 +49,44 @@ class SchemaBuilder
         'store'                   => 'Store',
         'touristattraction'       => 'TouristAttraction',
         'professionalservice'     => 'ProfessionalService',
+        'accountingservice'       => 'AccountingService',
         'person'                  => 'Person',
         'portfolio'               => 'Person',
         'newsmediaorganization'   => 'NewsMediaOrganization',
         'news'                    => 'NewsMediaOrganization',
+        // ── Food & Drink ──
+        'cafeorcoffeeshop'        => 'CafeOrCoffeeShop',
+        'cafe'                    => 'CafeOrCoffeeShop',
+        'coffeeshop'              => 'CafeOrCoffeeShop',
+        'bakery'                  => 'Bakery',
+        'barorpub'                => 'BarOrPub',
+        'bar'                     => 'BarOrPub',
+        'pub'                     => 'BarOrPub',
+        // ── Health & Medical ──
+        'physician'               => 'Physician',
+        'doctor'                  => 'Physician',
+        'pharmacy'                => 'Pharmacy',
+        'hospital'                => 'Hospital',
+        'veterinarycare'          => 'VeterinaryCare',
+        'vet'                     => 'VeterinaryCare',
+        // ── Lodging & Travel ──
+        'bedandbreakfast'         => 'BedAndBreakfast',
+        'resort'                  => 'Resort',
+        // ── Beauty & Fitness ──
+        'beautysalon'             => 'BeautySalon',
+        'hairsalon'               => 'HairSalon',
+        'nailsalon'               => 'NailSalon',
+        'dayspa'                  => 'DaySpa',
+        'spa'                     => 'DaySpa',
+        'healthclub'              => 'HealthClub',
+        // ── Education & Childcare ──
+        'childcare'               => 'ChildCare',
+        'preschool'               => 'ChildCare',
+        // ── Finance ──
+        'bankorcreditunion'       => 'BankOrCreditUnion',
+        'bank'                    => 'BankOrCreditUnion',
+        'financialservice'        => 'FinancialService',
+        'insuranceagency'         => 'InsuranceAgency',
     ];
 
     private const LOCAL_BUSINESS_TYPES = [
@@ -69,7 +103,43 @@ class SchemaBuilder
         'Store' => true,
         'TouristAttraction' => true,
         'ProfessionalService' => true,
+        'AccountingService' => true,
+        // Food & Drink
+        'CafeOrCoffeeShop' => true,
+        'Bakery' => true,
+        'BarOrPub' => true,
+        // Health & Medical
+        'Physician' => true,
+        'Pharmacy' => true,
+        'Hospital' => true,
+        'VeterinaryCare' => true,
+        // Lodging & Travel
+        'BedAndBreakfast' => true,
+        'Resort' => true,
+        // Beauty & Fitness
+        'BeautySalon' => true,
+        'HairSalon' => true,
+        'NailSalon' => true,
+        'DaySpa' => true,
+        'HealthClub' => true,
+        // Education & Childcare
+        'EducationalOrganization' => true,
+        'ChildCare' => true,
+        // Finance
+        'BankOrCreditUnion' => true,
+        'FinancialService' => true,
+        'InsuranceAgency' => true,
     ];
+
+    // Type groups — used to gate which type-specific detail fields emit for
+    // which @type. Adding a new type to the right group (here + in SchemaTab.vue)
+    // makes all of that group's fields available. (Korak 3.2 #1.)
+    private const FOOD_TYPES          = ['Restaurant', 'CafeOrCoffeeShop', 'Bakery', 'BarOrPub', 'FoodEstablishment'];
+    private const MEDICAL_TYPES       = ['MedicalClinic', 'Dentist', 'Physician', 'Pharmacy', 'Hospital', 'VeterinaryCare'];
+    private const LODGING_TYPES       = ['LodgingBusiness', 'BedAndBreakfast', 'Resort'];
+    private const BEAUTY_FITNESS_TYPES = ['BeautySalon', 'HairSalon', 'NailSalon', 'DaySpa', 'HealthClub', 'SportsActivityLocation'];
+    private const PRO_SERVICE_TYPES   = ['ProfessionalService', 'LegalService', 'AccountingService', 'RealEstateAgent'];
+    private const FINANCE_TYPES       = ['BankOrCreditUnion', 'FinancialService', 'InsuranceAgency'];
 
     private const BUSINESS_HOURS_DAYS = [
         'mon' => 'Monday',
@@ -145,6 +215,7 @@ class SchemaBuilder
         $schema = [
             '@context' => 'https://schema.org',
             '@type'    => $schemaType,
+            '@id'      => $this->organizationId(),
             'name'     => $orgName,
         ];
 
@@ -156,9 +227,35 @@ class SchemaBuilder
             $schema['description'] = $orgDesc;
         }
 
+        // Universal identity fields (Free, Korak 3.2 #1) — apply to any type.
+        $legalName = trim((string)($this->settings['org_legal_name'] ?? ''));
+        if ($legalName !== '') {
+            $schema['legalName'] = $legalName;
+        }
+
+        $vatId = trim((string)($this->settings['org_vat_id'] ?? ''));
+        if ($vatId !== '') {
+            $schema['vatID'] = $vatId;
+        }
+
+        $foundingDate = trim((string)($this->settings['org_founding_date'] ?? ''));
+        if ($foundingDate !== '') {
+            $schema['foundingDate'] = $foundingDate;
+        }
+
         $logo = trim((string)($this->settings['org_logo'] ?? ''));
         if ($logo !== '') {
-            $schema['logo'] = ['@type' => 'ImageObject', 'url' => $this->absoluteUrl($logo)];
+            $logoObj = ['@type' => 'ImageObject', 'url' => $this->absoluteUrl($logo)];
+            $logoAlt = trim((string)($this->settings['org_logo_alt'] ?? ''));
+            if ($logoAlt !== '') {
+                $logoObj['caption'] = $logoAlt;
+            }
+            $schema['logo'] = $logoObj;
+        }
+
+        $image = trim((string)($this->settings['org_image'] ?? ''));
+        if ($image !== '') {
+            $schema['image'] = $this->absoluteUrl($image);
         }
 
         $phone = trim((string)($this->settings['org_phone'] ?? ''));
@@ -169,6 +266,11 @@ class SchemaBuilder
         $email = trim((string)($this->settings['org_email'] ?? ''));
         if ($email !== '') {
             $schema['email'] = $email;
+        }
+
+        $mapUrl = trim((string)($this->settings['org_map_url'] ?? ''));
+        if ($mapUrl !== '') {
+            $schema['hasMap'] = $mapUrl;
         }
 
         $addrStreet  = trim((string)($this->settings['org_address_street']  ?? ''));
@@ -241,14 +343,26 @@ class SchemaBuilder
             }
         }
 
-        if (in_array($schemaType, ['Restaurant', 'FoodEstablishment', 'LodgingBusiness'], true)) {
+        if (in_array($schemaType, [...self::FOOD_TYPES, 'LodgingBusiness'], true)) {
             $cuisine = trim((string) ($this->settings['specific_serves_cuisine'] ?? ''));
             if ($cuisine !== '') {
                 $schema['servesCuisine'] = $cuisine;
             }
         }
 
-        if ($schemaType === 'LodgingBusiness') {
+        if (in_array($schemaType, self::FOOD_TYPES, true)) {
+            $menuUrl = trim((string) ($this->settings['specific_menu_url'] ?? ''));
+            if ($menuUrl !== '') {
+                $schema['hasMenu'] = $this->absoluteUrl($menuUrl);
+            }
+
+            $acceptsReservations = trim((string) ($this->settings['specific_accepts_reservations'] ?? ''));
+            if (in_array($acceptsReservations, ['true', 'false'], true)) {
+                $schema['acceptsReservations'] = $acceptsReservations === 'true';
+            }
+        }
+
+        if (in_array($schemaType, self::LODGING_TYPES, true)) {
             $starRating = trim((string) ($this->settings['specific_star_rating'] ?? ''));
             if ($starRating !== '' && (int) $starRating > 0) {
                 $schema['starRating'] = ['@type' => 'Rating', 'ratingValue' => $starRating];
@@ -270,14 +384,29 @@ class SchemaBuilder
             }
         }
 
-        if (in_array($schemaType, ['MedicalClinic', 'Dentist', 'LegalService', 'EducationalOrganization', 'SportsActivityLocation', 'AutomotiveBusiness', 'ProfessionalService'], true)) {
+        if (in_array($schemaType, [...self::MEDICAL_TYPES, ...self::BEAUTY_FITNESS_TYPES, ...self::PRO_SERVICE_TYPES, ...self::FINANCE_TYPES, 'EducationalOrganization', 'AutomotiveBusiness', 'Store', 'ChildCare'], true)) {
             $service = trim((string) ($this->settings['specific_available_service'] ?? ''));
             if ($service !== '') {
                 $schema['availableService'] = $service;
             }
+
+            // Pro: rich services list → makesOffer (Offer → itemOffered Service).
+            // Field is tier=pro (UI-locked in Free); we emit whatever is stored,
+            // matching how the other type-specific Pro properties are handled.
+            $offers = $this->buildMakesOffer((string) ($this->settings['schema_services'] ?? ''));
+            if ($offers !== []) {
+                $schema['makesOffer'] = $offers;
+            }
         }
 
-        if (in_array($schemaType, ['LocalBusiness', 'FoodEstablishment', 'Restaurant', 'MedicalClinic', 'LegalService', 'EducationalOrganization', 'SportsActivityLocation', 'Dentist', 'RealEstateAgent', 'AutomotiveBusiness', 'ProfessionalService', 'Store', 'TouristAttraction'], true)) {
+        if (in_array($schemaType, self::MEDICAL_TYPES, true)) {
+            $medicalSpecialty = trim((string) ($this->settings['specific_medical_specialty'] ?? ''));
+            if ($medicalSpecialty !== '') {
+                $schema['medicalSpecialty'] = $medicalSpecialty;
+            }
+        }
+
+        if (isset(self::LOCAL_BUSINESS_TYPES[$schemaType])) {
             $areaServed = trim((string) ($this->settings['specific_area_served'] ?? ''));
             if ($areaServed !== '') {
                 $schema['areaServed'] = $areaServed;
@@ -289,9 +418,14 @@ class SchemaBuilder
             if ($paymentAccepted !== '') {
                 $schema['paymentAccepted'] = $paymentAccepted;
             }
+
+            $currenciesAccepted = trim((string) ($this->settings['specific_currencies_accepted'] ?? ''));
+            if ($currenciesAccepted !== '') {
+                $schema['currenciesAccepted'] = $currenciesAccepted;
+            }
         }
 
-        if (in_array($schemaType, ['FoodEstablishment', 'Restaurant', 'LodgingBusiness', 'SportsActivityLocation', 'Store', 'TouristAttraction'], true)) {
+        if (in_array($schemaType, [...self::FOOD_TYPES, ...self::LODGING_TYPES, ...self::BEAUTY_FITNESS_TYPES, 'Store', 'TouristAttraction'], true)) {
             $amenities = $this->csvList((string) ($this->settings['specific_amenity_feature'] ?? ''));
             if ($amenities) {
                 $schema['amenityFeature'] = array_map(
@@ -317,7 +451,7 @@ class SchemaBuilder
             }
         }
 
-        if (in_array($schemaType, ['Person', 'MedicalClinic', 'LegalService', 'EducationalOrganization', 'Dentist', 'ProfessionalService'], true)) {
+        if (in_array($schemaType, ['Person', ...self::MEDICAL_TYPES, ...self::PRO_SERVICE_TYPES, ...self::FINANCE_TYPES, 'EducationalOrganization'], true)) {
             $knowsAbout = $this->csvList((string) ($this->settings['specific_knows_about'] ?? ''));
             if ($knowsAbout) {
                 $schema['knowsAbout'] = $knowsAbout;
@@ -340,6 +474,171 @@ class SchemaBuilder
                 $schema['ethicsPolicy'] = $this->absoluteUrl($ethicsPolicy);
             }
         }
+
+        // ── Faza 2b — per-type Pro detail fields ──────────────────────
+
+        // Accepting new patients (Medical) — top patient-facing question.
+        if (in_array($schemaType, self::MEDICAL_TYPES, true)) {
+            $accepting = trim((string) ($this->settings['specific_accepting_patients'] ?? ''));
+            if (in_array($accepting, ['true', 'false'], true)) {
+                $schema['isAcceptingNewPatients'] = $accepting === 'true';
+            }
+        }
+
+        // Credentials / licences (Medical + Professional + Finance + Education).
+        if (in_array($schemaType, [...self::MEDICAL_TYPES, ...self::PRO_SERVICE_TYPES, ...self::FINANCE_TYPES, 'EducationalOrganization'], true)) {
+            $creds = $this->csvList((string) ($this->settings['specific_credentials'] ?? ''));
+            if ($creds) {
+                $schema['hasCredential'] = array_map(
+                    static fn(string $c): array => ['@type' => 'EducationalOccupationalCredential', 'name' => $c],
+                    $creds
+                );
+            }
+        }
+
+        // Languages spoken (service businesses where it matters).
+        if (in_array($schemaType, [...self::LODGING_TYPES, ...self::MEDICAL_TYPES, ...self::PRO_SERVICE_TYPES, ...self::FINANCE_TYPES, ...self::BEAUTY_FITNESS_TYPES], true)) {
+            $langs = $this->csvList((string) ($this->settings['specific_languages'] ?? ''));
+            if ($langs) {
+                $schema['knowsLanguage'] = $langs;
+            }
+        }
+
+        // Suitable for diet (Food) — emit full schema.org RestrictedDiet URIs.
+        if (in_array($schemaType, self::FOOD_TYPES, true)) {
+            $diets = $this->mapDiets((string) ($this->settings['specific_diets'] ?? ''));
+            if ($diets) {
+                $schema['suitableForDiet'] = $diets;
+            }
+        }
+
+        // Number of rooms (Lodging).
+        if (in_array($schemaType, self::LODGING_TYPES, true)) {
+            $rooms = (int) ($this->settings['specific_number_of_rooms'] ?? 0);
+            if ($rooms > 0) {
+                $schema['numberOfRooms'] = $rooms;
+            }
+        }
+
+        // Merchant return policy (Store / local businesses) — the one property
+        // with a real Google rich result. Google REQUIRES returnPolicyCountry,
+        // so we emit nothing without a valid ISO-3166 country to avoid invalid
+        // structured data.
+        if ($schemaType === 'Store' || isset(self::LOCAL_BUSINESS_TYPES[$schemaType])) {
+            $returnCat     = trim((string) ($this->settings['specific_return_category'] ?? ''));
+            $returnCountry = strtoupper(trim((string) ($this->settings['specific_return_country'] ?? '')));
+            $validCats     = ['MerchantReturnFiniteReturnWindow', 'MerchantReturnUnlimitedWindow', 'MerchantReturnNotPermitted'];
+            if (in_array($returnCat, $validCats, true) && preg_match('/^[A-Z]{2}$/', $returnCountry)) {
+                $policy = [
+                    '@type'                => 'MerchantReturnPolicy',
+                    'returnPolicyCategory' => 'https://schema.org/' . $returnCat,
+                    'returnPolicyCountry'  => $returnCountry,
+                ];
+                if ($returnCat === 'MerchantReturnFiniteReturnWindow') {
+                    $days = (int) ($this->settings['specific_return_days'] ?? 0);
+                    if ($days > 0) {
+                        $policy['merchantReturnDays'] = $days;
+                    }
+                }
+                $schema['hasMerchantReturnPolicy'] = $policy;
+            }
+        }
+
+        // ── Faza 2b (rest) — more per-type Pro detail fields ──────────
+
+        // Universal business signals (not Person): employees, slogan.
+        if ($schemaType !== 'Person') {
+            $employees = (int) ($this->settings['specific_number_of_employees'] ?? 0);
+            if ($employees > 0) {
+                $schema['numberOfEmployees'] = ['@type' => 'QuantitativeValue', 'value' => $employees];
+            }
+            $slogan = trim((string) ($this->settings['specific_slogan'] ?? ''));
+            if ($slogan !== '') {
+                $schema['slogan'] = $slogan;
+            }
+        }
+
+        // Awards — valid on any entity (business or Person).
+        $awards = $this->csvList((string) ($this->settings['specific_award'] ?? ''));
+        if ($awards) {
+            $schema['award'] = $awards;
+        }
+
+        // Smoking allowed (Food + Lodging).
+        if (in_array($schemaType, [...self::FOOD_TYPES, ...self::LODGING_TYPES], true)) {
+            $smoking = trim((string) ($this->settings['specific_smoking_allowed'] ?? ''));
+            if (in_array($smoking, ['true', 'false'], true)) {
+                $schema['smokingAllowed'] = $smoking === 'true';
+            }
+        }
+
+        // Drive-through service (Food + Pharmacy + Bank).
+        if (in_array($schemaType, [...self::FOOD_TYPES, 'Pharmacy', 'BankOrCreditUnion'], true)) {
+            $driveThrough = trim((string) ($this->settings['specific_drive_through'] ?? ''));
+            if (in_array($driveThrough, ['true', 'false'], true)) {
+                $schema['hasDriveThroughService'] = $driveThrough === 'true';
+            }
+        }
+
+        // Free admission (TouristAttraction).
+        if ($schemaType === 'TouristAttraction') {
+            $accessibleFree = trim((string) ($this->settings['specific_accessible_free'] ?? ''));
+            if (in_array($accessibleFree, ['true', 'false'], true)) {
+                $schema['isAccessibleForFree'] = $accessibleFree === 'true';
+            }
+        }
+
+        // Target audience (Lodging + TouristAttraction).
+        if (in_array($schemaType, [...self::LODGING_TYPES, 'TouristAttraction'], true)) {
+            $audience = trim((string) ($this->settings['specific_audience'] ?? ''));
+            if ($audience !== '') {
+                $schema['audience'] = ['@type' => 'Audience', 'audienceType' => $audience];
+            }
+        }
+
+        // Brands serviced / sold (Automotive).
+        if ($schemaType === 'AutomotiveBusiness') {
+            $brands = $this->csvList((string) ($this->settings['specific_brand'] ?? ''));
+            if ($brands) {
+                $schema['brand'] = array_map(
+                    static fn(string $b): array => ['@type' => 'Brand', 'name' => $b],
+                    $brands
+                );
+            }
+        }
+    }
+
+    /**
+     * Map a comma-separated list of friendly diet names to schema.org
+     * RestrictedDiet URIs. Unknown values are dropped.
+     *
+     * @return array<int, string>
+     */
+    private function mapDiets(string $value): array
+    {
+        static $map = [
+            'diabetic'    => 'DiabeticDiet',
+            'glutenfree'  => 'GlutenFreeDiet',
+            'halal'       => 'HalalDiet',
+            'hindu'       => 'HinduDiet',
+            'kosher'      => 'KosherDiet',
+            'lowcalorie'  => 'LowCalorieDiet',
+            'lowfat'      => 'LowFatDiet',
+            'lowlactose'  => 'LowLactoseDiet',
+            'lowsalt'     => 'LowSaltDiet',
+            'vegan'       => 'VeganDiet',
+            'vegetarian'  => 'VegetarianDiet',
+        ];
+
+        $out = [];
+        foreach ($this->csvList($value) as $raw) {
+            $key = preg_replace('/[^a-z]/', '', strtolower($raw));
+            if (isset($map[$key])) {
+                $out[] = 'https://schema.org/' . $map[$key];
+            }
+        }
+
+        return array_values(array_unique($out));
     }
 
     /** @return array<int, string> */
@@ -409,9 +708,16 @@ class SchemaBuilder
         $schema  = [
             '@context' => 'https://schema.org',
             '@type'    => 'WebSite',
+            '@id'      => rtrim($baseUrl, '/') . '/#website',
             'name'     => $orgName !== '' ? $orgName : $this->ctx->getSiteName(),
             'url'      => $baseUrl . '/',
         ];
+
+        // Link the site to its publishing organization (shared @id node) so
+        // search engines and AI crawlers merge them into one entity graph.
+        if ($orgName !== '') {
+            $schema['publisher'] = ['@id' => $this->organizationId()];
+        }
 
         if ((int)($this->settings['enable_search_action'] ?? 1)) {
             $schema['potentialAction'] = [
@@ -482,6 +788,60 @@ class SchemaBuilder
         ];
     }
 
+    /**
+     * Parse the stored services JSON into a schema.org makesOffer array.
+     * Input: JSON array of {name, price?, currency?} objects.
+     * Output: a list of Offer nodes each wrapping a Service; price/priceCurrency
+     * are emitted only when a price is present and the currency is a valid
+     * ISO-4217 code. Invalid rows are skipped; capped at 50 entries.
+     *
+     * @return array<int, array<string,mixed>>
+     */
+    private function buildMakesOffer(string $raw): array
+    {
+        $raw = trim($raw);
+        if ($raw === '' || $raw === '[]') {
+            return [];
+        }
+
+        $rows = json_decode($raw, true);
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $offers = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $name = trim((string) ($row['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $offer = [
+                '@type'       => 'Offer',
+                'itemOffered' => ['@type' => 'Service', 'name' => $name],
+            ];
+
+            $price = trim((string) ($row['price'] ?? ''));
+            if ($price !== '') {
+                $offer['price'] = $price;
+                $currency = strtoupper(trim((string) ($row['currency'] ?? '')));
+                if (preg_match('/^[A-Z]{3}$/', $currency)) {
+                    $offer['priceCurrency'] = $currency;
+                }
+            }
+
+            $offers[] = $offer;
+            if (count($offers) >= 50) {
+                break;
+            }
+        }
+
+        return $offers;
+    }
+
     /** Ensure a path or URL is absolute (prepend base URL for relative paths). */
     private function absoluteUrl(string $path): string
     {
@@ -489,5 +849,18 @@ class SchemaBuilder
             return $path;
         }
         return $this->ctx->getBaseUrl() . '/' . ltrim($path, '/');
+    }
+
+    /**
+     * Stable @id for the publishing Organization node, shared across the
+     * Organization, WebSite, and Article publisher blocks so consumers merge
+     * them into a single entity. Derived from the configured org URL, falling
+     * back to the site base URL.
+     */
+    private function organizationId(): string
+    {
+        $orgUrl = trim((string) ($this->settings['org_url'] ?? ''));
+        $base   = $orgUrl !== '' ? $orgUrl : $this->ctx->getBaseUrl();
+        return rtrim($base, '/') . '/#organization';
     }
 }
