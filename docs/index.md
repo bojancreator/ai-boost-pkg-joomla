@@ -1,71 +1,75 @@
 # AI Boost for Joomla — Documentation
 
-**Version:** 0.73.15
-**Compatible with:** Joomla 5.x, 6.x | PHP 8.1+  
+**Compatible with:** Joomla 5.x and 6.x | PHP 8.1+
 **Publisher:** AI Boost — [aiboostnow.com](https://aiboostnow.com)
 
 ---
 
 ## What is AI Boost for Joomla?
 
-**AI Boost for Joomla** is an all-in-one SEO and AEO (Answer Engine Optimization) package for Joomla. It automatically generates structured data, XML sitemaps, OpenGraph tags, AI-readable signals, crawler rules, and analytics integrations in one admin experience, with no coding required.
+**AI Boost for Joomla** is an all-in-one SEO and AEO (Answer Engine Optimisation) package for Joomla. It generates structured data, an XML sitemap, OpenGraph tags, AI-readable signals, crawler rules and analytics integrations from one admin component — no coding required.
 
 **Key benefits:**
-- Get found by Google, Bing, ChatGPT, Perplexity, and Google AI Overviews
-- Schema.org JSON-LD for every page type (Organization, Article, FAQ, Events, Hotel, LocalBusiness)
-- Dynamic XML sitemap with hreflang for multilingual sites
-- AI-aware `robots.txt` that explicitly allows all major AI crawlers
-- `llms.txt` — the emerging standard for AI crawler visibility
-- Google Analytics 4, GTM, Meta Pixel with GDPR consent support
-- IndexNow for instant page indexing on Bing, Yandex, and Seznam
+
+- Get found by Google, Bing, ChatGPT, Perplexity and Google AI Overviews
+- Schema.org JSON-LD for your organisation, articles and dozens of business types
+- Dynamic XML sitemap, canonical URL management and 404 monitoring
+- AI-aware `robots.txt` with per-bot allow/block controls for AI crawlers
+- `llms.txt` and Markdown page endpoints — emerging standards for AI visibility
+- OpenGraph and Twitter Card tags for rich social previews
+- Built-in tools: Health check, Redirect manager, SEO Analyzer, URL Checker
 
 ---
 
-## License Model
+## Editions: Free and Pro
 
-AI Boost for Joomla is distributed as one product. A license keeps your site eligible for product updates and support; the installed package exposes the full admin workflow without Free/Pro feature-lock panels.
+AI Boost for Joomla ships in two editions:
 
-| Area | Included |
-| --- | --- |
-| Structured data | Schema.org JSON-LD, FAQ detection, Events, LocalBusiness and Hotel support |
-| Search discovery | XML sitemap, hreflang, canonical controls, 404 monitoring, IndexNow |
-| AI visibility | `llms.txt`, `llms-full.txt`, Markdown Pages, AI Signals |
-| Crawler policy | Dynamic `robots.txt`, scraper rules, AI crawler rules |
-| Social and analytics | OpenGraph, Twitter Cards, GA4, GTM, GSC verification, Meta Pixel |
+- **AI Boost for Joomla (Free)** — the full SEO/AEO foundation: Schema.org core output, XML sitemap, technical SEO controls, OpenGraph and Twitter Cards, `llms.txt`, Markdown pages, crawler and robots.txt management, plus the Health, Redirects, Analyzer and URL Checker tools.
+- **AI Boost for Joomla — Pro Upgrade** — an add-on package installed on top of Free that unlocks the advanced features listed below.
 
-See [License & Support](license-plans.md) for activation, renewal, and support details.
+The Free edition shows the Pro features as **visible locked cards** in the admin panel, each with an **Upgrade to Pro** button. You can see exactly what Pro adds before buying — locked settings are dimmed, not hidden.
+
+| Area | Free | Pro Upgrade adds |
+| --- | --- | --- |
+| Schema.org | Organisation/business schema (all site types), WebSite + SearchAction, Article schema, opening hours, breadcrumbs | FAQ/QAPage schema (auto-detect + manual builder), HowTo schema, Event schema, Author Entity (Person), extended business details, Services & Prices |
+| Technical SEO | Title and meta description templates, canonical URL management, 404 logging, conflict resolution, domain controls | — |
+| Sitemap | XML sitemap (articles, categories, menu items), change frequency, default priority | Sitemap index, image sitemap, hreflang in sitemap, tag URLs, per-type priorities, Google News sitemap |
+| Social Meta / OG | OpenGraph site name, default share image, Twitter Cards | Per-article OG overrides (custom fields), `og:locale`, Facebook App ID, Twitter site handle |
+| Analytics & Tracking | — | Google Analytics 4, Google Tag Manager, site verification (Google Search Console, Bing, Facebook), Meta Pixel with standard and custom events |
+| AI Visibility | `llms.txt` with custom pages, Markdown page endpoint, AI signals | `llms-full.txt` full-site index, IndexNow instant indexing |
+| Crawlers & Robots | robots.txt management, SEO scraper blocking, per-bot AI crawler rules | — |
+| Multilingual output | — | Per-language translations of schema/OG values, Falang integration |
+| Custom Code | — | Head/body/footer code injection with per-menu-item scope |
+| Tools | Health check, Redirects (+ 404 log, CSV import), SEO Analyzer, JSON-LD Validator, URL Checker, Import/Export | — |
+
+Pro is sold as a yearly subscription in three plans that differ **only in the number of sites** — see [Licence & Plans](license-plans.md) for pricing, the perpetual activation promise and what licence expiry means.
 
 ---
 
 ## Documentation Pages
 
 ### Getting Started
-- [Getting Started Guide](getting-started.md) — Installation, license activation, first 5-minute setup
-- [License & Support](license-plans.md) — Product license, updates, support, and activation
-
-### Admin Panel — Main Areas
-- Setup — license, quick setup, vertical presets, domain and environment
-- SEO — organization, Schema.org, XML sitemap, hreflang, social metadata, analytics
-- AI Visibility — `llms.txt`, `llms-full.txt`, Markdown Pages, AI Signals, IndexNow
-- Tools — Crawlers & Robots, Technical SEO, debug, cache and verification tools
-- Advanced — compatibility, diagnostics and power-user controls
+- [Getting Started Guide](getting-started.md) — install Free and Pro, verify your licence, run the Autopilot checklist
+- [Licence & Plans](license-plans.md) — pricing, activation, updates and support
+- [Admin Navigation Guide](plugin-tab.md) — where every setting lives in the admin sidebar
 
 ### Feature Guides
-- [Organization](organization.md) — Business identity, contact info, social links, location
-- [Schema.org](schema-org.md) — Structured data, FAQ Schema, Events Schema
-- [Sitemap](sitemap.md) — XML Sitemap and Hreflang tags
+- [Site Identity](organization.md) — business identity, contact info, social links, location
+- [Schema.org](schema-org.md) — structured data, FAQ, HowTo and Event schema
+- [Site Types](vertical-presets.md) — choosing the right business/organisation schema type
+- [Sitemap](sitemap.md) — XML sitemap and hreflang
 - [Social & Meta](social-meta.md) — OpenGraph, Twitter Cards, Meta Pixel
-- [Analytics & Indexing](analytics-indexing.md) — GSC, GA4, GTM, IndexNow
+- [Analytics & Indexing](analytics-indexing.md) — GSC, GA4, GTM, Meta Pixel, IndexNow, llms.txt
+- [Per-Article Overrides](per-article-overrides.md) — per-article OG custom fields (Pro)
+- [Multilingual Sites](multilingual.md) — sitemap hreflang, Falang and per-language output
+- [Debug & Diagnostics](debug-performance.md) — debug mode, error log, staging mode
 
-### Guides
-- [Vertical Presets Guide](vertical-presets.md) — Hotel, Restaurant, Blog, E-commerce, Generic presets
-- [Per-Article Overrides](per-article-overrides.md) — Custom Fields for per-page OG and Schema control
-- [Multilingual Sites](multilingual.md) — Hreflang, Falang, native Joomla multilingual
-- [Troubleshooting](troubleshooting.md) — Common issues and solutions
-- [Compatibility Matrix](compatibility.md) — Joomla versions, PHP, templates, third-party plugins
-
-### Release Notes
-- [Changelog](changelog.md) — What's new in each version
+### Reference
+- [Troubleshooting](troubleshooting.md) — common issues and solutions
+- [Compatibility Matrix](compatibility.md) — Joomla versions, PHP, templates, third-party extensions
+- [Uninstall Guide](uninstall-guide.md) — what is removed, what survives, how to reinstall
+- [Changelog](changelog.md) — release notes
 
 ---
 
@@ -76,11 +80,13 @@ After installation and initial setup, verify these URLs work:
 | URL | Expected result |
 | --- | --- |
 | `yoursite.com/sitemap.xml` | XML sitemap with your pages |
-| `yoursite.com/robots.txt` | AI-aware robots.txt with `Allow:` rules |
+| `yoursite.com/robots.txt` | robots.txt containing the AI Boost managed block |
 | `yoursite.com/llms.txt` | AI-readable site summary |
-| View source → `application/ld+json` | Schema.org JSON-LD block |
+| View source → `application/ld+json` | Schema.org JSON-LD inside the `<!-- AI Boost for Joomla - Start -->` block |
+
+The **Health** page (sidebar **OVERVIEW → Health**) runs these checks for you and links every problem to the setting that fixes it.
 
 ---
 
-*AI Boost for Joomla v0.73.15 — © 2025–2026 AI Boost (aiboostnow.com). All rights reserved.*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)). All rights reserved.*
 *[Documentation](https://aiboostnow.com/docs) | [info@aiboostnow.com](mailto:info@aiboostnow.com)*

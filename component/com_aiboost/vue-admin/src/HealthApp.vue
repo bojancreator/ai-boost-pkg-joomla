@@ -345,6 +345,21 @@ import { useRoute, useRouter } from 'vue-router'
 import ErrorsPage from './ErrorsPage.vue'
 
 const CATEGORY_ORDER = ['General', 'Conflicts', 'Schema', 'Sitemap', 'Social', 'Analytics', 'AEO', 'Crawlers & Robots', 'Integrations', 'License']
+
+// Fix-action targets that are full pages inside the Vue admin SPA shell
+// (view=app hash routes) rather than tabs of the Settings form. Any
+// target_tab NOT listed here is treated as a Settings tab and deep-linked
+// via the same ?tab=&field= contract HealthCheckService::settingsUrl() uses.
+const SPA_PAGE_ROUTES = {
+  errors:       '/health/errors',
+  licenses:     '/licenses',
+  integrations: '/integrations',
+  redirects:    '/redirects',
+  analyzers:    '/analyzers',
+  autopilot:    '/autopilot',
+  urlchecker:   '/urlchecker',
+  import:       '/import',
+}
 const CATEGORY_ICONS = {
   General:   'icon-home',
   Conflicts: 'icon-warning',
@@ -572,18 +587,30 @@ export default {
     // Build the final href for a fix action, honouring the structured
     // contract (target_tab + target_field) when present. Health is
     // rendered in its own page (view=health), so navigating to another
-    // tab (e.g. the Errors tab inside the Vue admin SPA at view=app)
-    // is a full page nav, with the field passed as a query param so
-    // the destination SPA can scroll to / highlight data-ab-field.
+    // tab or page is a full page nav, with the field passed as a real
+    // query param (before the hash) so the destination view can scroll
+    // to / highlight its [data-ab-field] element after mount.
+    //
+    // Resolution order:
+    //   1. target_tab naming an SPA page  → view=app hash route
+    //   2. any other target_tab           → Settings form deep link
+    //      (?tab=&field= — same contract as settingsUrl() server-side;
+    //      covers manifest-declared fix actions, which carry no url)
+    //   3. explicit url                   → as-is
+    //   4. nothing usable                 → '#'
     function fixActionHref (action) {
       if (!action) return '#'
       if (action.target_tab) {
-        const tab   = String(action.target_tab)
-        const field = action.target_field ? String(action.target_field) : ''
-        if (tab === 'errors') {
-          const fieldQs = field ? '&field=' + encodeURIComponent(field) : ''
-          return 'index.php?option=com_aiboost&view=app#/health/errors' + fieldQs
+        const tab     = String(action.target_tab)
+        const field   = action.target_field ? String(action.target_field) : ''
+        const fieldQs = field ? '&field=' + encodeURIComponent(field) : ''
+        const spaRoute = Object.prototype.hasOwnProperty.call(SPA_PAGE_ROUTES, tab)
+          ? SPA_PAGE_ROUTES[tab]
+          : ''
+        if (spaRoute) {
+          return 'index.php?option=com_aiboost&view=app' + fieldQs + '#' + spaRoute
         }
+        return 'index.php?option=com_aiboost&view=settings&tab=' + encodeURIComponent(tab) + fieldQs
       }
       return action.url || '#'
     }

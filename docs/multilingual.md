@@ -1,174 +1,117 @@
-# Multilingual Sites — Hreflang, Falang & Native Joomla Multilingual
+# Multilingual Sites — Hreflang, Falang & Per-Language Output
 
-JoomlaBoost is built for multilingual Joomla sites. It integrates natively with both Joomla's built-in multilingual system and the Falang translation plugin, and exposes per-language fields across all major configuration areas.
-
----
-
-## How Multilingual Fields Work
-
-Fields marked as **(Multilingual)** in the JoomlaBoost admin panel are injected dynamically based on the languages published in your Joomla instance.
-
-**Example with English and German installed:**
-- Organization Name (English — ★ Default)
-- Organization Name (German)
-- Organization Description (English — ★ Default)
-- Organization Description (German)
-- … and so on for all multilingual fields
-
-**The ★ Default language** serves as the fallback. You must always fill in the Default language field. Other languages can be left empty — they will inherit the default value automatically.
-
-### Which fields are multilingual?
-
-| Field | Location |
-|-------|----------|
-| Organization Name | Organization tab |
-| Organization Description | Organization tab |
-| Organization Logo | Organization tab |
-| City / Locality | Organization tab |
-| Street Address | Organization tab |
-| OG Site Name | Social & Meta tab |
-| OG Default Image | Social & Meta tab |
-| Manual FAQ items | Schema.org tab *(Developer/Agency)* |
-| Events JSON | Schema.org tab *(Developer/Agency)* |
-| LLMs.txt Custom Pages | Analytics tab *(Developer/Agency)* |
+AI Boost for Joomla works on multilingual Joomla sites. The **admin interface is English**, but the **front-end output** (Schema.org values, OpenGraph values, `llms.txt` description and similar) can be translated per language using the Pro translation fields and the Falang integration.
 
 ---
 
-## Joomla Native Multilingual System
+## How per-language output works (Pro)
 
-If you use **Joomla's built-in Language Filter plugin** and native Content Associations:
+Translatable fields in the admin panel — for example Organisation Name, Organisation Description, the default OG image, or the llms.txt site description — carry a **Translations** expander next to the field:
 
-1. Ensure the **Language Filter** system plugin is enabled in **System → Manage → Plugins**.
+1. Fill in the main field. This is the default value, used for every language you do not translate.
+2. Click **Translations** to expand one row per installed content language.
+3. Enter the translated value for each language you want to cover. Languages left empty fall back to the default automatically.
+
+On the front end, AI Boost serves the value matching the active page language.
+
+> **Pro feature:** in the Free edition the Translations expander appears as a locked **Translate — Pro** chip. The default (single-language) value always works in Free.
+
+### Where you will find translatable fields
+
+| Field | Location (sidebar) |
+|-------|--------------------|
+| Organisation Name / Description / Logo / Logo alt text | SETUP → Site Identity |
+| Street Address, City / Locality | SETUP → Site Identity |
+| OG Site Name, Default OG Image (+ alt), OG Description Override | SEO → Social Meta / OG |
+| News sitemap Publication Name | SEO → Sitemap (Pro) |
+| Site Description for AI (llms.txt) | AI VISIBILITY → AI Visibility |
+| Manual FAQ questions/answers, Event descriptions, Service names | SEO → Schema.org (Pro) |
+
+---
+
+## Joomla native multilingual sites
+
+If you use **Joomla's built-in Language Filter** and Content Associations:
+
+1. Enable the **Language Filter** system plugin in **System → Manage → Plugins**.
 2. Publish at least two languages in **System → Manage → Languages**.
-3. For each article, use the **Associations** tab to link translated versions of the same content.
-4. Enable **Hreflang** in JoomlaBoost's Sitemap tab (enabled by default).
+3. For each article, use the **Associations** tab to link the translated versions.
+4. Enable **Add hreflang to sitemap** under **SEO → Sitemap → Advanced Sitemap** (Pro — see below).
 
-JoomlaBoost reads Joomla's language associations to generate the correct `hreflang` tags.
-
----
-
-## Falang Integration
-
-**Falang** is a popular Joomla translation plugin that stores translations in a separate database table rather than creating separate Joomla content items.
-
-JoomlaBoost automatically detects Falang if it is installed and active:
-
-1. Language codes are read from `#__falang_languages` and merged with native Joomla languages.
-2. Multilingual fields in JoomlaBoost's admin panel expand to include Falang languages.
-3. FAQ auto-detection works with Falang-translated article content — FAQs are detected from the translated version of each article.
-4. No special configuration in JoomlaBoost is needed — Falang compatibility is automatic.
+AI Boost reads Joomla's language associations to generate the correct `hreflang` pairs in the sitemap.
 
 ---
 
-## Hreflang Tags
+## Falang integration
 
-Hreflang tags tell search engines which language version of a page to show to users in different countries/language settings. They are critical for multilingual sites to prevent keyword cannibalization and ensure users land on the correct language version.
+**Falang** stores translations in its own database tables rather than creating separate Joomla content items. AI Boost detects Falang automatically when it is installed and active:
 
-### Enabling Hreflang
+- Front-end output (including per-article OG custom field values) is served from the Falang translation of the current page, falling back to the default value.
+- FAQ auto-detection (Pro) works with Falang-translated article content — questions and answers are detected from the translated version of each article.
+- No special configuration in AI Boost is needed.
 
-Go to the **Sitemap** tab → set **Enable Hreflang** to **Yes** (default).
+---
 
-JoomlaBoost automatically generates `<link rel="alternate" hreflang="...">` tags in the `<head>` of every page.
+## Hreflang (Pro)
 
-### Hreflang in the Sitemap
+Hreflang annotations tell search engines which language version of a page to show to users in different language/country settings — critical for multilingual sites.
 
-For double coverage (both head tags and sitemap), enable **Add Hreflang to Sitemap** under Sitemap tab → Advanced Options.
+AI Boost emits hreflang **in the XML sitemap**: `<xhtml:link rel="alternate" hreflang="...">` entries inside each `<url>` block, enabled with **Add hreflang to sitemap** under **SEO → Sitemap → Advanced Sitemap**.
+
+AI Boost does not add hreflang `<link>` tags to the page `<head>` — on native multilingual sites Joomla's own Language Filter plugin already emits head alternate links, so the sitemap alternates complement them without duplication.
 
 **Sitemap hreflang example:**
+
 ```xml
 <url>
   <loc>https://yourdomain.com/en/rooms</loc>
-  <priority>0.8</priority>
   <xhtml:link rel="alternate" hreflang="en" href="https://yourdomain.com/en/rooms"/>
   <xhtml:link rel="alternate" hreflang="de" href="https://yourdomain.com/de/zimmer"/>
-  <xhtml:link rel="alternate" hreflang="sr" href="https://yourdomain.com/sr/sobe"/>
   <xhtml:link rel="alternate" hreflang="x-default" href="https://yourdomain.com/en/rooms"/>
 </url>
 ```
 
 ---
 
-## Supported Languages
+## Admin interface language
 
-JoomlaBoost ships with 11 translated admin panel language packs:
-
-| Language | Code |
-|----------|------|
-| English | `en-GB` |
-| Serbian | `sr-RS` |
-| German | `de-DE` |
-| French | `fr-FR` |
-| Spanish | `es-ES` |
-| Italian | `it-IT` |
-| Russian | `ru-RU` |
-| Portuguese (Brazil) | `pt-BR` |
-| Chinese (Simplified) | `zh-CN` |
-| Arabic | `ar-AA` |
-| Japanese | `ja-JP` |
-
-The admin panel language is controlled by your Joomla administrator language setting, not by the content language. The content language determines which multilingual field set is shown.
+The AI Boost admin panel is **English only**. There are no translated admin language packs. The content languages installed on your site control the front-end output and the languages offered in the Translations expanders — not the admin UI language.
 
 ---
 
-## Schema.org & Multilingual Content
+## Schema.org & multilingual content
 
-JoomlaBoost generates Schema.org output in the language of the active page:
-
-- Organization Name, Description, Address, and City are output in the current page language
-- The `sameAs` social links and GPS coordinates are language-independent
-- FAQ Schema from auto-detection uses the translated article content
-- Manual FAQs require separate JSON input per language (Developer/Agency)
+- Organisation Name, Description, Address and City are output in the current page language when translations are filled in (Pro).
+- `sameAs` social links and GPS coordinates are language-independent.
+- Auto-detected FAQ schema (Pro) uses the translated article content.
+- Manual FAQ items (Pro) accept per-language translations of every question and answer via the Translations expanders in the FAQ card.
 
 ---
 
-## Manual FAQ in Multiple Languages
+## Troubleshooting multilingual issues
 
-> **🔒 Requires Developer or Agency license.**
+### The Translations expander shows no extra languages
 
-When Manual FAQs are enabled, a JSON editor appears **per installed language**. Enter the FAQ translations separately for each language:
+**Cause:** only one content language is published in Joomla.
+**Fix:** go to **System → Manage → Languages** and ensure at least two languages are **Published**.
 
-**English FAQ field (`manual_faqs_en_GB`):**
-```json
-[
-  {"question": "Do you offer free WiFi?", "answer": "Yes, complimentary WiFi is available throughout the property."}
-]
-```
+### Sitemap hreflang entries show wrong language codes
 
-**German FAQ field (`manual_faqs_de_DE`):**
-```json
-[
-  {"question": "Bieten Sie kostenloses WLAN an?", "answer": "Ja, kostenloses WLAN ist im gesamten Hotel verfügbar."}
-]
-```
+**Cause:** language codes in Joomla's language settings differ from the expected hreflang codes.
+**Fix:** verify the installed language tags in **System → Manage → Languages** — the Tag column shows the code used for the sitemap hreflang entries (e.g. `en-GB`, `de-DE`, `sr-RS`).
 
-> **Auto-detected FAQs** from Falang-translated article content are automatically translated — Falang serves the translated content to JoomlaBoost's parser.
+### Sitemap hreflang entries missing for some pages
 
----
+**Cause:** article Associations are not set up between translated content items.
+**Fix:** open each article → **Associations** tab → link all language versions. Only associated articles generate hreflang pairs in the sitemap.
 
-## Troubleshooting Multilingual Issues
+### Falang translations not appearing in the output
 
-### Multilingual fields show only one language
-
-**Cause:** Only one language is published in Joomla.  
-**Fix:** Go to **System → Manage → Languages** and ensure at least 2 languages are **Published** (Status = Published).
-
-### Hreflang tags show wrong language codes
-
-**Cause:** Language codes in Joomla's language settings may differ from the ISO hreflang codes.  
-**Fix:** Verify your installed language tags in **System → Manage → Languages** — the Tag column shows the code JoomlaBoost uses for hreflang (e.g., `en-GB`, `de-DE`, `sr-RS`).
-
-### Hreflang tags missing for some pages
-
-**Cause:** Article Associations are not set up between translated content items.  
-**Fix:** Open each article → **Associations** tab → link all language versions of the article. Only associated articles generate hreflang pairs.
-
-### Falang translations not appearing in JoomlaBoost fields
-
-**Cause:** Falang languages may not be published.  
-**Fix:** Open Falang component → Languages → ensure each language is **Active**.
+**Cause:** the Falang language may not be active.
+**Fix:** open the Falang component → Languages → ensure each language is **Active**.
 
 ---
 
 *← [Per-Article Overrides](per-article-overrides.md) | [Documentation Index](index.md) | [Troubleshooting →](troubleshooting.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)).*

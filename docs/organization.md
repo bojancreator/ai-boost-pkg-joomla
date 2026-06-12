@@ -1,61 +1,49 @@
-# Organization Tab — Identity, Contact, Social & Location
+# Site Identity — Identity, Contact, Social & Location
 
-The **Organization** tab defines who you are. This data powers the `Organization` (or `LocalBusiness` / `Hotel`) Schema.org block injected on every page — the foundation that AI engines, Google, and Bing use to identify your business as a trusted entity.
+**Site Identity** (sidebar **SETUP → Site Identity**) defines who you are. This data powers the `Organization` (or LocalBusiness-type) Schema.org block injected on every page — the foundation that AI engines, Google and Bing use to identify your business as a trusted entity. It also feeds `llms.txt` and acts as a fallback for social previews.
+
+Site Identity is the first step of the **Autopilot** checklist (SETUP → Autopilot).
 
 ---
 
-## Identity (Multilingual)
-
-These fields are injected dynamically based on the languages installed in your Joomla instance. If you have English and German installed, you see one field set per language. Always fill in the **Default** language (marked with ★); other languages fall back to the default if left empty.
+## Identity
 
 ### Organization Name
-
-**Field:** `org_name_{lang}`  
-**Example:** `Acme Hotel Manhattan`
 
 Your official business or website name as it should appear in search results and AI citations. Keep it consistent with your registered business name.
 
 ### Organization Description
 
-**Field:** `org_description_{lang}`  
-**Example:** *"Acme Hotel is a 4-star hotel in Manhattan, New York, USA, offering luxury accommodation since 1999."*
+A 1–3 sentence description of your organisation. Keep it factual and authoritative — AI engines use this as a primary source when generating citations and summaries about your business.
 
-A 1–3 sentence description of your organization. Keep it factual and authoritative — AI engines use this as the primary source when generating citations and summaries about your business.
+### Organization Logo (+ alt text)
 
-### Organization Logo
+Select your logo via the media picker and give it a short alt text. Recommendations:
 
-**Field:** `org_logo_{lang}`
-
-Select your logo via the Joomla media picker. Recommendations:
 - Minimum size: 112×112 pixels
-- Recommended: square format for Knowledge Panel, or landscape (e.g., 600×200)
+- Square format for the Google Knowledge Panel, or landscape (e.g. 600×200)
 - Format: PNG (transparent background) or JPG
-- This logo appears in Google Knowledge Panel, rich results, and as the fallback for OpenGraph images
+- The logo appears in rich results and serves as the last-resort fallback for OpenGraph images
+
+### Optional identity details
+
+- **Business Photo** — a photo of your premises or team, used in business-type schema.
+- **Registered Legal Name** — if it differs from your public name.
+- **Year / Date Established** — founding year or date.
+
+> **Multilingual sites (Pro):** Organisation Name, Description, Logo (with its alt text) and the Street Address and City / Locality fields carry a **Translations** expander so the front-end output can differ per language. See [Multilingual Sites](multilingual.md).
 
 ---
 
 ## Contact Information
 
-### Organization URL
-
-**Field:** `schema_url`  
-**Example:** `https://www.yourdomain.com`
-
-Your canonical website URL. Used as the `url` property in Schema.org. Leave empty to use the auto-detected domain.
-
-### Email Address
-
-**Field:** `schema_email`  
-**Example:** `info@yourdomain.com`
-
-Your public contact email. Used in the Schema.org `ContactPoint` block.
-
-### Phone Number
-
-**Field:** `schema_phone`  
-**Example:** `+1 212 555 1234`
-
-Use international format with country code. Used in `ContactPoint` Schema and displayed in local search results on Google.
+| Field | Notes |
+|-------|-------|
+| **Organization URL** | Your canonical website URL — used as the `url` property in Schema.org |
+| **Email Address** | Public contact e-mail |
+| **Phone Number** | International (E.164) format with country code, e.g. `+44 20 7946 0958` |
+| **VAT / Tax ID** | Optional |
+| **Map / Directions URL** | A Google Maps (or similar) link to your location |
 
 ---
 
@@ -63,100 +51,73 @@ Use international format with country code. Used in `ContactPoint` Schema and di
 
 These URLs populate the `sameAs` array in your Schema.org Organization block — a key signal for AI entity disambiguation. AI engines use `sameAs` to confirm that your website and your social profiles represent the same real-world entity.
 
-| Platform | Field | Example value |
-|----------|-------|---------------|
-| Facebook | `schema_social_facebook` | `https://www.facebook.com/yourbusiness` |
-| Instagram | `schema_social_instagram` | `https://www.instagram.com/yourbusiness` |
-| YouTube | `schema_social_youtube` | `https://www.youtube.com/c/yourchannel` |
-| Twitter/X | `schema_social_twitter` | `https://twitter.com/yourhandle` |
-| LinkedIn | `schema_social_linkedin` | `https://www.linkedin.com/company/yourcompany` |
+Fields are provided for **Facebook, Instagram, YouTube, Twitter / X, LinkedIn and TikTok**. Fill in only the networks where you have an active presence — empty fields are excluded from the output, so never enter placeholder URLs.
 
-Fill in only the networks where you have an active presence. Empty fields are excluded from the Schema output — do not enter placeholder URLs.
-
-> **Best practice:** Add at least 2–3 social profiles. More `sameAs` references increase the confidence score AI engines use when deciding whether to cite your business.
+> **Best practice:** add at least 2–3 social profiles. More `sameAs` references increase the confidence AI engines have when deciding whether to cite your business.
 
 ---
 
-## Location
+## Address
 
-### Country Code
+| Field | Example |
+|-------|---------|
+| **Street Address** | `Knez Mihailova 10` |
+| **City / Locality** | `Belgrade` |
+| **State / Region** | `Greater London` |
+| **Postal Code** | `W1A 1AA` |
+| **Country Code** | `GB`, `DE`, `US` — two-letter ISO 3166-1 alpha-2 code |
 
-**Field:** `schema_address_country`  
-**Example:** `US` (United States), `DE` (Germany), `GB` (United Kingdom), `AU` (Australia)
+A complete address is required for LocalBusiness-type schema (local shops, restaurants, hotels, clinics, etc.) to be eligible for local rich results.
 
-Two-letter ISO 3166-1 alpha-2 country code. Required for LocalBusiness and Hotel Schema types.
+---
 
-### Postal Code
+## Geographic Coordinates
 
-**Field:** `schema_address_zip`  
-**Example:** `10001`, `W1A 1AA`, `80331`
+**Latitude / Longitude** in decimal degrees (WGS84), e.g. `44.8178` / `20.4569`. To find them: open Google Maps, right-click your location, and copy the numbers shown.
 
-Your ZIP or postal code. Used in the `PostalAddress` Schema.
+GPS coordinates are **strongly recommended** for LocalBusiness-type schema. They enable:
 
-### City / Locality (Multilingual)
-
-**Field:** `schema_address_locality_{lang}`  
-**Example:** `New York` (en), `Nueva York` (es), `New York` (de)
-
-Your city name, translated per installed language if applicable.
-
-### Street Address (Multilingual)
-
-**Field:** `schema_address_street_{lang}`  
-**Example:** `Knez Mihailova 10`
-
-Street name and number. Translate per language if needed.
-
-### GPS Coordinates
-
-**Fields:** `schema_latitude` / `schema_longitude`  
-**Example:** `44.8178` / `20.4569`
-
-Decimal degree format (WGS84). To find coordinates: open Google Maps, right-click your location, and copy the numbers shown.
-
-GPS coordinates are **strongly recommended** for LocalBusiness and Hotel schema types. They enable:
 - Google Maps integration in rich results
 - "Near me" search matching
-- AI Overviews that include location context
+- AI answers that include location context
 
 ---
 
-## Guest Ratings (AggregateRating) — Advanced
+## Guest / Customer Rating (AggregateRating)
 
-> **Visible when:** Show Advanced Options = Yes (set in Plugin tab)
+Adding `AggregateRating` to your schema can enable **star ratings in search results** — a significant click-through boost. Only use this if you have verifiable reviews from a recognised third-party platform.
 
-Adding `AggregateRating` to your Schema enables **star ratings in Google Search results** — a significant CTR boost. Only use this if you have verifiable reviews from a recognized third-party platform.
+| Field | Example |
+|-------|---------|
+| **Rating Value** | `4.6` |
+| **Review Count** | `2341` |
+| **Best Rating** | `5` |
+| **Worst Rating** | `1` |
+| **Rating Source** | `Booking.com` |
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| **Average Rating** (`schema_rating_value`) | Your current average score | `4.6` |
-| **Number of Reviews** (`schema_rating_count`) | Total review count | `2341` |
-| **Best Rating** (`schema_rating_best`) | Maximum scale value | `5` |
-| **Worst Rating** (`schema_rating_worst`) | Minimum scale value | `1` |
-| **Rating Source** (`schema_rating_source`) | Platform name | `Booking.com` |
-
-> **Important:** Google's structured data guidelines explicitly prohibit fabricated or self-authored ratings. Only enter data sourced from a third-party platform (Booking.com, TripAdvisor, Google, etc.). Violating this can result in a manual penalty.
+> **Important:** Google's structured data guidelines prohibit fabricated or self-authored ratings. Only enter data sourced from a third-party platform (Booking.com, TripAdvisor, Google, etc.). Violations can result in a manual penalty.
 
 ---
 
-## Recommended Settings (Organization Tab)
+## Recommended priorities
 
 | Field | Priority |
 |-------|----------|
-| Organization Name (default language) | Required |
-| Organization Description (default language) | Strongly recommended |
+| Organization Name | Required |
+| Organization URL | Required |
+| Organization Description | Strongly recommended |
 | Organization Logo | Strongly recommended |
-| Website URL | Required |
 | Phone Number | Recommended |
-| Country Code | Required for LocalBusiness/Hotel |
-| City / Locality | Required for LocalBusiness/Hotel |
-| Street Address | Recommended for LocalBusiness/Hotel |
-| GPS Coordinates | Strongly recommended for LocalBusiness/Hotel |
-| At least 2 Social Media Links | Recommended for all sites |
-| Guest Ratings | Optional (verifiable data only) |
+| Country Code + City | Required for LocalBusiness-type schema |
+| Street Address | Recommended for LocalBusiness-type schema |
+| GPS Coordinates | Strongly recommended for LocalBusiness-type schema |
+| At least 2 social media links | Recommended for all sites |
+| Customer Rating | Optional (verifiable data only) |
+
+The matching business/organisation **type** (Restaurant, Hotel, MedicalClinic, …) is chosen on **SEO → Schema.org** — see [Site Types](vertical-presets.md).
 
 ---
 
-*← [Plugin Tab](plugin-tab.md) | [Documentation Index](index.md) | [Schema.org Tab →](schema-org.md)*
+*← [Admin Navigation Guide](plugin-tab.md) | [Documentation Index](index.md) | [Schema.org →](schema-org.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)).*

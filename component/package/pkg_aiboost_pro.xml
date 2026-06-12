@@ -1,26 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="package" version="3.9" method="upgrade">
-      <name>AI Boost for Joomla — Legacy Add-on Package</name>
+    <name>AI Boost for Joomla — Pro Upgrade</name>
     <packagename>aiboost_pro</packagename>
     <author>AI Boost Team</author>
-    <creationDate>May 2026</creationDate>
+    <creationDate>June 2026</creationDate>
     <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
-    <license>Commercial — closed-source. Use governed by the AI Boost EULA at https://aiboostnow.com/eula</license>
+    <license>GNU General Public License version 2 or later</license>
     <authorEmail>info@aiboostnow.com</authorEmail>
     <authorUrl>https://aiboostnow.com</authorUrl>
     <version>0.45.0</version>
-      <description>AI Boost legacy add-on package — installs the closed-source add-on plugins for Schema, AEO, OpenGraph, Hreflang and Code Manager. Requires the AI Boost package to be installed first. License keys are managed in Components → AI Boost → Licenses for updates and support.</description>
+    <description>AI Boost for Joomla — Pro Upgrade. Installs the Pro plugins (Schema.org Pro, AEO Pro, Social/OpenGraph Pro, Hreflang Pro, Custom Code Pro) and the admin Health dashboard module on top of the AI Boost for Joomla base package, which must be installed first. Manage your licence under Components → AI Boost → License &amp; Updates.</description>
     <php_minimum>8.1.0</php_minimum>
     <joomla_minimum>5.0.0</joomla_minimum>
     <url>https://aiboostnow.com</url>
     <scriptfile>pkg_script_pro.php</scriptfile>
     <blockChildUninstall>true</blockChildUninstall>
     <!--
-        Update server intentionally omitted for now. The Pro auto-update channel
-        (updates.aiboostnow.com) plus its license key-check are not yet live, so
-        we ship without an <updateservers> block rather than point Joomla at a
-        dead endpoint. Re-add this together with Lemon Squeezy licensing
-        (Task #19) so the license key-check can gate Pro updates.
+        No <updateservers> block for the Pro package in v1 BY DESIGN: Joomla's
+        one-click update needs a direct, publicly downloadable ZIP URL, and Pro
+        ZIPs are delivered through the licence-gated Lemon Squeezy customer
+        portal instead. Pro customers are notified of new versions by e-mail and
+        via their Lemon Squeezy "My Orders" page (see the release runbook in
+        OPERATING.md). Revisit when a licence-aware update endpoint exists.
+        The FREE base package DOES carry an update server (pkg_aiboost.xml).
     -->
     <files folder="packages">
         <file type="plugin"

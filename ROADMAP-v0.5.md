@@ -18,10 +18,10 @@ Ostali dokumenti:
 |---|---|
 | **Repo** | `bojancreator/ai-boost-pkg-joomla` |
 | **Branch** | `v0.5-simple-autopilot` |
-| **Code version** | `0.73.16` (2026-06-08) |
-| **v0.5 milestone phase** | **Release hardening** — IA i Free/Pro removal gotovi; preostaje pakovanje + QA |
-| **Last completed step** | Site Types #609 dovršen + Schema `@id` entity graph + Pro multilingual bug fix (v0.73.16) ✅ |
-| **Active slice** | Faza 4 (QA + release) — Korak 3 fixes/features u toku |
+| **Code version** | `0.73.47` (2026-06-12) |
+| **v0.5 milestone phase** | **Release hardening** — Faza A (blokeri) i Faza B (sadržaj za kupce) shipped; preostaje Faza C (LS proizvodi + real-key QA + 1.0.0 release) |
+| **Last completed step** | Faza B (v0.73.47): docs/ sweep (17 fajlova, 9 izmišljenih funkcija uklonjeno), Pro manifest „Pro Upgrade"+GPL, statički update kanal (XML generator + `<updateservers>` + runbook), iskrena Licenses copy, Dashboard Danger Zone istina + first-run→Autopilot, Health fix-linkovi popravljeni, brand-guard CI ✅ |
+| **Active slice** | Faza C — release infra (BOJAN: 3 LS proizvoda → `EXPECTED_STORE_ID` → real-key end-to-end QA = tvrdi gate; CI minimum; verzija → 1.0.0); plan: `C:\Users\User\.claude\plans\proud-crunching-rain.md` |
 
 > **Napomena (2026-06-08):** Originalni Phase Board (koraci 5–10 IA prerada) je
 > bio materijalno netačan — označavao je „Not Started" za stranice koje **već
@@ -72,6 +72,8 @@ izvršava; statusi su stvarni.
 | 3e | Strip test fajlova iz produkcijskog ZIP-a (`BridgeDetectorTest.php` itd.) + ožičiti ga u `phpunit.xml` | 🔲 Pending |
 | 3f | Dead workspace cleanup — `@workspace/db` iz `scripts/package.json` + seed skripte + lockfile | 🔲 Pending |
 | 3g | (Odloženo post-launch) phpcbf CRLF/style reformat ~1965 prekršaja + `.gitattributes`; dead-code (ProFeatureRegistry, simulator, ProGate.vue) | ⏸ Deferred |
+| A | **Audit-blokeri (2026-06-11, v0.73.45–46)** — full-repo audit (50 agenata) našao 2 kritična + ~15 visokih; Faza A shipped: (K1) settings.save više ne briše `pro_activated`/`license_state`/`install_id` — `SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS` deli save+import+export granicu; (K2) LS store pinning u `LicenseValidator::verify()` (⚠️ `EXPECTED_STORE_ID=null` → vidi Blockers); uninstall ČUVA licencu (wipe samo dev_*); LS aktivacija preko Joomla HTTP klijenta; JDEBUG `AB-VALID` mock ide kroz simulator (nikad `markPerpetualActivation`); export bez licencnih ključeva + sa translations; Vue: ScopeSelector pravi SFC (scope kontrole se sad renderuju u prod bundle-u), AppShell više ne unmount-uje na cache-hit + unsaved-changes guard; entry guard u svih 8 plugina + `libReady()` u svim Extension klasama (partial-lib ne ruši admin); bazni uninstall gasi Pro dodatke + `mod_aiboost_health`; verifier: redosled uklanjanja (pro pre base) + `ensure_pro` umesto nemogućeg seed-a; obrisan `pkg_aiboost-9.9.9.zip`. Testovi: 306/306 PHPUnit (5.513 asercija) + 3/3 standalone + 7/7 Vue node | ✅ Done |
+| B | **Sadržaj za kupce (2026-06-12, v0.73.47)** — docs/ sweep: 17 fajlova prepisano protiv stvarnog SPA UI-ja (bili zamrznuti na „JoomlaBoost v0.24", mrtvi Starter/Developer/Agency tieri; uklonjeno 9 tvrdnji o funkcijama koje ne postoje — preseti, „11 admin language packs", caching toggle…); `pkg_aiboost_pro.xml` → „AI Boost for Joomla — Pro Upgrade" + GPL v2+ (bilo „Legacy Add-on Package"/„Commercial closed-source"); `pkg_aiboost.xml` opis 7 plugina + `<updateservers>` → `https://aiboostnow.com/updates/pkg_aiboost.xml`; novi `scripts/generate-update-xml.py` (validan Joomla update XML iz Version.php); Release runbook u OPERATING.md; LicensesPage bez „automatic updates" + „How updates work" sekcija; Dashboard Danger Zone govori istinu (podaci+licenca preživljavaju) + first-run banner → Autopilot umesto backup alarma; Health fix-linkovi: licenses/integrations/errors/debug + latentan `field=`-posle-hash bug; `.github/workflows/brand-guard.yml` (CI fail na „JoomlaBoost"/„AI Boost Now" u docs/+component/). Testovi 311/311; E2E 25/25 oba sajta | ✅ Done |
 | 4 | QA + release | 🟡 In progress — ✅ lockstep Free/Pro build (0.73.15, LICENSE + 0 test artefakata verifikovano u ZIP-ovima); ✅ `uninstall-guide.md` ispravljen; ✅ clean-uninstall PASS na živom Free staging-u (data preserved + licence wiped); ⏳ ostaje: Pro-target QA sa pravim LS ključem, license-activation/XSS/Health staging provere, version bump, release |
 
 **Odloženo van v0.5 (potvrđeno):**
@@ -99,6 +101,11 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Date | Decision |
 |------|----------|
+| 2026-06-11 | **Uninstall ČUVA licencu/Pro aktivaciju** (Bojan): perpetual obećanje važi i preko reinstalacije — uninstall briše samo `dev_license_preview`/`dev_force_free_tier`/`license_simulation`. `migrateActivateProPerpetual` docblock i `uninstall-guide.md` usklađeni |
+| 2026-06-11 | **Lansiranje: JED Free + Pro prodaja ISTOVREMENO** (Bojan; protiv preporuke soft-launcha) — docs sweep i Free paket robusnost time postaju obavezni pre lansiranja |
+| 2026-06-11 | **Launch verzija = 1.0.0** (bump 0.73.x→1.0.0 u Fazi C, pre release-a) |
+| 2026-06-11 | **Update kanal v1 = statički `<updateserver>` XML na aiboostnow.com** (Bojan ima hosting) + download kroz LS portal; pun api.aiboostnow.com ostaje post-launch |
+| 2026-06-11 | **Pro se NE MOŽE seed-ovati preko HTTP-a ni za QA** (potvrđeno radom: import denylist + save carry-forward) — verifier downgrade-uje Pro-only asercije; pun Pro-path QA traži `dev_license_preview=1` direktno u bazi ili pravi LS ključ |
 | 2026-06-08 | **Site Types (#609) dovršen + Schema entity graph + Pro multilingual bug fix (v0.73.16).** (1) Dodata 3 polja koja su falila: `medicalSpecialty` (Medical/Dentist), `hasMenu`+`acceptsReservations` (Restaurant/Food), `currenciesAccepted` (local). (2) `@id` entity graph — Organization `#organization`, WebSite `#website` + `publisher` ref, Article publisher nosi isti `@id` (Google/AI spajaju u jedan entitet). (3) Pro decorator sveden na **samo-prevod** i primenjen na **svaki** identitetski blok preko `SiteTypePresetService::isBusinessIdentityType()` — popravlja bug gde prevod nije stizao do Restaurant/Hotel/Dentist; uklonjeno ~70 linija duplirane tip-logike. **Step 8 (per-polje Health) svesno preskočen** (false-positive rizik na opcionim poljima, parity sa postojećim #609). Live front-end render QA čeka sajt gde je AiBoost aktivni schema emitter (oba test sajta otpala: offroadserbia prazan, offroadbalkans koristi YooTheme Pro schemu pa je AiBoost conflict-suppressed) |
 | 2026-06-08 | **WordPress port potvrđen kao v2.0 (posle launcha).** Provera koda: adapter šavovi su stvarni ali impl fali (detalji u „Odloženo van v0.5"). Wedge na WP = **AEO**, ne klasični SEO (Yoast/RankMath/AIOSEO dominiraju besplatno) — WP ekspanzija ide kroz AEO diferencijator. Prioritet sada: Joomla v0.5 do prodaje |
 | 2026-06-08 | **Pricing (supersedes 2026-05-25 €45 single-license):** 3 site-count tiers, yearly subscription, iste Pro funkcije — **AI Boost PRO** 3 sajta €65, **AI Boost Pro+** 10 sajtova €120, **AI Boost Unlimited** ∞ €180. Kod ne hardkoduje tier/cenu (čita LS `activation_limit`); 3-tier je čisto LS konfiguracija, bez izmene koda |
@@ -124,6 +131,8 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 | Blocker | Otključava |
 |---------|-----------|
 | Lemon Squeezy proizvodi (3 tier-a) još ne postoje | Pro-target staging QA sa pravim ključem + stvarna prodaja |
+| **`LicenseValidator::EXPECTED_STORE_ID` je `null`** — aktivacija namerno odbija SVE ključeve ("store pinning missing") dok se ne upiše pravi LS store ID (~1 linija, uraditi ČIM Bojan napravi LS store, PRE real-key QA) | Bilo kakva aktivacija licence |
+| Staging `dev_license_preview` obrisan tokom uninstall QA (nova semantika briše dev ključeve) | Runtime-emit Pro QA na stagingu — po potrebi ponovo `JSON_SET … dev_license_preview='1'` (SQL u CREDENTIALS.local.md §5) |
 | ~~Staging env vars~~ | ✅ Rešeno — kredencijali u `CREDENTIALS.local.md`; Free staging QA prošao |
 
 ---
@@ -132,6 +141,15 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Date | Command / Action | Result |
 |------|-----------------|--------|
+| 2026-06-12 | Faza B (3 paralelna agenta + adversarial docs review) → `vendor/bin/phpunit` + `composer test` | ✅ 311/311 (5.566 asercija; +5 novih Health fix-action testova) + 3/3 standalone; brand grep docs/+component/ = 0 pogodaka |
+| 2026-06-12 | Build 0.73.47 `--target all` + install staging (base+pro) + offroadbalkans + `test-all-settings.js` | ✅ Lockstep + Pro-leakage STRICT; instalacije uspešne; E2E **25/25 na OBA sajta** |
+| 2026-06-11 | Full-repo audit (ultracode workflow: 9 dimenzija × 50 agenata, svaki critical/high nalaz adversarialno verifikovan; K1 i ručno potvrđen u kodu) | ✅ Izveštaj u plan fajlu `proud-crunching-rain.md` — 2 kritična (K1 save-wipe licence, K2 LS bez store pinninga), ~15 visokih, faze A–D definisane |
+| 2026-06-11 | Faza A implementacija (5 paralelnih agenata + adversarial review po grupi + fix runda) → `vendor/bin/phpunit` | ✅ 306/306 testova, 5.513 asercija; `composer test` 3/3; Vue node testovi 7/7; `pnpm build` čist; bundle grep potvrdio ScopeSelector markup u prod artefaktu |
+| 2026-06-11 | `build-package-zip.py --target all` (0.73.45 pa 0.73.46) + install: staging (base+pro) i offroadbalkans | ✅ Lockstep, Pro-leakage STRICT pass; svi installi uspešni |
+| 2026-06-11 | **INCIDENT (rešen):** verifier na pro targetu skinuo bazni paket pre Pro → partial-lib → admin 500 (`Logger` u catch bloku). Bojan oživeo admin SQL disable-om Pro plugina; root-cause hardening shipped u 0.73.46 (libReady + safe-catch + uninstall gasi Pro dodatke + verifier redosled) | ✅ Klasa incidenta zatvorena — bila bi i kupčev scenario |
+| 2026-06-11 | `verify-clean-uninstall.py --target free` (Pass 1+2, posle brisanja 9.9.9: ispravan NEW zip) | ✅ PASS — **podaci + licenca preživljavaju uninstall, dev override obrisani** (živo, end-to-end); upgrade čuva org_name |
+| 2026-06-11 | `verify-clean-uninstall.py --target pro` (posle ordering+ensure_pro fixa) | ✅ PASS — uklanjanje pro→base bez 500; data+licence preserved; translations preservation-only (Pro nije aktivan — ne može se seed-ovati po dizajnu) |
+| 2026-06-11 | `test-all-settings.js` E2E — staging i free | ✅ PASS 25/25 na OBA sajta (0.73.46) |
 | 2026-06-08 | Site Types #609 + `@id` graph + Pro multilingual fix → PHPUnit + lockstep build + staging install | ✅ Code-level PASS — **234 testa / 4690 assertion-a** (＋23 nova: emit `hasMenu`/`acceptsReservations`/`currenciesAccepted`/`medicalSpecialty`, `@id` graf, `isBusinessIdentityType` gate); build 0.73.16 Free+Pro lockstep (codegen guard + Vue + Pro-leakage); install 0.73.16 na offroadserbia + offroadbalkans (Joomla 6.1.1) bez greške; import.upload prihvata nove manifest ključeve (save round-trip OK). ⏳ **Live front-end render NIJE uhvaćen** — nijedan test sajt nema AiBoost kao aktivni schema emitter (offroadserbia prazan/nekonfigurisan; offroadbalkans schema dolazi iz YooTheme Pro pa je AiBoost conflict-suppressed). `scripts/verify-schema-fields.py` napisan (snapshot→test→restore), čeka čist QA sajt |
 | 2026-06-08 | `verify-clean-uninstall.py --target free --uninstall-only` vs **živi** offroadbalkans.com (Joomla) | ✅ PASS — install 0.73.15 OK; posle uninstall: ekstenzija uklonjena, llms/sitemap/robots očišćeni, **sve #__aiboost_* tabele + seed redovi preživeli, licencni ključevi obrisani** (potvrđuje uninstall-guide ispravku end-to-end) |
 | 2026-06-08 | `verify-clean-uninstall.py --target pro` Pro-seed korak | ⚠️ Pro-seam zatvoren namerno — verifier flipuje Pro importom `pro_activated`, a Faza 1A ga je dodala u IMPORT_DENYLIST. **Potvrda da bezbednosna ispravka radi** (Pro se ne može preneti importom). Pro-translation QA sad traži pravi LS ključ; QA tooling `seed_pro()` treba update post-launch |
@@ -149,10 +167,15 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 ## Next Handoff
 
-Sledeći korak je **tačno jedan** od ovih (redom):
+Master plan do prodaje: faze A–D u `C:\Users\User\.claude\plans\proud-crunching-rain.md` (audit 2026-06-11).
+**Faze A i B su gotove.** Sledeći korak je **Faza C — release infrastruktura**:
 
-1. **Faza 3e** — izbaci test fajlove (`component/lib/tests/BridgeDetectorTest.php` i sl.) iz produkcijskog ZIP-a u `build-package-zip.py`; ožiči `BridgeDetectorTest` u `phpunit.xml` da se izvršava.
-2. **Faza 3f** — ukloni mrtav `@workspace/db` iz `scripts/package.json` + seed skripte koje ga importuju (`seed-license-mock.ts`, `seed-pkg-versions.ts`); regeneriši `pnpm-lock.yaml`.
-3. **Faza 4 (QA + release)** — bump verzije; rebuild **Free i Pro u lockstep-u** (ista verzija, inače Health prijavljuje version-mismatch platnom kupcu); `verify-clean-uninstall.py --target pro` i `--target free`; popravi kontradiktoran `docs/uninstall-guide.md`; pun staging QA (licenca/XSS/Health/front-end artefakti); tek onda release.
+1. **BOJAN (othotkey, ~1h):** napravi 3 Lemon Squeezy proizvoda (license keys ON; activation limits 3/10/unlimited; €65/€120/€180) → javi store ID.
+2. **`EXPECTED_STORE_ID`** upisati u `LicenseValidator.php` (1 linija + test) — bez toga aktivacija odbija sve ključeve.
+3. **Real-key end-to-end QA = TVRDI RELEASE GATE:** kupovina u LS test modu → aktivacija na stagingu → izmena podešavanja + save + reload → Pro i dalje aktivan (anti-K1) → prevodi/IndexNow/llms-full emit.
+4. **CI minimum:** workflow koji gradi pravi paket (`build-package-zip.py --target all`) + `pnpm build` na svaki push.
+5. **Pre release-a:** objavi update XML + Free ZIP na aiboostnow.com (runbook u OPERATING.md), pa bump verzije na **1.0.0**, lockstep build, full DoD QA, release.
+
+Posle C: **Faza D** post-launch (SettingsStore konsolidacija, SEO correctness batch — canonical/breadcrumb/SearchAction, sitemap keširanje + Falang scoping, 404 retention, HeadBlockBuilder+sitemap testovi, deletion pass 3 mrtve gating generacije + truth-up dokumenata, JED Free submit; analytics tier-mismatch reconcile — docs sad prate registry, UI još ne gate-uje GA4/GTM).
 
 > **Obavezno na kraju sesije:** ažuriraj `Current Status`, `Phase Board`/`Release Hardening`, `Verification Log` i ovaj `Next Handoff` blok. Ne reportuj „done" bez staging verifikacije.

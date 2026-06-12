@@ -32,31 +32,34 @@ This page covers the most frequently reported issues with AI Boost for Joomla an
 
 **Causes and fixes:**
 
-1. **Category filter active** — You selected specific categories in the Sitemap settings.
-   *Fix:* Go to **SEO → Sitemap → Article Options → Select Categories** and clear the selection (leave empty = all categories).
+1. **Content type not included** — Articles, categories or menu items can be toggled individually.
+   *Fix:* Go to **SEO → Sitemap → Content to Include** and check the toggles.
 
-2. **Articles excluded by ID** — IDs listed in the Exclude field.  
-   *Fix:* Go to **SEO → Sitemap → Advanced → Exclude Article IDs** and verify the list.
+2. **Categories or menu items excluded by ID** — IDs listed in the exclusion fields.
+   *Fix:* Go to **SEO → Sitemap → Exclusions** and verify **Exclude Article Category IDs** and **Exclude Menu Item IDs**.
 
-3. **Max Articles limit reached** — Articles past the cap are excluded.  
-   *Fix:* Go to **SEO → Sitemap → Advanced → Max Articles** and set to `0` (unlimited).
+3. **URL Limit reached** — URLs past the cap are excluded.
+   *Fix:* Go to **SEO → Sitemap → URL Limit** and raise it (or set `0` for unlimited).
 
-4. **Articles not published** — Unpublished articles are never included.  
+4. **Articles not published** — Unpublished articles are never included.
    *Fix:* Verify article status in Content → Articles.
+
+> **Tip:** the **Preview sitemap.xml** button on the Sitemap page shows the URL count and validation warnings without leaving the admin panel.
 
 ---
 
 ## Robots.txt Issues
 
-### robots.txt still shows the default Joomla content
+### robots.txt does not contain the AI Boost rules
 
-**Cause:** A physical `robots.txt` file in the Joomla root overrides AI Boost for Joomla's dynamic version. Joomla creates this file by default.
+**How it works:** `robots.txt` is always a physical file in your Joomla root — there is no dynamic version. AI Boost writes and maintains only its own fenced section (between the `# BEGIN AI Boost for Joomla managed block` and `# END` markers) inside that file when **Enable robots.txt management** is on and the settings are saved. Everything you wrote outside the managed block is preserved — **never delete your `robots.txt` file**.
 
 **Fix:**
-1. Connect via FTP or your hosting File Manager.
-2. Navigate to your Joomla root directory.
-3. Delete or rename `robots.txt`.
-4. Visit `yoursite.com/robots.txt` — AI Boost for Joomla's version now serves.
+1. Go to **AI VISIBILITY → Crawlers & Robots** and confirm **Enable robots.txt management = Yes**.
+2. Click **Save** — saving rewrites the AI Boost managed block inside the physical `robots.txt`.
+3. Click **Preview robots.txt** on the same page to inspect the live file without leaving the admin panel.
+4. Visit `yoursite.com/robots.txt` and search for `# BEGIN AI Boost for Joomla managed block`.
+5. If the block is still missing, the file is probably not writable by the web server — check the file permissions on `robots.txt` in your Joomla root.
 
 ---
 
@@ -65,9 +68,9 @@ This page covers the most frequently reported issues with AI Boost for Joomla an
 ### Schema.org JSON-LD is not appearing in page source
 
 **Diagnosis steps:**
-1. Open AI Boost for Joomla settings → **SEO → Schema.org** → confirm **Enable Schema Markup = Yes**.
-2. Enable **Debug Mode** and **HTML Wrap Markers** in **Tools → Debug & Performance** → Save.
-3. Visit the affected page → View Page Source → search for `AI Boost for Joomla`.
+1. Open **Components → AI Boost** → **SEO → Schema.org** → confirm **Enable Schema.org structured data = Yes**.
+2. Run **OVERVIEW → Health → Re-run Checks** — the schema checks link straight to whatever is missing.
+3. Visit the affected page → View Page Source → search for `AI Boost for Joomla` (all output sits in one marked block).
 4. If marked blocks appear with empty content, check the Organization Name is filled in.
 5. If no blocks appear at all, a conflicting plugin may be stripping `<script>` tags.
 
@@ -88,10 +91,10 @@ This page covers the most frequently reported issues with AI Boost for Joomla an
 
 | Error | Fix |
 | ------- | ----- |
-| Missing `name` property | Fill in Organization Name in **SEO → Organization** |
-| Missing `address` for LocalBusiness | Fill in Country Code and City in **SEO → Organization** |
-| Missing `starRating` for Hotel | Set Star Rating in **SEO → Schema.org** |
-| `AggregateRating` must have `ratingCount` | Fill in Number of Reviews in **SEO → Organization → Advanced** |
+| Missing `name` property | Fill in Organization Name in **SETUP → Site Identity** |
+| Missing `address` for LocalBusiness | Fill in Country Code and City in **SETUP → Site Identity** |
+| Missing `starRating` for Hotel | Set Star Rating in **SEO → Schema.org → Business** |
+| `AggregateRating` must have `ratingCount` | Fill in Review Count in **SETUP → Site Identity → Guest / Customer Rating** |
 | Event missing `startDate` | Ensure all events have `startDate` in ISO 8601 format |
 
 **Validation tool:** [search.google.com/test/rich-results](https://search.google.com/test/rich-results)
@@ -141,12 +144,13 @@ AI Boost for Joomla deduplicates its own output but cannot remove tags added by 
 **Cause:** Consent mode is set to YooTheme but the user has not accepted cookies.
 
 **Steps:**
-1. Confirm **Enable GA4 = Yes** in **Tools → Analytics**.
+1. Confirm **Enable Google Analytics 4 = Yes** in **SEO → Analytics & Tracking** (a Pro feature — verify your licence under **SETUP → License & Updates**).
 2. Confirm the Measurement ID format is correct: `G-XXXXXXXXXX`.
-3. Check the **GA4 Consent Mode** setting:
-   - If set to **YooTheme Pro 5**: GA4 only loads after the user accepts "Statistics" consent — this is correct behaviour.
-   - If set to **None**: GA4 should load immediately.
-4. In your browser, open DevTools → Network tab → filter by `gtag` or `analytics.js` — verify the script loads.
+3. Check the **GDPR Consent Mode** setting:
+   - If set to **YooTheme Pro Consent Manager**: GA4 only loads after the user grants statistics consent — this is correct behaviour.
+   - If set to **None (direct inject)**: GA4 should load immediately.
+4. Check **ADVANCED → Debug → Staging mode** — while staging mode is on, analytics is deliberately suppressed.
+5. In your browser, open DevTools → Network tab → filter by `gtag` or `analytics.js` — verify the script loads.
 
 ---
 
@@ -155,7 +159,7 @@ AI Boost for Joomla deduplicates its own output but cannot remove tags added by 
 **Cause:** GA4 is configured both in AI Boost for Joomla AND in another location (YooTheme Customizer, GTM, or another plugin).
 
 **Fix:**
-- If using GTM: set **GA4 Consent Mode** in AI Boost for Joomla to **Via GTM** and leave the Measurement ID empty. Configure GA4 only inside your GTM container.
+- If using GTM: set **GDPR Consent Mode** in AI Boost for Joomla to **Via GTM (skip direct GA4)** and leave the Measurement ID empty. Configure GA4 only inside your GTM container.
 - If using YooTheme's Customizer GA4: disable it in YooTheme and use AI Boost for Joomla instead (or vice versa).
 
 ---
@@ -170,8 +174,8 @@ Visit `yoursite.com/{your-api-key}.txt` in a browser. It should return your API 
 **Check 2 — Submission logs in Bing:**
 Open [Bing Webmaster Tools](https://www.bing.com/webmasters) → IndexNow → view recent submissions. If submissions appear but pages are still slow to index, the delay is on Bing's side — IndexNow is a suggestion, not a guarantee.
 
-**Check 3 — License tier:**
-Verify that your license is active in the **Setup** area and that the IndexNow API key file is accessible.
+**Check 3 — Pro licence and staging mode:**
+IndexNow is a Pro feature — verify your licence under **SETUP → License & Updates**. Also check **ADVANCED → Debug → Staging mode**: while staging mode is on, IndexNow pings are deliberately suppressed.
 
 ---
 
@@ -187,33 +191,31 @@ Verify that your license is active in the **Setup** area and that the IndexNow A
 
 ---
 
-## Multilingual Field Issues
+## Multilingual Issues
 
-### Multilingual fields show only one language
+### The Translations expander shows no extra languages
 
-**Cause:** Only one language is published in Joomla.
+**Cause:** Only one content language is published in Joomla.
 
 **Fix:**
 1. Go to **System → Manage → Languages**.
 2. Ensure at least 2 languages are **Published** (green status).
 3. Clear Joomla cache: **System → Clear Cache → All**.
-4. Reopen AI Boost for Joomla settings — language fields should now appear per language.
+4. Reopen AI Boost for Joomla settings — the **Translations** expanders (Pro) now list each extra language.
+
+See [Multilingual Sites](multilingual.md) for the full picture.
 
 ---
 
 ## Performance Issues
 
-### The plugin is slowing down my site
+### The site feels slower after installing
 
-**Cause:** Caching is disabled or the cache TTL is very low.
+AI Boost computes its output once per request and emits it through Joomla's document APIs, so its runtime cost is small. If you notice slowness:
 
-**Fix:**
-1. Go to **Tools → Debug & Performance**.
-2. Set **Enable Caching = Yes**.
-3. Set **Cache TTL = 3600** (or higher for stable sites).
-4. Click Save.
-
-**Also check:** Enable Debug Mode temporarily to see operation timing in the admin flash messages, then disable it after diagnosing.
+1. Enable Joomla's own caching: **System → Global Configuration → System → Cache**.
+2. Check for conflicts with minification plugins (see [Compatibility](compatibility.md)).
+3. Run **OVERVIEW → Health** — the conflict scan flags plugins fighting over the same output.
 
 ---
 
@@ -227,14 +229,10 @@ If your issue is not listed here:
 | Support email | support@aiboostnow.com |
 | Response time | 1–3 business days |
 
-When contacting support, include:
-- AI Boost for Joomla version (visible in the Setup area)
-- Joomla version (`yoursite.com/administrator` → bottom right corner)
-- PHP version (System → System Information)
-- Description of the issue and steps to reproduce
+When contacting support, use the copyable **Support Request** template under **ADVANCED → Help** — it gathers your AI Boost version, Joomla/PHP versions, Health result and active plugins for you.
 
 ---
 
 *← [Multilingual Sites](multilingual.md) | [Documentation Index](index.md) | [Compatibility Matrix →](compatibility.md)*
 
-*AI Boost for Joomla v0.73.15 — © 2025–2026 AI Boost (aiboostnow.com).*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)).*

@@ -1,0 +1,31 @@
+# Brand guard — fails the build if forbidden legacy branding appears in
+# customer-facing trees (docs/ and component/).
+#
+# Forbidden (case-sensitive): "JoomlaBoost" and "AI Boost Now".
+# The lowercase legacy slug `plg_system_joomlaboost` is frozen and allowed —
+# the case-sensitive match deliberately does not hit it.
+
+name: Brand guard
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  brand-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Forbid 'JoomlaBoost' and 'AI Boost Now' in docs/ and component/
+        run: |
+          set -u
+          # grep -RIn: recursive, skip binary files, print file:line:match.
+          # Case-sensitive on purpose: the frozen lowercase slug
+          # plg_system_joomlaboost must stay allowed.
+          if hits=$(grep -RIn -e 'JoomlaBoost' -e 'AI Boost Now' docs/ component/); then
+            echo "Forbidden branding found (use 'AI Boost' / 'AI Boost for Joomla'):"
+            echo "$hits"
+            exit 1
+          fi
+          echo "Brand guard passed: no forbidden branding in docs/ or component/."

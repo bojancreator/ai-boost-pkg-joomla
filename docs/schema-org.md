@@ -1,221 +1,108 @@
-# Schema.org — Structured Data, FAQ & Events
+# Schema.org — Structured Data, FAQ, HowTo & Events
 
-The **Schema.org** settings control the structured data output AI Boost for Joomla injects into every page. Structured data is machine-readable information formatted as JSON-LD that search engines and AI assistants use to understand and categorize your content.
+The **Schema.org** page (sidebar **SEO → Schema.org**) controls the structured data AI Boost for Joomla injects into every page. Structured data is machine-readable JSON-LD that search engines and AI assistants use to understand and categorise your content.
 
----
-
-## Enable Schema Markup
-
-**Field:** `enable_schema`  
-**Default:** Yes
-
-Master toggle for all Schema.org output. When **Yes**, AI Boost for Joomla injects a `<script type="application/ld+json">` block in the `<head>` of every page.
-
-Disable only if you have another plugin managing Schema.org and want to avoid conflicts.
+The page is organised in four sections: **Core**, **Business**, **Hours** and **FAQ / Rich**.
 
 ---
 
-## Schema Type
+## Core
 
-**Field:** `schema_type`  
-**Default:** Auto-detect
+### Enable Schema.org structured data
 
-Determines the primary Schema.org type used for your site-wide Organization block.
+Master toggle for all Schema.org output. When on, AI Boost emits `<script type="application/ld+json">` markup on every page. Disable only if another extension manages your structured data.
 
-| Option | When to use |
-|--------|-------------|
-| **Auto-detect (recommended)** | AI Boost for Joomla selects the best type based on your other settings |
-| **Organization (generic)** | Companies, agencies, services, non-profits without a fixed physical location |
-| **LocalBusiness (physical location)** | Any brick-and-mortar business customers visit in person |
-| **Hotel (accommodation)** | Hotels, hostels, bed & breakfasts, vacation rentals, camping sites |
+### WebSite Schema (homepage)
 
-When set to **Hotel** or **LocalBusiness**, additional type-specific fields appear below.
+Emits a `WebSite` entity on the homepage. Optionally include **SearchAction** (the Sitelinks Search Box markup).
 
----
+### Article Schema
 
-## Hotel-Specific Fields
+Emits `Article`-family markup (`Article`, `NewsArticle`, `BlogPosting`) on article pages, generated automatically from the article's title, dates, author, meta description and featured image — no per-article configuration needed.
 
-> **Visible when:** Schema Type = Hotel
+### Author Entity (Pro)
 
-### Star Rating
-
-**Field:** `schema_hotel_star_rating`  
-**Default:** 3 stars
-
-Official star classification (1–5). Maps to the `starRating` property in the `LodgingBusiness` Schema type.
-
-### Check-in Time / Check-out Time
-
-**Fields:** `schema_hotel_checkin_time` / `schema_hotel_checkout_time`  
-**Default:** `14:00` / `12:00`  
-**Format:** 24-hour (`HH:MM`)
-
-Standard check-in and check-out times. These appear in Google's rich results for accommodations and are used by booking platforms that read your Schema.
-
-### Pets Allowed
-
-**Field:** `schema_hotel_pets_allowed`  
-**Default:** No
-
-Set **Yes** if your property is pet-friendly. Surfaces in Google's rich result filters and AI-generated travel summaries.
+Emits a full `Person` entity for each article's author, fed from author custom fields (job title, bio, website, LinkedIn, Wikipedia). Strengthens author authority signals for Google and AI engines.
 
 ---
 
-## LocalBusiness & Hotel Service Details
+## Business
 
-> **Visible when:** Schema Type = LocalBusiness or Hotel
+### Business / Organization Type
 
-### Price Range
+Pick a **Category** and a specific **Schema Type** — from generic `Organization` and `Person` through dozens of business types (Restaurant, LodgingBusiness, MedicalClinic, Dentist, LegalService, Store, EducationalOrganization, NewsMediaOrganization and more). See [Site Types](vertical-presets.md) for the full list and recommendations.
 
-**Field:** `schema_price_range`  
-**Default:** `$$`
+The identity data itself (name, logo, address, GPS, social profiles) comes from **SETUP → Site Identity**.
 
-A general pricing indicator:
+### Type-specific fields
 
-| Value | Meaning |
-|-------|---------|
-| `$` | Budget / inexpensive |
-| `$$` | Moderate |
-| `$$$` | Expensive |
-| `$$$$` | Very expensive / luxury |
+Depending on the selected type, matching cards appear. Examples:
 
-### Opening Hours
+| Card | Fields |
+|------|--------|
+| Hotel Details | Star rating, check-in/check-out times, pets allowed |
+| Food & Restaurant | Cuisine types, menu URL, accepts reservations |
+| Medical / Dental | Specialty, patient area served |
+| Business Operations | Price range, payment accepted, currencies accepted, amenity features |
+| Person Profile | Job title, affiliation, topics & expertise |
+| News & Media | Founding date, masthead URL, ethics policy URL |
 
-**Field:** `schema_opening_hours`  
-**Default:** `Mo-Su 09:00-18:00`  
-**Format:** Schema.org `openingHours` notation
+### Services & Prices (Pro)
 
-Examples:
-- `Mo-Fr 09:00-18:00` — Monday to Friday, 9 AM – 6 PM
-- `Mo-Fr 09:00-18:00, Sa 10:00-14:00` — plus Saturday morning
-- `Mo-Su 00:00-23:59` — open 24 hours
+Named services with optional prices and currency, emitted in your business schema. Service names are translatable per language.
 
----
+### More Details (Pro)
 
-## FAQ Schema
-
-FAQ Schema enables **FAQ rich results** in Google Search — expandable Q&A entries that appear directly in the search results page, significantly increasing visibility and click-through rates. AI engines also prioritize FAQ-structured content when generating Q&A-style responses.
-
-### Auto-Detect FAQ from Content
-
-**Field:** `faq_auto_detect`  
-**Default:** Yes
-
-When **Yes**, AI Boost for Joomla scans each article's rendered HTML for common FAQ markup patterns:
-
-| Pattern detected | HTML structure |
-|------------------|----------------|
-| Description lists | `<dl>` / `<dt>` (question) / `<dd>` (answer) |
-| Heading + paragraph | `<h3>` or `<h4>` followed by `<p>` |
-| Accordions | `<details>` / `<summary>` |
-
-When a pattern is detected, a `FAQPage` JSON-LD block is injected automatically for that page — no configuration required.
-
-> **Recommendation:** Enable this on all site types. Structure your FAQ content with `<h3>` headings for questions and `<p>` paragraphs for answers to get the best auto-detection results.
+Type-aware extras: accepting new patients, number of rooms, credentials/licences, languages spoken, dietary suitability, return policy, number of employees, target audience, slogan, awards and more.
 
 ---
 
-## Manual FAQ
+## Hours
 
-> **Visible when:** Show Advanced Options = Yes  
+For LocalBusiness-type schema, the **Hours** section provides a weekly schedule: per day (Monday–Sunday), mark the business closed or set opening and closing times. The schedule is emitted as `OpeningHoursSpecification`.
 
-### Enable Manual FAQs
+---
 
-**Field:** `enable_manual_faqs`  
-**Default:** No
+## FAQ / Rich
 
-When **Yes**, the JSON editor fields appear (one per installed language) to enter custom FAQ items. Manual FAQs are **merged with auto-detected FAQs** from article content.
+### FAQ / QAPage Schema (Pro)
 
-### FAQ JSON Format
-
-Enter an array of question/answer objects per language:
+- **Auto-Detect FAQ from Content** — scans article content for FAQ-style patterns (definition lists, question headings followed by paragraphs, accordions) and emits the markup automatically. Works with Falang-translated content.
+- **Manual FAQ Items** — add your own question/answer pairs as JSON:
 
 ```json
 [
-  {
-    "question": "What are your check-in hours?",
-    "answer": "Check-in is from 14:00. Early check-in from 11:00 is available on request."
-  },
-  {
-    "question": "Do you offer airport transfer?",
-    "answer": "Yes, we offer private airport transfer. Please contact us 48 hours in advance."
-  }
+  {"question": "What are your check-in hours?", "answer": "Check-in is from 14:00."},
+  {"question": "Do you offer airport transfer?", "answer": "Yes, on request, 48 hours in advance."}
 ]
 ```
 
-### Manual FAQ Scope
+Each question and answer can be translated per language via the Translations expanders.
 
-**Field:** `manual_faq_scope`  
-**Default:** Fallback on all pages
+- **Schema Output Type** — emit `FAQPage`, `QAPage`, or both. (Google no longer shows FAQ rich results for most sites, but FAQ markup is still read by ChatGPT, Perplexity and Google AI Overviews — which is exactly where AEO value lies.)
 
-Controls on which pages the manually entered FAQ is injected:
+### HowTo Schema (Pro)
 
-| Option | Behavior |
-|--------|----------|
-| **Fallback on all pages** | Injects global FAQ on any page that has no auto-detected FAQ |
-| **All pages — always** | Always injects global FAQ, regardless of auto-detect results |
-| **Homepage fallback** | Injects on homepage only if no auto-detected FAQ is found there |
-| **Homepage only — always** | Always injects on homepage only, ignores auto-detect |
-| **Disabled** | FAQs are saved in the database but never output to the page |
+Step-by-step `HowTo` markup: name, description, total time (ISO 8601, e.g. `PT15M`) and an editable list of steps.
 
-> **Note:** Auto-detected FAQs from article content are automatically translated by Falang when Falang is active. Manual FAQs must be entered separately per language in the multilingual JSON fields.
+### Event Schema (Pro)
+
+`Event` markup driven by your Joomla content: point it at an **Events category**, and articles in that category are emitted as events. Event descriptions can be translated per language.
+
+> **Dates:** event start dates must be valid ISO 8601 values for Google's Event rich results to qualify.
 
 ---
 
-## Events Schema
+## Verification
 
-Events with proper `Event` Schema are eligible for **Google's Event rich results** — high-visibility placement in the search results events carousel, especially on mobile. They also appear in Google Maps and AI Overviews.
+After saving, validate your output:
 
-### Enable Event Schema
-
-**Field:** `schema_events_enabled`  
-**Default:** No
-
-When **Yes**, AI Boost for Joomla injects `Event` JSON-LD blocks based on the JSON you define per language.
-
-### Events JSON Format
-
-Enter an array of event objects. Required fields per event: `name`, `startDate` (ISO 8601 format).
-
-```json
-[
-  {
-    "name": "Summer Jazz Festival 2026",
-    "startDate": "2026-07-15T19:00:00+02:00",
-    "endDate": "2026-07-17T23:00:00+02:00",
-    "description": "Three nights of live jazz in the courtyard garden.",
-    "location": "123 W 44th St, New York",
-    "url": "https://yourdomain.com/jazz-festival",
-    "price": "25",
-    "currency": "EUR"
-  }
-]
-```
-
-**Optional event fields:**
-
-| Field | Description |
-|-------|-------------|
-| `endDate` | ISO 8601 end date/time |
-| `description` | Short event description |
-| `url` | Link to the event page |
-| `location` | Overrides the organization's address for this event |
-| `price` | Ticket price as a number |
-| `currency` | Currency code (default: `EUR`) |
-
-> **Dates must be ISO 8601 format:** `YYYY-MM-DDTHH:MM:SS+HH:MM` (with timezone offset). Example: `2026-09-15T09:00:00+02:00`.
-
----
-
-## Verification Tools
-
-After saving your Schema.org settings, validate your output with these tools:
-
-| Tool | URL | What to test |
-|------|-----|-------------|
-| Google Rich Results Test | [search.google.com/test/rich-results](https://search.google.com/test/rich-results) | FAQPage, Event, LocalBusiness, Hotel |
-| Schema.org Validator | [validator.schema.org](https://validator.schema.org) | Full Schema validation |
-| Google Search Console | Enhancements → Rich Results | Production monitoring |
+| Tool | What to test |
+|------|--------------|
+| [Google Rich Results Test](https://search.google.com/test/rich-results) | FAQ, Event, LocalBusiness types |
+| [Schema.org Validator](https://validator.schema.org) | Full schema validation |
+| **TOOLS → Analyzers → JSON-LD Validator** | Validate directly inside the admin panel |
+| **OVERVIEW → Health** | Schema checks with one-click fix actions |
 
 ---
 
@@ -223,16 +110,16 @@ After saving your Schema.org settings, validate your output with these tools:
 
 | Setting | Recommended value |
 |---------|------------------|
-| Enable Schema Markup | Yes |
-| Schema Type | Auto-detect (or set by vertical preset) |
-| FAQ Auto-Detect | Yes |
-| Star Rating (Hotel) | Set accurately |
-| Check-in / Check-out (Hotel) | Set accurately |
-| Manual FAQ | Use for homepage or site-wide FAQs |
-| Events | Enable if you run events |
+| Enable Schema.org structured data | Yes |
+| WebSite Schema + SearchAction | Yes |
+| Article Schema | Yes for any site that publishes articles |
+| Schema Type | The most specific type that truly matches your business |
+| Hours | Fill in for any business customers visit |
+| FAQ auto-detect | Yes *(Pro)* |
+| Author Entity | Yes for publishers *(Pro)* |
 
 ---
 
-*← [Organization](organization.md) | [Documentation Index](index.md) | [Sitemap →](sitemap.md)*
+*← [Site Identity](organization.md) | [Documentation Index](index.md) | [Sitemap →](sitemap.md)*
 
-*AI Boost for Joomla v0.73.15 — © 2025–2026 AI Boost (aiboostnow.com).*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)).*

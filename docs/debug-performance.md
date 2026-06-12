@@ -1,156 +1,84 @@
-# Debug & Performance Tab — Caching, Debug Mode & Staging
+# Debug & Diagnostics
 
-The **Debug & Performance** tab covers three areas: output caching for site speed, debug tools for troubleshooting, and the staging badge for development environments.
+Diagnostic tools live on **ADVANCED → Debug** in the admin sidebar. They help you see exactly what AI Boost for Joomla does on a page and capture errors for support requests.
 
----
-
-## Performance — Caching
-
-JoomlaBoost performs several operations on each page request: generating Schema.org JSON-LD, building the XML sitemap, composing robots.txt, and resolving hreflang tags. Caching stores the computed results so subsequent requests are served instantly from cache rather than recomputed.
-
-### Enable Caching
-
-**Field:** `enable_caching`  
-**Default:** Yes
-
-When **Yes**, JoomlaBoost caches computed outputs (Schema JSON-LD, sitemap XML, robots.txt content, hreflang data) using Joomla's built-in cache system.
-
-**Always leave enabled on production sites.** Disabling caching causes JoomlaBoost to recompute all outputs on every single page request, which adds unnecessary server load — especially on high-traffic sites.
-
-> **Cache invalidation:** When you publish, update, or unpublish an article, or when you save plugin settings, the cache is automatically invalidated. You do not need to manually clear it.
-
-### Cache TTL (Time To Live)
-
-**Field:** `cache_ttl`  
-**Default:** `3600` (1 hour)  
-**Range:** 60 seconds minimum — 86400 seconds (24 hours) maximum  
-**Visible when:** Enable Caching = Yes
-
-How long cached data is kept before it is regenerated. The default of 3600 seconds (1 hour) is appropriate for most sites.
-
-| TTL value | Scenario |
-|-----------|---------|
-| 60–300 | High-traffic news sites publishing several times per day |
-| 3600 | Standard recommended value (most sites) |
-| 86400 | Static brochure sites that rarely change |
+> **Editions note:** the Debug & Diagnostics toolset is included in **Pro**. The **Health** page (OVERVIEW → Health) is included in every edition and covers the most common diagnostics with one-click fix actions.
 
 ---
 
-## Debug Mode
+## Debug options
 
-Debug tools are intended for troubleshooting only. **Never leave debug settings enabled on a production site** — they expose internal information and can slow the site for visitors.
+### Enable debug mode (verbose logging)
 
-### Enable Debug Mode
+Turns on verbose logging of AI Boost operations. Use it temporarily while diagnosing a problem, then switch it off — verbose logging has no value on a healthy production site.
 
-**Field:** `debug_mode`  
-**Default:** No
+### Hide comments in HTML source
 
-When **Yes**, JoomlaBoost outputs detailed flash messages in the **Joomla administrator panel** after each page render. These messages list every operation performed:
-
-- Schema.org: type generated, properties included
-- Canonical tag: URL used
-- Hreflang: languages and URLs injected
-- Robots.txt: rules applied
-- IndexNow: ping sent / skipped / failed
-- Cache: hit or miss per component
-
-Use debug mode when:
-- Schema is not appearing in page source
-- Hreflang tags seem incorrect
-- IndexNow pings are not being sent
-- You want to see exactly what JoomlaBoost does on a specific page
-
-### HTML Wrap Markers
-
-**Field:** `debug_wrap_markers`  
-**Default:** No  
-**Visible when:** Debug Mode = Yes
-
-When **Yes**, JoomlaBoost wraps every block it injects in HTML comments that identify the start and end of each output. This makes it easy to locate and inspect JoomlaBoost's output in the page HTML source.
-
-**Example:**
-```html
-<!-- JoomlaBoost: Schema.org JSON-LD start -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Hotel",
-  "name": "Acme Hotel Manhattan",
-  ...
-}
-</script>
-<!-- JoomlaBoost: Schema.org JSON-LD end -->
-
-<!-- JoomlaBoost: OpenGraph start -->
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Acme Hotel Manhattan" />
-...
-<!-- JoomlaBoost: OpenGraph end -->
-```
-
-This is the fastest way to confirm which blocks JoomlaBoost is (or is not) outputting, and to identify conflicts with other plugins.
-
----
-
-## Staging
-
-### Show Staging Badge
-
-**Field:** `show_staging_badge`  
-**Default:** No
-
-When **Yes**, a visible overlay badge is displayed on every frontend page. The badge shows:
-- "STAGING" label
-- JoomlaBoost version number
-- Current domain
-- Current date and time
-
-**⚠️ Never enable on a live production site.**
-
-When this setting is active, JoomlaBoost also automatically injects:
+By default, AI Boost wraps everything it injects in one consolidated, clearly marked block per region:
 
 ```html
-<meta name="robots" content="noindex,nofollow">
+<!-- AI Boost for Joomla - Start -->
+<script type="application/ld+json">…</script>
+<meta property="og:title" content="…" />
+…
+<!-- AI Boost for Joomla - End -->
 ```
 
-…on every page, preventing the staging site from being indexed by search engines.
+This makes it easy to find AI Boost's output in the page source (`Ctrl+F` → `AI Boost`). If you prefer a cleaner HTML source, enable **Hide comments** — the inner comments are removed while the outer start/end pair is kept.
 
-**Intended use:** Enable on development or staging servers to:
-- Visually confirm you are viewing the staging site (not production)
-- Guarantee the staging site cannot accidentally be indexed
-- Share staging previews with clients without confusion
+### Staging mode
 
----
+Enable this on a development or staging copy of your site. While active, AI Boost **suppresses real-world side effects** — analytics tracking, IndexNow pings and redirect execution — so your test site cannot pollute your production analytics or notify search engines about staging URLs.
 
-## Troubleshooting with Debug Mode
-
-**Step-by-step process for diagnosing issues:**
-
-1. Enable **Debug Mode** in this tab.
-2. Enable **HTML Wrap Markers**.
-3. Set **Enable Caching** to **No** temporarily (to bypass cached output).
-4. Save settings.
-5. Visit the problematic page on the frontend.
-6. Right-click the page → **View Page Source**.
-7. Search (`Ctrl+F`) for `JoomlaBoost` — all injected blocks are marked.
-8. If no blocks appear, Schema.org, OpenGraph, or another feature may be off, or a conflicting plugin may be stripping them.
-9. Check the Joomla admin flash messages for detailed operation logs.
-10. After troubleshooting, re-enable caching and disable debug mode.
+**Never leave staging mode enabled on the live site.**
 
 ---
 
-## Recommended Settings (Debug & Performance Tab)
+## Error logging
+
+AI Boost keeps its own error log (visible from the **Health** page):
+
+- **Enable AI Boost error log** — master toggle.
+- **Minimum severity to log** — choose how verbose the log is:
+
+| Level | When to use |
+|-------|-------------|
+| Debug (very verbose) | Troubleshooting only |
+| Info | Detailed activity |
+| Warning | Recommended default |
+| Error only | Quietest |
+
+---
+
+## Troubleshooting workflow
+
+1. Open **OVERVIEW → Health** and click **Re-run Checks**. Most problems (missing schema, sitemap issues, conflicting plugins, duplicate tags) are caught here, and every failed check links straight to the setting that fixes it.
+2. If you need more detail, enable **debug mode** on **ADVANCED → Debug**.
+3. Visit the problematic page on the front end → right-click → **View Page Source** → search for `AI Boost` to inspect the consolidated output block.
+4. If no block appears, another extension may be stripping it — see [Compatibility](compatibility.md) (JCH Optimize and aggressive minifiers are the usual suspects).
+5. Check the **Error Log** (via Health) for warnings or errors.
+6. When you contact support, use **ADVANCED → Help → Support Request** — it builds a copyable report with your site details, Health result and active plugins.
+7. After troubleshooting, switch debug mode off again.
+
+---
+
+## Performance notes
+
+AI Boost is designed to be light at runtime: all head and body output is computed once per request and written through Joomla's document APIs into a single consolidated block. There is no separate AI Boost cache to configure — standard Joomla caching (System → Global Configuration → System → Cache) and any page cache you already use work normally alongside it.
+
+---
+
+## Recommended settings
 
 | Setting | Production | Development / Staging |
 |---------|:----------:|:---------------------:|
-| Enable Caching | Yes | Optional |
-| Cache TTL | 3600 | 60–300 |
-| Debug Mode | **No** | Yes (temporary) |
-| HTML Wrap Markers | **No** | Yes (temporary) |
-| Show Staging Badge | **No** | Yes |
+| Debug mode | **No** | Yes (temporary) |
+| Hide comments in HTML source | optional | No |
+| Staging mode | **No** | **Yes** |
+| Error log | Yes (Warning) | Yes (Debug/Info) |
 
 ---
 
-*← [Analytics & Indexing Tab](analytics-indexing.md) | [Documentation Index](index.md) | [Vertical Presets Guide →](vertical-presets.md)*
+*← [Analytics & Indexing](analytics-indexing.md) | [Documentation Index](index.md) | [Site Types →](vertical-presets.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)).*

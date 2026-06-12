@@ -3,7 +3,10 @@
     <header class="ab-page-header">
       <h2>License &amp; Updates</h2>
       <p class="text-muted">
-        Enter your AI Boost license key to enable automatic updates and support.
+        Enter your AI Boost license key to verify your purchase. A license includes
+        updates and support for one year. Activation is perpetual: if the license later
+        expires, every installed feature keeps working — expiry only pauses updates and support
+        until you renew.
         Integration plugins (third-party bridges) are licensed separately and appear below once installed.
       </p>
       <div v-if="mockNotice" class="ab-alert ab-alert--info" style="margin-top: 12px;">
@@ -20,7 +23,7 @@
     <div v-if="proActivated" class="ab-alert ab-alert--success" style="margin-top: 12px;">
       <strong>License activated&nbsp;✓</strong>
       <span v-if="proActivatedAt">on {{ formatDate(proActivatedAt) }}</span>.
-      If your licence later expires, installed features keep working; renewal restores automatic updates &amp; support.
+      If your license later expires, installed features keep working; renewal restores updates &amp; support.
     </div>
 
     <!-- ───── Core: AI Boost (single key) ───── -->
@@ -167,7 +170,7 @@
               {{ heartbeat.message || 'This license has been used on another domain.' }}
             </span>
             <span v-else-if="heartbeat.status === 'expired' || (heartbeat.last_verdict && heartbeat.last_verdict !== 'ok')">
-              — <strong>Licence lapsed.</strong> Installed features keep working; renewing restores automatic updates &amp; support.
+              — <strong>License lapsed.</strong> Installed features keep working; renewing restores updates &amp; support.
             </span>
             <span v-else class="small text-muted" style="margin-left: 6px;">
               (next automatic check
@@ -196,11 +199,33 @@
       </div>
     </div>
 
+    <!-- ───── How updates work ───── -->
+    <section class="ab-license-section" style="margin-top: 32px;">
+      <h3 class="ab-section-title">How updates work</h3>
+      <ul class="small text-muted" style="margin: 0; padding-left: 18px;">
+        <li>
+          <strong>Free package:</strong> when a new version is published, Joomla's native
+          update notice appears in System&nbsp;&rarr;&nbsp;Update&nbsp;&rarr;&nbsp;Extensions.
+        </li>
+        <li>
+          <strong>Pro package:</strong> new versions are delivered through the Lemon Squeezy
+          "My Orders" portal, and you receive an e-mail notification for each release.
+          Download the new ZIP and install it in Joomla's Extension manager
+          (System&nbsp;&rarr;&nbsp;Install&nbsp;&rarr;&nbsp;Extensions) — your settings and
+          license are preserved on update.
+        </li>
+        <li>
+          <strong>After expiry:</strong> installed features keep working. An expired license
+          only pauses access to new updates and support until you renew.
+        </li>
+      </ul>
+    </section>
+
     <div class="ab-footer-note">
       <p class="small text-muted">
         Don't have a license yet? Get one from
         <a href="https://aiboostnow.com/pricing" target="_blank" rel="noopener">aiboostnow.com/pricing</a>.
-        One license covers AI Boost updates and support. Integration plugins are sold separately.
+        A license includes one year of updates and support for AI Boost. Integration plugins are sold separately.
       </p>
     </div>
   </div>

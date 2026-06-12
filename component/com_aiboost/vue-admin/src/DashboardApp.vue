@@ -13,8 +13,8 @@
         <span class="icon-warning me-1" aria-hidden="true"></span>
         <template v-if="backupSignalKind === 'never'">
           <strong>No settings backup yet.</strong>
-          Download one now so you can restore your configuration after an
-          uninstall, migration, or major update.
+          Download one now so you can restore your configuration after a
+          migration, a major update, or anything unexpected.
         </template>
         <template v-else-if="backupSignalKind === 'changes'">
           <strong>You've changed {{ changesSinceBackup }} settings since your last backup.</strong>
@@ -42,12 +42,27 @@
       </span>
     </div>
 
-    <!-- Settings status alert -->
-    <div v-if="!data.hasSettings" class="ab-alert ab-alert--warning">
-      <span class="icon-warning me-1" aria-hidden="true"></span>
-      <strong>No settings found.</strong>
-      Go to <a :href="data.urls.settings">Settings</a> to configure AI Boost.
-    </div>
+    <!-- Settings status. First-run install (no settings row yet) funnels the
+         admin to Autopilot instead of a warning or a backup alarm — there is
+         nothing to back up or fix yet, so the friendliest next step is the
+         5-minute guided setup. -->
+    <a v-if="!data.hasSettings"
+       :href="firstRunSetupHref"
+       class="ab-card ab-setup-banner mb-4"
+       title="Open Autopilot — guided setup">
+      <div class="ab-card__body d-flex align-items-center gap-3 py-3">
+        <span class="ab-setup-banner__icon" aria-hidden="true">🚀</span>
+        <div class="flex-grow-1">
+          <strong class="ab-setup-banner__title">New here? Set up AI Boost in 5 minutes</strong>
+          <div class="text-muted small mt-1">
+            Autopilot asks a few quick questions about your site, then
+            configures Schema.org, sitemap, social tags, and AI-search
+            signals for you.
+          </div>
+        </div>
+        <span class="ab-setup-banner__cta">Set up now →</span>
+      </div>
+    </a>
     <div v-else class="ab-alert ab-alert--success d-flex align-items-center justify-content-between flex-wrap gap-2">
       <span>
         <span class="icon-checkmark me-1" aria-hidden="true"></span>
@@ -311,10 +326,13 @@
       </div>
     </div>
 
-    <!-- Task #461 — Danger Zone: uninstall warning + export reminder.
+    <!-- Task #461 — Danger Zone: uninstall facts + export reminder.
          Joomla's Extensions → Manage uninstall flow cannot be intercepted
-         with a custom modal, so we surface the warning here, on the
-         dashboard the admin uses every day. -->
+         with a custom modal, so we explain what uninstall really does here,
+         on the dashboard the admin uses every day. Since the keep-data
+         uninstall landed, removing the package PRESERVES all database data
+         and the licence — only extension files and generated root files
+         are cleaned up. -->
     <div class="ab-card mb-4" style="border-left:4px solid #dc3545">
       <div class="ab-card__header">
         <h2 class="ab-card__title fs-5 mb-0" style="color:#dc3545">
@@ -323,24 +341,29 @@
       </div>
       <div class="ab-card__body">
         <p class="mb-2">
-          Uninstalling AI Boost from
-          <strong>Extensions → Manage → Manage</strong> is
-          <strong>permanent</strong>. It will remove:
+          Uninstalling the AI Boost package from
+          <strong>System → Manage → Extensions</strong> removes the
+          extension files but <strong>keeps your data</strong>. Uninstalling:
         </p>
         <ul class="mb-3 small">
-          <li>All plugin settings stored in <code>#__aiboost_settings</code></li>
-          <li>All per-language translations in <code>#__aiboost_translations</code></li>
-          <li>Your redirect list, URL-checker history, and 404 log</li>
-          <li>Generated <code>llms.txt</code>, <code>sitemap.xml</code>, and
-            the AI Boost-managed <code>robots.txt</code> (hand-edited
-            <code>robots.txt</code> files are left alone)</li>
-          <li>Article OG custom fields and any per-article OG overrides</li>
+          <li><strong>Preserves</strong> all settings in
+            <code>#__aiboost_settings</code>, every per-language translation
+            in <code>#__aiboost_translations</code>, your redirect list, and
+            the 404 log</li>
+          <li><strong>Preserves</strong> your licence and Pro activation —
+            Pro features unlock again as soon as you reinstall</li>
+          <li>Removes the extension files and cleans up generated root
+            files: the AI Boost-managed block in <code>robots.txt</code>
+            (hand-edited <code>robots.txt</code> content is left alone),
+            <code>llms.txt</code>, and the sitemap files</li>
+          <li>Clears developer override keys</li>
         </ul>
         <p class="mb-3 small text-muted">
-          <strong>Before you uninstall:</strong> download a settings export
-          so you can restore everything on a future install or on a
-          different site. The export is a single JSON file containing every
-          option, redirect, and translation.
+          Reinstalling restores full function with your data intact.
+          <strong>Before any major change</strong> — a migration, a big
+          update, or moving to a different site — download a settings
+          export anyway. It is a single JSON file containing every option,
+          redirect, and translation.
         </p>
         <div class="d-flex flex-wrap gap-2">
           <button id="ab-backup-button"
@@ -386,7 +409,7 @@
           <template v-else>
             <span class="icon-warning-2 me-1" aria-hidden="true"></span>
             <strong>No backup downloaded from this browser yet.</strong>
-            Take one before you uninstall or update.
+            Take one before any major change.
           </template>
         </p>
       </div>
@@ -716,8 +739,11 @@ export default {
       const ageDays = (Date.now() - d.getTime()) / 86400000
       return ageDays < 7
     })
+    // Backup nags only make sense once real settings exist. On a first-run
+    // install (no settings row yet) there is nothing to back up, so the
+    // first-run setup banner owns the top of the dashboard instead.
     const showBackupReminder = computed(() =>
-      backupSignalKind.value !== 'fresh' && !backupReminderDismissed.value
+      data.hasSettings && backupSignalKind.value !== 'fresh' && !backupReminderDismissed.value
     )
     function dismissBackupReminder() {
       const nowIso = new Date().toISOString()
@@ -798,12 +824,20 @@ export default {
     })
     const multilingualBannerTarget = computed(() => '_self')
 
+    // First-run setup banner — deep-link to the Autopilot page inside the
+    // SPA shell, built the same way configureUrl() builds its hrefs.
+    const firstRunSetupHref = computed(() => {
+      const appBase = data.urls.appBase || data.urls.settings.split('#')[0]
+      return appBase + '#/autopilot'
+    })
+
     return {
       data,
       plugins,
       isProEdition,
       multilingualBannerHref,
       multilingualBannerTarget,
+      firstRunSetupHref,
       conflictCritical,
       conflictWarnings,
       conflictTotal,
@@ -929,6 +963,41 @@ export default {
   white-space: nowrap;
 }
 [data-bs-theme=dark] .ab-ml-banner__cta { color: #4ade80; }
+
+/* ── First-run setup banner (funnel to Autopilot) ─────────────── */
+.ab-setup-banner {
+  display: block;
+  border-left: 4px solid #2563eb !important;
+  background: linear-gradient(90deg, rgba(37, 99, 235, .08), rgba(37, 99, 235, .02));
+  text-decoration: none !important;
+  color: inherit !important;
+  transition: box-shadow .18s, transform .15s;
+}
+.ab-setup-banner:hover {
+  box-shadow: 0 4px 16px rgba(37, 99, 235, .20);
+  transform: translateY(-1px);
+}
+[data-bs-theme=dark] .ab-setup-banner {
+  background: linear-gradient(90deg, rgba(37, 99, 235, .18), rgba(37, 99, 235, .04));
+}
+.ab-setup-banner__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ab-setup-banner__title {
+  color: #2563eb;
+  font-size: 1.02rem;
+}
+[data-bs-theme=dark] .ab-setup-banner__title { color: #60a5fa; }
+.ab-setup-banner__cta {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #2563eb;
+  font-size: .9rem;
+  white-space: nowrap;
+}
+[data-bs-theme=dark] .ab-setup-banner__cta { color: #60a5fa; }
 
 /* ── Configure link ───────────────────────────────────────────── */
 .ab-configure-link {

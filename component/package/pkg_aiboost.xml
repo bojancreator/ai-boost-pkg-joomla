@@ -9,19 +9,26 @@
     <authorEmail>info@aiboostnow.com</authorEmail>
     <authorUrl>https://aiboostnow.com</authorUrl>
     <version>0.45.0</version>
-    <description>AI Boost for Joomla — Professional SEO &amp; AEO Package. Includes admin component + 6 modular system plugins: Schema.org, XML Sitemap, Social/OpenGraph, Analytics, AEO/llms.txt, Core.</description>
+    <description>AI Boost for Joomla — Professional SEO &amp; AEO Package. Includes the admin component + 7 modular system plugins: Schema.org, XML Sitemap, Social/OpenGraph, Analytics, AEO/llms.txt, Custom Code, Core.</description>
     <php_minimum>8.1.0</php_minimum>
     <joomla_minimum>5.0.0</joomla_minimum>
     <url>https://aiboostnow.com</url>
     <scriptfile>pkg_script.php</scriptfile>
     <blockChildUninstall>true</blockChildUninstall>
     <!--
-        Update server intentionally omitted for now. The auto-update channel
-        (updates.aiboostnow.com) is not yet live, so we ship without an
-        <updateservers> block rather than point Joomla at a dead endpoint.
-        Re-add this once the update endpoint and Lemon Squeezy licensing
-        (Task #19) are in place.
+        Static update server: a plain XML file published on aiboostnow.com.
+        The release runbook in OPERATING.md updates this XML on every release
+        (version + download URL of the Free ZIP) — Joomla then shows the
+        native "Update available" notice in System → Update → Extensions.
+        Publish the XML BEFORE the first public release; until it is live,
+        Joomla logs a failed update-site fetch (harmless) and may mark the
+        site as disabled — re-enable it after publishing.
     -->
+    <updateservers>
+        <server type="extension"
+                priority="1"
+                name="AI Boost for Joomla Updates">https://aiboostnow.com/updates/pkg_aiboost.xml</server>
+    </updateservers>
     <!--
         Core plugins are bundled here.
 

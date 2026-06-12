@@ -187,6 +187,9 @@ A task is done only when every applicable step is finished, in order. **Never re
 Doc-only / website / non-plugin changes skip steps 2–7 but still get a report and a
 BACKLOG update if they came from a backlog item.
 
+Public releases additionally follow the **Release runbook** below (upload ZIPs,
+publish the update XML, announce).
+
 **Test sites:**
 
 | Site | URL | Version | PHP | Build |
@@ -220,6 +223,42 @@ and **fix_actions[]** (≥1 link to target tab+field: `#tab-{name}-btn` +
 Locations: server check `HealthCheckService.php` · duplicate scan
 `DuplicateTagScanner.php` · conflict scan `ConflictDetector.php` · frontend
 `vue-admin/src/HealthApp.vue`.
+
+---
+
+## Release runbook (v1 — manual channel)
+
+There is **no update server** in v1 (decision 2026-06-11). Free updates are announced
+via a **static** Joomla update-server XML hosted at
+`https://aiboostnow.com/updates/pkg_aiboost.xml` (the URL referenced by
+`<updateservers>` in `component/package/pkg_aiboost.xml`). Pro ZIPs are delivered
+through the Lemon Squeezy "My Orders" portal + e-mail notifications — no in-app Pro
+update channel, by design (see the comment in `pkg_aiboost_pro.xml`).
+
+Per public release, in order:
+
+1. **Bump + build (lockstep):** `python3 scripts/bump-version.py <patch|minor|major>`,
+   then `python3 scripts/build-package-zip.py --target all` — Free and Pro ZIPs must
+   ship at the same version.
+2. **Full QA** per Definition of Done above, including a **real-licence smoke test**:
+   verify a genuine Lemon Squeezy key on Pro staging (License & Updates → Verify) —
+   not just the dev-preview override.
+3. **Upload the ZIPs:** `pkg_aiboost_pro-{v}.zip` to the Lemon Squeezy product files
+   (Pro buyers get it via "My Orders" + the release e-mail); `pkg_aiboost-{v}.zip` to
+   the public download location `https://aiboostnow.com/downloads/`.
+4. **Publish the update XML:** `python3 scripts/generate-update-xml.py`, then upload
+   `deliverables/updates/pkg_aiboost.xml` to `https://aiboostnow.com/updates/`.
+   Existing Free installs now get Joomla's native update notice.
+5. **Announce** the release to the customer e-mail list (Lemon Squeezy e-mail or the
+   list tool).
+6. **Update the ROADMAP `Verification Log`** with the release version and staging
+   verification results.
+
+> **Before the first public release:** the update XML must already be live at
+> `https://aiboostnow.com/updates/pkg_aiboost.xml` — the Free package manifest points
+> there from install time. On sites installed before the XML went live, Joomla may
+> have auto-disabled the update site after failed fetches — re-enable it in
+> **System → Update Sites**.
 
 ---
 

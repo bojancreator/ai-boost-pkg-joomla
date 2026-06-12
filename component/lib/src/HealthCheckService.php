@@ -1146,7 +1146,12 @@ class HealthCheckService
             'info_error_logging', 'info', 'Error logging',
             true, true, $msg,
             $this->settingsUrl('tab-debug-btn', 'error_log_enabled'),
-            [['label' => 'Open Debug → Error logging', 'target_tab' => 'debug', 'target_field' => 'error_log_enabled']]
+            [[
+                'label'        => 'Open Debug → Error logging',
+                'url'          => $this->settingsUrl('tab-debug-btn', 'error_log_enabled'),
+                'target_tab'   => 'debug',
+                'target_field' => 'error_log_enabled',
+            ]]
         );
     }
 
@@ -2901,9 +2906,17 @@ class HealthCheckService
             'pass'                => $pass,
             'show_pass'           => false,
             'message'             => $msg,
-            'fix_url'             => 'index.php?option=com_aiboost#/licenses',
+            // The Licenses page lives in the SPA shell (view=app), not in the
+            // Settings form, so the fix action must carry an explicit SPA url —
+            // otherwise HealthApp falls back to a dead href="#".
+            'fix_url'             => $this->appUrl('licenses'),
             'fix_actions'         => $pass ? [] : [
-                ['label' => 'Open Licenses tab', 'target_tab' => 'licenses', 'target_field' => 'license_key'],
+                [
+                    'label'        => 'Open Licenses tab',
+                    'url'          => $this->appUrl('licenses'),
+                    'target_tab'   => 'licenses',
+                    'target_field' => 'license_key',
+                ],
             ],
             'contributing_fields' => [],
             'dismissed'           => in_array('warning_pro_install_no_license', $this->dismissed, true),
@@ -3141,8 +3154,8 @@ class HealthCheckService
             true,
             true,
             $message,
-            '',
-            [['label' => 'Open Integrations tab', 'target_tab' => 'integrations', 'target_field' => '']],
+            $this->appUrl('integrations'),
+            [['label' => 'Open Integrations tab', 'url' => $this->appUrl('integrations'), 'target_tab' => 'integrations', 'target_field' => '']],
             []
         );
     }
@@ -3182,8 +3195,8 @@ class HealthCheckService
             $pass,
             true,
             $msg,
-            '',
-            [['label' => 'Open Integrations tab', 'target_tab' => 'integrations', 'target_field' => '']],
+            $this->appUrl('integrations'),
+            [['label' => 'Open Integrations tab', 'url' => $this->appUrl('integrations'), 'target_tab' => 'integrations', 'target_field' => '']],
             []
         );
     }
@@ -3227,8 +3240,8 @@ class HealthCheckService
             $pass,
             true,
             $msg,
-            '',
-            [['label' => 'Open Integrations tab', 'target_tab' => 'integrations', 'target_field' => '']],
+            $this->appUrl('integrations'),
+            [['label' => 'Open Integrations tab', 'url' => $this->appUrl('integrations'), 'target_tab' => 'integrations', 'target_field' => '']],
             []
         );
     }
@@ -3413,6 +3426,18 @@ class HealthCheckService
     {
         return 'index.php?option=com_plugins&filter[folder]=system&filter[search]='
             . urlencode($element);
+    }
+
+    /**
+     * Deep link to a page inside the Vue admin SPA shell (view=app).
+     *
+     * Used by fix actions whose destination is NOT a Settings form tab —
+     * e.g. the Licenses or Integrations page — so they always carry an
+     * explicit url and never render as a dead href="#" button in HealthApp.
+     */
+    private function appUrl(string $route): string
+    {
+        return 'index.php?option=com_aiboost&view=app#/' . ltrim($route, '/');
     }
 
     /**

@@ -6,22 +6,25 @@ without losing data.
 
 ## Before you uninstall — export your settings
 
-Uninstalling **preserves your data** — every AI Boost table is left in the
-database, so a later reinstall on the **same** site restores all settings,
-redirects, translations and logs automatically. Only your Pro **licence keys**
-are cleared on uninstall.
+Uninstalling **preserves your data and your licence** — every AI Boost table
+is left in the database, so a later reinstall on the **same** site restores
+all settings, redirects, translations and logs automatically, and your Pro
+activation comes back licensed too. Pro activation is perpetual and survives
+uninstall by design; only internal developer override keys are cleared.
 
 Even so, export first whenever you plan to **move to another site** or simply
 want a portable backup you control:
 
-1. Go to **Components → AI Boost → Import / Export**.
-2. Click **Download settings (JSON)**. Save the file somewhere safe.
+1. Go to **Components → AI Boost** → sidebar **ADVANCED → Import** (the Import / Export screen).
+2. Click **Download settings export (.json)**. Save the file somewhere safe.
 3. (Recommended) Take a fresh full database backup with your usual tool
    (Akeeba Backup, hosting panel, `mysqldump`).
 
-The exported JSON contains every plugin option, every redirect, and every
-stored translation. It can be re-imported into AI Boost on the same site
-or on a fresh install through the same Import / Export screen.
+The exported JSON contains every plugin option and every stored translation —
+**redirects are not included**. Redirects live in their own database table and
+survive uninstall/reinstall on the **same** site, but they cannot be moved to
+another site through Import / Export. The JSON can be re-imported into AI Boost
+on the same site or on a fresh install through the same Import / Export screen.
 
 ## What gets removed on uninstall
 
@@ -30,9 +33,11 @@ When you uninstall the **pkg_aiboost** package from
 
 - The admin component `com_aiboost` and its 7 system plugins
   (Schema, Sitemap, Social, Analytics, AEO, Core, Code).
-- Your Pro **licence keys only** — the six licence/dev keys are cleared from
-  the `main` row of `#__aiboost_settings` so a reinstall comes up unlicensed.
-  **Every other setting in that table is kept.**
+- Internal **developer override keys only** — three QA/testing keys are
+  cleared from the `main` row of `#__aiboost_settings`. **Every other setting
+  in that table is kept, including your licence key and Pro activation** —
+  Pro activation is perpetual and survives uninstall by design, so a
+  reinstall comes back licensed.
 - The article custom fields group **AI Boost — OpenGraph** and the six
   `aiboost_og_*` custom fields, together with the per-article OG values
   stored against them.
@@ -47,7 +52,8 @@ When you uninstall the **pkg_aiboost** package from
 ## What stays on the site
 
 - **All AI Boost data tables are preserved — nothing is dropped:**
-  - `#__aiboost_settings` (every plugin option except the cleared licence keys)
+  - `#__aiboost_settings` (every plugin option, your licence key and your
+    Pro activation; only internal developer override keys are cleared)
   - `#__aiboost_translations` (per-language field overrides)
   - `#__aiboost_redirects` (your redirect list and hit counters)
   - `#__aiboost_url_scans` (URL Checker history)
@@ -83,7 +89,7 @@ DROP TABLE IF EXISTS jos_aiboost_error_log;
 
 ## Recommended order (mixed Free + Pro installs)
 
-1. **Components → AI Boost → Import / Export** → download settings JSON.
+1. **Components → AI Boost** → **ADVANCED → Import** → download the settings JSON.
 2. **Extensions → Manage → Manage** → search for
    `AI Boost for Joomla — Pro Upgrade` → uninstall.
 3. **Extensions → Manage → Manage** → search for
@@ -96,11 +102,16 @@ DROP TABLE IF EXISTS jos_aiboost_error_log;
 1. Install the new `pkg_aiboost-x.y.z.zip` through
    **Extensions → Install**.
 2. (Pro users) Install `pkg_aiboost_pro-x.y.z.zip` on top.
-3. Open **Components → AI Boost → Import / Export**.
-4. Click **Upload settings (JSON)** and pick the file you exported before
-   uninstalling. All settings, redirects and translations are restored.
-5. (Pro users) Re-enter and verify your Pro license key on
-   **Components → AI Boost → Licenses**.
+3. Open **Components → AI Boost** → **ADVANCED → Import**.
+4. Click **Import settings** and pick the file you exported before
+   uninstalling. All settings and translations are restored. Redirects are
+   not part of the export file — on the **same** site they are still in the
+   database and come back automatically; on a **different** site, recreate
+   them under **TOOLS → Redirects** (the CSV import can speed this up).
+5. (Pro users) On the **same** site your licence and Pro activation survive
+   uninstall, so no further action is needed. Only when moving to a
+   **different** site, re-enter and verify your Pro licence key on
+   **Components → AI Boost** → **SETUP → License & Updates**.
 
 ## Troubleshooting
 

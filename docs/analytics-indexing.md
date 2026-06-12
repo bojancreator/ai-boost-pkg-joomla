@@ -1,239 +1,125 @@
-# Analytics & Indexing Tab — GSC, GA4, GTM, IndexNow & LLMs.txt
+# Analytics & Indexing — GSC, GA4, GTM, Meta Pixel, IndexNow & llms.txt
 
-The **Analytics & Indexing** tab brings together all tracking integrations and the two key AI Search features: IndexNow for instant indexing and LLMs.txt for AI crawler visibility.
+Tracking integrations live on **SEO → Analytics & Tracking** in the admin sidebar. The indexing and AI-visibility features (IndexNow, `llms.txt`) live on **AI VISIBILITY → AI Visibility**. This page covers both.
 
----
-
-## Site Verification
-
-### Enable Google Site Verification
-
-**Field:** `enable_google_verification`  
-**Default:** No
-
-When **Yes**, JoomlaBoost injects the Google Search Console (GSC) ownership verification meta tag in the `<head>` of every page.
-
-### Verification Token — Primary
-
-**Field:** `gsc_verification_meta`
-
-Paste the `content` value from the HTML tag method in Google Search Console:
-
-1. Go to [Google Search Console](https://search.google.com/search-console) → Settings → Ownership Verification.
-2. Click **HTML Tag** method.
-3. Copy only the value inside `content="..."` — not the full `<meta>` tag.
-4. Paste it into this field.
-
-**Example:** `abcdefghij-1234567890ABCDEFGHIJ`
-
-### Verification Token — Secondary (Optional)
-
-**Field:** `gsc_verification_meta_2`
-
-A second verification token — useful when multiple team members need their own GSC access under different Google accounts, or when verifying multiple GSC properties for the same domain (e.g., `https://` vs `http://` variants).
-
-### Additional Verification HTML — Advanced
-
-**Field:** `gsc_additional_html`  
-**Visible when:** Show Advanced Options = Yes
-
-Paste any additional `<meta>` tags or HTML that should be injected into `<head>`. Use this for:
-- Bing Webmaster Tools verification
-- Pinterest site claim
-- Facebook domain verification (if not using Meta Pixel)
-- Any other platform that requires a head meta tag
+> **Editions note:** the analytics integrations (site verification, GA4, GTM, Meta Pixel) and IndexNow are included in **Pro** — they take effect only with the Pro Upgrade installed and activated (in the Free edition the Meta Pixel card appears as a locked card with an **Upgrade to Pro** button). `llms.txt`, Markdown pages and AI signals are included in Free.
 
 ---
 
-## Google Analytics 4
+## Site Verification (Pro)
 
-### Enable GA4
+**Where:** SEO → Analytics & Tracking → Site Verification
 
-**Field:** `enable_ga4`  
-**Default:** No
+Injects ownership verification tags into the `<head>` of every page:
 
-When **Yes**, JoomlaBoost injects the GA4 tracking script (`gtag.js`) on every page, enabling page view tracking and event collection in Google Analytics.
-
-### Measurement ID
-
-**Field:** `ga4_measurement_id`  
-**Format:** `G-XXXXXXXXXX`
-
-Find this in **Google Analytics → Admin → Data Streams → [your stream] → Measurement ID**.
-
-### GDPR Consent Mode
-
-**Field:** `ga4_consent_mode`  
-**Default:** None
-
-| Option | Behavior |
-|--------|----------|
-| **None (Direct inject)** | GA4 script loads immediately on page load — no GDPR consent check |
-| **YooTheme Pro 5** | GA4 script is blocked until the user accepts the "Statistics" category in YooTheme's Consent Manager |
-| **Via GTM** | No direct GA4 script is injected; GA4 is handled inside your GTM container |
-
-> **If you use Google Tag Manager:** Select **Via GTM** here, leave the Measurement ID empty, and configure GA4 as a tag inside your GTM container. This prevents duplicate tracking.
-
-> **GDPR note:** In the EU/EEA, loading Google Analytics without user consent violates GDPR. Use the YooTheme Consent Mode option or an equivalent Joomla cookie consent solution.
+- **Google Search Console verification** — enable the toggle, then paste one or more **GSC verification codes**. Get the code from [Google Search Console](https://search.google.com/search-console) → Settings → Ownership Verification → **HTML Tag** — copy only the value inside `content="..."`, not the whole tag. You can add multiple codes (useful when several team members verify under different Google accounts).
+- **Facebook domain verification** — paste the code from Meta Business Manager.
+- **Additional verification HTML** — paste any other `<meta>` tags a platform requires (Bing Webmaster Tools, Pinterest, etc.).
 
 ---
 
-## Google Tag Manager
+## Google Analytics 4 (Pro)
 
-Google Tag Manager (GTM) lets you manage multiple tracking scripts, conversion pixels, and custom tags from a single dashboard without modifying Joomla code.
+**Where:** SEO → Analytics & Tracking → Google Analytics 4
 
-### Enable GTM
+- **Enable Google Analytics 4** — master toggle.
+- **GA4 Measurement ID** — format `G-XXXXXXXXXX`; find it in **Google Analytics → Admin → Data Streams → [your stream]**.
+- **GDPR Consent Mode** — choose how GA4 loads:
 
-**Field:** `enable_gtm`  
-**Default:** No
+| Option | Behaviour |
+|--------|-----------|
+| None (direct inject — no GDPR) | GA4 loads immediately on every page |
+| Via GTM (skip direct GA4) | No direct GA4 script — configure GA4 inside your GTM container instead |
+| YooTheme Pro Consent Manager (Consent Mode v2) | GA4 respects the consent state from YooTheme's Consent Manager |
+| Consent denied by default (custom CMP) | GA4 starts with consent denied until your consent platform grants it |
 
-When **Yes**, JoomlaBoost injects the GTM container snippet in both `<head>` and `<body>` (as Google requires).
+> **If you use Google Tag Manager:** select **Via GTM**, leave the Measurement ID empty, and configure GA4 as a tag inside GTM. This prevents double tracking.
 
-### Container ID
-
-**Field:** `gtm_container_id`  
-**Format:** `GTM-XXXXXXX`
-
-Find this in **Google Tag Manager → Admin → Container Settings**.
-
-> **YooTheme conflict note:** If YooTheme Pro's Customizer also injects a GA4 or GTM tag, disable it there and let JoomlaBoost manage the injection — otherwise you will get duplicate tracking.
+> **GDPR note:** in the EU/EEA, loading Google Analytics without user consent violates GDPR. Use a consent mode option together with a cookie consent solution.
 
 ---
 
-## IndexNow — Instant Indexing
+## Google Tag Manager (Pro)
 
-> **🔒 Requires Developer or Agency license.**  
-> Starter and unlicensed users see an upgrade notice in this section.
+**Where:** SEO → Analytics & Tracking → Google Tag Manager
 
-IndexNow is a protocol supported by Bing, Yandex, and Seznam.cz that lets websites push URL change notifications directly to these search engines — instead of waiting for their crawlers to revisit.
+- **Enable Google Tag Manager** — injects the GTM container snippet in both `<head>` and `<body>`, as Google requires.
+- **GTM Container ID** — format `GTM-XXXXXXX`; find it in **Google Tag Manager → Admin → Container Settings**.
 
-**Result:** New and updated articles are indexed in minutes, not days.
+> **YooTheme conflict note:** if YooTheme Pro's Customizer also injects a GA4 or GTM tag, disable it there and let AI Boost manage the injection — otherwise you will get duplicate tracking.
 
-### Enable IndexNow
+---
 
-**Field:** `indexnow_enabled`  
-**Default:** No
+## Meta Pixel (Pro)
 
-When **Yes**, JoomlaBoost automatically sends an IndexNow ping to `api.indexnow.org` every time a Joomla article is published, updated, or unpublished.
+**Where:** SEO → Analytics & Tracking → Meta Pixel
 
-### Generate API Key
+- **Enable Meta Pixel** — injects the Meta (Facebook/Instagram) pixel.
+- **Meta Pixel IDs** — one or more pixel IDs.
+- **Consent Mode** — direct inject, or consent-required (the pixel is revoked until consent is granted).
+- **Standard Events** — fire standard conversion events (Purchase, Lead, ViewContent, Search, AddToCart, Contact, Subscribe and more) based on the visited page.
+- **Custom Events** — define your own event name + URL pattern pairs.
 
-Click the **🔑 Generate API Key** button to create a random 32-character hex API key. JoomlaBoost automatically:
-1. Stores the key in the `indexnow_api_key` field
-2. Creates the required key verification file at `yoursite.com/{your-api-key}.txt`
+---
 
-You do not need to register the key anywhere — the IndexNow protocol auto-discovers it from the verification file.
+## IndexNow — Instant Indexing (Pro)
 
-### API Key
+**Where:** AI VISIBILITY → AI Visibility → IndexNow
 
-**Field:** `indexnow_api_key`  
-**Format:** 32-character hex string  
-**Example:** `a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4`
+IndexNow is a protocol supported by Bing and other IndexNow-enabled search engines that lets your site push URL changes directly instead of waiting for the next crawl. New and updated articles get crawled in minutes, not days.
 
-Use the **Generate** button to create one automatically, or paste an existing key if you have already used IndexNow on this domain through another service.
-
-### How IndexNow Works
-
-```
-Article published/updated in Joomla
-        ↓
-JoomlaBoost sends ping → api.indexnow.org
-        ↓
-Bing, Yandex, Seznam receive notification
-        ↓
-Search engines crawl the URL within minutes
-        ↓
-Page appears in search results faster
-```
+- **Enable IndexNow** — master toggle.
+- **API Key** — click **Generate** to create a key. AI Boost stores it and serves the required verification file at `yoursite.com/{your-api-key}.txt` automatically — you do not need to register the key anywhere.
+- **Auto-submit URLs on article publish / update** — sends a ping to `api.indexnow.org` whenever a Joomla article is published, updated or unpublished.
 
 **Verify it is working:**
+
 1. Visit `yoursite.com/{your-api-key}.txt` — it should return your API key as plain text.
 2. After publishing an article, check **Bing Webmaster Tools → IndexNow** for submission logs.
 
 ---
 
-## LLMs.txt — AI Crawler Visibility
+## llms.txt — AI Site Index (Free)
 
-> **🔒 Requires Developer or Agency license.**  
-> Starter and unlicensed users see an upgrade notice in this section.
+**Where:** AI VISIBILITY → AI Visibility → llms.txt
 
-`llms.txt` is an emerging standard (analogous to `robots.txt` but for AI language models) that provides AI systems with a structured, human-readable summary of your site. AI assistants like ChatGPT, Claude, Perplexity, and Gemini can read this file to quickly understand what your site is about, what pages exist, and who you are.
+`llms.txt` is an emerging standard ([llmstxt.org](https://llmstxt.org)) — a structured, human-readable summary of your site that AI assistants (ChatGPT, Claude, Perplexity, Gemini) read to understand what your site is about.
 
-**Standard reference:** [llmstxt.org](https://llmstxt.org)
-
-### Enable LLMs.txt
-
-**Field:** `llmstxt_enabled`  
-**Default:** No
-
-When **Yes**, JoomlaBoost dynamically serves `yoursite.com/llms.txt`. The file is auto-generated from:
-- Organization name and description
-- Contact information and social links
-- Menu pages (with titles and descriptions where available)
-- Guest ratings (if configured)
-- Custom pages you add manually
-
-### Custom Pages (Multilingual)
-
-**Field:** `llmstxt_custom_pages_{lang}`
-
-Add extra pages or important content not automatically discovered by JoomlaBoost. Format:
-
-```json
-[
-  {
-    "title": "About Us",
-    "url": "/about",
-    "description": "Our company history, team, and mission since 1999."
-  },
-  {
-    "title": "Rooms & Suites",
-    "url": "/rooms",
-    "description": "Luxury rooms and suites with panoramic city views."
-  },
-  {
-    "title": "Contact",
-    "url": "/contact",
-    "description": "Reservations, inquiries, and directions to our property."
-  }
-]
-```
+- **Enable /llms.txt** — serves the file dynamically at `yoursite.com/llms.txt`.
+- **Site Description for AI** — a short description of your site (translatable per language with Pro).
+- **Recent Articles** — how many recent articles to list (1–50).
+- **Custom Pages** — add rows of URL + description for important pages that should always be listed.
 
 **After saving**, verify the file at `yoursite.com/llms.txt`.
 
-**Example output:**
-```
-# Acme Hotel Manhattan
+### llms-full.txt — Full Site Index (Pro)
 
-> A 4-star hotel in Manhattan, New York, USA, offering luxury accommodation since 1999.
+**Where:** AI VISIBILITY → AI Visibility → llms-full.txt
 
-Contact: info@acmehotel.com | +1 212 555 0123
-Address: 123 W 44th St, New York, USA
+Serves `yoursite.com/llms-full.txt` — a full index of your articles and categories for AI crawlers, with a configurable maximum article count.
 
-## Pages
+### Markdown Pages & AI Signals (Free)
 
-- [Home](https://yourdomain.com/)
-- [About Us](https://yourdomain.com/about): Our company history, team, and mission since 1999.
-- [Rooms & Suites](https://yourdomain.com/rooms): Luxury rooms and suites with panoramic city views.
-- [Contact](https://yourdomain.com/contact): Reservations, inquiries, and directions to our property.
-```
+Also on the AI Visibility page:
+
+- **Markdown Pages** — serves any page as clean Markdown for AI agents, triggered by a `.md` URL suffix, a `?markdown=1` query parameter, or an `Accept: text/markdown` request header.
+- **AI Signals** — adds AI-oriented meta tags.
 
 ---
 
-## Recommended Settings (Analytics & Indexing Tab)
+## Recommended Settings
 
 | Setting | Recommended value |
 |---------|------------------|
-| Enable GSC Verification | Yes — paste your token from Google Search Console |
-| Enable GA4 | Yes — paste your Measurement ID |
-| GA4 Consent Mode | YooTheme Pro 5 (if applicable) or None |
-| Enable GTM | Yes (if you manage tags via GTM) |
-| Enable IndexNow | Yes — click Generate Key *(Developer/Agency)* |
-| Enable LLMs.txt | Yes *(Developer/Agency)* |
-| LLMs.txt Custom Pages | Add your key pages with descriptions |
+| Site verification | Yes — paste your GSC code *(Pro)* |
+| Google Analytics 4 | Yes — paste your Measurement ID, pick a consent mode *(Pro)* |
+| Google Tag Manager | Yes, if you manage tags via GTM *(Pro)* |
+| IndexNow | Yes — click Generate, enable auto-submit *(Pro)* |
+| llms.txt | Yes — fill in the Site Description for AI |
+| Markdown Pages | Yes |
 
 ---
 
-*← [Social & Meta Tab](social-meta.md) | [Documentation Index](index.md) | [Debug & Performance Tab →](debug-performance.md)*
+*← [Social & Meta](social-meta.md) | [Documentation Index](index.md) | [Debug & Diagnostics →](debug-performance.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)).*

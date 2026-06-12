@@ -1,146 +1,109 @@
-# Per-Article Overrides — Custom Fields for OpenGraph & Schema
+# Per-Article Overrides — Custom Fields for OpenGraph (Pro)
 
-JoomlaBoost reads Joomla's built-in Custom Fields (com_fields) to override global settings on a per-article basis. This lets you customize social preview cards and Schema.org data for individual pages without changing your site-wide configuration.
+AI Boost for Joomla can override social preview data on a per-article basis using Joomla's built-in Custom Fields (com_fields). This lets you set a specific share image, title or description for individual pages — perfect for landing pages and campaign articles — without changing your site-wide defaults.
 
----
-
-## Overview
-
-For most pages, JoomlaBoost uses:
-1. Your global settings (OG image, site name, etc.)
-2. Article-level data (title, meta description, featured image)
-
-Custom Fields allow you to override these on a page-by-page basis — perfect for important landing pages, campaign articles, or content where the generic defaults do not work well.
+> **Pro feature.** Per-article OG lives on **SEO → Social Meta / OG → Per-article OG**. In the Free edition this card is visible but locked with an **Upgrade to Pro** button.
 
 ---
 
-## Supported Custom Field Names
+## How it works
 
-Create fields with **exactly** these names in **Content → Fields**:
+For most pages, AI Boost composes OpenGraph tags from:
 
-| Field Name | Field Type | Effect |
-|-----------|------------|--------|
-| `custom_og_image` | Media | Overrides the OpenGraph image for this article |
-| `custom_og_title` | Text | Overrides the OpenGraph title |
-| `custom_og_description` | Textarea | Overrides the OpenGraph description |
+1. Article-level data (title, meta description, featured image)
+2. Your global defaults on **SEO → Social Meta / OG** (OG Site Name, Default OG Image)
 
-> Field names are case-sensitive. `custom_og_image` works. `Custom_OG_Image` does not.
+With **Per-article OG** enabled, a set of AI Boost custom fields appears on every article edit form. Any value you fill in there wins over both of the above for that article.
 
 ---
 
-## Setup: Creating Custom Fields
+## Setup
 
-### Step 1 — Open Fields Manager
+1. Go to **SEO → Social Meta / OG → Per-article OG**.
+2. Enable **Use per-article OG image & description**.
+3. Click **Create / Repair OG Fields**.
 
-1. Log in to your Joomla administrator panel.
-2. Go to **Content → Fields**.
+AI Boost creates the custom fields for you in **Content → Fields** (group: **AI Boost — OpenGraph**) — you do not create them by hand:
 
-### Step 2 — Create the OG Image Field
+| Field | Type | Effect |
+|-------|------|--------|
+| `aiboost_og_title` | Text | Overrides `og:title` for this article |
+| `aiboost_og_description` | Textarea | Overrides `og:description` |
+| `aiboost_og_image` | Media | Overrides `og:image` |
+| `aiboost_og_type` | Text | Overrides `og:type` |
+| `aiboost_og_video` | URL | Adds an `og:video` tag |
+| `aiboost_twitter_card` | Text | Overrides the `twitter:card` type |
 
-1. Click **New** to create a new field.
-2. Fill in:
-   - **Name:** `custom_og_image` (exactly as shown)
-   - **Label:** `Custom OG Image` (any label for your reference)
-   - **Type:** Media
-3. On the **Options** tab, set **Show Label** to No (the field does not need to show in frontend).
-4. Click **Save & Close**.
+If the fields ever go missing (for example after a site migration), click **Create / Repair OG Fields** again — existing values are kept.
 
-### Step 3 — Create the OG Title Field (optional)
-
-1. Click **New**.
-2. Fill in:
-   - **Name:** `custom_og_title`
-   - **Label:** `Custom OG Title`
-   - **Type:** Text
-3. Save & Close.
-
-### Step 4 — Create the OG Description Field (optional)
-
-1. Click **New**.
-2. Fill in:
-   - **Name:** `custom_og_description`
-   - **Label:** `Custom OG Description`
-   - **Type:** Textarea
-3. Save & Close.
+Optionally also enable **Set og:type = article on article pages** in the same card.
 
 ---
 
-## Using the Fields on an Article
+## Using the fields on an article
 
 1. Open any article in the Joomla Article Manager.
-2. Scroll to the **Fields** section below the editor (or find it in the right sidebar depending on your template).
-3. Fill in the custom field values:
-   - **custom_og_image** — select an image via the media picker
-   - **custom_og_title** — type the social share title (50–60 characters recommended)
-   - **custom_og_description** — type the social share description (150–160 characters recommended)
+2. Find the **AI Boost — OpenGraph** fields (in the Fields area of the edit form).
+3. Fill in only what you want to override:
+   - **OG Image** — select an image via the media picker
+   - **OG Title** — the social share title (50–60 characters recommended)
+   - **OG Description** — the social share description (150–160 characters recommended)
 4. Save the article.
 
----
+Values you leave empty fall back to the article's own data and then to your global defaults.
 
-## Priority Chain
-
-JoomlaBoost resolves OpenGraph values using this priority order (highest priority first):
-
-```
-1. Joomla Custom Field (custom_og_image / custom_og_title / custom_og_description)
-2. Article Featured Image (for og:image) / Article Title (for og:title) / Meta Description (for og:description)
-3. Global settings in JoomlaBoost (OG Default Image, OG Site Name)
-4. Organization Logo (last-resort fallback for og:image)
-```
-
-This means:
-- If you set `custom_og_image` on an article, that image is used — the global default is ignored.
-- If you do NOT set a custom field, the article's own featured image or title is used automatically.
-- The global default only applies when no article-level data exists.
+> **Multilingual sites with Falang:** per-article OG values are translatable through Falang — AI Boost serves the translation for the active page language and falls back to the default value.
 
 ---
 
-## Schema.org Per-Article Data
+## Priority chain
 
-JoomlaBoost automatically generates `Article`, `NewsArticle`, or `BlogPosting` Schema from standard Joomla article fields — no custom fields are needed for this:
+AI Boost resolves OpenGraph values in this order (highest priority first):
+
+```
+1. AI Boost per-article custom field (aiboost_og_*)
+2. Article data — featured image (og:image), title (og:title), meta description (og:description)
+3. Global defaults on SEO → Social Meta / OG (Default OG Image, OG Site Name)
+```
+
+---
+
+## Schema.org per-article data
+
+Article structured data does **not** need custom fields. With Article schema enabled (**SEO → Schema.org → Article Schema**), AI Boost generates it automatically from standard Joomla article data:
 
 | Schema property | Source |
 |-----------------|--------|
 | `headline` | Article title |
 | `description` | Meta description |
-| `datePublished` | Article creation date |
-| `dateModified` | Article last modified date |
-| `author` | Article author (Joomla user) |
+| `datePublished` / `dateModified` | Article dates |
+| `author` | Article author |
 | `image` | Article featured image |
 | `url` | Article canonical URL |
 
-These values are read automatically. There is no custom field to configure for article Schema.
+*(Pro adds the Author Entity card — a full `Person` entity per author, fed from author custom fields — see the Schema.org page.)*
 
 ---
 
-## Best Practices
+## Best practices
 
-**When to use custom OG fields:**
+**When to use per-article OG fields:**
+
 - High-traffic landing pages where the featured image is not suitable for social sharing
-- Campaign articles where you want a specific promotional image
-- Articles where the title is too long or technical for a social card (shorter titles perform better in shares)
-- Evergreen content where you want to control the preview precisely
+- Campaign articles that need a specific promotional image
+- Articles whose title is too long or technical for a social card
 
-**Image specifications for custom_og_image:**
-- **Recommended size:** 1200×630 pixels (16:9 ratio)
-- **Minimum size:** 600×315 pixels (below this, Facebook shows it as a small thumbnail)
-- **Format:** JPG or PNG
-- **File size:** Under 8 MB (under 1 MB recommended for fast loading)
+**Image specifications for the OG image:**
 
----
+- **Recommended size:** 1200×630 pixels
+- **Minimum size:** 600×315 pixels (below this, Facebook shows a small thumbnail)
+- **Format:** JPG or PNG (not SVG)
+- **File size:** under 1 MB recommended
 
-## Assigning Fields to a Field Group (Optional)
-
-If you have many custom fields, organize them into a field group:
-
-1. Go to **Content → Field Groups**.
-2. Click **New** and name it `SEO / Social Override`.
-3. When creating each custom field, assign it to this group.
-
-This keeps your article editor organized.
+After changing an image, use the [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/) → **Scrape Again** to refresh Facebook's cache.
 
 ---
 
-*← [Vertical Presets Guide](vertical-presets.md) | [Documentation Index](index.md) | [Multilingual Sites →](multilingual.md)*
+*← [Site Types](vertical-presets.md) | [Documentation Index](index.md) | [Multilingual Sites →](multilingual.md)*
 
-*JoomlaBoost v0.24.0 — © 2025–2026 AI Boost Now.*
+*AI Boost for Joomla — © 2025–2026 AI Boost ([aiboostnow.com](https://aiboostnow.com)).*
