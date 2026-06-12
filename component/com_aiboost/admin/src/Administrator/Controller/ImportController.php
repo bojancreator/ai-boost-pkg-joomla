@@ -9,6 +9,7 @@ namespace AiBoost\Component\AiBoost\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use AiBoost\Lib\SettingsSaveDefinition;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Session\Session;
@@ -24,28 +25,18 @@ class ImportController extends BaseController
      * License state + per-site identity + dev overrides must always come from
      * the destination install's own verified state, never from a JSON file.
      * Without this denylist a hand-crafted export could set
-    * license_state[*].status=active and forge entitlement state, or clobber
-    * the unique per-site install_id. The destination's
-     * existing values for these keys are preserved on import.
+     * license_state[*].status=active and forge entitlement state, set the
+     * perpetual-activation flags (an export from one activated Pro site would
+     * unlock Pro on another), or clobber the unique per-site install_id. The
+     * destination's existing values for these keys are preserved on import.
+     *
+     * Built directly on SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS — the
+     * single shared list the settings save endpoint carries forward and the
+     * export endpoint strips — so the two boundaries can never drift.
      *
      * @var string[]
      */
-    private const IMPORT_DENYLIST = [
-        'license_key',
-        'license_tier',
-        'license_state',
-        'license_simulation',
-        'pro_skus',
-        // Perpetual-activation flags — must never transfer between installs, or
-        // an export from one activated Pro site would unlock Pro on another.
-        'pro_activated',
-        'pro_activated_at',
-        'pro_activated_version',
-        'dev_license_preview',
-        'dev_force_free_tier',
-        'install_id',
-        'last_backup_at',
-    ];
+    private const IMPORT_DENYLIST = SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS;
 
     public function upload(): void
     {

@@ -42,6 +42,9 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
 {
     private ?array $languages = null;
 
+    /** Cached result of libReady() — null until first probed. */
+    private ?bool $libReady = null;
+
     protected function describe(): IntegrationDescriptor
     {
         return new IntegrationDescriptor(
@@ -69,6 +72,10 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
 
     public function onAiBoostRegisterFields(): array
     {
+        if (!$this->libReady()) {
+            return [];
+        }
+
         return [
             $this->manifestField('falang_hreflang_head', 'social', 'hreflang', 'Falang: hreflang in <head>', 'toggle', '1', [
                 'description' => 'Generate <link rel="alternate" hreflang> tags from Falang language list.',
@@ -117,6 +124,9 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
 
     public function onAiBoostBeforeSitemapBuild(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
         if (!$this->isDetected()) {
             return;
         }
@@ -182,6 +192,9 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
 
     public function onBeforeCompileHead(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
         if (!$this->isDetected()) {
             return;
         }
@@ -209,6 +222,32 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
+
+    /**
+     * Whether the shared AiBoost\Lib library is fully loadable.
+     *
+     * This class can only be defined when AbstractIntegrationPlugin resolved,
+     * but a partial base-package uninstall can leave lib/autoload.php (and a
+     * few lib files) on disk while others — BridgeDetector, ConflictManager —
+     * are gone, and the first reference then fatals on every page. Probing
+     * two core lib classes detects that state so every event handler can
+     * no-op instead. This is a tripwire, not an exhaustive integrity check.
+     * The try/catch matters: under JDEBUG Joomla's debug class loader THROWS
+     * on a missing class file instead of returning false.
+     */
+    private function libReady(): bool
+    {
+        if ($this->libReady !== null) {
+            return $this->libReady;
+        }
+        try {
+            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
+                && class_exists('AiBoost\\Lib\\Logger');
+        } catch (\Throwable $e) {
+            $this->libReady = false;
+        }
+        return $this->libReady;
+    }
 
     /** @return array<int, array<string,string>> */
     private function getLanguages(): array

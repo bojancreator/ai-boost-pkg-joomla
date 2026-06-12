@@ -51,6 +51,9 @@ class AiBoostSitemap extends CMSPlugin
     private const PATH_SITEMAP_NEWS  = 'sitemap-news.xml';
     private const CHUNK_PATTERN      = '/^sitemap-(\d+)\.xml$/';
 
+    /** Cached result of libReady() — null until first probed. */
+    private ?bool $libReady = null;
+
     /**
      * Variadic forwarding keeps us compatible with every CMSPlugin constructor
      * signature across Joomla 4/5/6.
@@ -585,10 +588,38 @@ class AiBoostSitemap extends CMSPlugin
         // sitemap artifacts in the lapsed-license window and ignored
         // dev_force_free_tier. isProActive() honours verified license_state,
         // the heartbeat hard-disable, and both dev_* QA overrides.
-        if (class_exists('AiBoost\\Lib\\PluginRegistry')) {
+        // libReady() (not a bare class_exists) so a partially removed lib —
+        // or JDEBUG's throwing class loader — can never fatal this check.
+        if ($this->libReady()) {
             return \AiBoost\Lib\PluginRegistry::isProActive($settings);
         }
         // Fail-closed fallback if the lib is somehow unavailable.
         return (string) ($settings['dev_license_preview'] ?? '0') === '1';
+    }
+
+    /**
+     * Whether the shared AiBoost\Lib library is fully loadable.
+     *
+     * The plugin entry file only checks that lib/autoload.php exists — not
+     * enough: a partial base-package uninstall can leave autoload.php on disk
+     * while individual lib/src class files are gone, and the first lib
+     * reference then fatals on every page. Probing two core lib classes
+     * detects that state so every lib-touching code path can no-op instead.
+     * This is a tripwire, not an exhaustive integrity check. The try/catch
+     * matters: under JDEBUG Joomla's debug class loader THROWS on a missing
+     * class file instead of returning false.
+     */
+    private function libReady(): bool
+    {
+        if ($this->libReady !== null) {
+            return $this->libReady;
+        }
+        try {
+            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
+                && class_exists('AiBoost\\Lib\\Logger');
+        } catch (\Throwable $e) {
+            $this->libReady = false;
+        }
+        return $this->libReady;
     }
 }

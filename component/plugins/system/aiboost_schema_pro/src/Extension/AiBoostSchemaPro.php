@@ -43,9 +43,15 @@ class AiBoostSchemaPro extends CMSPlugin
 
     private bool $booted = false;
 
+    /** Cached result of libReady() — null until first probed. */
+    private ?bool $libReady = null;
+
     public function onAfterInitialise(): void
     {
         $this->boot();
+        if (!$this->libReady()) {
+            return;
+        }
     }
 
     /**
@@ -58,6 +64,9 @@ class AiBoostSchemaPro extends CMSPlugin
     public function onAiBoostFilterSchemaBlocks(array $input, FilterResult $result): void
     {
         $this->boot();
+        if (!$this->libReady()) {
+            return;
+        }
 
         // Legacy activation gate; retained for older split-package installs.
         if (!PluginRegistry::hasPro('schema')) {
@@ -100,6 +109,9 @@ class AiBoostSchemaPro extends CMSPlugin
     public function onAiBoostRegisterFields(): array
     {
         $this->boot();
+        if (!$this->libReady()) {
+            return [];
+        }
 
         return [
             [
@@ -139,6 +151,9 @@ class AiBoostSchemaPro extends CMSPlugin
     public function onBeforeCompileHead(): void
     {
         $this->boot();
+        if (!$this->libReady()) {
+            return;
+        }
         try {
             if (!PluginRegistry::hasPro('schema')) {
                 return;
@@ -157,7 +172,17 @@ class AiBoostSchemaPro extends CMSPlugin
                 BreadcrumbPro::apply($settings);
             }
         } catch (\Throwable $e) {
-            \AiBoost\Lib\Logger::warning('[AiBoostSchemaPro] onBeforeCompileHead failed: ' . $e->getMessage());
+            // The try may have failed BECAUSE a lib class could not load
+            // (partial base-package uninstall) — referencing Logger here would
+            // then throw a secondary, uncatchable autoload error and 500 the
+            // page. Only log through Logger when the class is already in
+            // memory: class_exists(..., false) never triggers a load and
+            // never throws. Otherwise fall back to error_log().
+            if (class_exists('AiBoost\\Lib\\Logger', false)) {
+                \AiBoost\Lib\Logger::warning('[AiBoostSchemaPro] onBeforeCompileHead failed: ' . $e->getMessage());
+            } else {
+                @error_log('[AiBoostSchemaPro] onBeforeCompileHead failed: ' . $e->getMessage());
+            }
         }
     }
 
@@ -172,5 +197,30 @@ class AiBoostSchemaPro extends CMSPlugin
         if (file_exists($loader)) {
             require_once $loader;
         }
+    }
+
+    /**
+     * Whether the shared AiBoost\Lib library is fully loadable.
+     *
+     * boot() only checks that lib/autoload.php exists — not enough: a partial
+     * base-package uninstall can leave autoload.php on disk while individual
+     * lib/src class files are gone, and the first lib reference then fatals
+     * on every page. Probing two core lib classes detects that state so every
+     * event handler can no-op instead. This is a tripwire, not an exhaustive
+     * integrity check. The try/catch matters: under JDEBUG Joomla's debug
+     * class loader THROWS on a missing class file instead of returning false.
+     */
+    private function libReady(): bool
+    {
+        if ($this->libReady !== null) {
+            return $this->libReady;
+        }
+        try {
+            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
+                && class_exists('AiBoost\\Lib\\Logger');
+        } catch (\Throwable $e) {
+            $this->libReady = false;
+        }
+        return $this->libReady;
     }
 }

@@ -108,19 +108,16 @@ class SettingsController extends BaseController
             // old integrations without using it to strip manifest-backed saves.
             $isProForSave = $this->isProSetting($existingForMerge);
 
-            // License tier and debug-tier overrides are NEVER writable from the
-            // Settings save endpoint — they belong to the license activation /
-            // debug-controls endpoints. Carry-forward from the existing row so a
-            // Free admin cannot promote themselves to Pro by posting
-            // `license_tier=pro` (or flipping `dev_license_preview`) inside an
-            // ordinary settings save.
-            foreach (['license_tier', 'dev_license_preview', 'dev_force_free_tier'] as $tierKey) {
-                if (array_key_exists($tierKey, $existingForMerge)) {
-                    $settings[$tierKey] = $existingForMerge[$tierKey];
-                } else {
-                    unset($settings[$tierKey]);
-                }
-            }
+            // License/activation state, per-site identity and dev overrides are
+            // NEVER writable from the Settings save endpoint — they belong to
+            // the license activation / heartbeat / debug-controls endpoints.
+            // Carry every SYSTEM_PRESERVED_KEYS entry forward from the existing
+            // row (fail-closed both ways): a Free admin cannot promote
+            // themselves to Pro by posting `pro_activated=1` (or
+            // `license_tier=pro`) inside an ordinary settings save, and a save
+            // can never wipe a paying customer's perpetual activation or
+            // stored licence key.
+            $settings = SettingsSaveDefinition::mergeSystemPreservedKeys($settings, $existingForMerge);
 
             if (class_exists('AiBoost\\Lib\\ProFeatureRegistry')) {
                 $settings = \AiBoost\Lib\ProFeatureRegistry::stripLocked($settings, $isProForSave);
@@ -151,12 +148,13 @@ class SettingsController extends BaseController
             // reminder banner alongside the existing time-based one.
             //
             // Internal bookkeeping keys are excluded so they don't inflate
-            // the count when the controller carries them forward.
-            $changeBookkeepingKeys = [
-                'change_counter', 'last_changed_at',
-                'license_tier', 'dev_license_preview', 'dev_force_free_tier',
-                'dismissed_checks',
-            ];
+            // the count when the controller carries them forward — including
+            // every system-preserved key (license/activation state, install
+            // identity, dev overrides), which never changes through this save.
+            $changeBookkeepingKeys = array_merge(
+                ['change_counter', 'last_changed_at', 'dismissed_checks'],
+                SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS
+            );
             $changeCount = 0;
             $allKeys = array_unique(array_merge(array_keys($settings), array_keys($existingForMerge)));
             // Some stored keys hold arrays (e.g. license_state, dismissed_checks),
@@ -278,15 +276,36 @@ class SettingsController extends BaseController
                 }
             }
 
-            $export = [
-                'meta' => [
-                    'version'     => '1.0',
-                    'plugin'      => 'pkg_aiboost',
-                    'exported_at' => Factory::getDate()->toISO8601(),
-                    'joomla'      => JVERSION,
-                ],
-                'params' => $settings,
-            ];
+            // Include #__aiboost_translations rows so the backup actually
+            // restores per-language values (Pro flagship) — emitted in the
+            // exact row shape ImportController::upload() consumes on import:
+            // [{field_key, lang_code, field_value}, ...]. Best-effort: a
+            // missing table (pre-translations install) must not block export.
+            $translations = [];
+            try {
+                $tq = $db->getQuery(true)
+                    ->select([
+                        $db->quoteName('field_key'),
+                        $db->quoteName('lang_code'),
+                        $db->quoteName('field_value'),
+                    ])
+                    ->from($db->quoteName('#__aiboost_translations'))
+                    ->order($db->quoteName('field_key') . ' ASC, ' . $db->quoteName('lang_code') . ' ASC');
+                $translations = (array) $db->setQuery($tq)->loadAssocList();
+            } catch (\Throwable $e) {
+                \AiBoost\Lib\Logger::warning('[AiBoost] Settings export: translations read failed: ' . $e->getMessage());
+            }
+
+            // buildExportPayload() strips every SYSTEM_PRESERVED_KEYS entry
+            // (plaintext licence key, activation flags, install identity, dev
+            // overrides) from the downloadable file; $settings itself stays
+            // intact for the last_backup_at bookkeeping write below.
+            $export = self::buildExportPayload(
+                $settings,
+                $translations,
+                Factory::getDate()->toISO8601(),
+                JVERSION
+            );
 
             $json     = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $filename = 'aiboost-settings-export-' . date('Y-m-d') . '.json';
@@ -321,6 +340,47 @@ class SettingsController extends BaseController
             \AiBoost\Lib\Logger::warning('[AiBoost] Settings export error: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    /**
+     * Build the downloadable export payload from the raw settings blob and
+     * the translation rows.
+     *
+     * Static and side-effect free so the redaction contract is unit-testable:
+     * every SYSTEM_PRESERVED_KEYS entry (licence key, license/heartbeat
+     * state, perpetual-activation flags, install identity, dev overrides) is
+     * stripped from `params` — a backup file must never carry the customer's
+     * plaintext licence key, and the import side denylists those keys anyway
+     * (ImportController::IMPORT_DENYLIST), so exporting them had no
+     * round-trip value. Translations are passed through in the row shape
+     * ImportController::upload() consumes, so export → import restores them.
+     *
+     * @param array<string,mixed>            $settings      Decoded settings row.
+     * @param array<int,array<string,mixed>> $translations  #__aiboost_translations rows.
+     * @param string                         $exportedAt    ISO8601 export timestamp.
+     * @param string                         $joomlaVersion JVERSION of the exporting site.
+     * @return array<string,mixed>
+     */
+    public static function buildExportPayload(
+        array $settings,
+        array $translations,
+        string $exportedAt,
+        string $joomlaVersion
+    ): array {
+        foreach (SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS as $strippedKey) {
+            unset($settings[$strippedKey]);
+        }
+
+        return [
+            'meta' => [
+                'version'     => '1.0',
+                'plugin'      => 'pkg_aiboost',
+                'exported_at' => $exportedAt,
+                'joomla'      => $joomlaVersion,
+            ],
+            'params'       => $settings,
+            'translations' => $translations,
+        ];
     }
 
     public function debugsettings(): void
@@ -1629,7 +1689,20 @@ class SettingsController extends BaseController
             }
 
             $state = $this->resolveLicenseState($sku, $key);
-            PluginRegistry::saveLicenseState($sku, $state);
+
+            if ($this->isMockLicenseKey($key)) {
+                // Mock results must NEVER reach saveLicenseState(): it calls
+                // markPerpetualActivation(), which would permanently unlock
+                // Pro from a fake QA key — even after debug mode is turned
+                // off. Route them through the license simulator instead: the
+                // simulator is only honoured while JDEBUG is on, so mock Pro
+                // stays ephemeral like dev preview, not a real activation.
+                $sim       = PluginRegistry::loadSimulation();
+                $sim[$sku] = self::mockSimulationState($state);
+                PluginRegistry::saveSimulation($sim);
+            } else {
+                PluginRegistry::saveLicenseState($sku, $state);
+            }
 
             $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
             echo json_encode([
@@ -1697,7 +1770,7 @@ class SettingsController extends BaseController
      */
     private function resolveLicenseState(string $sku, string $key): array
     {
-        if (defined('JDEBUG') && JDEBUG === true && str_starts_with(strtoupper($key), 'AB-')) {
+        if ($this->isMockLicenseKey($key)) {
             return $this->mockValidateLicense($sku, $key);
         }
 
@@ -1706,6 +1779,38 @@ class SettingsController extends BaseController
         $instanceName = rtrim(\Joomla\CMS\Uri\Uri::root(), '/');
 
         return \AiBoost\Lib\LicenseValidator::verify($key, $instanceName, $instanceId);
+    }
+
+    /**
+     * True when the key must be handled by the offline mock validator —
+     * AB-prefixed QA keys, honoured only while Joomla debug mode is on.
+     * Shared by resolveLicenseState() and verifyLicense() so the routing
+     * decision (mock → simulator, real → saveLicenseState) can never drift
+     * from the validation decision.
+     */
+    private function isMockLicenseKey(string $key): bool
+    {
+        return defined('JDEBUG') && JDEBUG === true && str_starts_with(strtoupper($key), 'AB-');
+    }
+
+    /**
+     * Map a mock validator status onto the license simulator's vocabulary
+     * (PluginRegistry::SIM_STATES). Public static so the regression test can
+     * assert the mock flow only ever produces simulator states — i.e.
+     * markPerpetualActivation() is unreachable from a mock key.
+     *
+     * @param array<string,mixed> $state Mock state from mockValidateLicense().
+     */
+    public static function mockSimulationState(array $state): string
+    {
+        $map = [
+            'active'        => 'active',
+            'expired'       => 'expired',
+            'limit_reached' => 'expired',
+            'deactivated'   => 'disabled',
+            'invalid'       => 'not_licensed',
+        ];
+        return $map[(string) ($state['status'] ?? '')] ?? 'not_licensed';
     }
 
     /**

@@ -308,7 +308,7 @@ final class SettingsSaveDefinitionTest extends TestCase
         }
     }
 
-    public function testImportControllerBoundaryIsSeparateFromSettingsSaveDefinition(): void
+    public function testImportDenylistBuildsOnSharedSystemPreservedKeys(): void
     {
         $source = file_get_contents(
             dirname(__DIR__, 2) . '/com_aiboost/admin/src/Administrator/Controller/ImportController.php'
@@ -316,12 +316,11 @@ final class SettingsSaveDefinitionTest extends TestCase
 
         $this->assertIsString($source);
         $this->assertStringContainsString('private const IMPORT_DENYLIST', $source);
-        $this->assertStringContainsString("'license_state'", $source);
-        $this->assertStringContainsString("'dev_force_free_tier'", $source);
-        $this->assertStringNotContainsString(
-            'SettingsSaveDefinition',
+        $this->assertStringContainsString(
+            'SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS',
             $source,
-            'Import remains a separate persistence boundary and needs its own XHigh review before reuse.'
+            'IMPORT_DENYLIST must build on the shared preserved-keys constant so the save, '
+            . 'export and import boundaries can never drift (see ImportDenylistParityTest).'
         );
     }
 

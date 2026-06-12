@@ -16,8 +16,20 @@
  */
 
 const cache = new Map()
+const resolved = new Set()
 
 const GLOBAL_RE = /window\.aiBoost\w+\s*=/
+
+/**
+ * True once ensureLegacyGlobals() has fully materialised the globals for this
+ * URL (an in-flight fetch does not count). AppShell uses this to skip its
+ * loading state on cache hits, so a route change between already-loaded views
+ * never unmounts <router-view> — which would discard the routed component's
+ * local state (e.g. unsaved Settings edits).
+ */
+export function isLegacyGlobalsReady(legacyUrl) {
+  return !legacyUrl || resolved.has(legacyUrl)
+}
 
 function runScript(text) {
   // Wrap in IIFE to keep scope clean; assignment to window.* still leaks out.
@@ -46,6 +58,7 @@ export async function ensureLegacyGlobals(legacyUrl, opts = {}) {
           catch (e) { console.warn('[AiBoost SPA] Failed running injected script:', e) }
         }
       })
+      resolved.add(legacyUrl)
       return true
     })
     .catch(err => {

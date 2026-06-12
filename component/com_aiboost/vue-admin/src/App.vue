@@ -226,6 +226,19 @@ export default {
     }
   },
 
+  // SPA navigation guard — leaving the /settings route unmounts this
+  // component, and the next visit rebuilds `s` from window.aiBoostSettings,
+  // so unsaved edits would vanish silently. Sub-tab switches stay on this
+  // route (query-only change) and never trigger this guard. In legacy
+  // standalone mode there is no router, so the option is simply ignored.
+  beforeRouteLeave(to, from, next) {
+    if (this.dirty && !confirm('You have unsaved changes that will be lost. Leave Settings anyway?')) {
+      next(false)
+      return
+    }
+    next()
+  },
+
   data() {
     return {
       activeTab:   'technical',

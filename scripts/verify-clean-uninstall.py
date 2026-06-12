@@ -5,7 +5,7 @@ AI Boost for Joomla — Clean Uninstall + Upgrade Verifier (Task #491)
 Automates two QA passes against staging.offroadserbia.com over plain HTTP so
 nobody has to SSH into the DB after every package change.
 
-Pass 1 — Clean uninstall (data PRESERVED, licence wiped)
+Pass 1 — Clean uninstall (data AND licence PRESERVED, dev overrides wiped)
   1. Install latest pkg_aiboost-*.zip.
   2. Seed unique markers across the #__aiboost_* tables (settings.org_name, a
      Pro translation row, a redirect row) via the admin AJAX endpoints.
@@ -19,9 +19,11 @@ Pass 1 — Clean uninstall (data PRESERVED, licence wiped)
      (a) Re-install pkg_aiboost (admin endpoints need the component present)
          and call settings.getSettings + redirects.listJson. User data MUST
          survive: the org_name marker, the seeded redirect, and (Pro) the
-         translation row must all still be there. The six licence/dev keys
-         (license_key, license_email, pro_activated, install_id,
-         dev_license_preview, dev_force_free_tier) MUST have been wiped.
+         translation row must all still be there. The licence/activation keys
+         (pro_activated, license_state, license_key, install_id) MUST survive
+         too — perpetual activation survives uninstall by design. Only the
+         developer override keys (dev_license_preview, dev_force_free_tier,
+         license_simulation) MUST have been wiped.
 
 Pass 2 — Upgrade preservation
   1. Uninstall whatever is on staging, then install the SECOND-newest
@@ -120,6 +122,12 @@ if not any(a in ("-h", "--help") for a in sys.argv[1:]):
 # behind an active Pro license). On a Free install they are never persisted, so
 # the translation seed/preservation assertions below are skipped for --target free.
 IS_FREE = _pre_args.target == "free"
+
+# Set per-pass by ensure_pro(): True only when the install already carries a
+# Pro signal (pro_activated / dev_license_preview). Pro cannot be seeded over
+# HTTP by design, so when False the Pro-only translation WRITE assertions
+# downgrade to preservation-only checks.
+PRO_QA = False
 
 # Reuse login() + install_zip() + helpers from the sibling installer script.
 # The filename contains a hyphen so a normal `import` won't work.
@@ -380,7 +388,7 @@ def save_marker(session: requests.Session, marker: str, with_translation: bool) 
         # NOTE: posting license_tier here is a no-op — settings.save refuses to
         # set license/dev keys (anti-bypass) and gates translation writes on
         # PluginRegistry::isProActive(). The Pro precondition for translations
-        # is established separately by seed_pro() before this call. Kept only
+        # is detected separately by ensure_pro() before this call. Kept only
         # so an older Pro install that still honoured it isn't disturbed.
         "license_tier": "pro",
         csrf: "1",
@@ -404,64 +412,39 @@ def save_marker(session: requests.Session, marker: str, with_translation: bool) 
     return True
 
 
-def seed_pro(session: requests.Session) -> bool:
+def ensure_pro(session: requests.Session) -> bool:
     """
-    Flip the freshly installed test site to Pro over HTTP so the Pro-gated
-    per-language translation path can be exercised (Pass 2's preservation
-    assertion, and Pass 1's translation-cleanup probe, are both vacuous on a
-    Free/keyless install).
+    Report whether the freshly installed test site is Pro-capable, so the
+    Pro-gated per-language translation assertions can run (they are vacuous on
+    a Free/keyless install).
 
-    Why the import endpoint: a keyless install is Free, and settings.save
-    deliberately refuses to set license/dev keys (anti-bypass) — they are only
-    carried forward from an existing row. The admin Import endpoint, however,
-    merges any non-denylisted key from an uploaded export blob straight into
-    #__aiboost_settings, and the perpetual `pro_activated` flag (the single
-    signal PluginRegistry::isProActive() reads) is NOT on its denylist. So a
-    one-key import is the only HTTP seam that turns the install Pro for QA.
+    History: this used to SEED Pro over HTTP by importing `pro_activated`
+    through the admin Import endpoint — the one seam that accepted it. That
+    seam is now closed BY DESIGN (Faza 1A put pro_activated on the import
+    denylist, and ImportController refuses an upload whose payload is empty
+    after stripping), and settings.save carries license/dev keys forward from
+    the existing row only. There is deliberately NO remote way to flip a site
+    to Pro — that is the anti-bypass property working, not a verifier bug.
 
-    No silent fallback: the flag is read back via getSettings and we FAIL LOUD
-    if it didn't take, so a future tightening of the import denylist surfaces
-    here as an explicit, actionable error instead of a confusing downstream
-    translation-preservation failure.
+    So instead of seeding, we detect: Pro is available when the existing row
+    already carries pro_activated='1' (a real activation) or
+    dev_license_preview='1' (the documented manual QA override, set directly
+    in #__aiboost_settings). When neither is present the caller downgrades the
+    Pro-only translation assertions to preservation-only checks and says so.
     """
-    csrf = _fresh_token(session, "option=com_aiboost")
-    if not csrf:
-        print("   ❌ Cannot get CSRF for import.upload (Pro seed)")
-        return False
-
-    blob = json.dumps({
-        "meta": {"version": "1.0", "plugin": PKG_ELEMENT},
-        "params": {"pro_activated": "1"},
-    }).encode("utf-8")
-
-    r = session.post(
-        ADMIN_PHP + "?option=com_aiboost&task=import.upload&format=json",
-        data={
-            "option": "com_aiboost",
-            "task": "import.upload",
-            "format": "json",
-            csrf: "1",
-        },
-        files={"ab_import_file": ("aiboost-pro-seed.json", blob, "application/json")},
-        timeout=60,
-    )
-    try:
-        payload = _loads_lenient(r.text)
-    except json.JSONDecodeError:
-        print(f"   ❌ import.upload non-JSON (HTTP {r.status_code}): {r.text[:200]}")
-        return False
-    if not isinstance(payload, dict) or not payload.get("success"):
-        print(f"   ❌ import.upload failed: {payload}")
-        return False
-
     post = get_settings(session)
-    if not post or _settings_map(post).get("pro_activated") != "1":
-        print("   ❌ Pro seed did not take: pro_activated is not '1' after import "
-              "(import denylist may now block it — seed Pro manually, e.g. set "
-              "dev_license_preview='1' in #__aiboost_settings).")
-        return False
-    print("   ✅ Pro seeded (pro_activated='1') via import endpoint")
-    return True
+    smap = _settings_map(post) if post else {}
+    if smap.get("pro_activated") == "1" or smap.get("dev_license_preview") == "1":
+        print("   ✅ Pro precondition present "
+              f"(pro_activated='{smap.get('pro_activated')}', "
+              f"dev_license_preview='{smap.get('dev_license_preview')}')")
+        return True
+    print("   ⚠️  Pro not active on this install and CANNOT be seeded over HTTP "
+          "(import denylist + settings.save carry-forward block it by design). "
+          "Pro-only translation write assertions are downgraded to "
+          "preservation-only. For full Pro-path coverage set "
+          "dev_license_preview='1' directly in #__aiboost_settings and re-run.")
+    return False
 
 
 _T = TypeVar("_T")
@@ -640,6 +623,37 @@ def uninstall_extension(
     return 'alert-danger' not in body or 'success' in body
 
 
+def _removal_sort_key(row: tuple[int, str, str]) -> tuple[int, str, int]:
+    """Sort key that guarantees the BASE package is removed LAST.
+
+    The base/free package ships the shared AiBoost\\Lib library; the Pro
+    package's plugins (and the orphanable aiboost_int_falang bridge) load that
+    namespace on every request. Removing base first while its dependents are
+    still installed strips the shared lib out from under them mid-run and the
+    whole site 500s ("Attempted to load class Logger from namespace
+    AiBoost\\Lib") — which is exactly how this verifier once killed staging.
+
+    Rank (ascending = removed earlier):
+      0  plugins, modules, languages, files, … (lib consumers, safe to drop)
+      1  components (com_aiboost carries the lib — keep until its consumers
+         are gone, but it must go before the base package row that owns it)
+      2  non-base packages (pkg_aiboost_pro and any other add-on package —
+         identified by 'pro' / 'add-on' in the label)
+      3  the base package (everything else of type 'package') — ALWAYS LAST
+
+    The label and id are tie-breakers so the order is fully deterministic.
+    """
+    ext_id, label, etype = row
+    lab = label.lower()
+    if etype == 'package':
+        rank = 2 if ('pro' in lab or 'add-on' in lab or 'addon' in lab) else 3
+    elif etype == 'component':
+        rank = 1
+    else:
+        rank = 0
+    return (rank, lab, ext_id)
+
+
 def _remove_aiboost_packages(session: requests.Session) -> int:
     """Blocking removal of the AI Boost *package* row(s) only — Joomla cascades
     the members (component, plugins, modules) server-side, so we never POST
@@ -657,25 +671,23 @@ def _remove_aiboost_packages(session: requests.Session) -> int:
     # show "AI Boost for Joomla", so a name filter would also match the component
     # and POST manage.remove against a package member directly (fragile, and what
     # surfaced the postflight re-injection bug in Task #566).
-    pkgs = [(eid, label) for eid, label, etype in rows if etype == 'package']
+    pkgs = [row for row in rows if row[2] == 'package']
     if pkgs:
-        # Remove the Pro package BEFORE the base/free package. The free package
-        # ships the shared AiBoost\Lib library; the Pro package's plugins load
-        # that namespace on every request. Removing free first while Pro is still
-        # installed strips the shared lib out from under the Pro plugins and the
-        # whole site 500s (e.g. "Attempted to load class Logger from namespace
-        # AiBoost\Lib"). Ordering dependents (Pro) first avoids that broken
-        # intermediate state. Pro rows are the ones whose label mentions "pro".
-        pkgs.sort(key=lambda t: 'pro' not in t[1].lower())
-        targets = pkgs
+        # Dependents first, BASE PACKAGE LAST (see _removal_sort_key): removing
+        # the base/free package while pkg_aiboost_pro is still installed strips
+        # the shared AiBoost\Lib out from under the enabled Pro plugins and
+        # 500s every page mid-uninstall — the run dies and so does the site.
+        targets = sorted(pkgs, key=_removal_sort_key)
     else:
         # Graceful fallback: no package row present (e.g. an already partly
         # uninstalled install left orphan members) — remove whatever AI Boost
-        # rows remain so the test still cleans up.
+        # rows remain so the test still cleans up. Same ordering rule: lib
+        # consumers (plugins/modules) first, the lib-carrying component last,
+        # so a mid-run page load never hits a missing AiBoost\Lib class.
         print("   (no package row found — falling back to removing remaining rows)")
-        targets = [(eid, label) for eid, label, _etype in rows]
+        targets = sorted(rows, key=_removal_sort_key)
     removed = 0
-    for ext_id, label in targets:
+    for ext_id, label, _etype in targets:
         print(f"   ⟳ remove {label} (id={ext_id})")
         if uninstall_extension(session, ext_id, label, bounded=False):
             removed += 1
@@ -793,12 +805,12 @@ def pass_clean_uninstall(session: requests.Session, latest_zip: str) -> bool:
         print("   ❌ Install failed — aborting pass.")
         return False
 
+    global PRO_QA
     marker = MARKER_PREFIX + str(int(time.time()))
     print(f"\n[3/6] Seeding markers across all #__aiboost_* tables…")
-    # Translations are Pro-only; seed Pro first so the translation row is
-    # actually written and its later cleanup is a real assertion (Pro only).
-    if not IS_FREE and not seed_pro(session):
-        return False
+    # Translations are Pro-only; detect whether Pro is available so the
+    # translation assertions know whether a fresh write is even possible.
+    PRO_QA = False if IS_FREE else ensure_pro(session)
     # robots.txt normalisation must run BEFORE the org_name marker save.
     # ensure_robots_marker() triggers a settings.save with only enable_robots=1,
     # and settings.save is a FULL-REPLACE endpoint — it persists the posted
@@ -819,11 +831,17 @@ def pass_clean_uninstall(session: requests.Session, latest_zip: str) -> bool:
         print(f"   ❌ Marker did not round-trip through settings.getSettings: {pre}")
         return False
     pre_xlat = _xlat_map(pre).get("org_name", {})
-    # install_id is the proof-of-wipe anchor: the uninstall removes it and the
-    # reinstall mints a brand-new UUID, so a CHANGED value proves the licence
-    # reset ran. (pro_activated cannot serve here — on a genuinely-licensed
-    # install the postflight reconcile legitimately re-derives it after reinstall.)
-    pre_install_id = str(_settings_map(pre).get("install_id", "")).strip()
+    # Licence-preservation anchors: perpetual activation survives uninstall by
+    # design, so install_id, pro_activated and license_state captured here must
+    # come back UNCHANGED after uninstall → reinstall. A changed install_id (the
+    # reinstall would mint a fresh UUID only when the key was wiped) or a lost
+    # pro_activated proves the uninstall wrongly reset the licence binding —
+    # exactly the regression that permanently relocks expired-but-perpetually-
+    # activated customers.
+    pre_smap = _settings_map(pre)
+    pre_install_id = str(pre_smap.get("install_id", "")).strip()
+    pre_pro_activated = str(pre_smap.get("pro_activated", "")).strip()
+    pre_license_state = pre_smap.get("license_state") or None
     pre_redir = redirects_list(session)
     if not pre_redir:
         print("   ❌ redirects.listJson did not return success before uninstall")
@@ -872,34 +890,35 @@ def pass_clean_uninstall(session: requests.Session, latest_zip: str) -> bool:
         ok, reason = public_file_clean(fname, markers)
         results.append((f"(c) {fname} clean", ok, reason))
 
-    # (a) DATA PRESERVED + LICENCE WIPED — re-install and probe.
+    # (a) DATA PRESERVED + LICENCE PRESERVED + DEV OVERRIDES WIPED — re-install
+    # and probe.
     #
-    # New contract: pkg_script::uninstall() must NOT drop any #__aiboost_* table.
-    # It only JSON_REMOVEs the six licence/dev keys from the `main` settings row.
-    # So after uninstall every table — and every seeded row — survives, and only
-    # the licence state is reset. We cannot read the DB directly over HTTP, so we
-    # re-install (the admin AJAX endpoints need the component present) and assert
-    # via the API that:
+    # Contract: pkg_script::uninstall() must NOT drop any #__aiboost_* table.
+    # It removes ONLY the three developer override keys (dev_license_preview,
+    # dev_force_free_tier, license_simulation) from the `main` settings row —
+    # perpetual activation survives uninstall by design, so pro_activated,
+    # license_state, license_key and install_id all stay. We cannot read the DB
+    # directly over HTTP, so we re-install (the admin AJAX endpoints need the
+    # component present) and assert via the API that:
     #   • settings.org_name marker we wrote pre-uninstall is STILL there,
     #   • the seeded redirect row is STILL there,
     #   • (Pro) the translation row is STILL there,
-    #   • the licence binding was reset — proven by a CHANGED install_id.
+    #   • the licence binding was PRESERVED — install_id UNCHANGED,
+    #     pro_activated still '1' (Pro target), license_state untouched,
+    #   • the developer override keys are GONE (nothing ever re-creates those).
     # Re-install is non-destructive: install.sql uses CREATE TABLE IF NOT EXISTS
     # and the install path does not overwrite an existing `main` row.
     #
-    # Why install_id (not pro_activated): the uninstall removes install_id and the
-    # reinstall mints a fresh UUID, so install_id ALWAYS differs after a real wipe.
-    # pro_activated/dev flags cannot prove the wipe here: on a genuinely-licensed
-    # install the postflight licence reconcile legitimately re-derives pro_activated
-    # (and license_state/_tier, pro_activated_at/_version, pro_skus) from the server
-    # after reinstall — so their presence is correct, not a leak. We still assert
-    # the two DB-only QA overrides (dev_license_preview, dev_force_free_tier) stay
-    # gone, since nothing ever re-creates those.
-    DEV_FLAG_KEYS = ("dev_license_preview", "dev_force_free_tier")
+    # Why install_id is decisive: the uninstall preserves it and the reinstall
+    # only mints a fresh UUID when the key is MISSING — so a changed install_id
+    # proves the uninstall wrongly wiped the licence binding (the regression that
+    # permanently relocks expired-but-perpetually-activated customers).
+    DEV_OVERRIDE_KEYS = ("dev_license_preview", "dev_force_free_tier",
+                         "license_simulation")
     print("\n[6/6] Re-installing to probe #__aiboost_* tables "
-          "(data must SURVIVE, licence wiped)…")
+          "(data AND licence must SURVIVE, dev overrides wiped)…")
     if not install_zip(session, latest_zip):
-        results.append(("(a) user data preserved + licence wiped", False,
+        results.append(("(a) data + licence preserved, dev overrides wiped", False,
                         "re-install failed, cannot probe"))
     else:
         post = get_settings(session)
@@ -918,33 +937,39 @@ def pass_clean_uninstall(session: requests.Session, latest_zip: str) -> bool:
                 f"(expected '{marker}', got "
                 f"'{_settings_map(post).get('org_name')}') — data NOT preserved")
 
-        # Licence binding must have been RESET. The decisive, regeneration-proof
-        # signal is install_id: the uninstall removes it and the reinstall mints a
-        # fresh UUID, so a value identical to the pre-uninstall one means the wipe
-        # never touched the row. (See the [6/6] header note on why pro_activated
-        # cannot serve here.) The two DB-only QA flags must also stay gone.
+        # Licence binding must have been PRESERVED. The decisive signal is
+        # install_id: the uninstall keeps it and the reinstall only mints a
+        # fresh UUID when the key is missing, so a value differing from the
+        # pre-uninstall one means the uninstall wrongly wiped the licence
+        # binding. pro_activated and license_state must likewise survive
+        # untouched (perpetual activation — see the [6/6] header note). The
+        # three DB-only dev overrides are the ONLY keys that must be gone.
         if post is not None:
             smap = _settings_map(post)
             post_install_id = str(smap.get("install_id", "")).strip()
-            if pre_install_id and post_install_id and post_install_id == pre_install_id:
+            if pre_install_id and post_install_id and post_install_id != pre_install_id:
                 problems.append(
-                    "licence binding NOT wiped: install_id unchanged "
-                    f"({post_install_id}) — uninstall did not reset it")
-            dev_flags = [k for k in DEV_FLAG_KEYS if str(smap.get(k, "")) == "1"]
-            if dev_flags:
-                problems.append("dev licence flags NOT wiped on uninstall: "
-                                + ", ".join(sorted(dev_flags)))
-            # The user-entered licence credentials are never re-derived by the
-            # postflight reconcile (unlike pro_activated / license_state / _tier),
-            # so after a wipe + reinstall they MUST be absent. Asserting this
-            # directly enforces two more of the six DoD licence keys (install_id
-            # and the two dev flags cover the rest; pro_activated legitimately
-            # returns via reconcile — see the [6/6] header note).
-            leaked_creds = [k for k in ("license_key", "license_email")
-                            if str(smap.get(k, "")).strip()]
-            if leaked_creds:
-                problems.append("licence credentials NOT wiped on uninstall: "
-                                + ", ".join(sorted(leaked_creds)))
+                    "licence binding NOT preserved: install_id changed "
+                    f"('{pre_install_id}' → '{post_install_id}') — uninstall "
+                    "wiped it")
+            if pre_pro_activated == "1" and str(smap.get("pro_activated", "")).strip() != "1":
+                problems.append(
+                    "perpetual activation LOST: pro_activated was '1' before "
+                    "uninstall but is "
+                    f"'{str(smap.get('pro_activated', '')).strip()}' after "
+                    "reinstall — uninstall wiped it")
+            # license_state is only asserted when it was visible pre-uninstall
+            # (the QA seed sets pro_activated alone, so this is usually vacuous
+            # here — the real-customer path it protects is exercised by the
+            # PHPUnit guard on UNINSTALL_WIPED_KEYS).
+            if pre_license_state is not None and not smap.get("license_state"):
+                problems.append("license_state NOT preserved: present before "
+                                "uninstall, gone after reinstall")
+            leaked_dev = [k for k in DEV_OVERRIDE_KEYS
+                          if smap.get(k) not in (None, "", "0", {}, [])]
+            if leaked_dev:
+                problems.append("dev override keys NOT wiped on uninstall: "
+                                + ", ".join(sorted(leaked_dev)))
 
         # #__aiboost_redirects + #__aiboost_404_log — seeded redirect must SURVIVE.
         if post_redir is None:
@@ -965,7 +990,11 @@ def pass_clean_uninstall(session: requests.Session, latest_zip: str) -> bool:
         # earlier run. Survival of the row is the #584 contract (the table/row is
         # not dropped on uninstall); the translation-update behaviour is a
         # separate concern out of scope here.
-        if not IS_FREE and (post is None or not _xlat_map(post).get("org_name")):
+        # Only assert the row's survival when Pro was active to write it in
+        # the first place; without Pro the write was server-side stripped and
+        # absence proves nothing.
+        if not IS_FREE and PRO_QA \
+                and (post is None or not _xlat_map(post).get("org_name")):
             problems.append("#__aiboost_translations: org_name row LOST "
                             "(data NOT preserved)")
 
@@ -975,11 +1004,12 @@ def pass_clean_uninstall(session: requests.Session, latest_zip: str) -> bool:
                             "(#__aiboost_url_scans missing)")
 
         if problems:
-            results.append(("(a) user data preserved + licence wiped", False,
+            results.append(("(a) data + licence preserved, dev overrides wiped", False,
                             "; ".join(problems)))
         else:
-            results.append(("(a) user data preserved + licence wiped", True,
-                            "all tables + seeded rows survived; licence keys wiped"))
+            results.append(("(a) data + licence preserved, dev overrides wiped", True,
+                            "all tables + seeded rows + licence survived; "
+                            "dev override keys wiped"))
 
     print("\n──── Pass 1 results ────")
     all_ok = True
@@ -1015,14 +1045,14 @@ def pass_upgrade(session: requests.Session, old_zip: str, new_zip: str) -> bool:
         print("   ❌ Old install failed — aborting pass.")
         return False
 
+    global PRO_QA
     marker = MARKER_PREFIX + "UPG_" + str(int(time.time()))
     expected_xlat_value = marker + "_xlat"  # mirrors save_marker(with_translation=True)
     print(f"\n[3/5] Writing marker '{marker}'…")
-    # Translations only persist on a Pro install, so establish the Pro
-    # precondition before writing the translation we expect the upgrade to
-    # preserve (Pro target only — the Free site must stay Free).
-    if not IS_FREE and not seed_pro(session):
-        return False
+    # Translations only persist on a Pro install; detect whether Pro is
+    # available (it cannot be seeded remotely — see ensure_pro) so the
+    # preservation assertions can downgrade honestly when it is not.
+    PRO_QA = False if IS_FREE else ensure_pro(session)
     if not save_marker(session, marker, with_translation=True):
         return False
     pre = get_settings(session)
@@ -1032,14 +1062,18 @@ def pass_upgrade(session: requests.Session, old_zip: str, new_zip: str) -> bool:
     pre_xlat_map = _xlat_map(pre)
     pre_xlat_count = sum(len(v) for v in pre_xlat_map.values())
     pre_org_xlat = (pre_xlat_map.get("org_name") or {}).get("en-GB")
-    if not IS_FREE and pre_org_xlat != expected_xlat_value:
+    if not IS_FREE and PRO_QA and pre_org_xlat != expected_xlat_value:
         print(f"   ❌ Pre-upgrade translation marker missing: got '{pre_org_xlat}' "
-              f"(expected '{expected_xlat_value}'). The Pro seed or translation "
-              f"write did not persist — cannot test upgrade preservation.")
+              f"(expected '{expected_xlat_value}'). Pro is active but the "
+              f"translation write did not persist — cannot test upgrade preservation.")
         return False
     if IS_FREE:
         print(f"   ✅ Pre-upgrade: org_name='{_settings_map(pre).get('org_name')}' "
               f"(translations are Pro-only — skipped on Free)")
+    elif not PRO_QA:
+        print(f"   ✅ Pre-upgrade: org_name='{_settings_map(pre).get('org_name')}', "
+              f"existing translation rows={pre_xlat_count} "
+              f"(Pro write-path unavailable — preservation-only)")
     else:
         print(f"   ✅ Pre-upgrade: org_name='{_settings_map(pre).get('org_name')}', "
               f"translation rows={pre_xlat_count}, org_name[en-GB]='{pre_org_xlat}'")
@@ -1069,6 +1103,16 @@ def pass_upgrade(session: requests.Session, old_zip: str, new_zip: str) -> bool:
         results.append(
             ("translations stay empty on Free (Pro-only feature)",
              pre_xlat_count == 0 and post_xlat_count == 0,
+             f"before={pre_xlat_count} after={post_xlat_count}")
+        )
+    elif not PRO_QA:
+        # Pro target without an active Pro signal: a fresh translation write
+        # was impossible, so assert only that whatever rows existed before the
+        # upgrade survived it (rows may legitimately be left from earlier runs).
+        results.append(
+            ("translations row count preserved (Pro write-path skipped — "
+             "Pro not active)",
+             post_xlat_count == pre_xlat_count,
              f"before={pre_xlat_count} after={post_xlat_count}")
         )
     else:

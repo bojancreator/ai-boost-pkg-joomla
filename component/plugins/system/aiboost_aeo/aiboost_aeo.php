@@ -9,7 +9,16 @@
 
 defined('_JEXEC') or die;
 
-require_once JPATH_ADMINISTRATOR . '/components/com_aiboost/lib/autoload.php';
+// Bail out gracefully when com_aiboost is absent (uninstalled separately,
+// failed update, partial deploy) — a fatal here would take down both the
+// site and the administrator. Without the lib the plugin simply no-ops.
+$loader = JPATH_ADMINISTRATOR . '/components/com_aiboost/lib/autoload.php';
+
+if (!file_exists($loader)) {
+    return;
+}
+
+require_once $loader;
 require_once __DIR__ . '/src/Extension/AiBoostAeo.php';
 
 // ucfirst('aiboost_aeo') = 'Aiboost_aeo' → PlgSystemAiboost_aeo

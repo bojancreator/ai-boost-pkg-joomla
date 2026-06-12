@@ -23,6 +23,8 @@ declare(strict_types=1);
 
 namespace AiBoost\Lib;
 
+use AiBoost\Lib\Cms\AdapterRegistry;
+
 defined('_JEXEC') or die;
 
 if (!class_exists('AiBoost\\Lib\\LicenseValidator', false)) :
@@ -32,6 +34,22 @@ final class LicenseValidator
     private const API_URL      = 'https://api.lemonsqueezy.com/v1/licenses/validate';
     private const API_ACTIVATE = 'https://api.lemonsqueezy.com/v1/licenses/activate';
     private const TIMEOUT      = 8;
+
+    /**
+     * Lemon Squeezy store ID that genuine AI Boost licenses belong to.
+     *
+     * SECURITY — store pinning. The Lemon Squeezy license endpoints accept
+     * keys issued by ANY store, so without this check a self-issued key from
+     * a free LS account would activate Pro forever. verify() rejects every
+     * response whose meta.store_id does not strictly equal this value, and
+     * FAILS CLOSED (loud "not configured" error, no API call) while null.
+     *
+     * RELEASE BLOCKER: replace null with the production aiboostnow.com store
+     * ID (int, from the Lemon Squeezy dashboard) before launch. Do not guess.
+     *
+     * @var int|null
+     */
+    public const EXPECTED_STORE_ID = null;
 
     /**
      * Per-request cache: licenseKey => 'pro'|'free'
@@ -46,12 +64,53 @@ final class LicenseValidator
     private static string $siteBaseUrl = '';
 
     /**
+     * Test-only override for EXPECTED_STORE_ID so both pinning branches can
+     * be exercised before the production store exists. Only honoured while
+     * $expectedStoreIdOverridden is true (a null override simulates the
+     * unconfigured state regardless of the constant).
+     */
+    private static ?int $expectedStoreIdOverride = null;
+
+    /** True while setExpectedStoreId() has installed an override. */
+    private static bool $expectedStoreIdOverridden = false;
+
+    /**
+     * Optional transport override so unit tests never hit the network.
+     * Signature: fn (string $url, array<string,string> $params): ?string —
+     * returns the raw response body, null for a network failure, or throws
+     * \RuntimeException to simulate a host with no usable HTTP transport.
+     *
+     * @var callable|null
+     */
+    private static $transport = null;
+
+    /**
      * Register the site's base URL for stable instance-ID generation.
      * Call once during plugin bootstrap (e.g. in services/provider.php).
      */
     public static function setBaseUrl(string $url): void
     {
         self::$siteBaseUrl = rtrim($url, '/');
+    }
+
+    /**
+     * Override the pinned store ID (including null to simulate the
+     * unconfigured state). Intended for use in tests — production code
+     * must rely on the EXPECTED_STORE_ID constant only.
+     */
+    public static function setExpectedStoreId(?int $storeId): void
+    {
+        self::$expectedStoreIdOverride   = $storeId;
+        self::$expectedStoreIdOverridden = true;
+    }
+
+    /**
+     * Inject a transport callable (see self::$transport for the contract).
+     * Intended for use in tests; pass null to restore the real HTTP client.
+     */
+    public static function setTransport(?callable $transport): void
+    {
+        self::$transport = $transport;
     }
 
     /**
@@ -81,38 +140,21 @@ final class LicenseValidator
 
     /**
      * Make the API call to Lemon Squeezy and parse the response.
+     * Fail-closed: any transport, network or parse failure resolves to 'free'.
      */
     private static function callApi(string $licenseKey, string $instanceId): string
     {
-        $payload = http_build_query([
-            'license_key' => $licenseKey,
-            'instance_id' => $instanceId ?: self::getSiteInstanceId(),
-        ]);
-
-        $context = stream_context_create([
-            'http' => [
-                'method'  => 'POST',
-                'header'  => "Content-Type: application/x-www-form-urlencoded\r\n" .
-                             "Accept: application/json\r\n",
-                'content' => $payload,
-                'timeout' => self::TIMEOUT,
-                'ignore_errors' => true,
-            ],
-        ]);
-
         try {
-            $response = @file_get_contents(self::API_URL, false, $context);
-        } catch (\Throwable $e) {
-            error_log('[AI Boost LicenseValidator] API request failed: ' . $e->getMessage());
+            $data = self::request(self::API_URL, [
+                'license_key' => $licenseKey,
+                'instance_id' => $instanceId ?: self::getSiteInstanceId(),
+            ]);
+        } catch (\RuntimeException $e) {
+            error_log('[AI Boost LicenseValidator] ' . $e->getMessage());
             return 'free';
         }
 
-        if ($response === false || $response === '') {
-            return 'free';
-        }
-
-        $data = json_decode($response, true);
-        if (!is_array($data)) {
+        if ($data === null) {
             return 'free';
         }
 
@@ -137,9 +179,13 @@ final class LicenseValidator
      * Flow: if a prior instance_id is known, /validate it; otherwise (or if that
      * instance is gone) /activate a new instance for this site. The result is
      * FAIL-CLOSED — `status` is only ever 'active' when Lemon Squeezy itself
-     * returns valid===true AND license_key.status==='active'. Any network error,
-     * empty response or malformed payload yields a non-active status, so Pro is
-     * never unlocked without a confirmed live license.
+     * returns valid===true AND license_key.status==='active' AND the response's
+     * meta.store_id strictly matches EXPECTED_STORE_ID (store pinning). Any
+     * network error, missing HTTP transport, empty response, malformed payload,
+     * foreign store or unconfigured pin yields a non-active status, so Pro is
+     * never unlocked without a confirmed live license from our own store.
+     * meta.product_id is captured into the state for future tier mapping but
+     * is never a rejection criterion.
      *
      * @param  string $licenseKey   Raw key from the Licenses tab.
      * @param  string $instanceName Human label for the activation (site root URL).
@@ -165,26 +211,44 @@ final class LicenseValidator
             return $state;
         }
 
+        // SECURITY — fail closed (and loudly) until store pinning is configured.
+        // Without a pinned store ID any valid Lemon Squeezy key would unlock Pro.
+        if (self::expectedStoreId() === null) {
+            $state['message'] = 'License validation is not configured (store pinning missing). '
+                . 'Set LicenseValidator::EXPECTED_STORE_ID to the production Lemon Squeezy store ID.';
+            return $state;
+        }
+
         // Prefer validating an already-activated instance (does not consume an
         // activation); fall back to activating a fresh instance for this site.
         $resp = null;
-        if ($instanceId !== '') {
-            $resp = self::request(self::API_URL, [
-                'license_key' => $licenseKey,
-                'instance_id' => $instanceId,
-            ]);
-        }
-        if ($resp === null || empty($resp['valid'])) {
-            $act = self::request(self::API_ACTIVATE, [
-                'license_key'   => $licenseKey,
-                'instance_name' => $instanceName !== '' ? $instanceName : 'aiboost-site',
-            ]);
-            if ($act !== null) {
-                $resp = $act;
-                if (isset($act['instance']['id'])) {
-                    $state['instance_id'] = (string) $act['instance']['id'];
+        try {
+            if ($instanceId !== '') {
+                $resp = self::request(self::API_URL, [
+                    'license_key' => $licenseKey,
+                    'instance_id' => $instanceId,
+                ]);
+            }
+            if ($resp === null || empty($resp['valid'])) {
+                $act = self::request(self::API_ACTIVATE, [
+                    'license_key'   => $licenseKey,
+                    'instance_name' => $instanceName !== '' ? $instanceName : 'aiboost-site',
+                ]);
+                if ($act !== null) {
+                    $resp = $act;
+                    if (isset($act['instance']['id'])) {
+                        $state['instance_id'] = (string) $act['instance']['id'];
+                    }
                 }
             }
+        } catch (\RuntimeException $e) {
+            // Distinct from a plain connectivity failure so support can tell
+            // host configuration problems from a bad key or a network blip.
+            error_log('[AI Boost LicenseValidator] ' . $e->getMessage());
+            $state['message'] = 'License check failed: this server cannot make outbound HTTP requests '
+                . '(no usable HTTP transport — cURL missing and allow_url_fopen disabled). '
+                . 'Ask your hosting provider to enable the cURL PHP extension, then try again.';
+            return $state;
         }
 
         if ($resp === null) {
@@ -195,6 +259,26 @@ final class LicenseValidator
         $lk       = is_array($resp['license_key'] ?? null) ? $resp['license_key'] : [];
         $lsStatus = strtolower((string) ($lk['status'] ?? ''));
         $valid    = !empty($resp['valid']);
+
+        $meta    = is_array($resp['meta'] ?? null) ? $resp['meta'] : [];
+        $storeId = is_numeric($meta['store_id'] ?? null) ? (int) $meta['store_id'] : null;
+        if (is_numeric($meta['product_id'] ?? null)) {
+            // Informational only (future tier mapping) — never a rejection criterion.
+            $state['product_id'] = (int) $meta['product_id'];
+        }
+
+        // SECURITY — store pinning (fail closed). Reject any response naming a
+        // foreign store, and any would-be activation that does not prove its
+        // provenance at all. Non-active outcomes without a store ID fall
+        // through to the normal error mapping below.
+        if (
+            ($storeId !== null && $storeId !== self::expectedStoreId())
+            || ($storeId === null && $valid && $lsStatus === 'active')
+        ) {
+            $state['message'] = 'This license key belongs to a different product or store. '
+                . 'Use the AI Boost for Joomla key from your purchase email.';
+            return $state;
+        }
 
         if (!empty($lk['expires_at'])) {
             $state['expires_at'] = (string) $lk['expires_at'];
@@ -225,37 +309,82 @@ final class LicenseValidator
 
     /**
      * POST form params to a Lemon Squeezy license endpoint and return the
-     * decoded JSON array, or null on any transport/parse failure.
+     * decoded JSON array, or null on any network/parse failure.
      *
      * @param  array<string,string> $params
      * @return array<string,mixed>|null
+     * @throws \RuntimeException When no HTTP transport is available on this host.
      */
     private static function request(string $url, array $params): ?array
     {
-        $context = stream_context_create([
-            'http' => [
-                'method'        => 'POST',
-                'header'        => "Content-Type: application/x-www-form-urlencoded\r\n" .
-                                   "Accept: application/json\r\n",
-                'content'       => http_build_query($params),
-                'timeout'       => self::TIMEOUT,
-                'ignore_errors' => true,
-            ],
-        ]);
+        $body = self::$transport !== null
+            ? (self::$transport)($url, $params)
+            : self::httpPost($url, $params);
+
+        if (!is_string($body) || $body === '') {
+            return null;
+        }
+
+        $data = json_decode($body, true);
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Real transport: POST via the CMS HTTP client (Joomla HttpFactory under
+     * the hood) so activation also works on hardened hosts where
+     * allow_url_fopen is disabled. Returns the raw response body for ANY
+     * status code — Lemon Squeezy sends JSON error details on 4xx — or null
+     * when the request itself failed.
+     *
+     * @param  array<string,string> $params
+     * @throws \RuntimeException When no HTTP transport is available (lets the
+     *                           caller distinguish host config from a bad key).
+     */
+    private static function httpPost(string $url, array $params): ?string
+    {
+        try {
+            if (class_exists('AiBoost\\Lib\\Cms\\AdapterRegistry')) {
+                $http = AdapterRegistry::http()->getClient();
+            } elseif (class_exists('Joomla\\CMS\\Http\\HttpFactory')) {
+                // Standalone plugin bundle without the Cms adapter layer.
+                $http = \Joomla\CMS\Http\HttpFactory::getHttp();
+            } else {
+                throw new \RuntimeException('no HTTP client class found');
+            }
+        } catch (\Throwable $e) {
+            // HttpFactory throws when neither the cURL nor the stream
+            // transport is usable on this host.
+            throw new \RuntimeException('HTTP transport unavailable: ' . $e->getMessage(), 0, $e);
+        }
 
         try {
-            $response = @file_get_contents($url, false, $context);
+            $response = $http->post(
+                $url,
+                http_build_query($params),
+                [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Accept'       => 'application/json',
+                ],
+                self::TIMEOUT
+            );
         } catch (\Throwable $e) {
             error_log('[AI Boost LicenseValidator] API request failed: ' . $e->getMessage());
             return null;
         }
 
-        if ($response === false || $response === '') {
-            return null;
-        }
+        $body = $response !== null ? (string) $response->body : '';
+        return $body !== '' ? $body : null;
+    }
 
-        $data = json_decode($response, true);
-        return is_array($data) ? $data : null;
+    /**
+     * Resolve the pinned store ID — the test override when installed,
+     * otherwise the EXPECTED_STORE_ID release constant.
+     */
+    private static function expectedStoreId(): ?int
+    {
+        return self::$expectedStoreIdOverridden
+            ? self::$expectedStoreIdOverride
+            : self::EXPECTED_STORE_ID;
     }
 
     /**
@@ -271,13 +400,16 @@ final class LicenseValidator
     }
 
     /**
-     * Clear the in-memory cache and reset the stored base URL.
-     * Intended for use in tests.
+     * Clear the in-memory cache and reset the stored base URL, transport
+     * override and store-ID override. Intended for use in tests.
      */
     public static function resetCache(): void
     {
-        self::$cache       = [];
-        self::$siteBaseUrl = '';
+        self::$cache                     = [];
+        self::$siteBaseUrl               = '';
+        self::$transport                 = null;
+        self::$expectedStoreIdOverride   = null;
+        self::$expectedStoreIdOverridden = false;
     }
 }
 

@@ -109,19 +109,28 @@ abstract class AbstractIntegrationPlugin extends CMSPlugin
             }
         }
 
-        if (!class_exists(BridgeDetector::class)) {
-            return;
-        }
+        // Partial-lib guard: a missing lib class file (interrupted or partial
+        // base-package uninstall) must never fatal plugin boot. class_exists()
+        // normally returns false for an unloadable class, but under JDEBUG
+        // Joomla's debug class loader THROWS instead — and the descriptor may
+        // reference further lib classes (e.g. ConflictManager constants).
+        try {
+            if (!class_exists(BridgeDetector::class)) {
+                return;
+            }
 
-        $d = $this->descriptor();
-        $this->detected = match ($d->hostType) {
-            'component' => BridgeDetector::isExtensionEnabled($d->hostElement, 'component', ''),
-            'template'  => BridgeDetector::isExtensionEnabled($d->hostElement, 'template',  ''),
-            default     => BridgeDetector::isExtensionEnabled(
-                $d->hostElement,
-                'plugin',
-                $d->hostFolder !== '' ? $d->hostFolder : 'system'
-            ),
-        };
+            $d = $this->descriptor();
+            $this->detected = match ($d->hostType) {
+                'component' => BridgeDetector::isExtensionEnabled($d->hostElement, 'component', ''),
+                'template'  => BridgeDetector::isExtensionEnabled($d->hostElement, 'template',  ''),
+                default     => BridgeDetector::isExtensionEnabled(
+                    $d->hostElement,
+                    'plugin',
+                    $d->hostFolder !== '' ? $d->hostFolder : 'system'
+                ),
+            };
+        } catch (\Throwable $e) {
+            $this->detected = false;
+        }
     }
 }

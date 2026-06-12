@@ -45,6 +45,9 @@ class AiBoostAeo extends CMSPlugin
     /** Set in onAfterInitialise when the request should be served as Markdown. */
     private bool $isMarkdownRequest = false;
 
+    /** Cached result of libReady() — null until first probed. */
+    private ?bool $libReady = null;
+
     /**
      * onAfterInitialise — Free-tier virtual file routing + Markdown detection.
      *
@@ -55,6 +58,10 @@ class AiBoostAeo extends CMSPlugin
      */
     public function onAfterInitialise(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
+
         $uri  = $_SERVER['REQUEST_URI'] ?? '';
         $path = ltrim((string) parse_url($uri, PHP_URL_PATH), '/');
 
@@ -105,6 +112,10 @@ class AiBoostAeo extends CMSPlugin
      */
     public function onBeforeCompileHead(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
+
         $settings = $this->getAiBoostSettings();
         $hide     = !empty($settings['hide_comments']);
         HeadBlockBuilder::setHideComments($hide);
@@ -160,6 +171,10 @@ class AiBoostAeo extends CMSPlugin
      */
     public function onAfterRender(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
+
         $app = Factory::getApplication();
         HeadBlockBuilder::finalize($app, Version::VERSION);
         BodyBlockBuilder::finalize($app);
@@ -254,5 +269,31 @@ class AiBoostAeo extends CMSPlugin
             $cache = [];
         }
         return $cache;
+    }
+
+    /**
+     * Whether the shared AiBoost\Lib library is fully loadable.
+     *
+     * The plugin entry file only checks that lib/autoload.php exists — not
+     * enough: a partial base-package uninstall can leave autoload.php on disk
+     * while individual lib/src class files are gone, and the first lib
+     * reference then fatals on every page. Probing two core lib classes
+     * detects that state so every lib-touching event handler can no-op
+     * instead. This is a tripwire, not an exhaustive integrity check. The
+     * try/catch matters: under JDEBUG Joomla's debug class loader THROWS on
+     * a missing class file instead of returning false.
+     */
+    private function libReady(): bool
+    {
+        if ($this->libReady !== null) {
+            return $this->libReady;
+        }
+        try {
+            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
+                && class_exists('AiBoost\\Lib\\Logger');
+        } catch (\Throwable $e) {
+            $this->libReady = false;
+        }
+        return $this->libReady;
     }
 }

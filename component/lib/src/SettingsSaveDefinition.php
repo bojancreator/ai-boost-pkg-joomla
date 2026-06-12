@@ -24,6 +24,43 @@ use AiBoost\Lib\Manifest\Registry as ManifestRegistry;
 final class SettingsSaveDefinition
 {
     /**
+     * Keys that the Settings save endpoint NEVER accepts from the client and
+     * that export/import must never transfer between installs.
+     *
+     * License/activation state, per-site identity and dev overrides are
+     * managed exclusively by their own endpoints (license activation,
+     * heartbeat, debug controls). On an ordinary settings save they are
+     * carried forward from the existing row via mergeSystemPreservedKeys(),
+     * which is fail-closed in both directions: a client posting
+     * `pro_activated=1` cannot self-promote a Free install, and a save can
+     * never wipe a paying customer's perpetual activation or stored licence
+     * key. ImportController::IMPORT_DENYLIST builds on this constant so the
+     * two lists cannot drift.
+     *
+     * @var array<int,string>
+     */
+    public const SYSTEM_PRESERVED_KEYS = [
+        // License / perpetual activation — written only by
+        // PluginRegistry::saveLicenseState() and the heartbeat/reconcile jobs.
+        'license_key',
+        'license_tier',
+        'license_state',
+        'license_heartbeat',
+        'license_reconcile',
+        'license_simulation',
+        'pro_activated',
+        'pro_activated_at',
+        'pro_activated_version',
+        'pro_skus',
+        // Per-site identity + server-side bookkeeping.
+        'install_id',
+        'last_backup_at',
+        // Dev/QA overrides — DB-only by design, never writable from the form.
+        'dev_license_preview',
+        'dev_force_free_tier',
+    ];
+
+    /**
      * Historical settings payload accepted by SettingsController::save().
      *
      * This list intentionally includes modern Vue keys, legacy database aliases,
@@ -181,6 +218,35 @@ final class SettingsSaveDefinition
     public static function acceptedKeys(): array
     {
         return self::unique(array_merge(self::legacyKeys(), self::safeManifestKeys()));
+    }
+
+    /**
+     * Carry every SYSTEM_PRESERVED_KEYS entry forward from the existing
+     * settings row into the save payload.
+     *
+     * Fail-closed in both directions: a value present in the existing row
+     * always overwrites whatever the client posted (so a posted
+     * `pro_activated=1` cannot self-promote a Free install), and a key absent
+     * from the existing row is removed from the payload entirely (so it can
+     * never be introduced through the Settings save endpoint).
+     *
+     * Pure and side-effect free so SettingsController::save() and the unit
+     * tests share the exact same merge contract.
+     *
+     * @param array<string,mixed> $settings Posted payload (already whitelisted).
+     * @param array<string,mixed> $existing Decoded existing settings row.
+     * @return array<string,mixed>
+     */
+    public static function mergeSystemPreservedKeys(array $settings, array $existing): array
+    {
+        foreach (self::SYSTEM_PRESERVED_KEYS as $preservedKey) {
+            if (array_key_exists($preservedKey, $existing)) {
+                $settings[$preservedKey] = $existing[$preservedKey];
+            } else {
+                unset($settings[$preservedKey]);
+            }
+        }
+        return $settings;
     }
 
     /** @return array<int,string> */

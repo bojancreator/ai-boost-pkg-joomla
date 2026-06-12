@@ -23,6 +23,9 @@ class AiBoostCore extends CMSPlugin
 {
     protected $autoloadLanguage = true;
 
+    /** Cached result of libReady() — null until first probed. */
+    private ?bool $libReady = null;
+
     /**
      * Load all AI Boost settings from #__aiboost_settings (cached per request).
      *
@@ -60,7 +63,12 @@ class AiBoostCore extends CMSPlugin
         // so lib services (Manifest/Registry triggerEvent, HeadBlockBuilder
         // body manipulation, etc.) route through the adapter interfaces
         // instead of reaching for Factory::*/JPATH_* directly. Idempotent.
-        \AiBoost\Lib\Cms\AdapterBootstrap::registerJoomla($app);
+        // libReady() guards the partial-lib state (base package removed or
+        // half-removed); redirects + 404 logging below are lib-free and keep
+        // working without it.
+        if ($this->libReady()) {
+            \AiBoost\Lib\Cms\AdapterBootstrap::registerJoomla($app);
+        }
 
         // Task #440 — phone-home heartbeat (admin only, 7-day throttle).
         // Runs BEFORE the site-only guard. Fire-and-forget, never blocks.
@@ -184,6 +192,10 @@ CSS;
      */
     public function onBeforeCompileHead(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
+
         $app = Factory::getApplication();
         if (!$app->isClient('site')) {
             return;
@@ -243,6 +255,10 @@ CSS;
      */
     public function onAfterRender(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
+
         $app = Factory::getApplication();
         HeadBlockBuilder::finalize($app, Version::VERSION);
         BodyBlockBuilder::finalize($app);
@@ -263,6 +279,12 @@ CSS;
     public function onInstallerBeforeFetchManifest(string $url): string
     {
         if (strpos($url, 'updates.aiboostnow.com') === false) {
+            return $url;
+        }
+        // Version::VERSION below needs the com_aiboost autoload chain; in a
+        // partial-lib state leave the manifest URL untouched instead of
+        // fataling the admin update view.
+        if (!$this->libReady()) {
             return $url;
         }
         $settings = $this->getAiBoostSettings();
@@ -642,5 +664,31 @@ CSS;
         } catch (\Throwable $e) {
             // 404 logging must never crash the page
         }
+    }
+
+    /**
+     * Whether the shared AiBoost\Lib library is fully loadable.
+     *
+     * The plugin entry file only checks that lib/autoload.php exists — not
+     * enough: a partial base-package uninstall can leave autoload.php on disk
+     * while individual lib/src class files are gone, and the first lib
+     * reference then fatals on every page. Probing two core lib classes
+     * detects that state so every lib-touching event handler can no-op
+     * instead. This is a tripwire, not an exhaustive integrity check. The
+     * try/catch matters: under JDEBUG Joomla's debug class loader THROWS on
+     * a missing class file instead of returning false.
+     */
+    private function libReady(): bool
+    {
+        if ($this->libReady !== null) {
+            return $this->libReady;
+        }
+        try {
+            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
+                && class_exists('AiBoost\\Lib\\Logger');
+        } catch (\Throwable $e) {
+            $this->libReady = false;
+        }
+        return $this->libReady;
     }
 }

@@ -30,6 +30,23 @@ class Pkg_AiboostInstallerScript
     private const ROBOTS_LEGACY_MARKER = '# Managed by AI Boost';
 
     /**
+     * Settings keys removed from the `main` #__aiboost_settings row on package
+     * uninstall. ONLY developer/QA override keys may ever appear here —
+     * perpetual activation survives uninstall by design, so the activation and
+     * licence keys (pro_activated, pro_activated_at, pro_activated_version,
+     * license_key, license_state, install_id) MUST NEVER be added to this
+     * list. Wiping them would permanently relock a customer whose licence has
+     * expired but who is perpetually activated — exactly who the activation
+     * model protects (expiry only pauses updates/support, never the features).
+     * Guarded by PkgScriptUninstallKeysTest.
+     */
+    public const UNINSTALL_WIPED_KEYS = [
+        'dev_license_preview',
+        'dev_force_free_tier',
+        'license_simulation',
+    ];
+
+    /**
      * Strip the AI Boost managed block from existing robots.txt content,
      * preserving any user-authored rules. Mirrors
      * AiBoost\Lib\RobotsTxtBuilder::stripManagedBlock(). Returns '' when the
@@ -1612,6 +1629,12 @@ class Pkg_AiboostInstallerScript
      * AiBoost\Lib\LicenseReconcile (admin-only, throttled): it asks the update
      * server, by install_id, whether this install was ever bound to a real
      * purchase and re-activates Pro perpetually if so.
+     *
+     * Package uninstall PRESERVES pro_activated and license_state (perpetual
+     * activation survives uninstall by design — see uninstall()), so after an
+     * uninstall → reinstall this backfill is normally a no-op. It exists for
+     * legacy upgrades that predate the flag and for installs whose markers
+     * were cleared outside our code (manual DB edits, pre-fix uninstalls).
      */
     private function migrateActivateProPerpetual(): void
     {
@@ -1996,13 +2019,88 @@ class Pkg_AiboostInstallerScript
     }
 
     /**
-     * Uninstall: PRESERVE all user data. We deliberately do NOT drop any
-     * #__aiboost_* table — a user who accidentally removes the component and
-     * reinstalls keeps every setting, redirect, translation, scan and log row.
-     * The only state we reset is the licence: the six licence/dev keys are
-     * removed (in PHP, read-modify-write) from the `main` #__aiboost_settings
-     * row so a reinstall starts with a clean licence state while all
-     * configuration and data stay intact.
+     * Disable the Pro add-on extensions when the BASE package is removed.
+     *
+     * The pkg_aiboost_pro package ships system plugins (aiboost_*_pro,
+     * aiboost_int_falang) and the admin Health module (mod_aiboost_health)
+     * that all depend on the AiBoost\Lib autoloader installed by THIS base
+     * package. Joomla's uninstaller can leave a PARTIAL filesystem behind
+     * (lib/autoload.php still present, individual lib/src class files gone);
+     * if the Pro plugins stay enabled over that state, the first lib
+     * reference fatals on EVERY page — including the administrator, so the
+     * customer cannot even reach Extensions → Plugins to disable them
+     * (incident 2026-06-11). Disabling them here keeps the site alive;
+     * reinstalling pkg_aiboost_pro re-enables them via its own installer.
+     *
+     * Idempotent: the UPDATEs only touch rows with enabled = 1, and the
+     * notice is only enqueued when something was actually disabled. Never
+     * throws — a failure here must not abort the rest of uninstall().
+     */
+    private function disableOrphanedProAddons(): void
+    {
+        try {
+            $db       = Factory::getDbo();
+            $disabled = 0;
+
+            // System plugins: every aiboost_*_pro decorator plus the Falang
+            // integration bridge (its Extension class extends a lib class).
+            // The LIKE underscores are escaped so only literal matches count.
+            $db->setQuery(
+                $db->getQuery(true)
+                    ->update($db->quoteName('#__extensions'))
+                    ->set($db->quoteName('enabled') . ' = 0')
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                    ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+                    ->where('(' . $db->quoteName('element') . ' LIKE ' . $db->quote('aiboost\_%\_pro')
+                        . ' OR ' . $db->quoteName('element') . ' = ' . $db->quote('aiboost_int_falang') . ')')
+                    ->where($db->quoteName('enabled') . ' = 1')
+            )->execute();
+            $disabled += (int) $db->getAffectedRows();
+
+            // Admin Health module (ships with the Pro package). Joomla's
+            // module loader joins #__extensions with e.enabled = 1, so
+            // disabling the extension row stops every instance from running.
+            $db->setQuery(
+                $db->getQuery(true)
+                    ->update($db->quoteName('#__extensions'))
+                    ->set($db->quoteName('enabled') . ' = 0')
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('module'))
+                    ->where($db->quoteName('element') . ' = ' . $db->quote('mod_aiboost_health'))
+                    ->where($db->quoteName('client_id') . ' = 1')
+                    ->where($db->quoteName('enabled') . ' = 1')
+            )->execute();
+            $disabled += (int) $db->getAffectedRows();
+
+            if ($disabled > 0) {
+                Factory::getApplication()->enqueueMessage(
+                    'AI Boost Pro add-on plugins were disabled because the base '
+                    . 'package was removed; reinstall AI Boost to restore them.',
+                    'message'
+                );
+            }
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] Uninstall: could not disable Pro add-on extensions: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Uninstall: PRESERVE all user data AND the licence. We deliberately do
+     * NOT drop any #__aiboost_* table — a user who accidentally removes the
+     * component and reinstalls keeps every setting, redirect, translation,
+     * scan and log row. Perpetual activation survives uninstall by design:
+     * pro_activated, pro_activated_at, pro_activated_version, license_key,
+     * license_state and install_id are all left in place so a reinstall comes
+     * back licensed. Wiping them would permanently relock a customer whose
+     * licence has expired but who is perpetually activated (expiry only
+     * pauses updates/support, never the features). The ONLY state we reset is
+     * the developer/QA override keys (UNINSTALL_WIPED_KEYS), removed in PHP
+     * (read-modify-write) from the `main` #__aiboost_settings row so a stale
+     * QA override can never leak into a customer reinstall.
+     *
+     * Before any cleanup we disable the Pro add-on extensions (see
+     * disableOrphanedProAddons()): left enabled without the base package they
+     * can 500 every page over a partial filesystem, locking the customer out
+     * of the administrator. Reinstalling pkg_aiboost_pro re-enables them.
      *
      * We still remove the front-of-site artifacts we generated (robots.txt
      * managed block, llms.txt, generated sitemap files). robots.txt is only
@@ -2026,6 +2124,14 @@ class Pkg_AiboostInstallerScript
         $db     = Factory::getDbo();
         $errors = [];
 
+        // FIRST: disable the Pro add-on extensions that depend on this base
+        // package. They are useless without the shared lib, and an enabled
+        // *_pro plugin left behind over a partial filesystem (autoload.php
+        // present, lib/src files gone) 500s every page — including the
+        // administrator, locking the customer out (incident 2026-06-11).
+        // Reinstalling pkg_aiboost_pro re-enables them via its own installer.
+        $this->disableOrphanedProAddons();
+
         // Article OG custom fields + per-article overrides. Safe to call on
         // every uninstall — the method only deletes rows carrying our own
         // ownership marker.
@@ -2035,11 +2141,14 @@ class Pkg_AiboostInstallerScript
             self::logEvent('warning', '[AiBoost] Uninstall: OG custom fields cleanup failed: ' . $e->getMessage());
         }
 
-        // Reset ONLY the licence state — never the user's data. Remove the six
-        // licence/dev keys from the `main` settings row in PHP (read-modify-write)
-        // so a reinstall comes up unlicensed (clean licence state) while every
-        // other setting survives. All #__aiboost_* tables are intentionally left
-        // in place.
+        // Reset ONLY the developer/QA override keys — never the user's data and
+        // never the licence. Perpetual activation survives uninstall by design:
+        // a reinstall must come back licensed, so pro_activated (+ _at/_version),
+        // license_key, license_state and install_id are deliberately NOT touched
+        // here (see UNINSTALL_WIPED_KEYS for the full rationale). The dev keys
+        // are removed from the `main` settings row in PHP (read-modify-write)
+        // while every other setting survives. All #__aiboost_* tables are
+        // intentionally left in place.
         //
         // We deliberately do NOT use the SQL JSON_REMOVE() function here:
         // settings_json is a NOT NULL MEDIUMTEXT column, and JSON_REMOVE() returns
@@ -2047,14 +2156,7 @@ class Pkg_AiboostInstallerScript
         // coerced to '' under a non-strict sql_mode — which a reinstall then reads
         // as an empty settings blob and silently wipes ALL user data. Doing the
         // edit in PHP keeps the round-trip identical to every other helper here.
-        $licenceKeys = [
-            'license_key',
-            'license_email',
-            'pro_activated',
-            'install_id',
-            'dev_license_preview',
-            'dev_force_free_tier',
-        ];
+        $devOverrideKeys = self::UNINSTALL_WIPED_KEYS;
         try {
             $existingJson = $db->setQuery(
                 $db->getQuery(true)
@@ -2072,7 +2174,7 @@ class Pkg_AiboostInstallerScript
                 // would lose the user's data — exactly what this task forbids.
                 if (is_array($data)) {
                     $changed = false;
-                    foreach ($licenceKeys as $k) {
+                    foreach ($devOverrideKeys as $k) {
                         if (array_key_exists($k, $data)) {
                             unset($data[$k]);
                             $changed = true;
@@ -2098,7 +2200,7 @@ class Pkg_AiboostInstallerScript
                         // and silently wipe ALL user data (the original bug, whether
                         // via SQL JSON_REMOVE→NULL or a failed json_encode→false).
                         // If we cannot produce a non-empty JSON object we abort the
-                        // licence reset and keep the row exactly as it was.
+                        // dev override reset and keep the row exactly as it was.
                         if (is_string($newJson) && $newJson !== '' && $newJson !== '[]') {
                             $db->setQuery(
                                 $db->getQuery(true)
@@ -2107,8 +2209,8 @@ class Pkg_AiboostInstallerScript
                                     ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
                             )->execute();
                         } else {
-                            $errors[] = 'licence wipe';
-                            self::logEvent('warning', '[AiBoost] Uninstall: skipped licence reset — re-encoding settings_json yielded an empty/invalid value; user data left intact.');
+                            $errors[] = 'dev override reset';
+                            self::logEvent('warning', '[AiBoost] Uninstall: skipped dev override reset — re-encoding settings_json yielded an empty/invalid value; user data left intact.');
                         }
                     }
                 } else {
@@ -2116,8 +2218,8 @@ class Pkg_AiboostInstallerScript
                 }
             }
         } catch (\Throwable $e) {
-            $errors[] = 'licence wipe';
-            self::logEvent('warning', '[AiBoost] Uninstall: could not wipe licence keys from #__aiboost_settings: ' . $e->getMessage());
+            $errors[] = 'dev override reset';
+            self::logEvent('warning', '[AiBoost] Uninstall: could not wipe dev override keys from #__aiboost_settings: ' . $e->getMessage());
         }
 
         // Remove generated static artifacts. Each removal is independently
@@ -2162,8 +2264,9 @@ class Pkg_AiboostInstallerScript
         if (!$errors) {
             $msgParts[] = 'AI Boost package removed. Your data has been preserved '
                 . '— all settings, redirects, translations and logs remain in the '
-                . 'database, so reinstalling restores everything. Only the licence '
-                . 'keys were cleared.';
+                . 'database, and your licence and Pro activation survive too, so '
+                . 'reinstalling restores everything. Only developer override keys '
+                . 'were cleared.';
         } else {
             $msgParts[] = 'AI Boost removed and your data preserved, but the '
                 . 'following step(s) could not be completed automatically: '

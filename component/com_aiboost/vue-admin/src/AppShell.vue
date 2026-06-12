@@ -31,7 +31,7 @@ import { useRoute } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import ToastStack from './components/ToastStack.vue'
 import { useColorScheme } from './composables/useColorScheme.js'
-import { ensureLegacyGlobals } from './composables/useLegacyGlobals.js'
+import { ensureLegacyGlobals, isLegacyGlobalsReady } from './composables/useLegacyGlobals.js'
 
 export default {
   name: 'AppShell',
@@ -51,6 +51,15 @@ export default {
     async function loadGlobalsForRoute(r) {
       const meta = r.meta || {}
       if (!meta.legacyUrl) {
+        error.value = ''
+        loading.value = false
+        return
+      }
+      // Cache hit — the globals are already on window. Do NOT flip the
+      // loading v-if: that would unmount <router-view> and silently discard
+      // the routed component's local state (e.g. unsaved Settings edits when
+      // the Sidebar switches sub-tabs via /settings?tab=<id>).
+      if (isLegacyGlobalsReady(meta.legacyUrl)) {
         error.value = ''
         loading.value = false
         return

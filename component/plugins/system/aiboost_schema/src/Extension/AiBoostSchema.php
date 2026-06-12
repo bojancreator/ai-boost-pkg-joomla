@@ -35,12 +35,19 @@ class AiBoostSchema extends CMSPlugin
 {
     protected $autoloadLanguage = true;
 
+    /** Cached result of libReady() — null until first probed. */
+    private ?bool $libReady = null;
+
     /**
     * onBeforeCompileHead — build JSON-LD blocks, let optional integrations
     * filter them via EVENT_FILTER_SCHEMA_BLOCKS, then inject.
      */
     public function onBeforeCompileHead(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
+
         $app = Factory::getApplication();
         if (!$app->isClient('site')) {
             return;
@@ -143,9 +150,39 @@ class AiBoostSchema extends CMSPlugin
      */
     public function onAfterRender(): void
     {
+        if (!$this->libReady()) {
+            return;
+        }
+
         $app = Factory::getApplication();
         HeadBlockBuilder::finalize($app, Version::VERSION);
         BodyBlockBuilder::finalize($app);
+    }
+
+    /**
+     * Whether the shared AiBoost\Lib library is fully loadable.
+     *
+     * The plugin entry file only checks that lib/autoload.php exists — not
+     * enough: a partial base-package uninstall can leave autoload.php on disk
+     * while individual lib/src class files are gone, and the first lib
+     * reference then fatals on every page. Probing two core lib classes
+     * detects that state so every lib-touching event handler can no-op
+     * instead. This is a tripwire, not an exhaustive integrity check. The
+     * try/catch matters: under JDEBUG Joomla's debug class loader THROWS on
+     * a missing class file instead of returning false.
+     */
+    private function libReady(): bool
+    {
+        if ($this->libReady !== null) {
+            return $this->libReady;
+        }
+        try {
+            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
+                && class_exists('AiBoost\\Lib\\Logger');
+        } catch (\Throwable $e) {
+            $this->libReady = false;
+        }
+        return $this->libReady;
     }
 
     /**
