@@ -172,7 +172,7 @@
     <div class="ab-card">
       <div class="ab-card-header">⭐ Guest / Customer Rating (AggregateRating)</div>
       <div class="ab-card-body">
-        <div class="ab-help mb-3" style="color:#6c757d">Adds AggregateRating to Schema.org output. Leave empty if not applicable.</div>
+        <div class="ab-help mb-3" style="color:var(--ab-text-muted)">Adds AggregateRating to Schema.org output. Leave empty if not applicable.</div>
         <div class="row g-3">
           <div class="col-md-2">
             <label class="ab-label">Rating Value</label>

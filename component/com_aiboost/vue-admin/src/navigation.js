@@ -53,12 +53,12 @@ const sidebarGroupFactories = [
   () => ({ title: 'TOOLS', items: [
     { id: 'redirects', to: '/redirects', icon: 'icon-arrow-right', label: 'Redirects' },
     { id: 'analyzers', to: '/analyzers', icon: 'icon-search', label: 'Analyzers' },
-    { id: 'urlchecker', to: '/urlchecker', icon: 'icon-link', label: 'URL Checker' },
+    { id: 'urlchecker', to: '/urlchecker', icon: 'icon-zoom-in', label: 'URL Checker' },
+    { id: 'import', to: '/import', icon: 'icon-upload', label: 'Import' },
   ] }),
   () => ({ title: 'ADVANCED', items: [
     { id: 'code', to: settingsTo('code'), tab: 'code', icon: 'icon-wrench', label: 'Custom Code' },
     { id: 'debug', to: settingsTo('debug'), tab: 'debug', icon: 'icon-pencil', label: 'Debug' },
-    { id: 'import', to: '/import', icon: 'icon-upload', label: 'Import' },
     { id: 'help', to: '/help', icon: 'icon-question', label: 'Help' },
   ] }),
 ]

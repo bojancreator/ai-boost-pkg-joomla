@@ -32,7 +32,7 @@
             :disabled="scanning" @click="resetScan">Reset</button>
         </div>
 
-        <div v-if="scanError" class="ab-help" style="color:#dc3545; margin-top:8px;">
+        <div v-if="scanError" class="ab-help" style="color:var(--ab-danger); margin-top:8px;">
           Scan failed: {{ scanError }}
         </div>
         <div v-else-if="lastScanAt" class="ab-help" style="margin-top:8px;">

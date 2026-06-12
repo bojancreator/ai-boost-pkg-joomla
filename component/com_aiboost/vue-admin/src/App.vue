@@ -163,6 +163,15 @@ export default {
   components: { OrgTab, SchemaTab, TechnicalSeoTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab },
 
   mounted() {
+    // Ctrl/Cmd + S → save (power-user shortcut)
+    this._keyHandler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's' && !e.shiftKey && !e.altKey) {
+        e.preventDefault()
+        if (!this.saving) this.save()
+      }
+    }
+    window.addEventListener('keydown', this._keyHandler)
+
     // Hash-based deep link: #tab=<id>   (e.g. #tab=analytics)
     const hash = window.location.hash
     if (hash) {
@@ -220,6 +229,10 @@ export default {
   },
 
   beforeUnmount() {
+    if (this._keyHandler) {
+      window.removeEventListener('keydown', this._keyHandler)
+      this._keyHandler = null
+    }
     if (this._gotoHandler) {
       window.removeEventListener('aiboost:goto-field', this._gotoHandler)
       this._gotoHandler = null
@@ -450,7 +463,7 @@ export default {
 }
 .ab-vue-settings .ab-action-bar__dirty {
   font-size: .78rem;
-  color: #f59e0b;
+  color: var(--ab-warning);
   font-weight: 500;
 }
 .ab-vue-settings .ab-action-bar__actions {
@@ -595,7 +608,7 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .05em;
-  background: #198754;
+  background: var(--ab-success);
   color: #fff;
   vertical-align: middle;
   line-height: 1.4;
@@ -751,19 +764,19 @@ export default {
 /* ── Fix It field highlight pulse ──────────────────────────── */
 .ab-vue-settings .ab-field-highlight,
 .ab-vue-settings [data-ab-field].ab-field-highlight {
-  outline: 4px solid #10b981;
+  outline: 4px solid var(--ab-success);
   outline-offset: 4px;
   border-radius: 6px;
-  background-color: rgba(16, 185, 129, .12);
+  background-color: var(--ab-success-soft);
   animation: ab-pulse 1.4s ease-out 3;
   transition: background-color .4s ease-out;
   position: relative;
   z-index: 2;
 }
 @keyframes ab-pulse {
-  0%   { box-shadow: 0 0 0 0   rgba(16, 185, 129, .65); }
-  70%  { box-shadow: 0 0 0 22px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0   rgba(16, 185, 129, 0); }
+  0%   { box-shadow: 0 0 0 0   var(--ab-success-soft); }
+  70%  { box-shadow: 0 0 0 22px rgba(0,0,0,0); }
+  100% { box-shadow: 0 0 0 0   rgba(0,0,0,0); }
 }
 
 /* ── Tab strip mobile: allow horizontal scroll ─────────────── */

@@ -209,7 +209,7 @@
     </div>
 
     <!-- Plugin conflicts card — visible when critical conflicts detected -->
-    <div v-if="conflictCritical > 0" class="ab-card mb-4" style="border-left:4px solid #dc3545">
+    <div v-if="conflictCritical > 0" class="ab-card mb-4" style="border-left:4px solid var(--ab-danger)">
       <div class="ab-card__header d-flex align-items-center justify-content-between flex-wrap gap-2">
         <h2 class="ab-card__title fs-5 mb-0">
           <span class="icon-warning me-2 text-danger" aria-hidden="true"></span>Plugin Conflicts Detected
@@ -247,7 +247,7 @@
     </div>
 
     <!-- Warnings-only card (no criticals) -->
-    <div v-else-if="conflictWarnings > 0" class="ab-card mb-4" style="border-left:4px solid #fd7e14">
+    <div v-else-if="conflictWarnings > 0" class="ab-card mb-4" style="border-left:4px solid var(--ab-warning)">
       <div class="ab-card__body py-2 d-flex align-items-center justify-content-between gap-2">
         <span class="small">
           <span class="icon-info-circle text-warning me-1" aria-hidden="true"></span>
@@ -333,9 +333,9 @@
          uninstall landed, removing the package PRESERVES all database data
          and the licence — only extension files and generated root files
          are cleaned up. -->
-    <div class="ab-card mb-4" style="border-left:4px solid #dc3545">
+    <div class="ab-card mb-4" style="border-left:4px solid var(--ab-danger)">
       <div class="ab-card__header">
-        <h2 class="ab-card__title fs-5 mb-0" style="color:#dc3545">
+        <h2 class="ab-card__title fs-5 mb-0" style="color:var(--ab-danger)">
           <span class="icon-warning-2 me-2" aria-hidden="true"></span>Danger Zone — Uninstall
         </h2>
       </div>

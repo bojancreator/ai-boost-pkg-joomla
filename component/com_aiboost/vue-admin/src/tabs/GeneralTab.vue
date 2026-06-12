@@ -6,7 +6,7 @@
         <div class="ab-check ab-toggle mb-3">
           <input v-model="s.auto_domain_detection" true-value="1" false-value="0"
             type="checkbox" class="ab-toggle__input" id="g-auto-domain">
-          <label class="ab-check__label" for="g-auto-domain">Auto-detect domain <span style="color:#6c757d;">(recommended)</span></label>
+          <label class="ab-check__label" for="g-auto-domain">Auto-detect domain <span style="color:var(--ab-text-muted)">(recommended)</span></label>
         </div>
         <div class="mb-0">
           <label class="ab-label">Manual Domain <span style="opacity:.5;font-weight:400;">(if auto-detect is off)</span></label>

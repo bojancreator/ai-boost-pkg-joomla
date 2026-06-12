@@ -1,31 +1,63 @@
 <template>
-  <aside class="ab-sidebar">
+  <aside class="ab-sidebar" :class="{ 'ab-sidebar--compact': compact }">
     <div class="ab-sidebar__brand">
       <span class="ab-sidebar__brand-dot" aria-hidden="true"></span>
       <span class="ab-sidebar__brand-name">AI Boost</span>
       <span v-if="version" class="ab-sidebar__version">{{ version }}</span>
+      <button
+        type="button"
+        class="ab-sidebar__density-btn"
+        :title="compact ? 'Switch to comfortable layout' : 'Switch to compact layout'"
+        :aria-label="compact ? 'Switch to comfortable layout' : 'Switch to compact layout'"
+        @click="toggleCompact"
+      >
+        <span :class="compact ? 'icon-expand' : 'icon-compress'" aria-hidden="true"></span>
+      </button>
+    </div>
+
+    <div class="ab-sidebar__search">
+      <span class="ab-sidebar__search-icon icon-search" aria-hidden="true"></span>
+      <input
+        v-model="search"
+        type="search"
+        class="ab-sidebar__search-input"
+        placeholder="Filter…"
+        aria-label="Filter navigation"
+      />
+      <button
+        v-if="search"
+        type="button"
+        class="ab-sidebar__search-clear"
+        aria-label="Clear filter"
+        @click="search = ''"
+      >×</button>
     </div>
 
     <nav class="ab-sidebar__nav" aria-label="AI Boost navigation">
-      <div v-for="group in groups" :key="group.title" class="ab-sidebar__group">
-        <div class="ab-sidebar__group-title">{{ group.title }}</div>
-        <ul class="ab-sidebar__list">
-          <li v-for="item in group.items" :key="item.id">
-            <router-link
-              class="ab-sidebar__item"
-              :class="{ active: isItemActive(item) }"
-              :to="item.to"
-            >
-              <span class="ab-sidebar__icon" :class="item.icon" aria-hidden="true"></span>
-              <span class="ab-sidebar__label">{{ item.label }}</span>
-              <span
-                v-if="item.badge === 'errors' && errorsBadge > 0"
-                class="ab-sidebar__badge"
-                :title="errorsBadge + ' error(s) in last 24h'"
-              >{{ errorsBadge }}</span>
-            </router-link>
-          </li>
-        </ul>
+      <template v-for="group in filteredGroups" :key="group.title">
+        <div v-if="group.items.length" class="ab-sidebar__group">
+          <div class="ab-sidebar__group-title">{{ group.title }}</div>
+          <ul class="ab-sidebar__list">
+            <li v-for="item in group.items" :key="item.id">
+              <router-link
+                class="ab-sidebar__item"
+                :class="{ active: isItemActive(item) }"
+                :to="item.to"
+              >
+                <span class="ab-sidebar__icon" :class="item.icon" aria-hidden="true"></span>
+                <span class="ab-sidebar__label">{{ item.label }}</span>
+                <span
+                  v-if="item.badge === 'errors' && errorsBadge > 0"
+                  class="ab-sidebar__badge"
+                  :title="errorsBadge + ' error(s) in last 24h'"
+                >{{ errorsBadge }}</span>
+              </router-link>
+            </li>
+          </ul>
+        </div>
+      </template>
+      <div v-if="search && !hasResults" class="ab-sidebar__no-results">
+        No results for "{{ search }}"
       </div>
     </nav>
   </aside>
@@ -34,6 +66,8 @@
 <script>
 import { useRoute } from 'vue-router'
 import { createSidebarGroups } from './navigation.js'
+
+const DENSITY_KEY = 'aiboost_ui_density'
 
 export default {
   name: 'Sidebar',
@@ -46,8 +80,6 @@ export default {
     const groups = createSidebarGroups(labels)
 
     const isItemActive = (item) => {
-      // Settings sub-tab items are active when on /settings and the active
-      // tab matches (default tab is "general" when no query present).
       if (item.tab) {
         return route.name === 'settings' && (route.query.tab || 'general') === item.tab
       }
@@ -59,6 +91,34 @@ export default {
 
     return { groups, isItemActive, errorsBadge, version }
   },
+
+  data() {
+    return {
+      search: '',
+      compact: localStorage.getItem(DENSITY_KEY) === 'compact',
+    }
+  },
+
+  computed: {
+    filteredGroups() {
+      const q = this.search.trim().toLowerCase()
+      if (!q) return this.groups
+      return this.groups.map(group => ({
+        ...group,
+        items: group.items.filter(item => item.label.toLowerCase().includes(q)),
+      }))
+    },
+    hasResults() {
+      return this.filteredGroups.some(g => g.items.length > 0)
+    },
+  },
+
+  methods: {
+    toggleCompact() {
+      this.compact = !this.compact
+      localStorage.setItem(DENSITY_KEY, this.compact ? 'compact' : 'comfortable')
+    },
+  },
 }
 </script>
 
@@ -69,8 +129,8 @@ export default {
   align-self: stretch;
   display: flex;
   flex-direction: column;
-  background: #1e2532;
-  border-right: 1px solid #2d3548;
+  background: var(--ab-sidebar-bg);
+  border-right: 1px solid var(--ab-sidebar-border);
   border-radius: 8px 0 0 8px;
 }
 
@@ -79,7 +139,7 @@ export default {
   align-items: center;
   gap: 9px;
   padding: 14px 16px;
-  border-bottom: 1px solid #2d3548;
+  border-bottom: 1px solid var(--ab-sidebar-border);
 }
 .ab-sidebar__brand-dot {
   width: 10px;
@@ -104,7 +164,76 @@ export default {
   border-radius: 5px;
   padding: 2px 6px;
 }
+.ab-sidebar__density-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--ab-sidebar-label);
+  padding: 2px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+  font-size: 11px;
+  opacity: .7;
+  transition: opacity .12s, background .12s;
+}
+.ab-sidebar__density-btn:hover { opacity: 1; background: rgba(255,255,255,.08); }
 
+/* ── Search bar ─────────────────────────────────────────────── */
+.ab-sidebar__search {
+  position: relative;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ab-sidebar-border);
+}
+.ab-sidebar__search-icon {
+  position: absolute;
+  left: 19px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--ab-sidebar-label);
+  pointer-events: none;
+}
+.ab-sidebar__search-input {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--ab-sidebar-border);
+  border-radius: 5px;
+  color: var(--ab-sidebar-text);
+  font-size: 12px;
+  padding: 5px 24px 5px 26px;
+  outline: none;
+  transition: border-color .12s, background .12s;
+}
+.ab-sidebar__search-input::placeholder { color: var(--ab-sidebar-label); }
+.ab-sidebar__search-input:focus {
+  background: rgba(255,255,255,.10);
+  border-color: var(--ab-primary, #4f46e5);
+}
+/* Hide browser's default × in search inputs */
+.ab-sidebar__search-input::-webkit-search-cancel-button { display: none; }
+.ab-sidebar__search-clear {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--ab-sidebar-label);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.ab-sidebar__search-clear:hover { color: #fff; }
+.ab-sidebar__no-results {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--ab-sidebar-label);
+  font-style: italic;
+}
+
+/* ── Nav ────────────────────────────────────────────────────── */
 .ab-sidebar__nav {
   flex: 1;
   overflow-y: auto;
@@ -115,7 +244,7 @@ export default {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .8px;
-  color: #8a93a6;
+  color: var(--ab-sidebar-label);
   padding: 0 10px 6px;
 }
 .ab-sidebar__list {
@@ -135,7 +264,7 @@ export default {
   padding: 8px 10px;
   font-size: 13.5px;
   font-weight: 500;
-  color: #c8d0e0;
+  color: var(--ab-sidebar-text);
   text-decoration: none;
   transition: background .12s, color .12s;
 }
@@ -167,13 +296,19 @@ export default {
   font-size: 10px;
   font-weight: 700;
   color: #fff;
-  background: #dc3545;
+  background: var(--ab-danger);
   border-radius: 10px;
   padding: 1px 7px;
   line-height: 1.4;
 }
 
-/* Stack the sidebar on top on narrow viewports. */
+/* ── Compact density ────────────────────────────────────────── */
+.ab-sidebar--compact .ab-sidebar__item { padding: 5px 10px; font-size: 12.5px; }
+.ab-sidebar--compact .ab-sidebar__group { margin-bottom: 10px; }
+.ab-sidebar--compact .ab-sidebar__group-title { font-size: 9px; padding-bottom: 4px; }
+.ab-sidebar--compact .ab-sidebar__icon { font-size: 12px; }
+
+/* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 782px) {
   .ab-sidebar {
     flex-basis: auto;
@@ -181,7 +316,7 @@ export default {
     position: static;
     max-height: none;
     border-right: none;
-    border-bottom: 1px solid #2d3548;
+    border-bottom: 1px solid var(--ab-sidebar-border);
     border-radius: 8px 8px 0 0;
   }
   .ab-sidebar__nav {
@@ -190,5 +325,6 @@ export default {
     gap: 8px;
   }
   .ab-sidebar__group { margin-bottom: 0; }
+  .ab-sidebar__search { display: none; }
 }
 </style>
