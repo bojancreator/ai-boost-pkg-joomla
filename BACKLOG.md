@@ -18,6 +18,22 @@ Product strategy and release sequence for v0.5: `docs/v0.5-product-direction.md`
   Autopilot is a guided checklist. Architecture Gate 0 required before implementation.
   See `docs/v0.5-product-direction.md §3`.
 
+- **Integration improvements (from Plan 1 review, 2026-06-12 — deferred by Bojan)**:
+  - **Admin Tools: detect AI-bot blocking** *(high value, AEO-on-brand)* — Admin Tools'
+    WAF / "Block user agents" can block GPTBot/ClaudeBot/PerplexityBot, killing AEO.
+    Detect such rules and warn. Also: redirect-manager overlap, `.htaccess` overlap.
+  - **YOOtheme: validate / rework menu-param schema mapping** — the Event/Product/
+    Organization mapping reads ~30 *guessed* param keys (`yoo_event_name`…) that likely
+    rarely match real YOOtheme builder params. Verify on a real YOOtheme site (Plan 3);
+    if it never fires, rework to parse the YOOtheme builder JSON or drop it (FAQ/gallery
+    are body-based and reliable). Also: configurable gallery selector, DOMDocument
+    instead of regex, HowTo/Breadcrumb schema.
+  - **Render per-feature integration options in the SPA** — Falang (hreflang mode,
+    primary language, schema/og translate) and YOOtheme fields are registered but no
+    Vue tab renders them; today they only work on defaults. Surface them (Plan 2 UI).
+  - **Falang new options** — `inLanguage` on Schema.org, `og:locale:alternate`,
+    per-language meta title/description templates, per-language sitemap priority.
+  - **Product decision** — should the YOOtheme bridge be Pro (current) or Free (Falang is Free)?
 - **Alias Assistant** — suggest and fix article aliases, with automatic 301
   redirects when an alias changes. *(post-v0.5)*
 - **Warn the admin when custom code is unusually large** — flag injected code that
