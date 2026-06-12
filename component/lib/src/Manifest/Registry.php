@@ -228,6 +228,16 @@ final class Registry
                 $field['lock_reason'] = 'integration:' . $field['integration'];
                 return;
             }
+            // Host present + bridge enabled, but the admin switched this
+            // integration OFF on the Integrations page → keep the field
+            // visible but locked, pointing the user at the master switch
+            // rather than an install prompt. ('admin_enabled' is absent on
+            // legacy capability shapes → treated as ON, never locks.)
+            if (array_key_exists('admin_enabled', $int) && $int['admin_enabled'] === false) {
+                $field['locked']      = true;
+                $field['lock_reason'] = 'integration_off:' . $field['integration'];
+                return;
+            }
         }
 
         // v0.5 one-product transition: historical tier=pro fields are no longer locked.

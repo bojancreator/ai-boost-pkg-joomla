@@ -97,4 +97,23 @@ final class FalangBridgeParityTest extends TestCase
             )
         );
     }
+
+    /**
+     * Three-way alignment: the `falang_hreflang_head` field the admin sees must
+     * actually gate the head hreflang output (Plan 1 fix). Before, the head
+     * path read only the legacy `falang_hreflang_enabled` plugin param, so the
+     * visible toggle was dead. Check the comment-stripped code so the
+     * explanatory docblock that names the legacy param can't mask a regression.
+     */
+    public function testHeadPathConsumesHreflangHeadSetting(): void
+    {
+        $file = dirname(__DIR__, 3) . '/plugins/system/aiboost_int_falang/src/Extension/AiBoostIntFalang.php';
+        $code = php_strip_whitespace($file);
+
+        self::assertStringContainsString(
+            "aiBoostSetting('falang_hreflang_head'",
+            $code,
+            'The head hreflang gate must read the manifest-backed falang_hreflang_head setting.'
+        );
+    }
 }

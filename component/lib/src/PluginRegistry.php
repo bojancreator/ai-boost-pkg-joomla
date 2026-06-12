@@ -151,9 +151,15 @@ final class PluginRegistry
         $licStates   = self::loadLicenseStates();
         $bundleReal  = self::resolveRealStatus($licStates['bundle'] ?? null);
 
+        try {
+            $intSettings = self::loadMainSettings();
+        } catch (\Throwable) {
+            $intSettings = [];
+        }
+
         $caps += self::proCapabilities($rows, $sim, $licStates, $bundleReal);
         $caps['pro_bundle'] = self::buildBundleCapability($sim, $bundleReal);
-        $caps += self::integrationCapabilities($rows, $sim);
+        $caps += self::integrationCapabilities($rows, $sim, $intSettings);
 
         return self::$cache = $caps;
     }
@@ -176,15 +182,28 @@ final class PluginRegistry
     /**
      * @param array<string, array<string,mixed>> $rows
      * @param array<string,mixed>|null $sim
+     * @param array<string,mixed> $settings The decoded #__aiboost_settings 'main' blob.
      * @return array<string, array<string,mixed>>
      */
-    private static function integrationCapabilities(array $rows, ?array $sim): array
+    private static function integrationCapabilities(array $rows, ?array $sim, array $settings): array
     {
         $caps = [];
         foreach (self::integrations() as $element => $key) {
-            $caps['int_' . $key] = self::buildIntegrationCapability($rows[$element] ?? null, $element, $key, $sim);
+            $caps['int_' . $key] = self::buildIntegrationCapability($rows[$element] ?? null, $element, $key, $sim, $settings);
         }
         return $caps;
+    }
+
+    /**
+     * Master Integrations-page toggle state for a bridge. Key is
+     * `integration_<key>_enabled`; fail-open to enabled so a fresh install
+     * (key never saved) and any bridge without a static master key behave as ON.
+     *
+     * @param array<string,mixed> $settings
+     */
+    private static function integrationAdminEnabled(string $key, array $settings): bool
+    {
+        return (string) ($settings['integration_' . $key . '_enabled'] ?? '1') !== '0';
     }
 
     /**
@@ -297,26 +316,29 @@ final class PluginRegistry
      * @param array<string,mixed>|null $sim
      * @return array<string,mixed>
      */
-    private static function buildIntegrationCapability(?array $row, string $element, string $key, ?array $sim): array
+    private static function buildIntegrationCapability(?array $row, string $element, string $key, ?array $sim, array $settings): array
     {
+        $adminEnabled = self::integrationAdminEnabled($key, $settings);
+
         $simState = self::simStateFor($sim, 'int_' . $key);
         if ($simState !== null) {
-            return self::integrationCapability($row, $element, $key, $simState !== 'not_licensed', $simState === 'active', $simState, true);
+            return self::integrationCapability($row, $element, $key, $simState !== 'not_licensed', $simState === 'active', $simState, true, $adminEnabled);
         }
 
         $installed = $row !== null;
-        return self::integrationCapability($row, $element, $key, $installed, self::extensionRowEnabled($row), null, false);
+        return self::integrationCapability($row, $element, $key, $installed, self::extensionRowEnabled($row), null, false, $adminEnabled);
     }
 
     /**
      * @param array<string,mixed>|null $row
      * @return array<string,mixed>
      */
-    private static function integrationCapability(?array $row, string $element, string $key, bool $installed, bool $enabled, ?string $simState, bool $simulated): array
+    private static function integrationCapability(?array $row, string $element, string $key, bool $installed, bool $enabled, ?string $simState, bool $simulated, bool $adminEnabled = true): array
     {
         return [
             'installed'            => $installed,
             'enabled'              => $enabled,
+            'admin_enabled'        => $adminEnabled,
             'version'              => self::manifestVersion($row),
             'detected_third_party' => self::detectThirdParty($key),
             'element'              => $element,

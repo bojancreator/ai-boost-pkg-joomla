@@ -41,6 +41,26 @@ return [
         ],
     ],
 
+    // ── Integration master switches (Free) ──────────────────────────
+    // Per-integration on/off, driven from the Integrations page (NOT a
+    // settings tab). These keys deliberately carry NO 'integration' tag: they
+    // must enter the save whitelist and stay UNLOCKED even when the bridge is
+    // switched off — a switch can never lock itself — and a bridge being off
+    // must not stop AI Boost from registering its fields (otherwise a plain
+    // Settings save would drop the user's falang_*/yootheme_* values).
+    [
+        'key' => 'integration_falang_enabled', 'tab' => 'general', 'section' => 'integrations',
+        'label' => 'Falang integration', 'type' => 'toggle', 'default' => '1',
+        'tier' => 'free', 'sku' => 'core',
+        'description' => 'When on, AI Boost adds Falang-aware hreflang, Schema.org and OpenGraph output for translated content. Turning it off stops that output but keeps all your Falang settings.',
+    ],
+    [
+        'key' => 'integration_yootheme_enabled', 'tab' => 'general', 'section' => 'integrations',
+        'label' => 'YOOtheme Pro integration', 'type' => 'toggle', 'default' => '1',
+        'tier' => 'free', 'sku' => 'core',
+        'description' => 'When on, AI Boost reads YOOtheme Pro page content for FAQ/gallery Schema.org and per-page meta. Turning it off stops that output but keeps all your YOOtheme settings.',
+    ],
+
     // ── General settings (Free) ─────────────────────────────────────
     [
         'key' => 'auto_domain_detection', 'tab' => 'general', 'section' => 'domain',

@@ -36,6 +36,7 @@ namespace AiBoost\Lib\Integration;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BridgeDetector;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 abstract class AbstractIntegrationPlugin extends CMSPlugin
@@ -45,6 +46,9 @@ abstract class AbstractIntegrationPlugin extends CMSPlugin
     private bool $booted   = false;
     private bool $detected = false;
     private ?IntegrationDescriptor $descriptor = null;
+
+    /** Cached #__aiboost_settings 'main' blob — null until first read. */
+    private ?array $aiBoostSettings = null;
 
     /** Subclass returns the descriptor that identifies this bridge. */
     abstract protected function describe(): IntegrationDescriptor;
@@ -90,7 +94,64 @@ abstract class AbstractIntegrationPlugin extends CMSPlugin
         return $this->detected;
     }
 
+    /**
+     * Whether the site admin has this integration switched ON from the
+     * AI Boost Integrations page. The master toggle key is
+     * `integration_<key>_enabled`; it fails OPEN to '1' so a brand-new
+     * install (key never saved) and any bridge without a static master key
+     * behave as enabled.
+     *
+     * This gates RUNTIME EMISSION only — never field registration or
+     * discovery, both of which must keep working while the toggle is off so
+     * that a plain Settings save does not drop the user's integration keys.
+     */
+    final protected function isAdminEnabled(): bool
+    {
+        $key = 'integration_' . $this->descriptor()->key . '_enabled';
+        return (string) $this->readAiBoostSetting($key, '1') !== '0';
+    }
+
+    /**
+     * The single runtime gate every bridge output handler must check:
+     * the host extension is present AND the admin has not switched the
+     * bridge off. Equivalent to isDetected() && isAdminEnabled().
+     */
+    final protected function isActive(): bool
+    {
+        return $this->isDetected() && $this->isAdminEnabled();
+    }
+
+    /**
+     * Read a single key from the #__aiboost_settings 'main' blob. The blob is
+     * loaded once per request and cached; missing keys return $default.
+     */
+    final protected function readAiBoostSetting(string $key, mixed $default = null): mixed
+    {
+        if ($this->aiBoostSettings === null) {
+            $this->aiBoostSettings = $this->loadAiBoostSettings();
+        }
+        return $this->aiBoostSettings[$key] ?? $default;
+    }
+
     // ── Internals ───────────────────────────────────────────────────────
+
+    /** @return array<string,mixed> */
+    private function loadAiBoostSettings(): array
+    {
+        try {
+            $db    = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('settings_json'))
+                ->from($db->quoteName('#__aiboost_settings'))
+                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
+            $json = $db->setQuery($query)->loadResult();
+            $data = $json ? json_decode((string) $json, true) : [];
+
+            return is_array($data) ? $data : [];
+        } catch (\Throwable) {
+            return [];
+        }
+    }
 
     private function bootIntegration(): void
     {

@@ -127,7 +127,7 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         if (!$this->libReady()) {
             return;
         }
-        if (!$this->isDetected()) {
+        if (!$this->isActive()) {
             return;
         }
         if (!(int) $this->aiBoostSetting('falang_hreflang_sitemap', $this->params->get('falang_hreflang_sitemap', 1))) {
@@ -195,7 +195,7 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         if (!$this->libReady()) {
             return;
         }
-        if (!$this->isDetected()) {
+        if (!$this->isActive()) {
             return;
         }
 
@@ -209,7 +209,14 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             return;
         }
 
-        if (!(int) $this->params->get('falang_hreflang_enabled', 1)) {
+        // Per-feature head toggle. Canonical source is the manifest-backed
+        // `falang_hreflang_head` setting (the field the admin actually sees);
+        // it falls back to the legacy `falang_hreflang_enabled` plugin param so
+        // sites that disabled head hreflang the old way stay disabled until they
+        // touch the new field. (Before Plan 1 the head gate read ONLY the legacy
+        // param, so the visible `falang_hreflang_head` toggle did nothing.)
+        $legacyDefault = $this->params->get('falang_hreflang_enabled', 1) ? '1' : '0';
+        if ((string) $this->aiBoostSetting('falang_hreflang_head', $legacyDefault) === '0') {
             return;
         }
 
@@ -340,7 +347,13 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             $menu       = $app->getMenu()->getActive();
             $currentUri = Uri::getInstance();
             $baseUrl    = $currentUri->getScheme() . '://' . $currentUri->getHost();
-            $primarySef = trim((string) $this->params->get('falang_primary_language', 'en'));
+            // Canonical source = the manifest-backed setting (same as the sitemap
+            // path), falling back to the legacy plugin param. Keeps x-default in
+            // the head and the sitemap pointing at the same primary language.
+            $primarySef = trim((string) $this->aiBoostSetting(
+                'falang_primary_language',
+                $this->params->get('falang_primary_language', 'en')
+            ));
             $aliasMap   = $this->loadFalangAliasMap();
             [$defaultUrl, $primaryEmitted] = $this->addLanguageHeadLinks(
                 $document,

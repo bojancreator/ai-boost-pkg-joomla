@@ -131,7 +131,25 @@ def main() -> None:
     )
     parser.add_argument("--version", help="Override version for selected add-on(s)")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be built")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Override the deprecation guard (legacy outer-pkg format only)",
+    )
     args = parser.parse_args()
+
+    # DEPRECATED (Plan 1, 2026-06). Integration bridges now ship as individual
+    # plg_system_aiboost_int_* ZIPs built by build-package-zip.py (they are
+    # listed in INTEGRATION_PLUGIN_NAMES there). The old outer "pkg_aiboost_*"
+    # wrapper format this script produces is no longer part of the release
+    # pipeline. Kept behind --force only for one-off legacy rebuilds.
+    if not args.force:
+        sys.exit(
+            "build-addon-zip.py is DEPRECATED.\n"
+            "  Integration bridges are built by build-package-zip.py --target=all\n"
+            "  (see INTEGRATION_PLUGIN_NAMES there). Re-run that instead.\n"
+            "  Pass --force only if you truly need the legacy outer-pkg wrapper."
+        )
 
     addons_to_build = ALL_ADDONS if args.addon == "all" else [args.addon]
 

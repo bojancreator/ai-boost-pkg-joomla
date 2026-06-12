@@ -19,7 +19,8 @@
       "AiBoost\\Plugin\\System\\AiBoostSchema\\": "component/plugins/system/aiboost_schema/src/",
       "AiBoost\\Plugin\\System\\AiBoostSitemap\\": "component/plugins/system/aiboost_sitemap/src/",
       "AiBoost\\Plugin\\System\\AiBoostSocial\\": "component/plugins/system/aiboost_social/src/",
-      "AiBoost\\Plugin\\System\\AiBoostIntFalang\\": "component/plugins/system/aiboost_int_falang/src/"
+      "AiBoost\\Plugin\\System\\AiBoostIntFalang\\": "component/plugins/system/aiboost_int_falang/src/",
+      "AiBoost\\Plugin\\System\\AiBoostIntYootheme\\": "component/plugins/system/aiboost_int_yootheme/src/"
     }
   },
   "autoload-dev": {

@@ -79,7 +79,7 @@ PRO_PLUGIN_NAMES: list[str] = [
 # Task #428 — Integration plugins (closed-source bridges per third-party).
 INTEGRATION_PLUGIN_NAMES: list[str] = [
     "aiboost_int_falang",
-    # "aiboost_int_yootheme",  # follow-up task
+    "aiboost_int_yootheme",
 ]
 
 

@@ -111,16 +111,33 @@ class ConflictDetector
 
     private function checkAdminTools(array &$results): void
     {
-        if (!$this->isEnabled('plugin', 'plg_system_admintools', 'system')) {
+        // Admin Tools and AI Boost only collide over robots.txt, so this is a
+        // conflict ONLY when AI Boost is itself managing robots.txt. When AI
+        // Boost's robots.txt management is off, Admin Tools owning the file is
+        // perfectly fine — stay quiet. (enable_robots defaults to '1'.)
+        if ((string) ($this->settings['enable_robots'] ?? '1') !== '1') {
+            return;
+        }
+
+        // Akeeba Admin Tools ships a system plugin (#__extensions element
+        // 'admintools') and a component ('com_admintools'); the robots.txt
+        // editor lives in the component, so detect either. The previous check
+        // looked for element 'plg_system_admintools', which is the install
+        // directory name, NOT the #__extensions.element value — so it never
+        // matched and the conflict never fired.
+        if (!$this->isEnabled('plugin', 'admintools', 'system')
+            && !$this->isEnabled('component', 'com_admintools', '')) {
             return;
         }
 
         $results[] = $this->makeConflict(
-            'conflict_admintools', 'warning', 'AdminTools (Akeeba)',
-            'AdminTools is installed and manages robots.txt. Disable AdminTools robots.txt management '
-            . 'to prevent conflicts with AI Boost AEO plugin output.',
+            'conflict_admintools', 'warning', 'Admin Tools (Akeeba)',
+            'Admin Tools is installed and can manage robots.txt, and AI Boost is also set to '
+            . 'manage robots.txt. Keep robots.txt editing in one tool only — otherwise whichever '
+            . 'tool writes last wins and overwrites the other.',
             [
-                ['label' => 'Configure AdminTools', 'url' => 'index.php?option=com_plugins&filter[folder]=system&filter[search]=admintools'],
+                ['label' => 'Configure Admin Tools', 'url' => 'index.php?option=com_admintools'],
+                ['label' => 'AI Boost robots.txt settings', 'url' => 'index.php?option=com_aiboost&view=app#/crawlers-robots'],
                 ['label' => 'View conflict guide', 'url' => 'https://aiboostnow.com/docs/conflicts#admintools'],
             ]
         );

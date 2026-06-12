@@ -60,10 +60,10 @@ class IntegrationDetectorService
             'icon'        => 'icon-puzzle',
         ],
         'admintools' => [
-            'name'        => 'Admin Tools Pro',
+            'name'        => 'Admin Tools',
             'vendor'      => 'Akeeba',
             'category'    => 'Security',
-            'description' => 'Security hardening for Joomla. AI Boost detects Admin Tools Pro and avoids conflicts in robots.txt management and redirect rules.',
+            'description' => 'Security hardening for Joomla. Detection only — AI Boost never changes Admin Tools. When both are set to manage robots.txt, AI Boost raises a Health warning so you keep robots.txt editing in one tool.',
             'type'        => 'plugin',
             'element'     => 'admintools',
             'folder'      => 'system',
@@ -167,16 +167,18 @@ class IntegrationDetectorService
      */
     public function detect(): array
     {
-        $result = [];
+        $result     = [];
+        $toggleKeys = $this->masterToggleKeys();
+        $settings   = $this->loadSettings();
 
         // 1. Static catalogue (planned + compatible tiles).
         foreach (self::INTEGRATIONS as $key => $info) {
             $installed = $this->isExtensionEnabled($info['type'], $info['element'], $info['folder']);
-            $result[$key] = array_merge($info, [
+            $result[$key] = $this->withMasterToggle(array_merge($info, [
                 'key'       => $key,
                 'installed' => $installed,
                 'status'    => $this->resolveStatus($info['status_type'], $installed),
-            ]);
+            ]), $key, $toggleKeys, $settings);
         }
 
         // 2. Dynamically-registered bridges via IntegrationRegistry (Task #486).
@@ -192,7 +194,7 @@ class IntegrationDetectorService
                     $legacy['folder']
                 );
                 $statusType = $installed ? 'compatible' : 'addon';
-                $result[$key] = array_merge($legacy, [
+                $result[$key] = $this->withMasterToggle(array_merge($legacy, [
                     'key'         => $key,
                     'installed'   => $installed,
                     'status'      => $this->resolveStatus($statusType, $installed),
@@ -200,13 +202,81 @@ class IntegrationDetectorService
                     'sdk_version' => $descriptor->sdkVersion,
                     'version'     => $descriptor->version,
                     'dynamic'     => true,
-                ]);
+                ]), $key, $toggleKeys, $settings);
             }
         } catch (\Throwable) {
             // Fall back to static catalogue only.
         }
 
         return $result;
+    }
+
+    /**
+     * Integration keys that expose a master on/off switch on the Integrations
+     * page (manifest key `integration_<key>_enabled`). Falang + YOOtheme ship
+     * a static toggle; any registered bridge is toggle-able too.
+     *
+     * @return array<string,bool>
+     */
+    private function masterToggleKeys(): array
+    {
+        $keys = ['falang' => true, 'yootheme' => true];
+        try {
+            foreach (IntegrationRegistry::keys() as $k) {
+                $keys[(string) $k] = true;
+            }
+        } catch (\Throwable) {
+            // Registry unavailable — static set is enough.
+        }
+        return $keys;
+    }
+
+    /**
+     * Annotate a tile with master-switch state. When an integration's host is
+     * detected but the admin switched it OFF, the status becomes 'paused' so
+     * the dashboard can show a distinct "⏸ Paused" badge.
+     *
+     * @param array<string,mixed> $tile
+     * @param array<string,bool>  $toggleKeys
+     * @param array<string,mixed> $settings
+     * @return array<string,mixed>
+     */
+    private function withMasterToggle(array $tile, string $key, array $toggleKeys, array $settings): array
+    {
+        if (empty($toggleKeys[$key])) {
+            $tile['has_master_toggle'] = false;
+            return $tile;
+        }
+
+        $enabled = (string) ($settings['integration_' . $key . '_enabled'] ?? '1') !== '0';
+        $tile['has_master_toggle'] = true;
+        $tile['master_enabled']    = $enabled;
+
+        if (!$enabled && !empty($tile['installed'])) {
+            $tile['status'] = 'paused';
+        }
+
+        return $tile;
+    }
+
+    /**
+     * Load the #__aiboost_settings 'main' blob via the injected connection.
+     *
+     * @return array<string,mixed>
+     */
+    private function loadSettings(): array
+    {
+        try {
+            $query = $this->db->getQuery(true)
+                ->select($this->db->quoteName('settings_json'))
+                ->from($this->db->quoteName('#__aiboost_settings'))
+                ->where($this->db->quoteName('setting_key') . '=' . $this->db->quote('main'));
+            $json = $this->db->setQuery($query)->loadResult();
+            $data = $json ? json_decode((string) $json, true) : [];
+            return is_array($data) ? $data : [];
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ return array(
     'AiBoost\\Plugin\\System\\AiBoostSocial\\' => array($baseDir . '/component/plugins/system/aiboost_social/src'),
     'AiBoost\\Plugin\\System\\AiBoostSitemap\\' => array($baseDir . '/component/plugins/system/aiboost_sitemap/src'),
     'AiBoost\\Plugin\\System\\AiBoostSchema\\' => array($baseDir . '/component/plugins/system/aiboost_schema/src'),
+    'AiBoost\\Plugin\\System\\AiBoostIntYootheme\\' => array($baseDir . '/component/plugins/system/aiboost_int_yootheme/src'),
     'AiBoost\\Plugin\\System\\AiBoostIntFalang\\' => array($baseDir . '/component/plugins/system/aiboost_int_falang/src'),
     'AiBoost\\Plugin\\System\\AiBoostAeo\\' => array($baseDir . '/component/plugins/system/aiboost_aeo/src'),
     'AiBoost\\Plugin\\System\\AiBoostAeoPro\\' => array($baseDir . '/component/plugins/system/aiboost_aeo_pro/src'),

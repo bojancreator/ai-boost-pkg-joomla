@@ -104,6 +104,21 @@ class SettingsController extends BaseController
                 }
             }
 
+            // Integration master switches (`integration_<key>_enabled`) are
+            // owned by the Integrations page via IntegrationsController::saveToggle,
+            // not by this form, so they are never posted here. Carry forward any
+            // that already exist in the stored blob — otherwise this full-blob
+            // rewrite would silently turn every integration back on. Pattern-based
+            // so future bridges need no change here.
+            foreach ($existingForMerge as $exKey => $exVal) {
+                if (!array_key_exists($exKey, $settings)
+                    && is_string($exKey)
+                    && str_starts_with($exKey, 'integration_')
+                    && str_ends_with($exKey, '_enabled')) {
+                    $settings[$exKey] = $exVal;
+                }
+            }
+
             // Legacy compatibility: keep historical license state available to
             // old integrations without using it to strip manifest-backed saves.
             $isProForSave = $this->isProSetting($existingForMerge);
@@ -612,8 +627,11 @@ class SettingsController extends BaseController
                 return;
             }
 
-            // Strict whitelist — only our own add-on plugins
-            $allowedPlugins = ['aiboost_yootheme', 'aiboost_falang'];
+            // Strict whitelist — only our own add-on plugins.
+            // Plan 1 (2026-06): the SDK YOOtheme bridge (aiboost_int_yootheme)
+            // stores its settings in the AI Boost blob via onAiBoostRegisterFields,
+            // not in plugin params, so the legacy 'aiboost_yootheme' element is gone.
+            $allowedPlugins = ['aiboost_falang'];
 
             foreach ($allAddonParams as $pluginElement => $params) {
                 if (!in_array($pluginElement, $allowedPlugins, true)) {

@@ -61,6 +61,7 @@ class HealthCheckService
 
         // ── Task #486 — Integration SDK (Open Integration Architecture) ──
         'info_integration_bridges_installed'   => 'Integrations',
+        'info_integration_master_toggle'       => 'Integrations',
         'warning_bridge_sdk_mismatch'          => 'Integrations',
         'warning_bridge_slot_collision'        => 'Integrations',
 
@@ -224,6 +225,7 @@ class HealthCheckService
             $this->infoIntegrationDetectedNoBridge('falang'),
             $this->infoIntegrationDetectedNoBridge('yootheme'),
             $this->infoIntegrationBridgesInstalled(),
+            $this->infoIntegrationMasterToggle(),
             $this->warningBridgeSdkMismatch(),
             $this->warningBridgeSlotCollision(),
             $this->warningThirdPartyOgConflict(),
@@ -3156,6 +3158,56 @@ class HealthCheckService
             $message,
             $this->appUrl('integrations'),
             [['label' => 'Open Integrations tab', 'url' => $this->appUrl('integrations'), 'target_tab' => 'integrations', 'target_field' => '']],
+            []
+        );
+    }
+
+    /**
+     * Surface integrations whose host is installed but that the admin has
+     * switched OFF on the Integrations page (status 'paused'). Being off is a
+     * valid choice, so this is informational and only shown when something is
+     * actually paused — it stops a user wondering why a detected integration
+     * produces no output.
+     */
+    private function infoIntegrationMasterToggle(): array
+    {
+        $paused = [];
+        try {
+            if (class_exists(\AiBoost\Lib\IntegrationDetectorService::class)) {
+                foreach ((new \AiBoost\Lib\IntegrationDetectorService($this->db))->detect() as $tile) {
+                    if (($tile['status'] ?? '') === 'paused') {
+                        $paused[] = (string) ($tile['name'] ?? $tile['key'] ?? '');
+                    }
+                }
+            }
+        } catch (\Throwable) { /* silent */ }
+
+        $pass = $paused === [];
+        if ($pass) {
+            $message = 'All detected integrations are switched on.';
+        } elseif (count($paused) === 1) {
+            $message = sprintf(
+                '%s is switched off on the Integrations page, so AI Boost is not adding its '
+                . 'enhancements for it. Turn it back on if that was not intended.',
+                $paused[0]
+            );
+        } else {
+            $message = sprintf(
+                '%s are switched off on the Integrations page, so AI Boost is not adding their '
+                . 'enhancements. Turn them back on if that was not intended.',
+                implode(', ', $paused)
+            );
+        }
+
+        return $this->make(
+            'info_integration_master_toggle',
+            'info',
+            'Integration switches',
+            true,
+            !$pass,
+            $message,
+            $this->appUrl('integrations'),
+            [['label' => 'Open Integrations page', 'url' => $this->appUrl('integrations'), 'target_tab' => 'integrations', 'target_field' => '']],
             []
         );
     }

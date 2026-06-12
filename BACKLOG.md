@@ -20,8 +20,6 @@ Product strategy and release sequence for v0.5: `docs/v0.5-product-direction.md`
 
 - **Alias Assistant** — suggest and fix article aliases, with automatic 301
   redirects when an alias changes. *(post-v0.5)*
-- **YOOtheme Pro integration** — bridge AI Boost into YOOtheme-built sites so they
-  also get the schema / OG / AEO output. *(post-v0.5)*
 - **Warn the admin when custom code is unusually large** — flag injected code that
   could slow the site down. *(post-v0.5)*
 - **Preview injected custom code before saving it** — let admins see what will be
@@ -226,6 +224,14 @@ Product strategy and release sequence for v0.5: `docs/v0.5-product-direction.md`
 ## Health scan polish
 
 (improvements to the Health registry / scanner)
+
+- **Conflict checks use the wrong element name for 4SEO / Sh404SEF / JoomSEF** —
+  `ConflictDetector::check4Seo/checkSh404Sef/checkJoomSef` look up
+  `#__extensions.element` values like `plg_system_4seo` / `plg_system_sh404sef` /
+  `plg_system_joomsef`, but the column stores the bare element (`4seo`,
+  `sh404sef`, `joomsef`), so those checks never fire. (The identical Admin Tools
+  bug was fixed in Plan 1 / v0.74.0 — `admintools` + `com_admintools`.) Fix the
+  three remaining checks the same way and add unit coverage. Low risk, isolated.
 
 ## Documentation / skill
 

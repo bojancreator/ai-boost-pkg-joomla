@@ -58,6 +58,7 @@ final class ConflictManager
     public const SLOT_HREFLANG      = 'hreflang';
     public const SLOT_OG_TAGS       = 'og_tags';
     public const SLOT_SCHEMA_ORG    = 'schema_org';
+    public const SLOT_SCHEMA_FAQ    = 'schema_faq';
     public const SLOT_SITEMAP       = 'sitemap';
     public const SLOT_SITEMAP_XML   = 'sitemap_xml';
     public const SLOT_LLMS_TXT      = 'llms_txt';
@@ -76,6 +77,7 @@ final class ConflictManager
         self::SLOT_HREFLANG,
         self::SLOT_OG_TAGS,
         self::SLOT_SCHEMA_ORG,
+        self::SLOT_SCHEMA_FAQ,
         self::SLOT_SITEMAP,
         self::SLOT_SITEMAP_XML,
         self::SLOT_LLMS_TXT,

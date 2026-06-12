@@ -12,6 +12,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Session\Session;
 
 HTMLHelper::_('stylesheet', 'com_aiboost/ab-tokens.css',     ['relative' => true, 'version' => 'auto']);
 HTMLHelper::_('stylesheet', 'com_aiboost/ab-components.css', ['relative' => true, 'version' => 'auto']);
@@ -73,6 +74,10 @@ $integrationsJson = json_encode(array_values($this->integrations), JSON_UNESCAPE
   </ul>
   <script>
     window.aiBoostIntegrations = <?php echo $integrationsJson; ?>;
+    // CSRF token for the integration master-toggle endpoint. The SPA shell
+    // (view=app) carries this in window.aiBoostBootstrap; this legacy thin
+    // shell has no bootstrap, so expose it the same way urlchecker does.
+    window.aiBoostToken = <?php echo json_encode(Session::getFormToken()); ?>;
   </script>
 
   <!-- Vue mounts here -->

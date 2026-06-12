@@ -18,10 +18,10 @@ Ostali dokumenti:
 |---|---|
 | **Repo** | `bojancreator/ai-boost-pkg-joomla` |
 | **Branch** | `v0.5-simple-autopilot` |
-| **Code version** | `0.73.47` (2026-06-12) |
-| **v0.5 milestone phase** | **Release hardening** — Faza A (blokeri) i Faza B (sadržaj za kupce) shipped; preostaje Faza C (LS proizvodi + real-key QA + 1.0.0 release) |
-| **Last completed step** | Faza B (v0.73.47): docs/ sweep (17 fajlova, 9 izmišljenih funkcija uklonjeno), Pro manifest „Pro Upgrade"+GPL, statički update kanal (XML generator + `<updateservers>` + runbook), iskrena Licenses copy, Dashboard Danger Zone istina + first-run→Autopilot, Health fix-linkovi popravljeni, brand-guard CI ✅ |
-| **Active slice** | Faza C — release infra (BOJAN: 3 LS proizvoda → `EXPECTED_STORE_ID` → real-key end-to-end QA = tvrdi gate; CI minimum; verzija → 1.0.0); plan: `C:\Users\User\.claude\plans\proud-crunching-rain.md` |
+| **Code version** | `0.74.0` (2026-06-12) |
+| **v0.5 milestone phase** | **Pre-release plans** — Plan 1 (Integracije) shipped; preostaju Plan 2 (UI/UX), Plan 3 (totalna verifikacija), pa Faza C (LS + real-key QA + 1.0.0) |
+| **Last completed step** | **Plan 1 (v0.74.0): Integracije** — master toggle (`integration_<key>_enabled`) u Integrations UI sa optimistic update/rollback + `paused` status; `AbstractIntegrationPlugin::isActive()`; Falang runtime gate na isActive(); Manifest lock grana `integration_off`; `IntegrationsController::saveToggle`; Admin Tools conflict fix (`admintools`+`com_admintools`, gated na enable_robots); **YOOtheme bridge SDK migracija** (`aiboost_int_yootheme`: filter-in-finalize FAQ/gallery schema, `hasPro('int_yootheme')` umesto mrtvog `license_tier`, `SLOT_SCHEMA_FAQ`, script.php migracija); novi `info_integration_master_toggle` health check; `docs/integrations.md` |
+| **Active slice** | **Plan 2 (Sonnet) — UI/UX:** screenshot audit obe teme → izveštaj → Bojan bira → implementacija. Potom Plan 3, pa Faza C. Plan: `C:\Users\User\.claude\plans\proud-crunching-rain.md` |
 
 > **Napomena (2026-06-08):** Originalni Phase Board (koraci 5–10 IA prerada) je
 > bio materijalno netačan — označavao je „Not Started" za stranice koje **već
@@ -141,7 +141,9 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 | Date | Command / Action | Result |
 |------|-----------------|--------|
-| 2026-06-12 | Faza B (3 paralelna agenta + adversarial docs review) → `vendor/bin/phpunit` + `composer test` | ✅ 311/311 (5.566 asercija; +5 novih Health fix-action testova) + 3/3 standalone; brand grep docs/+component/ = 0 pogodaka |
+| 2026-06-12 | **Plan 1 (v0.74.0)** — `vendor/bin/phpunit` + `composer test` + `pnpm build` + `build-package-zip.py --target all` | ✅ **327/327 PHPUnit** (5.677 asercija; +16: ConflictDetectorAdminTools, YoothemeBridgeParity, MasterToggle) + 3/3 standalone + Vue build čist; lockstep Free/Pro 0.74.0 + **Pro-leakage STRICT pass**; novi `plg_system_aiboost_int_yootheme-0.74.0.zip` (11 KB) gradi se |
+| 2026-06-12 | **Plan 1 staging** — install base+pro+int_falang+int_yootheme na staging i offroadbalkans → `test-all-settings.js` oba | ✅ Sve instalacije OK; **E2E 25/25 na OBA sajta**; front-end: AI Boost blok emituje čist (bez fatala) |
+| 2026-06-12 | **Plan 1 DoD live** — toggle round-trip (`_verify_toggle.py`) na Pro stagingu + YOOtheme Pro-gate na Free | ✅ YOOtheme toggle OFF→`paused`+`master_enabled=false` **persistira** posle re-fetch-a, ON→`support_active` vraćeno; na Free (offroadbalkans, YOOtheme template + int_yootheme instaliran) **FAQPage=0 / ImageGallery=0** → Pro-gate dokazan |
 | 2026-06-12 | Build 0.73.47 `--target all` + install staging (base+pro) + offroadbalkans + `test-all-settings.js` | ✅ Lockstep + Pro-leakage STRICT; instalacije uspešne; E2E **25/25 na OBA sajta** |
 | 2026-06-11 | Full-repo audit (ultracode workflow: 9 dimenzija × 50 agenata, svaki critical/high nalaz adversarialno verifikovan; K1 i ručno potvrđen u kodu) | ✅ Izveštaj u plan fajlu `proud-crunching-rain.md` — 2 kritična (K1 save-wipe licence, K2 LS bez store pinninga), ~15 visokih, faze A–D definisane |
 | 2026-06-11 | Faza A implementacija (5 paralelnih agenata + adversarial review po grupi + fix runda) → `vendor/bin/phpunit` | ✅ 306/306 testova, 5.513 asercija; `composer test` 3/3; Vue node testovi 7/7; `pnpm build` čist; bundle grep potvrdio ScopeSelector markup u prod artefaktu |
@@ -167,8 +169,13 @@ Done when:  Free i Pro ZIP iste verzije, bez test/dead artefakata; clean-uninsta
 
 ## Next Handoff
 
-Master plan do prodaje: faze A–D u `C:\Users\User\.claude\plans\proud-crunching-rain.md` (audit 2026-06-11).
-**Faze A i B su gotove.** Sledeći korak je **Faza C — release infrastruktura**:
+Master plan v2 (3 plana pre Faze C) u `C:\Users\User\.claude\plans\proud-crunching-rain.md`.
+**Plan 1 (Integracije, v0.74.0) je gotov i verifikovan na stagingu.** Sledeći korak je
+**Plan 2 (Sonnet) — UI/UX audit**: screenshot obe teme (svetla/tamna) za sve SPA stranice
+→ izveštaj sa P1/P2/P3 nalazima → Bojan bira → implementacija. Potom **Plan 3 (Opus)** —
+verify-frontend-emission harness + native-ML testmyweb sajt (tu se rade i Plan-1 stavke koje
+ovaj staging ne pokriva: Falang OFF hreflang u head/sitemap, admintools live-fire, YOOtheme
+Pro-EMIT sa pravim ključem). Tek posle sva tri plana → **Faza C — release infrastruktura**:
 
 1. **BOJAN (othotkey, ~1h):** napravi 3 Lemon Squeezy proizvoda (license keys ON; activation limits 3/10/unlimited; €65/€120/€180) → javi store ID.
 2. **`EXPECTED_STORE_ID`** upisati u `LicenseValidator.php` (1 linija + test) — bez toga aktivacija odbija sve ključeve.
