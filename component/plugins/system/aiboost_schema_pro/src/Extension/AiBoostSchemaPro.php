@@ -88,7 +88,14 @@ class AiBoostSchemaPro extends CMSPlugin
             $ctx          = new JoomlaAppContext();
             $db           = Factory::getDbo();
             $defaultLang  = (string) Factory::getApplication()->get('language', 'en-GB');
-            $translations = new TranslationService($db, $defaultLang);
+            // D3 (Multilang Pro): translated Schema is an overlay gated on the
+            // Multilang licence, layered on top of the 'schema' bundle Pro. Only
+            // construct the TranslationService when Multilang is active;
+            // SchemaProBuilder null-guards every translation site, so bundle-only
+            // owners keep all non-translation Pro blocks (FAQ/Event/Org/…).
+            $translations = PluginRegistry::hasPro('int_falang')
+                ? new TranslationService($db, $defaultLang)
+                : null;
             $builder      = new SchemaProBuilder($settings, $ctx, $db, $translations);
             $decorated    = $builder->decorateAll($blocks);
         } catch (\Throwable $e) {

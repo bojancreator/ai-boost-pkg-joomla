@@ -53,7 +53,9 @@ class OgTagProDecorator
     public function __construct(
         private readonly AppContextInterface $ctx,
         private readonly DatabaseInterface $db,
-        private readonly TranslationService $translations,
+        // Nullable (D3): when Multilang Pro is not active the decorator still
+        // runs on the 'og' bundle Pro, just without per-language overlays.
+        private readonly ?TranslationService $translations = null,
     ) {}
 
     /**
@@ -80,12 +82,12 @@ class OgTagProDecorator
         if ($siteNameBase === '') {
             $siteNameBase = $this->ctx->getSiteName();
         }
-        $siteNameTr = $this->translations->get('site_name', $lc, $siteNameBase);
+        $siteNameTr = $this->translations?->get('site_name', $lc, $siteNameBase) ?? $siteNameBase;
         if ($siteNameTr !== '') {
             $og['og:site_name'] = $siteNameTr;
         }
 
-        $descOverrideTr = $this->translations->get('og_description_override', $lc, '');
+        $descOverrideTr = $this->translations?->get('og_description_override', $lc, '') ?? '';
         if ($descOverrideTr !== '') {
             $og['og:description'] = $descOverrideTr;
             $tw['twitter:description'] = $descOverrideTr;
@@ -95,7 +97,7 @@ class OgTagProDecorator
             (string) ($settings['default_og_image'] ?? $settings['og_default_image'] ?? '')
         );
         $imgTr = OgTagBuilder::normaliseImagePath(
-            $this->translations->get('default_og_image', $lc, $imgBase)
+            $this->translations?->get('default_og_image', $lc, $imgBase) ?? $imgBase
         );
         if ($imgTr !== '' && $imgTr !== $imgBase) {
             $abs = $this->absoluteUrl($imgTr);

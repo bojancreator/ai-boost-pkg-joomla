@@ -126,8 +126,8 @@ const TOGGLE_URL = 'index.php?option=com_aiboost&task=integrations.saveToggle'
 // sync with docs/integrations.md.
 const INTEGRATION_COPY = {
   falang: {
-    does: 'Adds Falang-aware hreflang link tags to the page head, translates Schema.org and OpenGraph per language, and lists translated URLs as hreflang alternates in the XML sitemap.',
-    off:  'AI Boost stops adding Falang hreflang, translated schema and translated OpenGraph. Your Falang translations and every AI Boost setting are kept — only this extra output pauses, and a normal Settings save will not erase them.',
+    does: 'Multilang Pro — adds hreflang link tags to the page head, translates Schema.org and OpenGraph per language, and lists translated URLs as hreflang alternates in the XML sitemap. Works with native Joomla language associations and Falang.',
+    off:  'AI Boost stops adding hreflang, translated Schema.org and translated OpenGraph. Your translations and every AI Boost setting are kept — only this extra output pauses, and a normal Settings save will not erase them.',
   },
   yootheme: {
     does: 'Reads YOOtheme Pro page content to build FAQ and image-gallery Schema.org, and uses the YOOtheme page title and description for per-page meta and OpenGraph.',

@@ -95,7 +95,13 @@ class AiBoostSocialPro extends CMSPlugin
             $ctx          = new JoomlaAppContext();
             $db           = Factory::getDbo();
             $defaultLang  = (string) Factory::getApplication()->get('language', 'en-GB');
-            $translations = new TranslationService($db, $defaultLang);
+            // D3 (Multilang Pro): translated OG is an overlay gated on the
+            // Multilang licence. Without it the decorator runs on the 'og' bundle
+            // Pro with no per-language overlay (og:type/og:locale/per-article all
+            // still emit — see OgTagProDecorator null-guards).
+            $translations = PluginRegistry::hasPro('int_falang')
+                ? new TranslationService($db, $defaultLang)
+                : null;
             $decorator    = new OgTagProDecorator($ctx, $db, $translations);
             $decorated    = $decorator->decorate($props, $settings);
         } catch (\Throwable $e) {

@@ -92,6 +92,10 @@ INTEGRATION_PLUGIN_NAMES: list[str] = [
 # The Pro ZIP is delivered via LS and is NEVER bundled into the Free base.
 INTEGRATIONS_WITH_PRO: list[str] = [
     "aiboost_int_yootheme",
+    # Plan 2a Workstream C — "Multilang" is pure Pro (no free floor). The free
+    # ZIP is a stripped discovery shell (emits nothing); the _pro ZIP is the
+    # Lemon Squeezy "AI Boost — Multilang" product that upgrades it in place.
+    "aiboost_int_falang",
 ]
 
 

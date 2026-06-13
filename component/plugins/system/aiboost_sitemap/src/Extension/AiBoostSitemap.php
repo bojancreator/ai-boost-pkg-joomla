@@ -367,7 +367,13 @@ class AiBoostSitemap extends CMSPlugin
     private function buildUrlset(array $entries, bool $isPro, array $settings): string
     {
         $withImages   = $isPro && (int)($settings['enable_image_sitemap'] ?? 0);
-        $withHreflang = $isPro && (int)($settings['enable_hreflang'] ?? 0);
+        // D1 (Multilang Pro): ALL sitemap hreflang — native #__associations AND
+        // Falang — moves behind the Multilang licence. Both HreflangSitemapExtension
+        // strategies are built only when $withHreflang is true, so this single
+        // gate re-tiers every sitemap alternate to int_falang.
+        $withHreflang = $isPro
+            && (int) ($settings['enable_hreflang'] ?? 0)
+            && \AiBoost\Lib\PluginRegistry::hasPro('int_falang');
 
         $ns = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"';
         if ($withImages) {

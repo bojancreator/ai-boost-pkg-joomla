@@ -1,24 +1,33 @@
 <?php
 /**
- * AI Boost — Falang Integration Plugin
+ * AI Boost — Multilang Integration Plugin (single plugin, pure Pro)
  *
- * Reference implementation of an AI Boost integration plugin, refactored
- * on top of the public Integration SDK (Task #486):
+ * ONE plugin element for the whole multilingual integration (Plan 2a Workstream
+ * C, single-plugin model). "Multilang" is a PURE Pro add-on — there is no free
+ * floor. The element ships in two builds of the SAME plugin:
  *
- *   1. Extends AbstractIntegrationPlugin so the lib autoloader, BridgeDetector
- *      check, and onAiBoostRegisterIntegration handler are inherited.
- *   2. describe() returns the canonical IntegrationDescriptor — the same
- *      shape every third-party bridge will ship.
- *   3. Contributes settings fields via onAiBoostRegisterFields (unchanged
- *      contract from 0.39.0; byte-identical field list).
- *   4. Bridges AI Boost runtime services with Falang via the existing
- *      BridgeDetector::register* APIs (unchanged behaviour).
+ *   - FREE (Pro-stripped): a discovery/upsell SHELL only. It contributes the
+ *     descriptor tile, the Integrations master toggle, and registers its six
+ *     settings keys (so a plain Settings save never drops them) — but every
+ *     runtime emission method is stripped, so it emits NOTHING.
+ *   - PRO (the "AI Boost — Multilang" Lemon Squeezy product, full/unstripped):
+ *     installing it UPGRADES this plugin in place (same id / settings / enabled
+ *     state). All hreflang + per-language data registration runs, gated on an
+ *     active Multilang licence.
  *
- * Coexistence rule: this plugin only ACTIVATES bridging when Falang is
- * present AND the integration plugin itself is enabled in Joomla. If
- * Falang exists on the site without this plugin, AI Boost runs in
- * "compatible mode" and simply does not add Falang-specific output —
- * NEVER modifies Falang tables or overrides Falang translations.
+ * Scope: this element owns the HEAD hreflang tags + the Falang sitemap-language
+ * registration, gated on isActive() (Falang host detected + master toggle) AND
+ * an active Multilang licence. Native-Joomla-multilingual sites get their
+ * hreflang from the XML sitemap (aiboost_sitemap reads native #__associations),
+ * re-tiered onto the Multilang licence separately. Translated Schema.org /
+ * OpenGraph live in the
+ * core schema_pro / social_pro decorators and are gated there on the same
+ * Multilang licence (see those plugins).
+ *
+ * Anti-piracy: every Pro-only section is fenced with the build's Pro-strip
+ * markers, so the Free distribution ZIP physically lacks the emission code
+ * (verified by verify-no-pro-leakage STRICT). Field registration stays OUTSIDE
+ * the fence so Save keeps the keys in both builds.
  *
  * @package     AiBoost\Plugin\System\AiBoostIntFalang
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
@@ -29,14 +38,18 @@ namespace AiBoost\Plugin\System\AiBoostIntFalang\Extension;
 
 defined('_JEXEC') or die;
 
-use AiBoost\Lib\BridgeDetector;
 use AiBoost\Lib\ConflictManager;
 use AiBoost\Lib\Integration\AbstractIntegrationPlugin;
 use AiBoost\Lib\Integration\IntegrationDescriptor;
 use AiBoost\Lib\Integration\Sdk;
+// @pro:start
+use AiBoost\Lib\BridgeDetector;
+use AiBoost\Lib\HeadBlockBuilder;
+use AiBoost\Lib\PluginRegistry;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
+// @pro:end
 
 class AiBoostIntFalang extends AbstractIntegrationPlugin
 {
@@ -50,17 +63,17 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         return new IntegrationDescriptor(
             key:            'falang',
             pluginElement:  'aiboost_int_falang',
-            label:          'Falang Pro',
+            label:          'Multilang',
             vendor:         'Falang',
             category:       'Multilingual',
-            description:    'Multilingual content management for Joomla. AI Boost integrates Schema.org, OG meta, and sitemap hreflang for all Falang-translated content.',
+            description:    'Per-language hreflang, Schema.org and OpenGraph for multilingual Joomla sites — native Joomla language associations and Falang. Multilang Pro: no multilingual output without an active licence.',
             hostType:       'component',
             hostElement:    'com_falang',
             sdkVersion:     Sdk::SDK_VERSION,
             minCoreVersion: '0.58.0',
-            version:        '0.58.0',
+            version:        '0.76.0',
             learnUrl:       'https://www.falang.net/',
-            addonUrl:       'https://aiboostnow.com/integrations/falang',
+            addonUrl:       'https://aiboostnow.com/integrations/multilang',
             icon:           'icon-language',
             claimsSlots:    [
                 ConflictManager::SLOT_HREFLANG,
@@ -70,6 +83,14 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
 
     // ── onAiBoostRegisterFields (manifest contributions) ───────────────────
 
+    /**
+     * Field registration runs regardless of licence/host state so a plain
+     * Settings save never drops these keys (the save whitelist is built from a
+     * LIVE dispatch of this method). All six fields are tier='pro',
+     * sku='int_falang' — Multilang is pure Pro — so Manifest\Registry locks them
+     * in the UI (lock_reason 'integration_pro:falang') until the Multilang
+     * licence is active. This method MUST stay OUTSIDE the Pro-strip fence.
+     */
     public function onAiBoostRegisterFields(): array
     {
         if (!$this->libReady()) {
@@ -77,10 +98,10 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         }
 
         return [
-            $this->manifestField('falang_hreflang_head', 'social', 'hreflang', 'Falang: hreflang in <head>', 'toggle', '1', [
-                'description' => 'Generate <link rel="alternate" hreflang> tags from Falang language list.',
+            $this->manifestField('falang_hreflang_head', 'social', 'hreflang', 'Multilang: hreflang in <head>', 'toggle', '1', [
+                'description' => 'Generate <link rel="alternate" hreflang> tags from the published language list.',
             ]),
-            $this->manifestField('falang_hreflang_sitemap', 'sitemap', 'hreflang', 'Falang: hreflang in sitemap'),
+            $this->manifestField('falang_hreflang_sitemap', 'sitemap', 'hreflang', 'Multilang: hreflang in sitemap'),
             $this->manifestField('falang_hreflang_mode', 'sitemap', 'hreflang', 'Hreflang source mode', 'select', 'auto', [
                 'options'     => [
                     'auto'          => 'Auto: Joomla native first, Falang fallback',
@@ -89,15 +110,21 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
                 ],
                 'description' => 'Choose how sitemap hreflang alternates are sourced when Joomla multilingual associations and Falang are both present.',
             ]),
-            $this->manifestField('falang_schema_translate', 'schema', 'translation', 'Falang: translate Schema.org per language'),
-            $this->manifestField('falang_og_translate', 'social', 'og', 'Falang: translate OpenGraph per language'),
-            $this->manifestField('falang_primary_language', 'general', 'multilingual', 'Falang: primary language SEF', 'text', 'en', [
-                'description' => 'SEF code used as x-default in sitemap hreflang alternates.',
+            $this->manifestField('falang_schema_translate', 'schema', 'translation', 'Multilang: translate Schema.org per language'),
+            $this->manifestField('falang_og_translate', 'social', 'og', 'Multilang: translate OpenGraph per language'),
+            $this->manifestField('falang_primary_language', 'general', 'multilingual', 'Multilang: primary language SEF', 'text', 'en', [
+                'description' => 'SEF code used as x-default in hreflang alternates.',
             ]),
         ];
     }
 
-    /** @param array<string,mixed> $extra */
+    /**
+     * Multilang is pure Pro, so every field defaults to tier='pro',
+     * sku='int_falang'. The signature still accepts overrides for symmetry with
+     * the other integrations.
+     *
+     * @param array<string,mixed> $extra
+     */
     private function manifestField(
         string $key,
         string $tab,
@@ -105,7 +132,9 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         string $label,
         string $type = 'toggle',
         string $default = '1',
-        array $extra = []
+        array $extra = [],
+        string $tier = 'pro',
+        string $sku = 'int_falang'
     ): array {
         return array_merge([
             'key'         => $key,
@@ -114,20 +143,71 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             'label'       => $label,
             'type'        => $type,
             'default'     => $default,
-            'tier'        => 'free',
-            'sku'         => 'core',
+            'tier'        => $tier,
+            'sku'         => $sku,
             'integration' => 'falang',
         ], $extra);
+    }
+
+    /**
+     * Whether the shared AiBoost\Lib library is fully loadable.
+     *
+     * This class can only be defined when AbstractIntegrationPlugin resolved,
+     * but a partial base-package uninstall can leave lib/autoload.php (and a
+     * few lib files) on disk while others — BridgeDetector, ConflictManager —
+     * are gone, and the first reference then fatals on every page. Probing
+     * two core lib classes detects that state so every event handler can
+     * no-op instead. This is a tripwire, not an exhaustive integrity check.
+     * The try/catch matters: under JDEBUG Joomla's debug class loader THROWS
+     * on a missing class file instead of returning false. Used by
+     * onAiBoostRegisterFields, so it stays OUTSIDE the Pro-strip fence.
+     */
+    private function libReady(): bool
+    {
+        if ($this->libReady !== null) {
+            return $this->libReady;
+        }
+        try {
+            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
+                && class_exists('AiBoost\\Lib\\Logger');
+        } catch (\Throwable $e) {
+            $this->libReady = false;
+        }
+        return $this->libReady;
+    }
+
+    // @pro:start
+    // ── Runtime gate (PRO) ─────────────────────────────────────────────────
+
+    /**
+     * The single runtime gate for all Multilang HEAD emission: the integration
+     * is active (Falang host detected AND the admin master toggle is on, via
+     * isActive()) PLUS an active Multilang licence (hasPro('int_falang'),
+     * independent of the core bundle — per-integration licensing). Mirrors the
+     * YOOtheme proOn() pattern; the whole method is stripped from the Free build.
+     *
+     * NOTE: native-Joomla-multilingual sites (no Falang) get hreflang from the
+     * XML sitemap — aiboost_sitemap's HreflangSitemapExtension reads native
+     * #__associations and is re-tiered onto hasPro('int_falang') separately (not
+     * host-gated). This bridge's HEAD hreflang stays Falang-sourced.
+     */
+    private function proOn(): bool
+    {
+        if (!$this->libReady() || !$this->isActive()) {
+            return false;
+        }
+        try {
+            return PluginRegistry::hasPro('int_falang');
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     // ── Bridge: register translation data with BridgeDetector ──────────────
 
     public function onAiBoostBeforeSitemapBuild(): void
     {
-        if (!$this->libReady()) {
-            return;
-        }
-        if (!$this->isActive()) {
+        if (!$this->proOn()) {
             return;
         }
         if (!(int) $this->aiBoostSetting('falang_hreflang_sitemap', $this->params->get('falang_hreflang_sitemap', 1))) {
@@ -192,10 +272,7 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
 
     public function onBeforeCompileHead(): void
     {
-        if (!$this->libReady()) {
-            return;
-        }
-        if (!$this->isActive()) {
+        if (!$this->proOn()) {
             return;
         }
 
@@ -213,13 +290,13 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         // `falang_hreflang_head` setting (the field the admin actually sees);
         // it falls back to the legacy `falang_hreflang_enabled` plugin param so
         // sites that disabled head hreflang the old way stay disabled until they
-        // touch the new field. (Before Plan 1 the head gate read ONLY the legacy
-        // param, so the visible `falang_hreflang_head` toggle did nothing.)
+        // touch the new field.
         $legacyDefault = $this->params->get('falang_hreflang_enabled', 1) ? '1' : '0';
         if ((string) $this->aiBoostSetting('falang_hreflang_head', $legacyDefault) === '0') {
             return;
         }
 
+        // Multilingual precondition — hreflang is meaningless with one language.
         $languages = $this->getLanguages();
         if (count($languages) < 2) {
             return;
@@ -229,32 +306,6 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
-
-    /**
-     * Whether the shared AiBoost\Lib library is fully loadable.
-     *
-     * This class can only be defined when AbstractIntegrationPlugin resolved,
-     * but a partial base-package uninstall can leave lib/autoload.php (and a
-     * few lib files) on disk while others — BridgeDetector, ConflictManager —
-     * are gone, and the first reference then fatals on every page. Probing
-     * two core lib classes detects that state so every event handler can
-     * no-op instead. This is a tripwire, not an exhaustive integrity check.
-     * The try/catch matters: under JDEBUG Joomla's debug class loader THROWS
-     * on a missing class file instead of returning false.
-     */
-    private function libReady(): bool
-    {
-        if ($this->libReady !== null) {
-            return $this->libReady;
-        }
-        try {
-            $this->libReady = class_exists('AiBoost\\Lib\\PluginRegistry')
-                && class_exists('AiBoost\\Lib\\Logger');
-        } catch (\Throwable $e) {
-            $this->libReady = false;
-        }
-        return $this->libReady;
-    }
 
     /** @return array<int, array<string,string>> */
     private function getLanguages(): array
@@ -287,6 +338,8 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
      * Build [orig_alias => [sef => translated_alias]] from #__falang_content
      * for menu, articles, and categories. Falang Pro schema:
      *   reference_table, reference_field='alias', reference_id, language_id, value
+     * Returns an empty map when Falang is absent (native-only sites) — the head
+     * links then fall back to native routing.
      *
      * @return array<string, array<string,string>>
      */
@@ -294,9 +347,9 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     {
         $map = [];
 
-        // Falang misconfiguration / partial install: the translation table may
-        // be absent. Bail out cleanly instead of letting a failed query surface
-        // a DB warning into the sitemap output.
+        // Falang misconfiguration / absent (native-only site): the translation
+        // table may not exist. Bail out cleanly instead of letting a failed
+        // query surface a DB warning into the head/sitemap output.
         if (class_exists(BridgeDetector::class) && !BridgeDetector::tableExists('#__falang_content')) {
             return $map;
         }
@@ -370,6 +423,13 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
                 $document->addHeadLink($primaryUrl, 'alternate', 'rel', ['hreflang' => $this->primaryHreflang($primarySef, $languages)]);
             }
             $this->addCustomHreflangLink($document, 'x-default', $primaryUrl);
+
+            // Front-end discipline: hreflang alternates are emitted via Joomla's
+            // native head stream (addHeadLink), so register the slot as natively
+            // owned in the consolidated header so no other plugin double-emits.
+            if (class_exists(HeadBlockBuilder::class)) {
+                HeadBlockBuilder::noteNative('hreflang');
+            }
         } catch (\Throwable) { /* graceful degradation */ }
     }
 
@@ -410,17 +470,14 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         return [$defaultUrl, $primaryEmitted];
     }
 
+    /**
+     * Emit a single hreflang alternate via Joomla's native head stream.
+     * Front-end discipline: NEVER addCustomTag() for head content — use
+     * addHeadLink so the tag flows through the sanctioned channel.
+     */
     private function addCustomHreflangLink(object $document, string $hreflang, string $href): void
     {
-        if (method_exists($document, 'addCustomTag')) {
-            $document->addCustomTag(
-                '<link rel="alternate" hreflang="'
-                . htmlspecialchars($hreflang, ENT_QUOTES, 'UTF-8')
-                . '" href="'
-                . htmlspecialchars($href, ENT_QUOTES, 'UTF-8')
-                . '">'
-            );
-        }
+        $document->addHeadLink($href, 'alternate', 'rel', ['hreflang' => $hreflang]);
     }
 
     /** @param array<int, array<string,string>> $languages */
@@ -533,4 +590,5 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
 
         return $cleanPath;
     }
+    // @pro:end
 }
