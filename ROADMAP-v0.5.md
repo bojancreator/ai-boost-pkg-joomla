@@ -18,10 +18,10 @@ Ostali dokumenti:
 |---|---|
 | **Repo** | `bojancreator/ai-boost-pkg-joomla` |
 | **Branch** | `v0.5-simple-autopilot` |
-| **Code version** | `0.74.0` (2026-06-12) |
-| **v0.5 milestone phase** | **Pre-release plans** — Plan 1 (Integracije) shipped; preostaju Plan 2 (UI/UX), Plan 3 (totalna verifikacija), pa Faza C (LS + real-key QA + 1.0.0) |
-| **Last completed step** | **Plan 1 (v0.74.0): Integracije** — master toggle (`integration_<key>_enabled`) u Integrations UI sa optimistic update/rollback + `paused` status; `AbstractIntegrationPlugin::isActive()`; Falang runtime gate na isActive(); Manifest lock grana `integration_off`; `IntegrationsController::saveToggle`; Admin Tools conflict fix (`admintools`+`com_admintools`, gated na enable_robots); **YOOtheme bridge SDK migracija** (`aiboost_int_yootheme`: filter-in-finalize FAQ/gallery schema, `hasPro('int_yootheme')` umesto mrtvog `license_tier`, `SLOT_SCHEMA_FAQ`, script.php migracija); novi `info_integration_master_toggle` health check; `docs/integrations.md` |
-| **Active slice** | **Plan 2 (Sonnet) — UI/UX:** screenshot audit obe teme → izveštaj → Bojan bira → implementacija. Potom Plan 3, pa Faza C. Plan: `C:\Users\User\.claude\plans\proud-crunching-rain.md` |
+| **Code version** | `0.76.0` (2026-06-13) |
+| **v0.5 milestone phase** | **Pre-release plans** — Plan 1 (Integracije), Plan 2 (UI/UX) i Plan 2a (paid integration Pro: YOOtheme + Multilang) shipped; preostaju Plan 3 (totalna verifikacija), pa Faza C (LS + real-key QA + 1.0.0) |
+| **Last completed step** | **Plan 2a (v0.75.0–0.76.0): Paid integration Pro + Multilang** — per-integration licenciranje (`hasPro('int_*')` zaseban gate, anti-leak `coreLicenseActive` preskače `int_*`, `store_id`+`product_id` pinning fail-closed); **YOOtheme single-plugin @pro** (jedan element, Pro ograđen build-strip markerima → free stripovan + `_pro` pun ZIP); **Multilang Pro** (`aiboost_int_falang` re-tarifovan na čist Pro: head hreflang + sitemap re-gate na `hasPro('int_falang')`, prevedeni Schema/OG null-thread = core Pro **I** Multilang, gate `isAdminEnabled()`+Pro = radi i na native-multilang sajtovima, display „Multilang", dashboard badge promovisan na 2+ jezika). Commits `f6f856b`/`03d7260`/`17569e8`/`b4b53bd`; 348 PHPUnit + 3/3 standalone; `--target=all` build + Pro-leakage STRICT zeleno |
+| **Active slice** | **Plan 3 (Opus) — Totalna funkcionalna verifikacija:** `verify-frontend-emission.py` harness + native-ML testmyweb sajt + Falang staging; verifikuje Multilang Pro-gating (sim OFF → nema hreflang/prevoda; sim ON → pojavi se). Plan ažuriran 2026-06-13 za re-tarifu. Plan: `C:\Users\User\.claude\plans\proud-crunching-rain.md`. Potom Faza C → 1.0.0 |
 
 > **Napomena (2026-06-08):** Originalni Phase Board (koraci 5–10 IA prerada) je
 > bio materijalno netačan — označavao je „Not Started" za stranice koje **već
