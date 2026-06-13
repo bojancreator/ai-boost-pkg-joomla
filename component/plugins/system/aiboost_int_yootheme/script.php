@@ -68,7 +68,56 @@ return new class () implements ServiceProviderInterface {
                 public function postflight(string $type, InstallerAdapter $adapter): bool
                 {
                     $this->migrateLegacyBridge();
+                    $this->selfEnable();
                     return true;
+                }
+
+                /**
+                 * Joomla installs standalone plugins DISABLED. Enable this bridge
+                 * on its own install so it works out-of-the-box, UNLESS the admin
+                 * has already made a choice (the `integration_yootheme_enabled`
+                 * setting exists — including a deliberate '0'). Best-effort.
+                 */
+                private function selfEnable(): void
+                {
+                    try {
+                        $db  = $this->db;
+                        $row = $db->setQuery(
+                            $db->getQuery(true)
+                                ->select($db->quoteName(['id', 'settings_json']))
+                                ->from($db->quoteName('#__aiboost_settings'))
+                                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
+                        )->loadObject();
+                        $settings = [];
+                        if ($row) {
+                            $decoded  = json_decode((string) $row->settings_json, true);
+                            $settings = is_array($decoded) ? $decoded : [];
+                        }
+                        if (array_key_exists('integration_yootheme_enabled', $settings)) {
+                            return; // respect the existing choice
+                        }
+                        $db->setQuery(
+                            $db->getQuery(true)
+                                ->update($db->quoteName('#__extensions'))
+                                ->set($db->quoteName('enabled') . ' = 1')
+                                ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                                ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+                                ->where($db->quoteName('element') . ' = ' . $db->quote('aiboost_int_yootheme'))
+                        )->execute();
+                        if ($row) {
+                            $settings['integration_yootheme_enabled'] = '1';
+                            $db->setQuery(
+                                $db->getQuery(true)
+                                    ->update($db->quoteName('#__aiboost_settings'))
+                                    ->set($db->quoteName('settings_json') . ' = ' . $db->quote(
+                                        json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                                    ))
+                                    ->where($db->quoteName('id') . ' = ' . (int) $row->id)
+                            )->execute();
+                        }
+                    } catch (\Throwable $e) {
+                        // Best-effort: never block the install.
+                    }
                 }
 
                 private function migrateLegacyBridge(): void

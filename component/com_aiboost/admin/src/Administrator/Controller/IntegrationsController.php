@@ -98,6 +98,24 @@ class IntegrationsController extends BaseController
             }
             $db->setQuery($update)->execute();
 
+            // The master switch must also publish/unpublish the actual Joomla
+            // plugin row — otherwise it is a dead control (the integration plugin
+            // keeps running, or stays disabled, regardless of the setting).
+            // Scoped to our own 'aiboost_int_<key>' element so it can never flip
+            // an unrelated extension. Best-effort: the setting write already
+            // succeeded, so a failure here only logs.
+            try {
+                $extUpdate = $db->getQuery(true)
+                    ->update($db->quoteName('#__extensions'))
+                    ->set($db->quoteName('enabled') . ' = ' . ($value === '1' ? 1 : 0))
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                    ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+                    ->where($db->quoteName('element') . ' = ' . $db->quote('aiboost_int_' . $key));
+                $db->setQuery($extUpdate)->execute();
+            } catch (\Throwable $e) {
+                \AiBoost\Lib\Logger::warning('[AiBoost] integration plugin publish sync failed: ' . $e->getMessage());
+            }
+
             // Drop request-cached views so a follow-up Health/Settings read in
             // this same request reflects the new switch state.
             $this->invalidateCaches();

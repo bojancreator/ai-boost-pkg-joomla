@@ -57,7 +57,13 @@ class ConflictDetector
 
     private function check4Seo(array &$results): void
     {
-        if (!$this->isEnabled('plugin', 'plg_system_4seo', 'system')) {
+        // 4SEO is Weeblr's product; its real #__extensions.element is 'forseo'
+        // (system plugin "System - 4SEO") + component 'com_forseo' — NOT '4seo'
+        // or the install-directory name 'plg_system_4seo' the previous check
+        // used, so the conflict never fired (identical bug fixed for Admin Tools
+        // above). Verified live: element 'forseo' on a 4SEO install.
+        if (!$this->isEnabled('plugin', 'forseo', 'system')
+            && !$this->isEnabled('component', 'com_forseo', '')) {
             return;
         }
 
@@ -74,7 +80,8 @@ class ConflictDetector
 
     private function checkSh404Sef(array &$results): void
     {
-        if (!$this->isEnabled('plugin', 'plg_system_sh404sef', 'system')
+        // #__extensions.element is the bare 'sh404sef', not 'plg_system_sh404sef'.
+        if (!$this->isEnabled('plugin', 'sh404sef', 'system')
             && !$this->isEnabled('component', 'com_sh404sef', '')) {
             return;
         }
@@ -92,9 +99,10 @@ class ConflictDetector
 
     private function checkJoomSef(array &$results): void
     {
-        if (!$this->isEnabled('plugin', 'plg_system_joomsef', 'system')
+        // #__extensions.element stores the bare 'joomsef' / 'opensef'.
+        if (!$this->isEnabled('plugin', 'joomsef', 'system')
             && !$this->isEnabled('component', 'com_joomsef', '')
-            && !$this->isEnabled('plugin', 'plg_system_opensef', 'system')) {
+            && !$this->isEnabled('plugin', 'opensef', 'system')) {
             return;
         }
 

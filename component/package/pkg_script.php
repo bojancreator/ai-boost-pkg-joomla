@@ -157,6 +157,7 @@ class Pkg_AiboostInstallerScript
         // current package and must be removed regardless of licence state.
         $this->removeObsoleteIntegrationPlugins();
         $this->enablePlugins();
+        $this->enableIntegrationPlugins();
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
             // Task #566 — (re)generate static artifacts (robots.txt managed
@@ -1418,6 +1419,89 @@ class Pkg_AiboostInstallerScript
         } catch (\Throwable $e) {
             Factory::getApplication()->enqueueMessage(
                 'Warning: Could not auto-enable plugins. Please enable them manually in Extensions → Plugins.',
+                'warning'
+            );
+        }
+    }
+
+    /**
+     * Auto-enable the integration bridge plugins (Multilang/Falang, YOOtheme).
+     *
+     * They ship as SEPARATE ZIPs (they bridge paid third-party software) and
+     * Joomla installs standalone plugins DISABLED, so the enablePlugins()
+     * `LIKE 'aiboost_%'` sweep — which runs during the PACKAGE install — never
+     * enables them. Each integration plugin's own install script self-enables on
+     * its own install; this method is the belt-and-suspenders that also enables
+     * them on any package install/update where they are already present.
+     *
+     * Anti-clobber: a plugin is enabled only when its `integration_<key>_enabled`
+     * setting is UNSET (a genuine first encounter). Once the admin or the
+     * Integrations toggle has written it — including a deliberate '0' — this
+     * never touches #__extensions.enabled again.
+     */
+    private function enableIntegrationPlugins(): void
+    {
+        $map = ['falang' => 'aiboost_int_falang', 'yootheme' => 'aiboost_int_yootheme'];
+        try {
+            $db = Factory::getDbo();
+
+            $tables = $db->setQuery(
+                'SHOW TABLES LIKE ' . $db->quote($db->getPrefix() . 'aiboost_settings')
+            )->loadColumn();
+            $row      = null;
+            $settings = [];
+            if (in_array($db->getPrefix() . 'aiboost_settings', $tables, true)) {
+                $row = $db->setQuery(
+                    $db->getQuery(true)
+                        ->select($db->quoteName(['id', 'settings_json']))
+                        ->from($db->quoteName('#__aiboost_settings'))
+                        ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
+                )->loadObject();
+                if ($row) {
+                    $decoded  = json_decode((string) $row->settings_json, true);
+                    $settings = is_array($decoded) ? $decoded : [];
+                }
+            }
+
+            $changed = false;
+            foreach ($map as $key => $element) {
+                if (array_key_exists('integration_' . $key . '_enabled', $settings)) {
+                    continue; // respect the existing choice (incl. deliberate disable)
+                }
+                $extId = (int) $db->setQuery(
+                    $db->getQuery(true)
+                        ->select($db->quoteName('extension_id'))
+                        ->from($db->quoteName('#__extensions'))
+                        ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                        ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+                        ->where($db->quoteName('element') . ' = ' . $db->quote($element))
+                )->loadResult();
+                if ($extId <= 0) {
+                    continue; // add-on not installed yet — nothing to enable
+                }
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->update($db->quoteName('#__extensions'))
+                        ->set($db->quoteName('enabled') . ' = 1')
+                        ->where($db->quoteName('extension_id') . ' = ' . $extId)
+                )->execute();
+                $settings['integration_' . $key . '_enabled'] = '1';
+                $changed = true;
+            }
+
+            if ($changed && $row) {
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->update($db->quoteName('#__aiboost_settings'))
+                        ->set($db->quoteName('settings_json') . ' = ' . $db->quote(
+                            json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                        ))
+                        ->where($db->quoteName('id') . ' = ' . (int) $row->id)
+                )->execute();
+            }
+        } catch (\Throwable $e) {
+            Factory::getApplication()->enqueueMessage(
+                'Warning: Could not auto-enable integration plugins. Enable them in Extensions → Plugins if needed.',
                 'warning'
             );
         }

@@ -12,8 +12,10 @@
   <php_minimum>8.1.0</php_minimum>
   <joomla_minimum>5.0.0</joomla_minimum>
   <namespace path="src">AiBoost\Plugin\System\AiBoostIntFalang</namespace>
+  <scriptfile>script.php</scriptfile>
   <files>
     <filename plugin="aiboost_int_falang">aiboost_int_falang.php</filename>
+    <filename>script.php</filename>
     <folder>src</folder>
   </files>
   <config>
