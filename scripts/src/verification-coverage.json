@@ -1,0 +1,93 @@
+{
+  "_comment": "Coverage map for verify-frontend-emission.py. Edit freely; generate-verification-matrix.py reads this to flag UNCOVERED keys.",
+  "groups": {
+    "static": "Read-only page assertions: exactly one consolidated head block, fixed section order (Schema→Social→AEO→Analytics→Custom Code), JSON-LD parses with expected @types, OG/canonical completeness + uniqueness, GTM noscript.",
+    "virtual": "Virtual-file assertions: robots.txt fence + scraper rules + Sitemap line; llms.txt sections; sitemap.xml validity, on-origin URLs, priority∈[0,1].",
+    "toggles": "Dynamic: each master switch OFF → artifact disappears → restore → artifact returns (snapshot + import + restore).",
+    "writes": "Mutating writes: redirect 301 + 404-log row (read via redirects.listJson); per-language translation reaches that language's JSON-LD.",
+    "multilingual": "Per-language head hreflang + sitemap xhtml:link alternates + x-default; translated Schema/OG; per-language llms-<sef>.txt (native + Falang).",
+    "conflicts": "health.rerun (ConflictDetector + DuplicateTagScanner); foreign duplicate tag is DETECTED but NEVER stripped (passes through, not deleted)."
+  },
+  "coverage": {
+    "static": [
+      "enable_schema",
+      "schema_type",
+      "org_name",
+      "website_schema_search_enabled",
+      "article_schema_enabled",
+      "enable_opengraph",
+      "enable_twitter_cards",
+      "enable_canonical",
+      "aeo_ai_meta_enabled"
+    ],
+    "virtual": [
+      "enable_sitemap",
+      "enable_sitemap_index",
+      "enable_image_sitemap",
+      "enable_news_sitemap",
+      "llmstxt_enabled",
+      "llms_full_txt_enabled",
+      "ai_crawlers_enabled",
+      "enable_robots",
+      "scraper_ahrefsbot",
+      "scraper_semrushbot",
+      "scraper_dotbot",
+      "scraper_mj12bot",
+      "scraper_blexbot",
+      "scraper_rogerbot",
+      "scraper_screamingfrog",
+      "scraper_sitebulb",
+      "scraper_siteauditor",
+      "scraper_serpstatbot",
+      "scraper_bytespider",
+      "scraper_petalbot",
+      "enable_x_robots_header",
+      "markdown_pages_enabled"
+    ],
+    "toggles": [
+      "enable_schema",
+      "enable_opengraph",
+      "enable_twitter_cards",
+      "aeo_ai_meta_enabled",
+      "llmstxt_enabled",
+      "llms_full_txt_enabled",
+      "enable_sitemap",
+      "enable_canonical",
+      "enable_hreflang",
+      "falang_hreflang_head",
+      "ai_crawlers_enabled",
+      "hide_comments",
+      "enable_custom_code",
+      "custom_code_head",
+      "custom_code_body",
+      "custom_code_footer",
+      "enable_ga4",
+      "enable_gtm",
+      "enable_meta_pixel",
+      "enable_google_verification",
+      "integration_falang_enabled",
+      "integration_yootheme_enabled"
+    ],
+    "writes": [
+      "redirect_enabled",
+      "redirect_404_log_enabled",
+      "org_name"
+    ],
+    "multilingual": [
+      "enable_hreflang",
+      "falang_hreflang_head",
+      "falang_hreflang_mode",
+      "falang_schema_translate",
+      "falang_og_translate"
+    ],
+    "conflicts": [
+      "enable_opengraph",
+      "enable_schema",
+      "custom_code_head",
+      "enable_ga4",
+      "enable_gtm",
+      "enable_google_verification",
+      "enable_meta_pixel"
+    ]
+  }
+}
