@@ -209,7 +209,7 @@ export default {
 
     tooltip(status) {
       const map = {
-        support_active: 'Extension is installed in Joomla AND AI Boost actively integrates with it (avoids duplicate meta, reads its settings, etc.).',
+        support_active: 'AI Boost actively integrates here — it adapts to your setup (the detected extension, or your multilingual configuration for Multilang), avoids duplicate output, and reads the relevant settings.',
         paused:         'Extension is installed, but you switched this integration off here. AI Boost adds no extra output for it until you switch it back on. Your settings are kept.',
         detected:       'Extension is installed in Joomla. Dedicated AI Boost support is not active yet.',
         coming_soon:    'Dedicated AI Boost support is planned as an add-on. Actions are disabled until the add-on is ready.',

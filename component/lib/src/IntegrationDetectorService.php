@@ -21,6 +21,9 @@ class IntegrationDetectorService
 {
     private DatabaseInterface $db;
 
+    /** Cached "site has 2+ published languages" probe — null until first checked. */
+    private ?bool $multilingual = null;
+
     /**
      * Wish-list / planned tiles + always-detect "compatible" extensions.
      * REAL integration bridges (those shipped as `plg_system_aiboost_int_*`)
@@ -174,6 +177,7 @@ class IntegrationDetectorService
         // 1. Static catalogue (planned + compatible tiles).
         foreach (self::INTEGRATIONS as $key => $info) {
             $installed = $this->isExtensionEnabled($info['type'], $info['element'], $info['folder']);
+            $installed = $this->applyMultilangAvailability($key, $installed);
             $result[$key] = $this->withMasterToggle(array_merge($info, [
                 'key'       => $key,
                 'installed' => $installed,
@@ -193,6 +197,7 @@ class IntegrationDetectorService
                     $legacy['element'],
                     $legacy['folder']
                 );
+                $installed  = $this->applyMultilangAvailability($key, $installed);
                 $statusType = $installed ? 'compatible' : 'addon';
                 $result[$key] = $this->withMasterToggle(array_merge($legacy, [
                     'key'         => $key,
@@ -318,6 +323,39 @@ class IntegrationDetectorService
             return (int) $this->db->setQuery($query)->loadResult() > 0;
         } catch (\Throwable $e) {
             return false;
+        }
+    }
+
+    /**
+     * Multilang (Workstream C) is a pure-Pro feature for ANY multilingual Joomla
+     * site — native language associations or Falang. So the "falang" tile must
+     * read as available (not "Not installed") whenever the site has 2+ published
+     * languages, even when the Falang host extension is absent. Other
+     * integrations are unaffected. Returns the possibly-promoted installed flag.
+     */
+    private function applyMultilangAvailability(string $key, bool $installed): bool
+    {
+        if ($key === 'falang' && !$installed && $this->isSiteMultilingual()) {
+            return true;
+        }
+        return $installed;
+    }
+
+    /** True when the site publishes 2+ content languages (the signal the
+     *  Multilang bridge itself uses to decide whether hreflang is meaningful). */
+    private function isSiteMultilingual(): bool
+    {
+        if ($this->multilingual !== null) {
+            return $this->multilingual;
+        }
+        try {
+            $query = $this->db->getQuery(true)
+                ->select('COUNT(*)')
+                ->from($this->db->quoteName('#__languages'))
+                ->where($this->db->quoteName('published') . ' = 1');
+            return $this->multilingual = (int) $this->db->setQuery($query)->loadResult() >= 2;
+        } catch (\Throwable) {
+            return $this->multilingual = false;
         }
     }
 }
