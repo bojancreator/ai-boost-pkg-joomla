@@ -165,7 +165,16 @@ final class LicenseReconcile
         if (!is_array($states)) {
             return false;
         }
-        foreach ($states as $row) {
+        foreach ($states as $sku => $row) {
+            // Plan 2a — integration licences (int_*) are independent of core Pro
+            // and must NOT suppress core reconciliation. Mirrors
+            // PluginRegistry::coreLicenseActive(): only a CORE/bundle licence
+            // counts as "already handled by the normal verify flow", so a lapsed
+            // core purchaser who happens to hold an active integration key is
+            // still eligible for server-side recovery.
+            if (str_starts_with((string) $sku, 'int_')) {
+                continue;
+            }
             if (is_array($row) && PluginRegistry::resolveRealStatus($row) === 'active') {
                 return true;
             }

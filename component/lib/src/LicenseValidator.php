@@ -52,6 +52,28 @@ final class LicenseValidator
     public const EXPECTED_STORE_ID = null;
 
     /**
+     * Plan 2a — per-integration product pinning. Maps each independently-sold
+     * integration SKU to its Lemon Squeezy product ID.
+     *
+     * SECURITY — product pinning (fail closed). Store pinning alone cannot keep
+     * the per-integration products apart: a YOOtheme-Pro key and a Multilang key
+     * are issued by the SAME store, so without product pinning either key would
+     * activate either integration. verify() rejects any response whose
+     * meta.product_id does not strictly equal the pinned ID for the requested
+     * SKU, and the controller refuses to even call out for an int_* SKU whose ID
+     * is still null (fail-closed, exactly like EXPECTED_STORE_ID).
+     *
+     * RELEASE BLOCKER: replace each null with the production aiboostnow.com
+     * Lemon Squeezy product ID (int) before launch. Do not guess.
+     *
+     * @var array<string,int|null>
+     */
+    public const EXPECTED_PRODUCT_IDS = [
+        'int_yootheme' => null,
+        'int_falang'   => null,
+    ];
+
+    /**
      * Per-request cache: licenseKey => 'pro'|'free'
      * @var array<string, string>
      */
@@ -73,6 +95,18 @@ final class LicenseValidator
 
     /** True while setExpectedStoreId() has installed an override. */
     private static bool $expectedStoreIdOverridden = false;
+
+    /**
+     * Test-only override map for EXPECTED_PRODUCT_IDS (sku => int|null) so the
+     * product-pinning branches can be exercised before the production products
+     * exist. Only honoured while $expectedProductIdsOverridden is true.
+     *
+     * @var array<string,int|null>
+     */
+    private static array $expectedProductIdsOverride = [];
+
+    /** True while setExpectedProductId() has installed an override. */
+    private static bool $expectedProductIdsOverridden = false;
 
     /**
      * Optional transport override so unit tests never hit the network.
@@ -102,6 +136,17 @@ final class LicenseValidator
     {
         self::$expectedStoreIdOverride   = $storeId;
         self::$expectedStoreIdOverridden = true;
+    }
+
+    /**
+     * Override the pinned product ID for one SKU (including null to simulate the
+     * unconfigured state). Intended for use in tests — production code must rely
+     * on the EXPECTED_PRODUCT_IDS constant only.
+     */
+    public static function setExpectedProductId(string $sku, ?int $productId): void
+    {
+        self::$expectedProductIdsOverride[$sku] = $productId;
+        self::$expectedProductIdsOverridden     = true;
     }
 
     /**
@@ -192,7 +237,7 @@ final class LicenseValidator
      * @param  string $instanceId   Previously stored LS instance id, if any.
      * @return array<string,mixed>
      */
-    public static function verify(string $licenseKey, string $instanceName, string $instanceId = ''): array
+    public static function verify(string $licenseKey, string $instanceName, string $instanceId = '', ?int $expectedProductId = null): array
     {
         $licenseKey = trim($licenseKey);
         $state = [
@@ -260,11 +305,12 @@ final class LicenseValidator
         $lsStatus = strtolower((string) ($lk['status'] ?? ''));
         $valid    = !empty($resp['valid']);
 
-        $meta    = is_array($resp['meta'] ?? null) ? $resp['meta'] : [];
-        $storeId = is_numeric($meta['store_id'] ?? null) ? (int) $meta['store_id'] : null;
-        if (is_numeric($meta['product_id'] ?? null)) {
-            // Informational only (future tier mapping) — never a rejection criterion.
-            $state['product_id'] = (int) $meta['product_id'];
+        $meta      = is_array($resp['meta'] ?? null) ? $resp['meta'] : [];
+        $storeId   = is_numeric($meta['store_id'] ?? null) ? (int) $meta['store_id'] : null;
+        $productId = is_numeric($meta['product_id'] ?? null) ? (int) $meta['product_id'] : null;
+        if ($productId !== null) {
+            // Captured for the state record + product pinning (below).
+            $state['product_id'] = $productId;
         }
 
         // SECURITY — store pinning (fail closed). Reject any response naming a
@@ -277,6 +323,24 @@ final class LicenseValidator
         ) {
             $state['message'] = 'This license key belongs to a different product or store. '
                 . 'Use the AI Boost for Joomla key from your purchase email.';
+            return $state;
+        }
+
+        // SECURITY — Plan 2a product pinning (fail closed). When a specific
+        // product is required (integration SKUs), reject any active key whose
+        // product_id does not match it, or that proves no product at all. This
+        // is what keeps the same-store integration products apart: a YOOtheme
+        // key cannot activate Multilang and vice-versa. Core SKUs pass
+        // $expectedProductId === null and skip this branch (store pinning only).
+        if (
+            $expectedProductId !== null
+            && (
+                ($productId !== null && $productId !== $expectedProductId)
+                || ($productId === null && $valid && $lsStatus === 'active')
+            )
+        ) {
+            $state['message'] = 'This license key is for a different AI Boost product. '
+                . 'Use the key from the matching purchase email for this integration.';
             return $state;
         }
 
@@ -388,6 +452,20 @@ final class LicenseValidator
     }
 
     /**
+     * Plan 2a — the pinned Lemon Squeezy product ID for an integration SKU, or
+     * null when none is configured (which the controller treats as fail-closed
+     * "integration licensing not configured"). Core SKUs are not product-pinned
+     * and always return null.
+     */
+    public static function expectedProductId(string $sku): ?int
+    {
+        if (self::$expectedProductIdsOverridden && array_key_exists($sku, self::$expectedProductIdsOverride)) {
+            return self::$expectedProductIdsOverride[$sku];
+        }
+        return self::EXPECTED_PRODUCT_IDS[$sku] ?? null;
+    }
+
+    /**
      * Generate a stable instance identifier based on the site's root URL.
      * Used so LS can track activations per site.
      */
@@ -410,6 +488,8 @@ final class LicenseValidator
         self::$transport                 = null;
         self::$expectedStoreIdOverride   = null;
         self::$expectedStoreIdOverridden = false;
+        self::$expectedProductIdsOverride   = [];
+        self::$expectedProductIdsOverridden = false;
     }
 }
 

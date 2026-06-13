@@ -77,8 +77,20 @@ PRO_PLUGIN_NAMES: list[str] = [
 ]
 
 # Task #428 — Integration plugins (closed-source bridges per third-party).
+# FREE bridges — ship in the base distribution; always installable.
 INTEGRATION_PLUGIN_NAMES: list[str] = [
     "aiboost_int_falang",
+    "aiboost_int_yootheme",
+]
+
+# Plan 2a — single-plugin-per-integration model. These integrations are ONE
+# plugin element each, with Pro code fenced by Pro-strip markers. The build
+# produces TWO ZIPs of the SAME element:
+#   • free  → plg_system_<name>-<v>.zip          (Pro blocks STRIPPED; in base distro)
+#   • pro   → plg_system_<name>_pro-<v>.zip       (FULL; the Lemon Squeezy product —
+#             installing it UPGRADES the free plugin in place, same element)
+# The Pro ZIP is delivered via LS and is NEVER bundled into the Free base.
+INTEGRATIONS_WITH_PRO: list[str] = [
     "aiboost_int_yootheme",
 ]
 
@@ -522,19 +534,54 @@ def build_pro_package_zip(version: str, dry_run: bool = False) -> Path:
     return output_path
 
 
-def build_integration_zip(name: str, version: str) -> Path:
-    """Build a single plg_system_<name>-<version>.zip directly into deliverables/plugin/."""
+def build_integration_zip(name: str, version: str, strip_pro: bool = True, pro: bool = False) -> Path:
+    """Build a single integration plugin ZIP into deliverables/plugin/.
+
+    Plan 2a single-plugin model: the same element is built twice —
+      • free build (strip_pro=True)  → plg_system_<name>-<v>.zip
+      • pro  build (strip_pro=False) → plg_system_<name>_pro-<v>.zip
+    Both carry the SAME manifest element; the Pro ZIP just keeps the fenced Pro
+    blocks intact, so installing it upgrades the free plugin in place.
+    """
     DELIVERABLES.mkdir(parents=True, exist_ok=True)
-    zip_path = DELIVERABLES / f"plg_system_{name}-{version}.zip"
+    label = f"{name}_pro" if pro else name
+    zip_path = DELIVERABLES / f"plg_system_{label}-{version}.zip"
     plugin_dir = PLUGINS_DIR / name
     if not plugin_dir.exists():
         sys.exit(f"ERROR: integration plugin directory not found: {plugin_dir}")
-    print(f"  → Building {zip_path.name} ...")
+    print(f"  → Building {zip_path.name} ({'FULL/Pro' if not strip_pro else 'free/stripped'}) ...")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-        add_dir_to_zip(zf, plugin_dir, manifest_version=version)
+        add_dir_to_zip(zf, plugin_dir, strip_pro=strip_pro, manifest_version=version)
     size_kb = zip_path.stat().st_size // 1024
     print(f"    ✓ {zip_path.name} ({size_kb} KB)")
     return zip_path
+
+
+def _run_leakage_verifier(zip_path: Path, label: str) -> None:
+    """Run verify-no-pro-leakage.py (STRICT) on a freshly built ZIP and abort
+    the whole build on any leaked Pro token.
+
+    Shared by every path that produces a Free/stripped artifact — the base
+    package build, the --target=all integration stage, AND the integration-only
+    (--integration / --target=integration:<name>) short-circuit — so NO build
+    path can ship a stripped ZIP without the anti-leak check. (A damaged @pro
+    fence does not always self-neutralize: an orphaned `// @pro:end` whose
+    `// @pro:start` was deleted leaves both the marker and the would-be-Pro code
+    in the stripped output; only this verifier catches that case.)
+    """
+    import subprocess
+    print(f"\n  Running Pro-leakage verifier (STRICT) on {label} ...")
+    r = subprocess.run(
+        [sys.executable, str(Path(__file__).parent / "verify-no-pro-leakage.py"), str(zip_path)],
+        check=False,
+    )
+    if r.returncode != 0:
+        sys.exit(
+            f"\n  ❌ Pro-leakage check FAILED — {label} contains Pro tokens.\n"
+            "     A @pro:start/@pro:end fence did not strip cleanly, or a Pro file\n"
+            "     leaked into the Free build. Fix the fence/file and rebuild."
+        )
+    print(f"  ✓ Pro-leakage check passed for {label}.")
 
 
 def main() -> None:
@@ -588,7 +635,15 @@ def main() -> None:
             full = short if short.startswith("aiboost_int_") else f"aiboost_int_{short}"
             if full not in INTEGRATION_PLUGIN_NAMES:
                 sys.exit(f"ERROR: unknown integration '{short}'. Known: {INTEGRATION_PLUGIN_NAMES}")
-            build_integration_zip(full, version)
+            free_zip = build_integration_zip(full, version, strip_pro=True)
+            if full in INTEGRATIONS_WITH_PRO:
+                build_integration_zip(full, version, strip_pro=False, pro=True)
+                # Anti-leak: this single-integration rebuild is the command a
+                # maintainer most often runs, so it MUST verify the stripped free
+                # ZIP exactly like --target=all does — otherwise a damaged fence
+                # would ship Pro code here undetected.
+                if not args.dry_run:
+                    _run_leakage_verifier(free_zip, f"free {full}")
         return
 
     # Task #469 — manifest codegen guard. Runs in --check (read-only)
@@ -621,7 +676,12 @@ def main() -> None:
 
     if target_choice == "all":
         for name in INTEGRATION_PLUGIN_NAMES:
-            build_integration_zip(name, version)
+            # Free build: Pro blocks stripped (anti-leak).
+            build_integration_zip(name, version, strip_pro=True)
+            # Plan 2a — integrations with a paid tier also get a FULL ZIP of the
+            # SAME element (the Lemon Squeezy product). Never in the Free base.
+            if name in INTEGRATIONS_WITH_PRO:
+                build_integration_zip(name, version, strip_pro=False, pro=True)
 
     if args.addons:
         build_addons(dry_run=args.dry_run)
@@ -644,10 +704,17 @@ def main() -> None:
                 sys.exit(
                     "\n  ❌ Pro-leakage check FAILED — Free ZIP contains Pro tokens.\n"
                     "     Review output above and either wrap the offending block with\n"
-                    "     // @pro:start ... // @pro:end markers, or move the file into a\n"
-                    "     Pro-only plugin directory."
+                    "     the Pro-strip markers, or move the file into a Pro-only plugin."
                 )
             print("  ✓ Pro-leakage check passed.")
+
+        # Plan 2a — the FREE integration ZIPs are single-element plugins whose
+        # Pro blocks were stripped; verify each one carries no Pro tokens either.
+        if target_choice == "all":
+            for name in INTEGRATIONS_WITH_PRO:
+                free_zip = DELIVERABLES / f"plg_system_{name}-{version}.zip"
+                if free_zip.exists():
+                    _run_leakage_verifier(free_zip, f"free {name}")
 
 
 if __name__ == "__main__":

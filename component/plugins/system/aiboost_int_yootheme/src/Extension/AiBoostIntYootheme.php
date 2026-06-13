@@ -1,29 +1,27 @@
 <?php
 /**
- * AI Boost — YOOtheme Pro Integration Plugin
+ * AI Boost — YOOtheme Integration Plugin (single plugin: free OG + Pro schema)
  *
- * SDK port of the legacy `aiboost_yootheme` bridge (which checked a dead
- * `license_tier` model and injected JSON-LD via addCustomTag() / regex
- * `</head>`). This version:
+ * ONE plugin element for the whole YOOtheme integration (Plan 2a, single-plugin
+ * model). It contains BOTH tiers:
  *
- *   1. Extends AbstractIntegrationPlugin → inherits lib autoloader,
- *      BridgeDetector host check, discovery event, and the master on/off
- *      switch (isActive()).
- *   2. Gates runtime emission on an ACTIVE Pro licence via
- *      PluginRegistry::hasPro('int_yootheme') — never the old license_tier.
- *   3. Routes ALL JSON-LD through the consolidated AI Boost head block:
- *      - menu-param schema (Event/Product/Organization) via
- *        HeadBlockBuilder::pushSection('schema', …) in onBeforeCompileHead;
- *      - body-dependent FAQ/gallery schema via the SDK
- *        onAiBoostFilterHeadOutput filter, which runs INSIDE
- *        HeadBlockBuilder::finalize() once the body is rendered. NEVER a
- *        regex `</head>` splice.
- *   4. Contributes its settings via onAiBoostRegisterFields (integration
- *      tag 'yootheme') instead of a legacy onAiBoostGetSettingsTabs HTML tab.
+ *   - FREE: per-page OpenGraph/meta override from the YOOtheme menu page title
+ *     and description (gate isActive() only — OG for YOOtheme is free).
+ *   - PRO (`int_yootheme` SKU): FAQ (Accordion) + ImageGallery + Event/Product/
+ *     Organization Schema.org, and sitemap exclusion of builder-only pages
+ *     (gate: integration active AND an active YOOtheme Pro licence).
  *
- * Coexistence rule: only ACTIVATES when YOOtheme Pro is present AND the
- * integration is switched on AND Pro is licensed. It never edits YOOtheme
- * data — it only reads page content/menu params to add schema and meta.
+ * Anti-piracy: every Pro-only section is fenced with the build's Pro-strip
+ * markers. The build STRIPS those blocks from the Free distribution ZIP (verified
+ * by verify-no-pro-leakage STRICT), so the free plugin physically lacks the
+ * schema code. The paid "AI Boost — YOOtheme Pro" Lemon Squeezy product ships the SAME
+ * element FULL (unstripped); installing it UPGRADES this plugin in place
+ * (same id / settings / enabled state) — one row in the Plugins manager, never a
+ * second plugin. Pro options stay runtime-gated on the active YOOtheme Pro licence.
+ *
+ * Coexistence: only ACTIVATES when the YOOtheme template is present AND the
+ * integration is switched on (Integrations master toggle). It never edits
+ * YOOtheme data — it only reads menu params / page markup to add meta + schema.
  *
  * @package     AiBoost\Plugin\System\AiBoostIntYootheme
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
@@ -35,20 +33,25 @@ namespace AiBoost\Plugin\System\AiBoostIntYootheme\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\ConflictManager;
-use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\AbstractIntegrationPlugin;
-use AiBoost\Lib\Integration\FilterResult;
 use AiBoost\Lib\Integration\IntegrationDescriptor;
 use AiBoost\Lib\Integration\Sdk;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
+// @pro:start
+use AiBoost\Lib\HeadBlockBuilder;
+use AiBoost\Lib\Integration\FilterResult;
+use AiBoost\Lib\PluginRegistry;
+use Joomla\CMS\Uri\Uri;
+// @pro:end
 
 class AiBoostIntYootheme extends AbstractIntegrationPlugin
 {
+    // @pro:start
     /** JSON-LD encode flags. JSON_HEX_TAG/AMP close the stored-XSS hole a raw
      *  `</script>` inside page content would otherwise open. */
     private const JSON_FLAGS = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP;
+    // @pro:end
 
     /** Cached result of libReady() — null until first probed. */
     private ?bool $libReady = null;
@@ -61,12 +64,12 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
             label:          'YOOtheme Pro',
             vendor:         'YOOtheme',
             category:       'Page Builder',
-            description:    'Premium Joomla theme and page builder. AI Boost reads YOOtheme Pro page content for FAQ and gallery Schema.org and uses page title/description for per-page meta.',
+            description:    'Premium Joomla theme and page builder. The free integration aligns per-page OpenGraph meta with your YOOtheme page title and description. YOOtheme Pro (licensed) adds FAQ, ImageGallery and Event/Product/Organization Schema.org plus sitemap clean-up.',
             hostType:       'template',
             hostElement:    'yootheme',
             sdkVersion:     Sdk::SDK_VERSION,
             minCoreVersion: '0.58.0',
-            version:        '0.74.0',
+            version:        '0.75.0',
             learnUrl:       'https://yootheme.com/marketplace/yootheme-pro',
             addonUrl:       'https://aiboostnow.com/integrations/yootheme',
             icon:           'icon-puzzle',
@@ -78,22 +81,34 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
 
     // ── onAiBoostRegisterFields (manifest contributions) ───────────────────
 
+    /**
+     * Field registration runs regardless of licence/host state so a plain
+     * Settings save never drops these keys. The free OG override is always
+     * contributed; the Pro schema fields (tier='pro', sku='int_yootheme') live in
+     * the Pro-stripped section and so are absent from the Free build — and locked
+     * in the UI until the YOOtheme Pro licence is active (Manifest\Registry).
+     */
     public function onAiBoostRegisterFields(): array
     {
         if (!$this->libReady()) {
             return [];
         }
 
-        return [
-            $this->manifestField('yootheme_faq_enabled', 'schema', 'yootheme', 'YOOtheme: FAQ schema from Accordion'),
-            $this->manifestField('yootheme_gallery_enabled', 'schema', 'yootheme', 'YOOtheme: ImageGallery schema from Gallery'),
-            $this->manifestField('yootheme_schema_mapping', 'schema', 'yootheme', 'YOOtheme: Schema.org mapping from menu params'),
-            $this->manifestField('yootheme_accordion_selector', 'schema', 'yootheme', 'YOOtheme: Accordion CSS selector', 'text', '.uk-accordion', [
-                'description' => 'CSS selector used to detect YOOtheme Accordion elements for FAQPage schema.',
-            ]),
+        $fields = [
             $this->manifestField('yootheme_meta_override', 'social', 'yootheme', 'YOOtheme: override OpenGraph from page meta'),
-            $this->manifestField('yootheme_sitemap_exclude_builder', 'sitemap', 'yootheme', 'YOOtheme: exclude builder-only pages from sitemap'),
         ];
+
+        // @pro:start
+        $fields[] = $this->manifestField('yootheme_faq_enabled', 'schema', 'yootheme', 'YOOtheme: FAQ schema from Accordion', 'toggle', '1', [], 'pro', 'int_yootheme');
+        $fields[] = $this->manifestField('yootheme_gallery_enabled', 'schema', 'yootheme', 'YOOtheme: ImageGallery schema from Gallery', 'toggle', '1', [], 'pro', 'int_yootheme');
+        $fields[] = $this->manifestField('yootheme_schema_mapping', 'schema', 'yootheme', 'YOOtheme: Schema.org mapping from menu params', 'toggle', '1', [], 'pro', 'int_yootheme');
+        $fields[] = $this->manifestField('yootheme_accordion_selector', 'schema', 'yootheme', 'YOOtheme: Accordion CSS selector', 'text', '.uk-accordion', [
+            'description' => 'CSS selector used to detect YOOtheme Accordion elements for FAQPage schema.',
+        ], 'pro', 'int_yootheme');
+        $fields[] = $this->manifestField('yootheme_sitemap_exclude_builder', 'sitemap', 'yootheme', 'YOOtheme: exclude builder-only pages from sitemap', 'toggle', '1', [], 'pro', 'int_yootheme');
+        // @pro:end
+
+        return $fields;
     }
 
     /** @param array<string,mixed> $extra */
@@ -104,7 +119,9 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
         string $label,
         string $type = 'toggle',
         string $default = '1',
-        array $extra = []
+        array $extra = [],
+        string $tier = 'free',
+        string $sku = 'core'
     ): array {
         return array_merge([
             'key'         => $key,
@@ -113,30 +130,41 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
             'label'       => $label,
             'type'        => $type,
             'default'     => $default,
-            'tier'        => 'free',
-            'sku'         => 'core',
+            'tier'        => $tier,
+            'sku'         => $sku,
             'integration' => 'yootheme',
         ], $extra);
     }
 
-    // ── Runtime gate ───────────────────────────────────────────────────────
+    // ── Runtime gates ──────────────────────────────────────────────────────
 
     /**
-     * The bridge emits only when: the host (YOOtheme template) is present,
-     * the admin left this integration switched on, AND an AI Boost Pro
-     * licence is active. The YOOtheme enhancements are a Pro feature.
+     * FREE gate (OpenGraph): host (YOOtheme template) present AND the admin left
+     * the integration switched on. No Pro check — OG for YOOtheme is free.
      */
     private function bridgeOn(): bool
     {
-        if (!$this->libReady() || !$this->isActive()) {
+        return $this->libReady() && $this->isActive();
+    }
+
+    // @pro:start
+    /**
+     * PRO gate (Schema.org): the free gate PLUS an active YOOtheme Pro licence
+     * (hasPro('int_yootheme')) — independent of the core bundle (per-integration
+     * licensing). This whole method is stripped from the Free build.
+     */
+    private function proOn(): bool
+    {
+        if (!$this->bridgeOn()) {
             return false;
         }
         try {
-            return \AiBoost\Lib\PluginRegistry::hasPro('int_yootheme');
+            return PluginRegistry::hasPro('int_yootheme');
         } catch (\Throwable) {
             return false;
         }
     }
+    // @pro:end
 
     private function onSiteHtml(): bool
     {
@@ -148,7 +176,7 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
         return $doc && $doc->getType() === 'html';
     }
 
-    // ── onAfterRoute — page meta override ──────────────────────────────────
+    // ── onAfterRoute — page meta override (FREE) ───────────────────────────
 
     /**
      * Copy the YOOtheme menu page title/description onto the document so the
@@ -189,7 +217,20 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
         }
     }
 
-    // ── onBeforeCompileHead — menu-param Schema.org ────────────────────────
+    /** @param array<int,string> $keys */
+    private function firstParam(Registry $params, array $keys): string
+    {
+        foreach ($keys as $key) {
+            $val = trim((string) $params->get($key, ''));
+            if ($val !== '') {
+                return $val;
+            }
+        }
+        return '';
+    }
+
+    // @pro:start
+    // ── onBeforeCompileHead — menu-param Schema.org (PRO) ───────────────────
 
     /**
      * Build a typed Schema.org entity from YOOtheme menu params and push it
@@ -198,7 +239,7 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
      */
     public function onBeforeCompileHead(): void
     {
-        if (!$this->bridgeOn() || !$this->onSiteHtml()) {
+        if (!$this->proOn() || !$this->onSiteHtml()) {
             return;
         }
         if ((string) $this->readAiBoostSetting('yootheme_schema_mapping', '1') === '0') {
@@ -223,7 +264,7 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
         }
     }
 
-    // ── onAiBoostFilterHeadOutput — body-dependent FAQ + gallery ───────────
+    // ── onAiBoostFilterHeadOutput — body-dependent FAQ + gallery (PRO) ──────
 
     /**
      * SDK filter fired INSIDE HeadBlockBuilder::finalize(), after the page
@@ -231,15 +272,11 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
      * the YOOtheme Accordion / Gallery markup from the finished body and
      * append the JSON-LD to the consolidated head block — no `</head>` splice.
      *
-     * Note: finalize() only fires (and so this filter only runs) when AI Boost
-     * has head content to emit. On a configured YOOtheme site the Schema
-     * plugin's identity JSON-LD guarantees that; a site with ALL AI Boost head
-     * output disabled would also suppress this enhancement, which is the
-     * intended behaviour.
+     * @param array<string,mixed> $input
      */
     public function onAiBoostFilterHeadOutput(array $input, FilterResult $result): void
     {
-        if (!$this->bridgeOn() || !$this->onSiteHtml()) {
+        if (!$this->proOn() || !$this->onSiteHtml()) {
             return;
         }
 
@@ -275,11 +312,11 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
         $result->setOutput($out, 'aiboost_int_yootheme', 'YOOtheme FAQ/gallery schema from page body');
     }
 
-    // ── onAiBoostBeforeSitemapBuild — exclude builder-only pages ───────────
+    // ── onAiBoostBeforeSitemapBuild — exclude builder-only pages (PRO) ──────
 
     public function onAiBoostBeforeSitemapBuild(): void
     {
-        if (!$this->bridgeOn()) {
+        if (!$this->proOn()) {
             return;
         }
         if ((string) $this->readAiBoostSetting('yootheme_sitemap_exclude_builder', '1') === '0') {
@@ -488,18 +525,6 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
         return $schema;
     }
 
-    /** @param array<int,string> $keys */
-    private function firstParam(Registry $params, array $keys): string
-    {
-        foreach ($keys as $key) {
-            $val = trim((string) $params->get($key, ''));
-            if ($val !== '') {
-                return $val;
-            }
-        }
-        return '';
-    }
-
     /** @return array<string,mixed> */
     private function buildAccordionFaqSchema(string $html, string $containerClass): array
     {
@@ -592,6 +617,7 @@ class AiBoostIntYootheme extends AbstractIntegrationPlugin
             . json_encode($schema, self::JSON_FLAGS)
             . '</script>';
     }
+    // @pro:end
 
     // ── Helpers ────────────────────────────────────────────────────────────
 

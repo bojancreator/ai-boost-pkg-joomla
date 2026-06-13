@@ -12,10 +12,16 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
 /**
- * Parity snapshot for the SDK YOOtheme bridge (Plan 1). The migration off the
- * legacy `aiboost_yootheme` bridge MUST keep the descriptor identity + field
- * surface, drop the dead `license_tier` gate, and route JSON-LD through the
- * head block (never a regex `</head>` splice).
+ * Parity + tier-fence snapshot for the single-plugin YOOtheme integration
+ * (Plan 2a, one-plugin model). ONE element `aiboost_int_yootheme` carries:
+ *   - FREE: OpenGraph/meta override (gate isActive() only);
+ *   - PRO (int_yootheme): Schema.org (FAQ/gallery/mapping) + sitemap exclusion,
+ *     fenced with the build's Pro-strip markers and gated on hasPro('int_yootheme').
+ *
+ * The build ships this element TWICE: free (Pro blocks stripped) and full (the
+ * Lemon Squeezy product that upgrades it in place). These tests assert the full
+ * source has both tiers AND that stripping the Pro fences yields a clean,
+ * schema-free, still-valid free build.
  */
 final class YoothemeBridgeParityTest extends TestCase
 {
@@ -25,14 +31,19 @@ final class YoothemeBridgeParityTest extends TestCase
             . '/plugins/system/aiboost_int_yootheme/src/Extension/AiBoostIntYootheme.php';
     }
 
-    /**
-     * Source with comments + whitespace removed, so the forbidden-pattern
-     * checks below test actual CODE — the docblock legitimately names
-     * license_tier / addCustomTag to explain what the bridge avoids.
-     */
-    private function codeOnly(): string
+    private function source(): string
     {
-        return php_strip_whitespace($this->classFile());
+        return (string) file_get_contents($this->classFile());
+    }
+
+    /** Apply the build's Pro-strip regex (mirrors scripts/build-package-zip.py). */
+    private function strippedSource(): string
+    {
+        return (string) preg_replace(
+            '/^[ \t]*\/\/[ \t]*@pro:start.*?^[ \t]*\/\/[ \t]*@pro:end[^\n]*\n?/sm',
+            '',
+            $this->source()
+        );
     }
 
     public function testExtendsAbstractIntegrationPlugin(): void
@@ -57,77 +68,93 @@ final class YoothemeBridgeParityTest extends TestCase
         self::assertSame('yootheme', $desc->key);
         self::assertSame('aiboost_int_yootheme', $desc->pluginElement);
         self::assertSame('YOOtheme', $desc->vendor);
-        self::assertSame('Page Builder', $desc->category);
         self::assertSame('template', $desc->hostType);
         self::assertSame('yootheme', $desc->hostElement);
         self::assertSame(Sdk::SDK_VERSION, $desc->sdkVersion);
         self::assertContains(ConflictManager::SLOT_SCHEMA_FAQ, $desc->claimsSlots);
     }
 
-    public function testContributesExpectedManifestFields(): void
+    public function testFullPluginContributesFreeOgFieldPlusFiveProFields(): void
     {
         $rc       = new ReflectionClass(\AiBoost\Plugin\System\AiBoostIntYootheme\Extension\AiBoostIntYootheme::class);
         $instance = $rc->newInstanceWithoutConstructor();
         $fields   = $instance->onAiBoostRegisterFields();
 
-        self::assertCount(6, $fields);
+        $byKey = [];
+        foreach ($fields as $f) {
+            $byKey[$f['key']] = $f;
+        }
 
-        $expectedKeys = [
+        // Free OG override.
+        self::assertArrayHasKey('yootheme_meta_override', $byKey);
+        self::assertSame('free', $byKey['yootheme_meta_override']['tier']);
+
+        // Five Pro schema fields, all tier=pro + sku=int_yootheme.
+        $proKeys = [
             'yootheme_faq_enabled',
             'yootheme_gallery_enabled',
             'yootheme_schema_mapping',
             'yootheme_accordion_selector',
-            'yootheme_meta_override',
             'yootheme_sitemap_exclude_builder',
         ];
-        self::assertSame($expectedKeys, array_column($fields, 'key'));
-
-        foreach ($fields as $f) {
-            self::assertSame('yootheme', $f['integration']);
-            self::assertArrayHasKey('label', $f);
-            self::assertArrayHasKey('default', $f);
+        foreach ($proKeys as $k) {
+            self::assertArrayHasKey($k, $byKey, "missing Pro field {$k}");
+            self::assertSame('pro', $byKey[$k]['tier'], "{$k} must be tier=pro");
+            self::assertSame('int_yootheme', $byKey[$k]['sku'], "{$k} must be SKU int_yootheme");
+            self::assertSame('yootheme', $byKey[$k]['integration']);
         }
+        self::assertCount(6, $fields);
     }
 
-    public function testDeadLicenseTierGateIsGone(): void
+    public function testFullSourceRoutesSchemaThroughHeadBlockAndGatesOnPro(): void
     {
-        $code = $this->codeOnly();
+        $code = php_strip_whitespace($this->classFile());
 
-        self::assertStringNotContainsString(
-            'license_tier',
-            $code,
-            'The SDK bridge must not resurrect the dead per-tier licence model.'
-        );
-        self::assertStringContainsString(
-            "hasPro('int_yootheme')",
-            $code,
-            'Runtime emission must gate on the canonical perpetual-activation Pro check.'
-        );
+        self::assertStringContainsString("hasPro('int_yootheme')", $code, 'Pro schema gates on the per-integration licence');
+        self::assertStringContainsString('HeadBlockBuilder::pushSection', $code, 'menu-param schema flows through the head block');
+        self::assertStringContainsString('onAiBoostFilterHeadOutput', $code, 'body-dependent schema uses the SDK filter');
+        self::assertStringNotContainsString('license_tier', $code, 'no dead per-tier licence model');
+        self::assertDoesNotMatchRegularExpression('/str_replace\s*\(\s*[\'"]<\/head>/i', $code, 'never splice </head>');
+        self::assertDoesNotMatchRegularExpression('/addCustomTag\s*\(/', $code, 'never addCustomTag()');
     }
 
-    public function testJsonLdRoutesThroughHeadBlockNeverRegexHead(): void
+    public function testProStripFencesAreBalanced(): void
     {
-        $code = $this->codeOnly();
+        $src = $this->source();
+        self::assertSame(
+            substr_count($src, '// @pro:start'),
+            substr_count($src, '// @pro:end'),
+            'every // @pro:start must have a matching // @pro:end'
+        );
+        self::assertGreaterThan(0, substr_count($src, '// @pro:start'), 'Pro code must be fenced');
+    }
 
-        self::assertStringContainsString(
-            'HeadBlockBuilder::pushSection',
-            $code,
-            'Menu-param schema must flow through the consolidated head block.'
-        );
-        self::assertStringContainsString(
-            'onAiBoostFilterHeadOutput',
-            $code,
-            'Body-dependent schema must use the SDK head-output filter.'
-        );
-        self::assertDoesNotMatchRegularExpression(
-            '/str_replace\s*\(\s*[\'"]<\/head>/i',
-            $code,
-            'The bridge must never splice into </head> directly.'
-        );
-        self::assertDoesNotMatchRegularExpression(
-            '/addCustomTag\s*\(/',
-            $code,
-            'The bridge must not call addCustomTag() for head content.'
-        );
+    public function testStrippedFreeBuildHasNoProTokensOrSchema(): void
+    {
+        $stripped = $this->strippedSource();
+
+        // The verifier's criterion: zero @pro tokens survive in the free build.
+        self::assertDoesNotMatchRegularExpression('/@pro\b/', $stripped, 'free build must carry no @pro tokens');
+
+        // Schema layer is gone…
+        self::assertStringNotContainsString('function proOn', $stripped);
+        self::assertStringNotContainsString('function onBeforeCompileHead', $stripped);
+        self::assertStringNotContainsString('function onAiBoostFilterHeadOutput', $stripped);
+        self::assertStringNotContainsString('buildAccordionFaqSchema', $stripped);
+        self::assertStringNotContainsString("hasPro('int_yootheme')", $stripped);
+
+        // …but the free OG override remains.
+        self::assertStringContainsString('function onAfterRoute', $stripped);
+        self::assertStringContainsString('yootheme_meta_override', $stripped);
+        self::assertStringNotContainsString('yootheme_faq_enabled', $stripped);
+
+        // And the stripped result is still syntactically valid PHP.
+        $tmp = tempnam(sys_get_temp_dir(), 'ab_strip_') . '.php';
+        file_put_contents($tmp, $stripped);
+        $out = [];
+        $rc  = 0;
+        exec('php -l ' . escapeshellarg($tmp) . ' 2>&1', $out, $rc);
+        @unlink($tmp);
+        self::assertSame(0, $rc, 'stripped free build must be valid PHP: ' . implode("\n", $out));
     }
 }

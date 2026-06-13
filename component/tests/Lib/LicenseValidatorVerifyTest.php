@@ -262,6 +262,90 @@ final class LicenseValidatorVerifyTest extends TestCase
     }
 
     // ------------------------------------------------------------------
+    // Plan 2a — product pinning (per-integration, fail closed)
+    // ------------------------------------------------------------------
+
+    /** Stand-in Lemon Squeezy product ID for an integration SKU. */
+    private const PRODUCT_ID = 9001;
+
+    public function testMatchingProductIdActivatesWhenProductPinned(): void
+    {
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-yoo'],
+            'meta'        => ['store_id' => self::STORE_ID, 'product_id' => self::PRODUCT_ID],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-GOOD', 'https://example.test', '', self::PRODUCT_ID);
+
+        $this->assertSame('active', $state['status'], 'a key for the pinned product must activate');
+        $this->assertSame(self::PRODUCT_ID, $state['product_id']);
+    }
+
+    public function testMismatchedProductIdIsRejectedEvenFromOurStore(): void
+    {
+        // The core leak this prevents: a same-store key for ANOTHER integration
+        // product (e.g. a Multilang key used against the YOOtheme SKU).
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-other'],
+            'meta'        => ['store_id' => self::STORE_ID, 'product_id' => self::PRODUCT_ID + 1],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-OTHER', 'https://example.test', '', self::PRODUCT_ID);
+
+        $this->assertSame('invalid', $state['status'], 'a key for a different product must NOT activate');
+        $this->assertStringContainsString('different AI Boost product', (string) $state['message']);
+    }
+
+    public function testActiveKeyWithoutProductIdIsRejectedWhenProductPinned(): void
+    {
+        // Fail-closed: an "active" response that proves no product at all cannot
+        // satisfy a product-pinned SKU.
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-anon'],
+            'meta'        => ['store_id' => self::STORE_ID],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-ANON', 'https://example.test', '', self::PRODUCT_ID);
+
+        $this->assertSame('invalid', $state['status']);
+        $this->assertStringContainsString('different AI Boost product', (string) $state['message']);
+    }
+
+    public function testCoreSkuPassesNullExpectedProductIdAndIgnoresProductPinning(): void
+    {
+        // Core SKUs are store-pinned only: any product_id from our store activates.
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-core'],
+            'meta'        => ['store_id' => self::STORE_ID, 'product_id' => 424242],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-CORE', 'https://example.test', '', null);
+
+        $this->assertSame('active', $state['status']);
+    }
+
+    public function testExpectedProductIdReadsConstantAndOverride(): void
+    {
+        // Shipped (pre-release) state: integration product IDs are null
+        // (fail-closed until configured), core SKUs are never product-pinned.
+        $this->assertNull(LicenseValidator::expectedProductId('int_yootheme'));
+        $this->assertNull(LicenseValidator::expectedProductId('int_falang'));
+        $this->assertNull(LicenseValidator::expectedProductId('bundle'));
+
+        LicenseValidator::setExpectedProductId('int_yootheme', 555);
+        $this->assertSame(555, LicenseValidator::expectedProductId('int_yootheme'));
+        $this->assertNull(LicenseValidator::expectedProductId('int_falang'), 'override is per-SKU');
+    }
+
+    // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
 

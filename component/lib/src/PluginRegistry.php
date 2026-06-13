@@ -389,11 +389,23 @@ final class PluginRegistry
             return $simState === 'active';
         }
 
-        // Task #565 — per-SKU SKUs are retired; Pro is a single bundle unlocked
-        // by perpetual activation. Delegate to the canonical bundle-level gate
-        // so every Pro emitter, the admin UI and the settings-save endpoint
-        // derive Pro from the SAME signal (`pro_activated`). $sku is accepted
-        // for back-compat with existing call sites but no longer differentiates.
+        // Plan 2a — per-integration licensing. Integration SKUs (`int_*`) are
+        // unlocked by their OWN Lemon Squeezy key, recorded in
+        // license_state['int_*'], strictly INDEPENDENT of the core bundle.
+        // Buying YOOtheme Pro must never unlock Multilang or the core bundle,
+        // and vice-versa. The reverse half of that rule lives in
+        // coreLicenseActive(), which ignores int_* keys so an integration
+        // activation can never set the perpetual `pro_activated` flag.
+        if (str_starts_with($sku, 'int_')) {
+            return self::hasIntegrationPro($sku);
+        }
+
+        // Core/bundle SKUs — Task #565: per-SKU core SKUs are retired; core Pro
+        // is a single bundle unlocked by perpetual activation. Delegate to the
+        // canonical bundle-level gate so every Pro emitter, the admin UI and the
+        // settings-save endpoint derive core Pro from the SAME signal
+        // (`pro_activated`). $sku is accepted for back-compat with existing call
+        // sites but no longer differentiates among core SKUs.
         // Settings are read once per request and cached in a function static.
         static $isPro = null;
         if ($isPro === null) {
@@ -412,6 +424,41 @@ final class PluginRegistry
             }
         }
         return $isPro;
+    }
+
+    /**
+     * Plan 2a — resolve whether a single integration SKU (`int_*`) is licensed
+     * Pro, INDEPENDENTLY of the core bundle. Precedence mirrors isProActive():
+     *   1. dev_force_free_tier === '1' → false  (QA: force-Free)
+     *   2. dev_license_preview === '1' → true   (QA: force-Pro, unlocks all int_*)
+     *   3. otherwise → the integration's OWN license_state resolves to 'active'
+     *      (real key verified active and not expired).
+     *
+     * Never consults `pro_activated` or the core bundle — an unactivated core
+     * install can still hold a paid integration licence, and a core-bundle buyer
+     * does not get the integrations for free (product-id pinning enforces that on
+     * verify()). Result is cached per-SKU for the request.
+     */
+    private static function hasIntegrationPro(string $sku): bool
+    {
+        static $cache = [];
+        if (array_key_exists($sku, $cache)) {
+            return $cache[$sku];
+        }
+        $result = false;
+        try {
+            $settings = self::loadMainSettings();
+            if (self::settingEnabled($settings, 'dev_force_free_tier')) {
+                $result = false;
+            } elseif (self::settingEnabled($settings, 'dev_license_preview')) {
+                $result = true;
+            } else {
+                $result = self::resolveRealStatus(self::loadLicenseStates()[$sku] ?? null) === 'active';
+            }
+        } catch (\Throwable $e) {
+            $result = false;
+        }
+        return $cache[$sku] = $result;
     }
 
     /**
@@ -656,9 +703,9 @@ final class PluginRegistry
             $states[$sku] = $state;
             $data['license_state'] = $states;
 
-            $anyActive = self::hasActiveLicenseState($states);
-            $data['license_tier'] = $anyActive ? 'pro' : 'free';
-            self::markPerpetualActivation($data, $anyActive);
+            $coreActive = self::coreLicenseActive($states);
+            $data['license_tier'] = $coreActive ? 'pro' : 'free';
+            self::markPerpetualActivation($data, $coreActive);
             self::persistMainSettings($data);
         } catch (\Throwable $e) {
             error_log('[AI Boost PluginRegistry] saveLicenseState failed: ' . $e->getMessage());
@@ -705,11 +752,25 @@ final class PluginRegistry
     }
 
     /**
-     * @param array<string,mixed> $states
+     * Plan 2a — does the install hold an active CORE/bundle licence?
+     *
+     * ANTI-LEAK (the single most important rule of per-integration licensing):
+     * integration (`int_*`) licence keys are deliberately ignored here. They are
+     * licensed independently via hasPro('int_*'), so activating one must NEVER
+     * set the perpetual `pro_activated` flag (which would unlock the WHOLE core
+     * bundle for free) nor flip the back-compat `license_tier` to 'pro'. Only a
+     * genuine core SKU (schema/og/hreflang/code/aeo/bundle) verifying active may
+     * do that. Public + pure so the anti-leak regression test can assert it
+     * directly without a DB seam.
+     *
+     * @param array<string,mixed> $states  license_state map (sku => record)
      */
-    private static function hasActiveLicenseState(array $states): bool
+    public static function coreLicenseActive(array $states): bool
     {
-        foreach ($states as $state) {
+        foreach ($states as $sku => $state) {
+            if (str_starts_with((string) $sku, 'int_')) {
+                continue;
+            }
             if (is_array($state) && self::resolveRealStatus($state) === 'active') {
                 return true;
             }

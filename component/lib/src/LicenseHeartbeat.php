@@ -194,8 +194,15 @@ final class LicenseHeartbeat
                 return (string) $row['key'];
             }
         }
-        // Pass 5: unknown SKU keys not in the canonical list.
-        foreach ($states as $row) {
+        // Pass 5: unknown SKU keys not in the canonical list — but NEVER an
+        // integration licence (int_*). Plan 2a integration keys belong to their
+        // own product/licence channel; heartbeating one against the CORE licence
+        // endpoint would surface an integration's status as the core status and
+        // bind the wrong key to this install. Core-only catch-all.
+        foreach ($states as $sku => $row) {
+            if (str_starts_with((string) $sku, 'int_')) {
+                continue;
+            }
             if (is_array($row) && !empty($row['key'])) {
                 return (string) $row['key'];
             }

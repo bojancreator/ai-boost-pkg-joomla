@@ -8,7 +8,7 @@
   <authorEmail>info@aiboostnow.com</authorEmail>
   <authorUrl>https://aiboostnow.com</authorUrl>
   <version>0.74.0</version>
-  <description>AI Boost — YOOtheme Pro Integration. Reads YOOtheme Pro page content for FAQ and gallery Schema.org and uses page title/description for per-page meta. Pro feature.</description>
+  <description>AI Boost — YOOtheme Integration (free). Aligns per-page OpenGraph meta with the YOOtheme page title and description. FAQ/gallery/Event/Product/Organization Schema.org and sitemap clean-up are provided by the separate AI Boost — YOOtheme Pro add-on.</description>
   <php_minimum>8.1.0</php_minimum>
   <joomla_minimum>5.0.0</joomla_minimum>
   <namespace path="src">AiBoost\Plugin\System\AiBoostIntYootheme</namespace>
@@ -26,32 +26,11 @@
   <config>
     <fields name="params">
       <fieldset name="basic" label="Basic">
-        <field name="yootheme_faq_enabled" type="radio" label="FAQ schema from Accordion"
-               layout="joomla.form.field.radio.switcher" default="1">
-          <option value="0">JNO</option>
-          <option value="1">JYES</option>
-        </field>
-        <field name="yootheme_gallery_enabled" type="radio" label="ImageGallery schema from Gallery"
-               layout="joomla.form.field.radio.switcher" default="1">
-          <option value="0">JNO</option>
-          <option value="1">JYES</option>
-        </field>
-        <field name="yootheme_schema_mapping" type="radio" label="Schema.org mapping from menu params"
-               layout="joomla.form.field.radio.switcher" default="1">
-          <option value="0">JNO</option>
-          <option value="1">JYES</option>
-        </field>
         <field name="yootheme_meta_override" type="radio" label="Override OpenGraph from page meta"
                layout="joomla.form.field.radio.switcher" default="1">
           <option value="0">JNO</option>
           <option value="1">JYES</option>
         </field>
-        <field name="yootheme_sitemap_exclude_builder" type="radio" label="Exclude builder-only pages from sitemap"
-               layout="joomla.form.field.radio.switcher" default="1">
-          <option value="0">JNO</option>
-          <option value="1">JYES</option>
-        </field>
-        <field name="yootheme_accordion_selector" type="text" label="Accordion CSS selector" default=".uk-accordion" size="20"/>
       </fieldset>
     </fields>
   </config>

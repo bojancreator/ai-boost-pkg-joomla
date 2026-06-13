@@ -151,6 +151,11 @@ class Pkg_AiboostInstallerScript
         if (!$this->isProInstall()) {
             $this->removeLegacySplitPackageArtifacts();
         }
+        // v0.75.0 — Remove integration plugins that were part of abandoned dev
+        // models (e.g. v1 two-plugin YOOtheme split). Runs unconditionally on
+        // BOTH Free and Pro installs — these elements no longer exist in any
+        // current package and must be removed regardless of licence state.
+        $this->removeObsoleteIntegrationPlugins();
         $this->enablePlugins();
 
         if (in_array($type, ['install', 'update', 'discover_install'], true)) {
@@ -1272,6 +1277,38 @@ class Pkg_AiboostInstallerScript
             $this->removeLegacyExtension('package', 'pkg_aiboost_pro', '', 0);
         } catch (\Throwable $e) {
             self::logEvent('warning', '[AiBoost] removeLegacySplitPackageArtifacts failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * v0.75.0 — Remove integration plugins that belonged to abandoned development
+     * models. Runs unconditionally on BOTH Free and Pro installs (unlike
+     * removeLegacySplitPackageArtifacts which is Free-only) because these elements
+     * are no longer part of any shipped package regardless of licence state.
+     *
+     * Add an entry here whenever a plugin element is retired mid-development so
+     * the next base-package deploy silently cleans up every staging/customer site
+     * without requiring a manual uninstall.
+     *
+     * Each entry is: [element, reason_comment]. Only the element is used at
+     * runtime; the comment is documentation.
+     */
+    private function removeObsoleteIntegrationPlugins(): void
+    {
+        $obsolete = [
+            // v0.75.0: YOOtheme integration v1 shipped a separate "_pro" plugin
+            // element. Superseded by the single-plugin model where one element
+            // (aiboost_int_yootheme) carries both tiers and the Pro upgrade ZIP
+            // upgrades it in place — so the old "_pro" element is now orphaned.
+            'aiboost_int_yootheme_pro',
+        ];
+
+        foreach ($obsolete as $element) {
+            try {
+                $this->removeLegacyExtension('plugin', $element, 'system', 0);
+            } catch (\Throwable $e) {
+                self::logEvent('warning', '[AiBoost] removeObsoleteIntegrationPlugins: could not remove ' . $element . ': ' . $e->getMessage());
+            }
         }
     }
 

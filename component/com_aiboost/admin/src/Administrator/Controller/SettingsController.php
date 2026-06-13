@@ -1681,8 +1681,18 @@ class SettingsController extends BaseController
     }
 
     /**
+     * Licensable SKUs accepted by verifyLicense()/deactivateLicense().
+     *
+     * Core/bundle SKUs unlock core Pro via perpetual activation; the two
+     * `int_*` SKUs are the independently-sold integration products (Plan 2a),
+     * each product-pinned in LicenseValidator. NOTE: detection-only integrations
+     * (e.g. Admin Tools) are deliberately NOT here — they are not for sale.
+     */
+    private const LICENSE_SKUS = ['schema', 'og', 'hreflang', 'code', 'aeo', 'bundle', 'int_yootheme', 'int_falang'];
+
+    /**
      * Verify a license key for a single SKU. POST params:
-     *   sku         — schema|og|hreflang|code|aeo|bundle
+     *   sku         — schema|og|hreflang|code|aeo|bundle|int_yootheme|int_falang
      *   license_key — raw key (mock prefixes: AB-VALID / AB-EXPIRED / AB-LIMIT / AB-DEACT)
      * URL: index.php?option=com_aiboost&task=settings.verifyLicense&format=json
      */
@@ -1697,12 +1707,27 @@ class SettingsController extends BaseController
             $sku   = strtolower(trim((string) $input->getString('sku', '')));
             $key   = trim((string) $input->getString('license_key', ''));
 
-            if (!in_array($sku, ['schema', 'og', 'hreflang', 'code', 'aeo', 'bundle'], true)) {
+            if (!in_array($sku, self::LICENSE_SKUS, true)) {
                 $this->sendJsonResponse(false, 'Unknown SKU.');
                 return;
             }
             if ($key === '') {
                 $this->sendJsonResponse(false, 'License key is required.');
+                return;
+            }
+
+            // Plan 2a — integration SKUs are product-pinned (fail closed). A real
+            // (non-mock) integration key cannot be verified until its Lemon
+            // Squeezy product ID is configured, so a same-store key for another
+            // product can never activate this integration. Mock QA keys (AB-*)
+            // bypass the network and the pin entirely via the simulator path.
+            if (
+                str_starts_with($sku, 'int_')
+                && !$this->isMockLicenseKey($key)
+                && \AiBoost\Lib\LicenseValidator::expectedProductId($sku) === null
+            ) {
+                $this->sendJsonResponse(false, 'Integration licensing is not configured yet (product pinning missing). '
+                    . 'This integration becomes purchasable once its product ID is set.');
                 return;
             }
 
@@ -1747,7 +1772,7 @@ class SettingsController extends BaseController
         try {
             $input = $this->app->getInput();
             $sku   = strtolower(trim((string) $input->getString('sku', '')));
-            if (!in_array($sku, ['schema', 'og', 'hreflang', 'code', 'aeo', 'bundle'], true)) {
+            if (!in_array($sku, self::LICENSE_SKUS, true)) {
                 $this->sendJsonResponse(false, 'Unknown SKU.');
                 return;
             }
@@ -1796,7 +1821,12 @@ class SettingsController extends BaseController
         $instanceId   = is_array($existing) ? (string) ($existing['instance_id'] ?? '') : '';
         $instanceName = rtrim(\Joomla\CMS\Uri\Uri::root(), '/');
 
-        return \AiBoost\Lib\LicenseValidator::verify($key, $instanceName, $instanceId);
+        // Plan 2a — integration SKUs are product-pinned; core SKUs are not.
+        $expectedProductId = str_starts_with($sku, 'int_')
+            ? \AiBoost\Lib\LicenseValidator::expectedProductId($sku)
+            : null;
+
+        return \AiBoost\Lib\LicenseValidator::verify($key, $instanceName, $instanceId, $expectedProductId);
     }
 
     /**

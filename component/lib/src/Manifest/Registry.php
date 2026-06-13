@@ -238,6 +238,19 @@ final class Registry
                 $field['lock_reason'] = 'integration_off:' . $field['integration'];
                 return;
             }
+
+            // Plan 2a — per-integration Pro gate. A tier='pro' integration field
+            // (e.g. the YOOtheme Pro schema toggles) stays visible but locked
+            // until THAT integration's own licence is active, independent of the
+            // core bundle. lock_reason 'integration_pro:<key>' drives a
+            // per-integration "Upgrade to <Integration> Pro" upsell, not the
+            // core Pro modal. hasPro('int_<key>') honours the simulator and
+            // dev_license_preview, so QA can unlock without a real key.
+            if (($field['tier'] ?? 'free') === 'pro' && !PluginRegistry::hasPro($intKey)) {
+                $field['locked']      = true;
+                $field['lock_reason'] = 'integration_pro:' . $field['integration'];
+                return;
+            }
         }
 
         // v0.5 one-product transition: historical tier=pro fields are no longer locked.
