@@ -219,6 +219,91 @@ final class HeadBlockBuilder
     }
 
     /**
+     * Cooperative-mode conflict dedup (Deliverable B).
+     *
+     * PURE function — no Joomla, fully unit-testable. Given our rendered block
+     * and the full third-party page HTML ($theirs, which at finalize time is the
+     * body WITHOUT our block, since ours is not yet spliced), remove OUR tag(s)
+     * for any signal a third-party already emits — and ONLY from our block.
+     * It never reads from or writes to $theirs, so a foreign tag can never be
+     * stripped (the safety invariant, guaranteed by construction).
+     *
+     * Only acts in `cooperative` mode; `aggressive`/`off` return the block as-is.
+     *
+     * @param string $block  Our rendered head block (the render() output).
+     * @param string $theirs The page HTML outside our block (third-party).
+     * @param string $mode   conflict_mode (cooperative|aggressive|off).
+     */
+    public static function trimBlockConflicts(string $block, string $theirs, string $mode): string
+    {
+        if (strtolower(trim($mode)) !== 'cooperative' || $block === '' || $theirs === '') {
+            return $block;
+        }
+        $theirsLower = strtolower($theirs);
+
+        // 1. OpenGraph / social meta — ALL-OR-NOTHING. If a third-party already
+        //    emits a core OG tag, remove our ENTIRE social meta set so we never
+        //    leave a mixed set. Operates on the meta tags (not the section label)
+        //    so it works in hide_comments mode too.
+        if (preg_match('/(?:property|name)\s*=\s*["\'](?:og:title|og:url|og:type|og:image|og:description|twitter:card)["\']/i', $theirs)) {
+            $trimmed = preg_replace(
+                '#<meta\b[^>]*\b(?:property|name)\s*=\s*["\'](?:og|twitter|fb|article):[^"\']*["\'][^>]*>[ \t]*\r?\n?#i',
+                '',
+                $block
+            );
+            if (is_string($trimmed)) {
+                $block = $trimmed;
+                self::$skipped[] = ['section' => self::SECTION_SOCIAL, 'reason' => 'OpenGraph already present in page'];
+            }
+        }
+
+        // 2. Single-instance JSON-LD (@type Organization/LocalBusiness/subtypes).
+        //    Remove ONLY our nodes of those types; keep repeatable types
+        //    (BreadcrumbList, FAQPage, Article, Product, WebPage, ItemList, …).
+        $singleTypes = 'Organization|LocalBusiness|Hotel|Restaurant|MedicalBusiness|LegalService|EducationalOrganization|Dentist|RealEstateAgent|NewsMediaOrganization';
+        if (str_contains($theirsLower, 'application/ld+json')
+            && preg_match('/"@type"\s*:\s*"(?:' . $singleTypes . ')"/i', $theirs)) {
+            $trimmed = preg_replace_callback(
+                '#<script\b[^>]*type\s*=\s*["\']application/ld\+json["\'][^>]*>(.*?)</script>[ \t]*\r?\n?#is',
+                static function (array $m) use ($singleTypes): string {
+                    return preg_match('/"@type"\s*:\s*"(?:' . $singleTypes . ')"/i', $m[1]) ? '' : $m[0];
+                },
+                $block
+            );
+            if (is_string($trimmed) && $trimmed !== $block) {
+                $block = $trimmed;
+                self::$skipped[] = ['section' => self::SECTION_SCHEMA, 'reason' => 'Organization schema already present in page'];
+            }
+        }
+
+        // 3. Analytics + AI meta — per-loader removal of OUR snippet.
+        //    [detect-in-theirs, trim-from-our-block, section]
+        $simple = [
+            ['#googletagmanager\.com/gtag/js#i',
+             '#<script\b[^>]*\bgoogletagmanager\.com/gtag/js[^>]*>\s*</script>[ \t]*\r?\n?#i', self::SECTION_ANALYTICS],
+            ['#googletagmanager\.com/gtm\.js#i',
+             '#<script\b[^>]*>[^<]*googletagmanager\.com/gtm\.js.*?</script>[ \t]*\r?\n?#is', self::SECTION_ANALYTICS],
+            ['#connect\.facebook\.net|fbq\s*\(\s*[\'"]init[\'"]#i',
+             '#<script\b[^>]*>[^<]*(?:connect\.facebook\.net|fbq\().*?</script>[ \t]*\r?\n?#is', self::SECTION_ANALYTICS],
+            ['#name\s*=\s*["\']ai-content-verified["\']#i',
+             '#<meta\b[^>]*\bname\s*=\s*["\']ai-content-verified["\'][^>]*>[ \t]*\r?\n?#i', self::SECTION_AEO],
+        ];
+        foreach ($simple as [$detect, $trim, $section]) {
+            if (preg_match($detect, $theirs)) {
+                $trimmed = preg_replace($trim, '', $block);
+                if (is_string($trimmed) && $trimmed !== $block) {
+                    $block = $trimmed;
+                    self::$skipped[] = ['section' => $section, 'reason' => 'analytics/meta already present in page'];
+                }
+            }
+        }
+
+        // Collapse blank-line runs left behind by removals.
+        $block = preg_replace("/(?:\r?\n){3,}/", "\n\n", $block) ?? $block;
+        return $block;
+    }
+
+    /**
      * Inject the consolidated block into the rendered page body immediately
      * before `</head>`. Idempotent — only the first call per request rewrites
      * the body; subsequent calls are no-ops. Plugin order does not matter.
