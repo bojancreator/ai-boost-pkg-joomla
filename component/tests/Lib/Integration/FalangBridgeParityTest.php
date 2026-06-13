@@ -115,7 +115,7 @@ final class FalangBridgeParityTest extends TestCase
         $code = php_strip_whitespace($this->classFile());
 
         self::assertStringContainsString("hasPro('int_falang')", $code, 'Emission gates on the Multilang licence.');
-        self::assertStringContainsString('$this->isActive()', $code, 'Master toggle + host gate is honoured.');
+        self::assertStringContainsString('isAdminEnabled()', $code, 'Master toggle gates output (no Falang-host requirement — Multilang serves native sites).');
         self::assertStringContainsString('addHeadLink', $code, 'hreflang flows through the native head stream.');
         self::assertStringContainsString("noteNative('hreflang')", $code, 'native head ownership is registered for ConflictManager.');
         self::assertDoesNotMatchRegularExpression('/addCustomTag\s*\(/', $code, 'never addCustomTag() for head content.');

@@ -16,13 +16,13 @@
  *     active Multilang licence.
  *
  * Scope: this element owns the HEAD hreflang tags + the Falang sitemap-language
- * registration, gated on isActive() (Falang host detected + master toggle) AND
- * an active Multilang licence. Native-Joomla-multilingual sites get their
- * hreflang from the XML sitemap (aiboost_sitemap reads native #__associations),
- * re-tiered onto the Multilang licence separately. Translated Schema.org /
- * OpenGraph live in the
- * core schema_pro / social_pro decorators and are gated there on the same
- * Multilang licence (see those plugins).
+ * registration, gated on the master toggle AND an active Multilang licence —
+ * with NO Falang host requirement, so it serves native-Joomla-multilingual
+ * sites too (Falang, when present, only enriches the data). The XML sitemap's
+ * own hreflang (native #__associations + Falang) is re-tiered onto the same
+ * Multilang licence in aiboost_sitemap. Translated Schema.org / OpenGraph live
+ * in the core schema_pro / social_pro decorators and are gated there on the
+ * same Multilang licence (see those plugins).
  *
  * Anti-piracy: every Pro-only section is fenced with the build's Pro-strip
  * markers, so the Free distribution ZIP physically lacks the emission code
@@ -180,20 +180,23 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     // ── Runtime gate (PRO) ─────────────────────────────────────────────────
 
     /**
-     * The single runtime gate for all Multilang HEAD emission: the integration
-     * is active (Falang host detected AND the admin master toggle is on, via
-     * isActive()) PLUS an active Multilang licence (hasPro('int_falang'),
-     * independent of the core bundle — per-integration licensing). Mirrors the
-     * YOOtheme proOn() pattern; the whole method is stripped from the Free build.
+     * The single runtime gate for all Multilang emission: the lib is loadable,
+     * the admin master toggle is on (isAdminEnabled — the
+     * integration_falang_enabled switch), AND an active Multilang licence is
+     * present (per-integration licensing, independent of the core bundle). The
+     * whole method is stripped from the Free build.
      *
-     * NOTE: native-Joomla-multilingual sites (no Falang) get hreflang from the
-     * XML sitemap — aiboost_sitemap's HreflangSitemapExtension reads native
-     * #__associations and is re-tiered onto hasPro('int_falang') separately (not
-     * host-gated). This bridge's HEAD hreflang stays Falang-sourced.
+     * Deliberately does NOT require Falang host detection (the isDetected half of
+     * isActive): Multilang is a Pro product for ANY multilingual Joomla site,
+     * native or Falang. The multilingual precondition is enforced where it
+     * matters (onBeforeCompileHead bails below 2 published languages); Falang,
+     * when present, only enriches the data (the alias map). So HEAD hreflang
+     * serves native-Joomla-multilingual sites too — gated solely on the master
+     * toggle + the Multilang licence.
      */
     private function proOn(): bool
     {
-        if (!$this->libReady() || !$this->isActive()) {
+        if (!$this->libReady() || !$this->isAdminEnabled()) {
             return false;
         }
         try {

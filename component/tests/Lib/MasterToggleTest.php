@@ -65,14 +65,18 @@ final class MasterToggleTest extends TestCase
         self::assertTrue($rc->hasMethod('readAiBoostSetting'), 'SDK base must provide readAiBoostSetting().');
     }
 
-    public function testFalangRuntimeHandlersGateOnIsActive(): void
+    public function testFalangRuntimeHandlersGateOnMasterToggleAndPro(): void
     {
         $src = file_get_contents(
             dirname(__DIR__, 2) . '/plugins/system/aiboost_int_falang/src/Extension/AiBoostIntFalang.php'
         );
-        // The output handlers must check isActive() (host + admin toggle), not
-        // the bare isDetected() (host only), so the master switch pauses output.
-        self::assertStringContainsString('$this->isActive()', $src);
+        // Multilang (Workstream C) serves ANY multilingual site — native Joomla
+        // or Falang — so its emission gate intentionally does NOT require Falang
+        // host detection (the isDetected half of isActive). It MUST still honour
+        // the master toggle (isAdminEnabled, so the switch pauses output) and
+        // require the Multilang licence (per-integration Pro).
+        self::assertStringContainsString('isAdminEnabled()', $src, 'master toggle must gate output');
+        self::assertStringContainsString("hasPro('int_falang')", $src, 'Multilang licence must gate output');
     }
 
     public function testYoothemeRuntimeHandlersGateOnIsActive(): void
