@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
-  <name>PLG_SYSTEM_AIBOOST_CODE_PRO</name>
+  <name>AI Boost — Custom Code (Pro)</name>
   <author>AI Boost Team</author>
   <creationDate>May 2026</creationDate>
   <copyright>(C) 2025 AI Boost (aiboostnow.com). All rights reserved.</copyright>
