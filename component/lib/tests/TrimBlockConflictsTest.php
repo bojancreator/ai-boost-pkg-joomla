@@ -33,8 +33,9 @@ final class TrimBlockConflictsTest extends TestCase
         return implode("\n", [
             '<!-- AI Boost for Joomla - Start -->',
             '<!-- Schema.org -->',
-            '<script type="application/ld+json">{"@type":"Organization","name":"Acme"}</script>',
+            '<script type="application/ld+json">{"@type":"Organization","@id":"https://s/#org","name":"Acme"}</script>',
             '<script type="application/ld+json">{"@type":"BreadcrumbList","x":1}</script>',
+            '<script type="application/ld+json">{"@type":"Article","headline":"Post","publisher":{"@type":"Organization","name":"Acme"}}</script>',
             '<!-- OpenGraph & Twitter -->',
             '<meta property="og:title" content="Ours">',
             '<meta property="og:type" content="website">',
@@ -63,16 +64,38 @@ final class TrimBlockConflictsTest extends TestCase
         $this->assertStringContainsString('BreadcrumbList', $out);
     }
 
-    /** Our schema is NEVER trimmed in Phase 1b (JSON-LD dedup deferred to 1c). */
-    public function testSchemaNeverTrimmedYet(): void
+    /** Competing standalone Organization → our TOP-LEVEL Org goes; our Article (which
+     *  NESTS an Organization publisher) and BreadcrumbList survive. THE blocker case. */
+    public function testSchemaDedupRemovesTopLevelOrgKeepsArticle(): void
     {
         $out = HeadBlockBuilder::trimBlockConflicts(
             $this->block(),
-            '<head><script type="application/ld+json">{"@type":"Organization"}</script></head>',
+            '<head><script type="application/ld+json">{"@type":"Organization","name":"Theirs"}</script></head>',
             'cooperative'
         );
-        $this->assertStringContainsString('Organization', $out, 'JSON-LD dedup is Phase 1c — schema must stay');
+        $this->assertSame(2, substr_count($out, 'application/ld+json'), 'exactly our top-level Org node removed');
+        $this->assertStringNotContainsString('#org', $out, 'our top-level Organization node must go');
+        $this->assertStringContainsString('"@type":"Article"', $out, 'Article (nests Organization) must be kept');
+        $this->assertStringContainsString('BreadcrumbList', $out);
+    }
+
+    /** A nested Organization in THEIR Article (no standalone Org) must NOT trigger our dedup. */
+    public function testSchemaDedupIgnoresNestedOrgInTheirs(): void
+    {
+        $theirs = '<head><script type="application/ld+json">{"@type":"Article","publisher":{"@type":"Organization","name":"T"}}</script></head>';
+        $out = HeadBlockBuilder::trimBlockConflicts($this->block(), $theirs, 'cooperative');
+        $this->assertSame(3, substr_count($out, 'application/ld+json'), 'a nested-only Organization must not dedup ours');
+        $this->assertStringContainsString('#org', $out);
+    }
+
+    /** @graph-aware: an Organization inside their @graph triggers the dedup. */
+    public function testSchemaDedupGraphAware(): void
+    {
+        $theirs = '<head><script type="application/ld+json">{"@graph":[{"@type":"WebSite"},{"@type":"Organization"}]}</script></head>';
+        $out = HeadBlockBuilder::trimBlockConflicts($this->block(), $theirs, 'cooperative');
         $this->assertSame(2, substr_count($out, 'application/ld+json'));
+        $this->assertStringNotContainsString('#org', $out);
+        $this->assertStringContainsString('"@type":"Article"', $out);
     }
 
     /** Detection is <head>-scoped: an og: mention in the BODY must NOT trim our OG. */

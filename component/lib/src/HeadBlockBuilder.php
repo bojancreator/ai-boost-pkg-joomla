@@ -72,6 +72,17 @@ final class HeadBlockBuilder
     public const SECTION_ANALYTICS = 'analytics';
     public const SECTION_CODE      = 'code';
 
+    /**
+     * JSON-LD @types that represent the single, page-level business identity
+     * (one per page). Lowercased for case-insensitive matching. Used by the
+     * cooperative dedup to drop OUR identity node when a third party emits one.
+     */
+    private const SINGLE_INSTANCE_TYPES = [
+        'organization', 'localbusiness', 'hotel', 'restaurant', 'medicalbusiness',
+        'legalservice', 'educationalorganization', 'dentist', 'realestateagent',
+        'newsmediaorganization',
+    ];
+
     /** Fixed render order — Schema first (most important), Custom Code last. */
     private const ORDER = [
         self::SECTION_SCHEMA,
@@ -295,16 +306,78 @@ final class HeadBlockBuilder
             }
         }
 
-        // DEFERRED to Phase 1c (need careful, fully-tested handling):
-        //  - single-instance JSON-LD (@type) dedup — MUST decode each node and
-        //    test the TOP-LEVEL @type (and handle @graph), else our Article node's
-        //    nested publisher Organization is wrongly trimmed.
-        //  - analytics (GA4/GTM/Meta Pixel) — multi-part (src loader + inline
-        //    config + a body <noscript>), needs BodyBlockBuilder coordination.
+        // 3. Single-instance identity JSON-LD (@type Organization/LocalBusiness/…).
+        //    AI Boost emits SEPARATE <script> per node (no @graph), so each of OUR
+        //    scripts has one decisive TOP-LEVEL @type. Remove ONLY our top-level
+        //    Organization-like node, and ONLY when THEIR <head> has a STANDALONE
+        //    one — a nested publisher/organizer/affiliation Organization (inside an
+        //    Article/Event/Person node) does NOT count. Decoding the JSON (both
+        //    sides) is what makes "top-level" precise: our Article node keeps its
+        //    nested publisher Organization untouched.
+        if (str_contains(strtolower($head), 'application/ld+json')
+            && array_intersect(self::SINGLE_INSTANCE_TYPES, self::jsonldTopLevelTypes($head))) {
+            $trimmed = preg_replace_callback(
+                '#<script\b[^>]*type\s*=\s*["\']application/ld\+json["\'][^>]*>(.*?)</script>[ \t]*\r?\n?#is',
+                static function (array $m): string {
+                    $node = json_decode(trim($m[1]), true);
+                    $type = is_array($node) ? ($node['@type'] ?? null) : null;
+                    // Symmetric with jsonldTopLevelTypes(): handle string, array and
+                    // whitespace-padded @type. Non-array/unset → kept (safe default).
+                    foreach ((array) $type as $t) {
+                        if (is_string($t) && in_array(strtolower(trim($t)), self::SINGLE_INSTANCE_TYPES, true)) {
+                            return '';
+                        }
+                    }
+                    return $m[0];
+                },
+                $block
+            );
+            if (is_string($trimmed)) {
+                $block = $trimmed;
+            }
+        }
+
+        // DEFERRED to Phase 1c-analytics: GA4/GTM/Meta Pixel dedup — multi-part
+        // (GA4 = src loader + inline config; GTM/Pixel = head script + a body
+        // <noscript>), needs BodyBlockBuilder coordination.
 
         // Collapse blank-line runs left behind by removals.
         $block = preg_replace("/(?:\r?\n){3,}/", "\n\n", $block) ?? $block;
         return $block;
+    }
+
+    /**
+     * Collect the lowercased TOP-LEVEL @type of every JSON-LD <script> in $html,
+     * @graph-aware (a @graph contributes each of its items' @type). Nodes are
+     * decoded, so a nested publisher/organizer Organization is NOT reported —
+     * only genuine top-level nodes. Returns a unique list.
+     *
+     * @return string[]
+     */
+    private static function jsonldTopLevelTypes(string $html): array
+    {
+        $types = [];
+        if (!preg_match_all('#<script\b[^>]*type\s*=\s*["\']application/ld\+json["\'][^>]*>(.*?)</script>#is', $html, $mm)) {
+            return $types;
+        }
+        foreach ($mm[1] as $json) {
+            $data = json_decode(trim($json), true);
+            if (!is_array($data)) {
+                continue;
+            }
+            $nodes = (isset($data['@graph']) && is_array($data['@graph'])) ? $data['@graph'] : [$data];
+            foreach ($nodes as $node) {
+                if (!is_array($node) || !isset($node['@type'])) {
+                    continue;
+                }
+                foreach ((array) $node['@type'] as $t) {
+                    if (is_string($t)) {
+                        $types[] = strtolower($t);
+                    }
+                }
+            }
+        }
+        return array_values(array_unique($types));
     }
 
     /**
