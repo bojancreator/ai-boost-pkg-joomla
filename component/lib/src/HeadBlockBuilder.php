@@ -250,6 +250,28 @@ final class HeadBlockBuilder
     }
 
     /**
+     * Apply the cooperative dedup to OUR section data (Schema/Social/AEO/Analytics)
+     * before render — NEVER to SECTION_CODE, so a tag a user pasted into Custom
+     * Code is carried verbatim. Mutates self::$sections in place. Each trim no-ops
+     * on a section that doesn't contain its tag type, so running the full trim per
+     * owned section is safe.
+     */
+    private static function trimOwnSections(string $theirs, string $mode): void
+    {
+        if (strtolower(trim($mode)) !== 'cooperative') {
+            return;
+        }
+        foreach ([self::SECTION_SCHEMA, self::SECTION_SOCIAL, self::SECTION_AEO, self::SECTION_ANALYTICS] as $section) {
+            if (empty(self::$sections[$section])) {
+                continue;
+            }
+            foreach (self::$sections[$section] as $i => $content) {
+                self::$sections[$section][$i] = self::trimBlockConflicts((string) $content, $theirs, $mode);
+            }
+        }
+    }
+
+    /**
      * Cooperative-mode conflict dedup (Deliverable B).
      *
      * PURE function — no Joomla, fully unit-testable. Given our rendered block
@@ -337,9 +359,37 @@ final class HeadBlockBuilder
             }
         }
 
-        // DEFERRED to Phase 1c-analytics: GA4/GTM/Meta Pixel dedup — multi-part
-        // (GA4 = src loader + inline config; GTM/Pixel = head script + a body
-        // <noscript>), needs BodyBlockBuilder coordination.
+        // 4. Analytics — GA4 / GTM / Meta Pixel. If a third party already loads
+        //    the same provider in <head>, remove OUR script(s) so the tag does not
+        //    double-fire. Each provider's regex is specific to AI Boost's output
+        //    shape (verified): GA4 = an async src loader + ONE inline gtag config;
+        //    GTM/Meta Pixel = ONE inline IIFE. The matching body <noscript> parts
+        //    (GTM/Pixel) are trimmed in BodyBlockBuilder::trimBodyConflicts().
+        //    [detect-in-their-head, [trim-from-our-block, …]]
+        $analytics = [
+            ['#googletagmanager\.com/gtag/js#i', [
+                // GA4 async loader (src attribute)
+                '#<script\b[^>]*\bsrc\s*=\s*["\'][^"\']*googletagmanager\.com/gtag/js[^"\']*["\'][^>]*>\s*</script>[ \t]*\r?\n?#i',
+                // GA4 inline config (no src; content calls gtag())
+                '#<script\b(?![^>]*\bsrc=)[^>]*>[^<]*gtag\s*\(.*?</script>[ \t]*\r?\n?#is',
+            ]],
+            ['#googletagmanager\.com/gtm\.js#i', [
+                '#<script\b(?![^>]*\bsrc=)[^>]*>[^<]*googletagmanager\.com/gtm\.js.*?</script>[ \t]*\r?\n?#is',
+            ]],
+            ['#connect\.facebook\.net|fbq\s*\(\s*["\']init["\']#i', [
+                '#<script\b(?![^>]*\bsrc=)[^>]*>[^<]*(?:connect\.facebook\.net|fbq\s*\().*?</script>[ \t]*\r?\n?#is',
+            ]],
+        ];
+        foreach ($analytics as [$detect, $trims]) {
+            if (preg_match($detect, $head)) {
+                foreach ($trims as $trim) {
+                    $t = preg_replace($trim, '', $block);
+                    if (is_string($t)) {
+                        $block = $t;
+                    }
+                }
+            }
+        }
 
         // Collapse blank-line runs left behind by removals.
         $block = preg_replace("/(?:\r?\n){3,}/", "\n\n", $block) ?? $block;
@@ -430,16 +480,17 @@ final class HeadBlockBuilder
         $closeTag = $m[0][0];
         $offset   = (int) $m[0][1];
 
+        // Deliverable B — cooperative conflict dedup. Trim OUR section data
+        // (Schema/Social/AEO/Analytics) BEFORE render, NEVER the user Custom Code
+        // section — so a `gtag()` or `og:` tag a user pasted into custom_code_head
+        // is never collateral-trimmed. `$body` here is the page WITHOUT our block,
+        // i.e. the third-party head; the trim edits only our own section strings.
+        self::trimOwnSections($body, self::$conflictMode);
+
         $block = self::render($version);
         if ($block === '') {
             return;
         }
-
-        // Deliverable B — cooperative conflict dedup. At this point `$body` is
-        // the full page WITHOUT our block (we splice ours below), so it IS the
-        // third-party head. In cooperative mode trim OUR duplicate tags; the
-        // function never edits `$body`, so foreign tags can never be stripped.
-        $block = self::trimBlockConflicts($block, $body, self::$conflictMode);
 
         // Task #486 — let registered integration bridges mutate the
         // consolidated head block (e.g. inject extra <meta> rows or strip

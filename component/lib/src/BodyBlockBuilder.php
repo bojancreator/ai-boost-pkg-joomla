@@ -73,6 +73,9 @@ final class BodyBlockBuilder
 
     private static bool $hideComments = false;
 
+    /** Request-scoped conflict_mode (cooperative|aggressive|off). Set by aiboost_core. */
+    private static string $conflictMode = 'cooperative';
+
     // ─── Accumulation API ─────────────────────────────────────────────────────
 
     /**
@@ -115,12 +118,64 @@ final class BodyBlockBuilder
         return self::$hideComments;
     }
 
+    public static function setConflictMode(string $mode): void
+    {
+        $mode = strtolower(trim($mode));
+        self::$conflictMode = in_array($mode, ['cooperative', 'aggressive', 'off'], true) ? $mode : 'cooperative';
+    }
+
     public static function reset(): void
     {
         self::$body          = [];
         self::$footer        = [];
         self::$finalized     = false;
         self::$hideComments  = false;
+        self::$conflictMode  = 'cooperative';
+    }
+
+    /**
+     * Cooperative dedup for body <noscript> analytics (GTM iframe / Meta Pixel
+     * img) — sibling to HeadBlockBuilder::trimBlockConflicts(). When a third
+     * party already emits the matching body noscript, remove OURS so the tag
+     * does not double-fire for no-JS users. Detection keys on body-only signals
+     * (ns.html / facebook.com/tr) that our HEAD scripts never contain, so our
+     * own head GTM/Pixel can't false-trigger this. PURE; edits only our block.
+     */
+    public static function trimBodyConflicts(string $block, string $theirs, string $mode): string
+    {
+        if (strtolower(trim($mode)) !== 'cooperative' || $block === '' || $theirs === '') {
+            return $block;
+        }
+        // Detect competitors ONLY within their <noscript> elements — page CONTENT
+        // (an article that mentions facebook.com/tr or ns.html in prose, a code
+        // sample, a comment) must never trigger a trim of our own noscript.
+        $theirNoscripts = '';
+        if (preg_match_all('#<noscript\b[^>]*>.*?</noscript>#is', $theirs, $nm)) {
+            $theirNoscripts = implode("\n", $nm[0]);
+        }
+        if ($theirNoscripts === '') {
+            return $block;
+        }
+
+        // needle identifies BOTH the competitor's body noscript (in $theirNoscripts)
+        // and our matching one (in $block) — both contain the same body-only URL.
+        $needles = [
+            '#googletagmanager\.com/ns\.html#i',  // GTM noscript iframe
+            '#facebook\.com/tr\?#i',              // Meta Pixel noscript img
+        ];
+        foreach ($needles as $needle) {
+            if (preg_match($needle, $theirNoscripts)) {
+                $t = preg_replace_callback(
+                    '#<noscript\b[^>]*>.*?</noscript>[ \t]*\r?\n?#is',
+                    static fn(array $m): string => preg_match($needle, $m[0]) ? '' : $m[0],
+                    $block
+                );
+                if (is_string($t)) {
+                    $block = $t;
+                }
+            }
+        }
+        return preg_replace("/(?:\r?\n){3,}/", "\n\n", $block) ?? $block;
     }
 
     // ─── Render ──────────────────────────────────────────────────────────────
@@ -200,7 +255,7 @@ final class BodyBlockBuilder
         $changed = false;
 
         // ── Body block: splice immediately after the first `<body ...>` tag ──
-        $bodyBlock = self::renderBody();
+        $bodyBlock = self::trimBodyConflicts(self::renderBody(), $html, self::$conflictMode);
         if ($bodyBlock !== '' && preg_match('/<body\b[^>]*>/i', $html, $m, PREG_OFFSET_CAPTURE)) {
             $tag    = $m[0][0];
             $offset = (int) $m[0][1];
@@ -212,7 +267,7 @@ final class BodyBlockBuilder
         }
 
         // ── Footer block: splice immediately before the first `</body>` tag ──
-        $footerBlock = self::renderFooter();
+        $footerBlock = self::trimBodyConflicts(self::renderFooter(), $html, self::$conflictMode);
         if ($footerBlock !== '' && preg_match('/<\/body\s*>/i', $html, $m, PREG_OFFSET_CAPTURE)) {
             $closeTag = $m[0][0];
             $offset   = (int) $m[0][1];

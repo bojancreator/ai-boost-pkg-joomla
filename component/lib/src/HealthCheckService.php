@@ -142,6 +142,7 @@ class HealthCheckService
         'duplicate_jsonld'           => 'Conflicts',
         'duplicate_ga4'              => 'Conflicts',
         'duplicate_gtm'              => 'Conflicts',
+        'duplicate_meta_pixel'       => 'Conflicts',
     ];
 
     public function __construct(
@@ -251,7 +252,10 @@ class HealthCheckService
             }
         }
 
-        if (!$this->skipHttpScan) {
+        // conflict_mode='off' silences ALL conflict/duplicate warnings (same as
+        // the ConflictDetector gate above).
+        if (!$this->skipHttpScan
+            && strtolower((string) ($this->settings['conflict_mode'] ?? 'cooperative')) !== 'off') {
             $duplicateScanner = new DuplicateTagScanner($this->ctx, $this->dismissed);
             foreach ($duplicateScanner->scan() as $c) {
                 $checks[] = $c;

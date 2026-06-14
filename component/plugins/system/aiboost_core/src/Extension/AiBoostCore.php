@@ -218,7 +218,9 @@ CSS;
         // Cooperative conflict-resolution mode — also before early returns, so the
         // finalize-time dedup (Deliverable B) honours it regardless of which path
         // this request takes.
-        HeadBlockBuilder::setConflictMode((string) ($settings['conflict_mode'] ?? 'cooperative'));
+        $conflictMode = (string) ($settings['conflict_mode'] ?? 'cooperative');
+        HeadBlockBuilder::setConflictMode($conflictMode);
+        BodyBlockBuilder::setConflictMode($conflictMode);
 
         if (!empty($settings['staging_mode'])) {
             return;

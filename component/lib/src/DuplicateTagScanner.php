@@ -285,6 +285,24 @@ class DuplicateTagScanner
             );
         }
 
+        // ── Duplicate Meta (Facebook) Pixel base code ────────────────────────
+        // The base code loads fbevents.js from connect.facebook.net inside an
+        // inline IIFE, so countScriptPattern (which scans inline content too)
+        // catches it. Two pixels double-fire PageView and inflate conversions.
+        $pixelCount = $this->countScriptPattern($doc, '/connect\\.facebook\\.net\\/[^\\/"\']+\\/fbevents\\.js/i');
+        if ($pixelCount > 1) {
+            $results[] = $this->make(
+                'duplicate_meta_pixel', 'critical', 'Duplicate Meta Pixel',
+                "{$pixelCount} Meta Pixel base codes detected on the homepage. Firing PageView from two "
+                . 'pixels inflates your conversions and can get your pixel flagged by Meta. Another '
+                . 'extension or your template is loading a pixel alongside AI Boost.',
+                [
+                    ['label' => 'AI Boost Analytics Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-analytics-btn'],
+                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                ]
+            );
+        }
+
         return $results;
     }
 

@@ -5,12 +5,16 @@ modes, Health off-gate; verified live offroadbalkans 4SEO og:title 2→1) · **P
 SHIPPED v0.76.3** (single-instance JSON-LD identity dedup — decodes each node, top-level
 `@type`, `@graph`-aware, so our Article's nested publisher Organization is kept; adversarial
 review GO, fails safe on malformed/array `@type`/ReDoS; no staging regression).
-**DEFERRED — analytics GA4/GTM/Pixel finalize-trim:** multi-part (GA4 = loader + inline
-config; GTM/Pixel = head script + body `<noscript>`) needs BodyBlockBuilder coordination;
-LOW marginal value because the early `DocumentInspector::shouldSkip()` (kept in parallel)
-already dedups analytics for the normal case, and no known analytics tool buffer-injects
-late. Do only if a real double-analytics case appears. **Phase 2 PENDING:** retire
-`shouldSkip()` for og/schema (keep for canonical/hreflang).
+**Phase 1c-B SHIPPED v0.76.4** — analytics dedup: head GA4 (loader + inline config),
+GTM, Meta Pixel + body `<noscript>` (GTM iframe, Pixel img via BodyBlockBuilder); body
+detection scoped to competitor `<noscript>` elements (not page prose); the value case is
+a template-hardcoded analytics tag the early `shouldSkip()` misses. Also: **trims are
+now section-scoped** (`trimOwnSections` — Schema/Social/AEO/Analytics only), so a tag a
+user pasted into `custom_code_head` is NEVER collateral-trimmed (an adversarial review
+caught the whole-block trim eating user Custom Code; fixed). **Health:** new
+`duplicate_meta_pixel` check + `off` mode now silences the DuplicateTagScanner too.
+**Phase 2 PENDING:** retire `DocumentInspector::shouldSkip()` for og/schema/analytics
+(keep for canonical/hreflang — native stream).
 **Tier:** Opus. **Supersedes the dedup role of:** `DocumentInspector::shouldSkip()` (kept for canonical/hreflang).
 
 ## Why
