@@ -242,9 +242,13 @@ class HealthCheckService
         }
 
         // ── Conflict & Compatibility checks ────────────────────────────────
-        $conflictDetector = new ConflictDetector($this->db, $this->settings, $this->dismissed);
-        foreach ($conflictDetector->scan() as $c) {
-            $checks[] = $c;
+        // conflict_mode='off' means "I know about my conflicts, stop telling me"
+        // — suppress the conflict warnings (cooperative + aggressive keep them).
+        if (strtolower((string) ($this->settings['conflict_mode'] ?? 'cooperative')) !== 'off') {
+            $conflictDetector = new ConflictDetector($this->db, $this->settings, $this->dismissed);
+            foreach ($conflictDetector->scan() as $c) {
+                $checks[] = $c;
+            }
         }
 
         if (!$this->skipHttpScan) {

@@ -16,11 +16,11 @@ return [
         'default'     => 'cooperative',
         'tier'        => 'free',
         'sku'         => 'core',
-        'description' => 'How AI Boost behaves when another extension is already emitting the same meta tag, JSON-LD block, or analytics snippet.',
+        'description' => 'How AI Boost behaves when another extension (4SEO, a template, etc.) already emits the same tag. Checked at final render, so it also catches tags other tools inject late. AI Boost only ever removes ITS OWN tag — never another extension\'s.',
         'options'     => [
-            'cooperative' => 'Cooperative — skip our tag when one exists (recommended)',
-            'aggressive'  => 'Aggressive — always emit our tag (may produce duplicates)',
-            'off'         => 'Off — disable conflict handling entirely',
+            'cooperative' => 'Cooperative — remove our duplicate when another tool already emits it (recommended)',
+            'aggressive'  => 'Aggressive — always emit ours (duplicates allowed); still warn in Health',
+            'off'         => 'Off — always emit ours and silence the conflict warnings in Health',
         ],
     ],
     [

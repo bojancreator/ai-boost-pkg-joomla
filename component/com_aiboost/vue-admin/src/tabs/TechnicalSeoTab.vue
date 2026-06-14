@@ -30,15 +30,15 @@
         <div class="mb-2">
           <label class="ab-label">Mode</label>
           <select v-model="s.conflict_mode" data-ab-field="conflict_mode" class="ab-select" style="max-width:340px">
-            <option value="cooperative">Cooperative — skip our tag when one already exists (recommended)</option>
-            <option value="aggressive">Aggressive — always emit our tag (may produce duplicates)</option>
-            <option value="off">Off — disable conflict handling entirely</option>
+            <option value="cooperative">Cooperative — remove our duplicate when another tool already emits it (recommended)</option>
+            <option value="aggressive">Aggressive — always emit ours (duplicates allowed); still warn in Health</option>
+            <option value="off">Off — always emit ours and silence the conflict warnings</option>
           </select>
         </div>
         <ul class="ab-help" style="margin:0 0 0 1.1rem;padding:0;line-height:1.6">
-          <li><strong>Cooperative</strong> — aiboost_social skips OG when another extension set og:title; aiboost_schema skips Organization JSON-LD; aiboost_analytics skips GA4/GTM/Meta Pixel when their loaders are already present; aiboost_aeo skips AI meta tags when present. No duplicates.</li>
-          <li><strong>Aggressive</strong> — we always inject our tags. Use this only if you trust AI Boost as the single source of truth and have disabled the other extension's tag output.</li>
-          <li><strong>Off</strong> — same behaviour as Aggressive, plus we never check for conflicts. For debugging only.</li>
+          <li><strong>Cooperative</strong> — at the final render, if another extension already emits OpenGraph or Organization JSON-LD, AI Boost removes <em>its own</em> duplicate — never the other tool's. This also catches tags injected late (e.g. 4SEO). No duplicate tags; conflicts still listed in Health.</li>
+          <li><strong>Aggressive</strong> — we always inject our tags (duplicates allowed). Use this only if you trust AI Boost as the single source of truth. Health still lists the conflicts.</li>
+          <li><strong>Off</strong> — we always inject our tags <em>and</em> silence the conflict warnings in Health ("I know, stop telling me").</li>
         </ul>
       </div>
     </div>

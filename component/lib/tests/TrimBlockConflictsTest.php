@@ -63,18 +63,36 @@ final class TrimBlockConflictsTest extends TestCase
         $this->assertStringContainsString('BreadcrumbList', $out);
     }
 
-    /** Competing Organization JSON-LD → only our Organization node goes; repeatable types stay. */
-    public function testCooperativeRemovesOnlySingleInstanceSchema(): void
+    /** Our schema is NEVER trimmed in Phase 1b (JSON-LD dedup deferred to 1c). */
+    public function testSchemaNeverTrimmedYet(): void
     {
         $out = HeadBlockBuilder::trimBlockConflicts(
             $this->block(),
-            '<script type="application/ld+json">{"@type":"Organization"}</script>',
+            '<head><script type="application/ld+json">{"@type":"Organization"}</script></head>',
             'cooperative'
         );
-        $this->assertStringNotContainsString('Acme', $out, 'our Organization node must be removed');
-        $this->assertStringContainsString('BreadcrumbList', $out, 'repeatable types must never be trimmed');
-        $this->assertStringContainsString('og:title', $out, 'OG must survive a schema-only conflict');
-        $this->assertSame(1, substr_count($out, 'application/ld+json'));
+        $this->assertStringContainsString('Organization', $out, 'JSON-LD dedup is Phase 1c — schema must stay');
+        $this->assertSame(2, substr_count($out, 'application/ld+json'));
+    }
+
+    /** Detection is <head>-scoped: an og: mention in the BODY must NOT trim our OG. */
+    public function testHeadScopedDetectionIgnoresBodyContent(): void
+    {
+        $theirs = '<html><head><title>x</title></head><body>'
+                . '<pre>&lt;meta property="og:title"&gt;</pre>'
+                . '<meta property="og:title" content="example-in-body">'
+                . '</body></html>';
+        $out = HeadBlockBuilder::trimBlockConflicts($this->block(), $theirs, 'cooperative');
+        $this->assertStringContainsString('og:title', $out, 'body content must not trigger a trim of our OG');
+        $this->assertSame($this->block(), $out);
+    }
+
+    /** A real competing OG tag in the <head> DOES trim our set. */
+    public function testHeadOgTriggersTrim(): void
+    {
+        $theirs = '<html><head><meta property="og:title" content="Theirs"></head><body></body></html>';
+        $out = HeadBlockBuilder::trimBlockConflicts($this->block(), $theirs, 'cooperative');
+        $this->assertStringNotContainsString('og:title', $out);
     }
 
     public function testNoCompetitorLeavesBlockByteIdentical(): void

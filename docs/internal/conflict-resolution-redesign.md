@@ -1,8 +1,13 @@
 # Conflict Resolution Redesign — marker/signature-based (Deliverable B)
 
-**Status:** APPROVED by owner (2026-06-13), not yet implemented. Build-ready spec.
-**Tier:** Opus. **Effort:** ~2–3 focused sessions (Phase 1 ≈ 1, ConflictDetector/Health ≈ 0.5, cross-matrix verify ≈ 1).
-**Supersedes the dedup role of:** `DocumentInspector::shouldSkip()` (kept only for canonical/hreflang).
+**Status:** **Phase 1b SHIPPED v0.76.2** (2026-06-13) — OG-set + AI-meta dedup, head-scoped,
+wired into finalize, 3 distinct modes, Health off-gate. Verified live on offroadbalkans
+(4SEO og:title 2→1, our schema preserved). **Phase 1c PENDING:** single-instance JSON-LD
+dedup (must decode each node → TOP-LEVEL `@type`, handle `@graph`; an adversarial review
+caught that a substring `@type` match wrongly trims our Article node's nested publisher
+Organization) and analytics GA4/GTM/Pixel dedup (multi-part + body `<noscript>` via
+BodyBlockBuilder). **Phase 2 PENDING:** retire `shouldSkip()` for og/analytics/schema.
+**Tier:** Opus. **Supersedes the dedup role of:** `DocumentInspector::shouldSkip()` (kept for canonical/hreflang).
 
 ## Why
 

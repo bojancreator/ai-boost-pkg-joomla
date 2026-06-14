@@ -215,6 +215,11 @@ CSS;
         HeadBlockBuilder::setHideComments($hide);
         BodyBlockBuilder::setHideComments($hide);
 
+        // Cooperative conflict-resolution mode — also before early returns, so the
+        // finalize-time dedup (Deliverable B) honours it regardless of which path
+        // this request takes.
+        HeadBlockBuilder::setConflictMode((string) ($settings['conflict_mode'] ?? 'cooperative'));
+
         if (!empty($settings['staging_mode'])) {
             return;
         }

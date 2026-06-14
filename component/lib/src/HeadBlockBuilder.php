@@ -103,6 +103,9 @@ final class HeadBlockBuilder
     /** Request-scoped hide-comments flag. Any plugin can set it from onBeforeCompileHead. */
     private static bool $hideComments = false;
 
+    /** Request-scoped conflict_mode (cooperative|aggressive|off). Set by aiboost_core. */
+    private static string $conflictMode = 'cooperative';
+
     // ─── Accumulation API (called from plugins' onBeforeCompileHead) ──────────
 
     public static function pushSection(string $section, string $body): void
@@ -146,6 +149,22 @@ final class HeadBlockBuilder
         return self::$hideComments;
     }
 
+    /**
+     * Set the cooperative conflict-resolution mode for this request. Called by
+     * aiboost_core from onBeforeCompileHead with the `conflict_mode` setting.
+     * Unknown values fall back to the safe default.
+     */
+    public static function setConflictMode(string $mode): void
+    {
+        $mode = strtolower(trim($mode));
+        self::$conflictMode = in_array($mode, ['cooperative', 'aggressive', 'off'], true) ? $mode : 'cooperative';
+    }
+
+    public static function conflictMode(): string
+    {
+        return self::$conflictMode;
+    }
+
     public static function reset(): void
     {
         self::$sections      = [];
@@ -153,6 +172,7 @@ final class HeadBlockBuilder
         self::$skipped       = [];
         self::$finalized     = false;
         self::$hideComments  = false;
+        self::$conflictMode  = 'cooperative';
     }
 
     // ─── Render & inject ──────────────────────────────────────────────────────
@@ -239,13 +259,20 @@ final class HeadBlockBuilder
         if (strtolower(trim($mode)) !== 'cooperative' || $block === '' || $theirs === '') {
             return $block;
         }
-        $theirsLower = strtolower($theirs);
+
+        // Detect competitors in their <head> ONLY. Third-party SEO tags live in
+        // <head>; scanning the whole page would let body CONTENT (an article that
+        // documents an `og:` tag, a JSON-LD example in a <pre>, etc.) falsely
+        // trigger a trim of our OWN tags. (Detection scope only — the trim still
+        // acts solely on our block, so a foreign tag can never be removed.)
+        $headEnd = stripos($theirs, '</head>');
+        $head    = $headEnd !== false ? substr($theirs, 0, $headEnd) : $theirs;
 
         // 1. OpenGraph / social meta — ALL-OR-NOTHING. If a third-party already
         //    emits a core OG tag, remove our ENTIRE social meta set so we never
         //    leave a mixed set. Operates on the meta tags (not the section label)
         //    so it works in hide_comments mode too.
-        if (preg_match('/(?:property|name)\s*=\s*["\'](?:og:title|og:url|og:type|og:image|og:description|twitter:card)["\']/i', $theirs)) {
+        if (preg_match('/(?:property|name)\s*=\s*["\'](?:og:title|og:url|og:type|og:image|og:description|twitter:card)["\']/i', $head)) {
             $trimmed = preg_replace(
                 '#<meta\b[^>]*\b(?:property|name)\s*=\s*["\'](?:og|twitter|fb|article):[^"\']*["\'][^>]*>[ \t]*\r?\n?#i',
                 '',
@@ -253,50 +280,27 @@ final class HeadBlockBuilder
             );
             if (is_string($trimmed)) {
                 $block = $trimmed;
-                self::$skipped[] = ['section' => self::SECTION_SOCIAL, 'reason' => 'OpenGraph already present in page'];
             }
         }
 
-        // 2. Single-instance JSON-LD (@type Organization/LocalBusiness/subtypes).
-        //    Remove ONLY our nodes of those types; keep repeatable types
-        //    (BreadcrumbList, FAQPage, Article, Product, WebPage, ItemList, …).
-        $singleTypes = 'Organization|LocalBusiness|Hotel|Restaurant|MedicalBusiness|LegalService|EducationalOrganization|Dentist|RealEstateAgent|NewsMediaOrganization';
-        if (str_contains($theirsLower, 'application/ld+json')
-            && preg_match('/"@type"\s*:\s*"(?:' . $singleTypes . ')"/i', $theirs)) {
-            $trimmed = preg_replace_callback(
-                '#<script\b[^>]*type\s*=\s*["\']application/ld\+json["\'][^>]*>(.*?)</script>[ \t]*\r?\n?#is',
-                static function (array $m) use ($singleTypes): string {
-                    return preg_match('/"@type"\s*:\s*"(?:' . $singleTypes . ')"/i', $m[1]) ? '' : $m[0];
-                },
+        // 2. AI verification meta — single tag, safe per-tag removal.
+        if (preg_match('/name\s*=\s*["\']ai-content-verified["\']/i', $head)) {
+            $trimmed = preg_replace(
+                '#<meta\b[^>]*\bname\s*=\s*["\']ai-content-verified["\'][^>]*>[ \t]*\r?\n?#i',
+                '',
                 $block
             );
-            if (is_string($trimmed) && $trimmed !== $block) {
+            if (is_string($trimmed)) {
                 $block = $trimmed;
-                self::$skipped[] = ['section' => self::SECTION_SCHEMA, 'reason' => 'Organization schema already present in page'];
             }
         }
 
-        // 3. Analytics + AI meta — per-loader removal of OUR snippet.
-        //    [detect-in-theirs, trim-from-our-block, section]
-        $simple = [
-            ['#googletagmanager\.com/gtag/js#i',
-             '#<script\b[^>]*\bgoogletagmanager\.com/gtag/js[^>]*>\s*</script>[ \t]*\r?\n?#i', self::SECTION_ANALYTICS],
-            ['#googletagmanager\.com/gtm\.js#i',
-             '#<script\b[^>]*>[^<]*googletagmanager\.com/gtm\.js.*?</script>[ \t]*\r?\n?#is', self::SECTION_ANALYTICS],
-            ['#connect\.facebook\.net|fbq\s*\(\s*[\'"]init[\'"]#i',
-             '#<script\b[^>]*>[^<]*(?:connect\.facebook\.net|fbq\().*?</script>[ \t]*\r?\n?#is', self::SECTION_ANALYTICS],
-            ['#name\s*=\s*["\']ai-content-verified["\']#i',
-             '#<meta\b[^>]*\bname\s*=\s*["\']ai-content-verified["\'][^>]*>[ \t]*\r?\n?#i', self::SECTION_AEO],
-        ];
-        foreach ($simple as [$detect, $trim, $section]) {
-            if (preg_match($detect, $theirs)) {
-                $trimmed = preg_replace($trim, '', $block);
-                if (is_string($trimmed) && $trimmed !== $block) {
-                    $block = $trimmed;
-                    self::$skipped[] = ['section' => $section, 'reason' => 'analytics/meta already present in page'];
-                }
-            }
-        }
+        // DEFERRED to Phase 1c (need careful, fully-tested handling):
+        //  - single-instance JSON-LD (@type) dedup — MUST decode each node and
+        //    test the TOP-LEVEL @type (and handle @graph), else our Article node's
+        //    nested publisher Organization is wrongly trimmed.
+        //  - analytics (GA4/GTM/Meta Pixel) — multi-part (src loader + inline
+        //    config + a body <noscript>), needs BodyBlockBuilder coordination.
 
         // Collapse blank-line runs left behind by removals.
         $block = preg_replace("/(?:\r?\n){3,}/", "\n\n", $block) ?? $block;
@@ -357,6 +361,12 @@ final class HeadBlockBuilder
         if ($block === '') {
             return;
         }
+
+        // Deliverable B — cooperative conflict dedup. At this point `$body` is
+        // the full page WITHOUT our block (we splice ours below), so it IS the
+        // third-party head. In cooperative mode trim OUR duplicate tags; the
+        // function never edits `$body`, so foreign tags can never be stripped.
+        $block = self::trimBlockConflicts($block, $body, self::$conflictMode);
 
         // Task #486 — let registered integration bridges mutate the
         // consolidated head block (e.g. inject extra <meta> rows or strip
