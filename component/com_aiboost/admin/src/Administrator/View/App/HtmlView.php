@@ -39,6 +39,22 @@ class HtmlView extends BaseHtmlView
             JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
         );
 
+        // Tell the SPA which content language is the SITE DEFAULT (the language
+        // the admin types into the main fields). TranslationExpander excludes it
+        // from the per-language editors. Without this, the Vue useTranslations
+        // composable falls back to a hardcoded 'en-GB' until an async
+        // settings.getLanguages call returns, briefly mis-rendering the real
+        // default language as a "translation" row on a non-English-default site.
+        // In the admin app $app->get('language') is the configured site default
+        // (languagefilter does not run here). Mirrors View/Settings/HtmlView.php.
+        $defaultLangCode = (string) Factory::getApplication()->get('language', 'en-GB');
+        $this->getDocument()->addScriptDeclaration(
+            'window.aiBoostDefaultLang=' . json_encode(
+                $defaultLangCode,
+                JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT
+            ) . ';'
+        );
+
         $this->addToolbar();
         parent::display($tpl);
     }

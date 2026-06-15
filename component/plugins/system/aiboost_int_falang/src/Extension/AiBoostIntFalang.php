@@ -411,7 +411,7 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
                 $this->params->get('falang_primary_language', 'en')
             ));
             $aliasMap   = $this->loadFalangAliasMap();
-            [$defaultUrl, $primaryEmitted] = $this->addLanguageHeadLinks(
+            [$defaultUrl] = $this->addLanguageHeadLinks(
                 $document,
                 $languages,
                 $menu,
@@ -421,11 +421,18 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
                 $primarySef
             );
 
-            $primaryUrl = $defaultUrl ?: ($baseUrl . '/' . $primarySef . '/');
-            if (!$primaryEmitted && $primarySef !== '') {
-                $document->addHeadLink($primaryUrl, 'alternate', 'rel', ['hreflang' => $this->primaryHreflang($primarySef, $languages)]);
+            // x-default points at the primary language's URL, but ONLY when the
+            // configured primary SEF resolved to a REAL published language
+            // ($defaultUrl was set while iterating the languages above). The old
+            // code fabricated $baseUrl . '/' . $primarySef . '/' with $primarySef
+            // defaulting to 'en' — so on a non-English-default site (e.g. es-ES,
+            // English not installed) it advertised a non-existent /en/ home as the
+            // x-default. When the primary cannot be resolved to a published
+            // language we now skip x-default entirely (search engines fall back,
+            // and the sitemap still emits the correct site-default x-default).
+            if ($defaultUrl !== null) {
+                $this->addCustomHreflangLink($document, 'x-default', $defaultUrl);
             }
-            $this->addCustomHreflangLink($document, 'x-default', $primaryUrl);
 
             // Front-end discipline: hreflang alternates are emitted via Joomla's
             // native head stream (addHeadLink), so register the slot as natively
@@ -481,30 +488,6 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     private function addCustomHreflangLink(object $document, string $hreflang, string $href): void
     {
         $document->addHeadLink($href, 'alternate', 'rel', ['hreflang' => $hreflang]);
-    }
-
-    /** @param array<int, array<string,string>> $languages */
-    private function primaryHreflang(string $primarySef, array $languages): string
-    {
-        $langCode = $this->findLanguageCodeBySef($primarySef, $languages);
-        if ($langCode !== '') {
-            return strtolower(str_replace('_', '-', $langCode));
-        }
-
-        $fallback = ['en' => 'en-gb', 'sr' => 'sr-yu', 'ru' => 'ru-ru'];
-        return $fallback[$primarySef] ?? strtolower($primarySef);
-    }
-
-    /** @param array<int, array<string,string>> $languages */
-    private function findLanguageCodeBySef(string $sef, array $languages): string
-    {
-        foreach ($languages as $lang) {
-            if ((string) ($lang['sef'] ?? '') === $sef) {
-                return trim((string) ($lang['lang_code'] ?? ''));
-            }
-        }
-
-        return '';
     }
 
     /** @param array<int, array<string,string>> $languages */

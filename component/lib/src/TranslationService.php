@@ -3,7 +3,8 @@
  * AI Boost Shared Library — Translation Service
  *
  * Reads per-field, per-language text values from #__aiboost_translations.
- * Falls back to the default (en-GB) value when a translation is absent.
+ * Falls back to the caller-supplied base value (the $default argument, in
+ * whatever the site's default content language is) when a translation is absent.
  *
  * All rows are loaded in a single query on first access (lazy loading).
  * Subsequent calls are served from the in-memory cache.
@@ -50,9 +51,11 @@ class TranslationService
      * or when the stored value is an empty string.
      *
      * @param string $fieldKey  The translation field key (e.g. 'org_name').
-     * @param string $langCode  The Joomla language tag (e.g. 'de-DE').
-     *                          Passing the default language always returns $default unchanged.
-     * @param string $default   Fallback value when no translation exists.
+     * @param string $langCode  The Joomla language tag (e.g. 'de-DE'). The site
+     *                          default language simply has no row in
+     *                          #__aiboost_translations, so it resolves to $default
+     *                          via the normal absent-row fallback (no special case).
+     * @param string $default   Base value returned when no translation row exists.
      */
     public function get(string $fieldKey, string $langCode = '', string $default = ''): string
     {
