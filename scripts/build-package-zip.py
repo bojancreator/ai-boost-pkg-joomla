@@ -68,7 +68,6 @@ FREE_EXCLUDE: dict[str, set[str]] = {
     "aiboost_schema": {
         "src/Service/SchemaProBuilder.php",
         "src/Service/BusinessHoursBuilder.php",
-        "src/Service/FalangBridge.php",
         "src/Service/SiteTypePresetService.php",
         "src/Features/BreadcrumbPro.php",
     },

@@ -50,7 +50,8 @@ class JoomlaAppContext implements AppContextInterface
         try {
             return Factory::getApplication()->getLanguage()->getTag();
         } catch (\Throwable $e) {
-            return 'en-GB';
+            // Inherit the site's configured default rather than hardcoding English.
+            return $this->getDefaultLanguage();
         }
     }
 

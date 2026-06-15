@@ -37,7 +37,8 @@ class LanguageService
             return $this->ctx->getActiveLanguage();
         } catch (\Throwable $e) {
             \AiBoost\Lib\Logger::warning('[AiBoost] LanguageService: could not get current language tag: ' . $e->getMessage());
-            return 'en-GB';
+            // Inherit the site default instead of hardcoding English.
+            return $this->ctx->getDefaultLanguage();
         }
     }
 

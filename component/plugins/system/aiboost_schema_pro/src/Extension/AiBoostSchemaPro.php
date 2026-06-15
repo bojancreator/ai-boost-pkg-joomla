@@ -3,7 +3,7 @@
  * AI Boost — Schema.org Pro Plugin (dormant decorator)
  *
  * As of the "Pro replaces Free" collapse, the Pro schema logic (SchemaProBuilder
- * + BusinessHoursBuilder, FalangBridge, SiteTypePresetService, BreadcrumbPro) was
+ * + BusinessHoursBuilder, SiteTypePresetService, BreadcrumbPro) was
  * relocated INTO the free `aiboost_schema` plugin, which now applies it directly,
  * gated on PluginRegistry::isProActive(). This element is retained only so an
  * existing split-package install keeps a valid extension row until it is swept in

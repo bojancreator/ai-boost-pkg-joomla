@@ -8,7 +8,7 @@
  * Overlays the identity block (any business type recognised by
  * SiteTypePresetService, not only Organization / LocalBusiness):
  *   - Per-language org_name / org_description / org_address_* / org_logo
- *     via TranslationService + FalangBridge fallback
+ *     via TranslationService (falls back to the base value when no row exists)
  *
  * The free SchemaBuilder owns the upgraded @type, @id and all type-specific
  * properties (hours, ratings, cuisine, services, amenities, payments); the Pro
@@ -39,7 +39,6 @@ class SchemaProBuilder
     private array               $settings;
     private AppContextInterface $ctx;
     private DatabaseInterface   $db;
-    private FalangBridge        $falang;
     private ?TranslationService $translations;
     private string $option;
     private string $view;
@@ -61,7 +60,6 @@ class SchemaProBuilder
         $this->option       = $ctx->getCurrentOption();
         $this->view         = $ctx->getCurrentView();
         $this->id           = $ctx->getCurrentId();
-        $this->falang       = new FalangBridge($db, $ctx->getActiveLanguage());
     }
 
     /**
@@ -147,14 +145,12 @@ class SchemaProBuilder
         $addrCityRaw   = trim((string) ($this->settings['org_address_city']   ?? ''));
         $logoRaw       = trim((string) ($this->settings['org_logo']           ?? ''));
 
-        $orgName = $this->translations->get('org_name', $lc, '')
-                ?: $this->falang->translate('org_name', $orgNameRaw);
+        $orgName = $this->translations->get('org_name', $lc, $orgNameRaw);
         if ($orgName !== '') {
             $block['name'] = $orgName;
         }
 
-        $orgDesc = $this->translations->get('org_description', $lc, '')
-                ?: $this->falang->translate('org_description', $orgDescRaw);
+        $orgDesc = $this->translations->get('org_description', $lc, $orgDescRaw);
         if ($orgDesc !== '') {
             $block['description'] = $orgDesc;
         }
@@ -166,10 +162,8 @@ class SchemaProBuilder
 
         // Patch translated address fields (preserves region/zip/country from
         // the core block's PostalAddress when present).
-        $addrStreet = $this->translations->get('org_address_street', $lc, '')
-                   ?: $this->falang->translate('org_address_street', $addrStreetRaw);
-        $addrCity   = $this->translations->get('org_address_city', $lc, '')
-                   ?: $this->falang->translate('org_address_city', $addrCityRaw);
+        $addrStreet = $this->translations->get('org_address_street', $lc, $addrStreetRaw);
+        $addrCity   = $this->translations->get('org_address_city', $lc, $addrCityRaw);
 
         if (isset($block['address']) && is_array($block['address'])) {
             if ($addrStreet !== '') {
@@ -559,8 +553,7 @@ class SchemaProBuilder
         $orgName = trim((string) ($this->settings['org_name'] ?? ''));
         if ($this->translations !== null) {
             $lc      = $this->ctx->getActiveLanguage();
-            $orgName = $this->translations->get('org_name', $lc, $orgName)
-                    ?: $this->falang->translate('org_name', $orgName);
+            $orgName = $this->translations->get('org_name', $lc, $orgName);
 
             $eventIndex = $this->resolveEventIndex($this->id);
             $eventKey   = $eventIndex >= 0 ? 'event_' . $eventIndex . '_desc' : 'event_' . $this->id . '_desc';

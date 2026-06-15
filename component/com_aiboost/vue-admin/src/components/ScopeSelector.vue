@@ -83,8 +83,10 @@ export default {
 
 <style scoped>
 .ab-scope-block {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  /* Dark-mode-aware tokens (fallback to the original light values) so the box
+     does not render a white background on dark themes. */
+  background: var(--ab-bg-muted, #f8f9fa);
+  border: 1px solid var(--ab-border, #dee2e6);
   border-radius: 6px;
   padding: 12px 14px;
 }
@@ -94,5 +96,5 @@ export default {
   font-size: .875rem;
 }
 .ab-menu-select option { padding: 3px 6px; }
-.ab-menu-select option:checked { background: #0d6efd; color: #fff; }
+.ab-menu-select option:checked { background: var(--ab-primary, #0d6efd); color: #fff; }
 </style>

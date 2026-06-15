@@ -130,6 +130,11 @@ SIMPLE_VUE_TYPES = {"toggle", "text", "textarea", "select", "number"}
 COMPLEX_COVERAGE_ALLOWLIST = {
     "meta_pixel_standard_events",  # advanced Meta Pixel events (Pro, future task)
     "meta_custom_events",          # custom Meta Pixel events (Pro, future task)
+    # Per-menu Custom Code scope picker removed from CodeTab — code applies to all
+    # pages for now; the *_menu_ids keys are kept for the future scope options.
+    "custom_code_head_menu_ids",
+    "custom_code_body_menu_ids",
+    "custom_code_footer_menu_ids",
 }
 
 

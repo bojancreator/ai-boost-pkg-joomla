@@ -26,13 +26,7 @@
           </div>
           <div class="ab-help">Raw HTML injected into every selected page's &lt;head&gt;. Accepts &lt;script&gt;, &lt;link&gt;, &lt;meta&gt;, &lt;style&gt; tags.</div>
         </div>
-        <ScopeSelector
-          field="head"
-          data-ab-field="custom_code_head_menu_ids"
-          :s="s"
-          :menu-groups="menuGroups"
-          v-model:selected-ids="selectedHeadIds"
-        />
+        <div class="ab-help ab-scope-note">ℹ️ This code is inserted on <strong>all pages</strong>.</div>
 
         <!-- Body Code -->
         <div class="ab-sec mt-4">Body Code</div>
@@ -48,13 +42,7 @@
           </div>
           <div class="ab-help">Raw HTML injected immediately after the opening &lt;body&gt; tag. Useful for GTM noscript, chat widgets.</div>
         </div>
-        <ScopeSelector
-          field="body"
-          data-ab-field="custom_code_body_menu_ids"
-          :s="s"
-          :menu-groups="menuGroups"
-          v-model:selected-ids="selectedBodyIds"
-        />
+        <div class="ab-help ab-scope-note">ℹ️ This code is inserted on <strong>all pages</strong>.</div>
 
         <!-- Footer Code -->
         <div class="ab-sec mt-4">Footer Code</div>
@@ -70,13 +58,7 @@
           </div>
           <div class="ab-help">Raw HTML injected just before the closing <code>&lt;/body&gt;</code> tag. Ideal for deferred scripts, chat widgets, and tracking pixels.</div>
         </div>
-        <ScopeSelector
-          field="footer"
-          data-ab-field="custom_code_footer_menu_ids"
-          :s="s"
-          :menu-groups="menuGroups"
-          v-model:selected-ids="selectedFooterIds"
-        />
+        <div class="ab-help ab-scope-note">ℹ️ This code is inserted on <strong>all pages</strong>.</div>
 
       </div>
     </div>
@@ -86,54 +68,25 @@
 
 <script>
 import ProGate from '../components/ProGate.vue'
-// Compiled SFC — the shipped bundle uses the runtime-only Vue build, so the
-// previous inline component with a runtime template string rendered nothing
-// in production.
-import ScopeSelector from '../components/ScopeSelector.vue'
 
 export default {
   name: 'CodeTab',
-  components: { ScopeSelector, ProGate },
+  components: { ProGate },
   props: { s: { type: Object, required: true } },
 
-  data() {
-    const parseIds = (key) => {
-      try { return JSON.parse(this.s[key] || '[]').map(Number) } catch { return [] }
-    }
-
-    // Legacy fallback: if a per-field scope/menu key is absent but the old shared
-    // key exists (pre-v0.12.4 save), seed the per-field keys from the shared value
-    // so the UI reflects what is actually active on the first edit after upgrade.
-    const legacyScope   = this.s.custom_code_scope    || null
-    const legacyMenuIds = this.s.custom_code_menu_ids || '[]'
+  created() {
+    // Custom code currently applies to ALL pages. The per-menu scope picker was
+    // removed (only an "all pages" note for now; richer scope options come later),
+    // so force the saved scope to 'all' and clear any stale menu-id selection —
+    // both per-field and legacy — so an older 'specific' config can't keep the
+    // code off some pages with no UI left to fix it. The consuming plugin
+    // (AiBoostCode::isFieldApplicable) injects everywhere when scope='all'.
     for (const field of ['head', 'body', 'footer']) {
-      const sk = `custom_code_${field}_scope`
-      const mk = `custom_code_${field}_menu_ids`
-      if (!this.s[sk] && legacyScope) {
-        this.s[sk] = legacyScope
-      }
-      if (!this.s[mk] || this.s[mk] === '[]') {
-        const legacyIds = parseIds('custom_code_menu_ids')
-        if (legacyIds.length > 0) {
-          this.s[mk] = legacyMenuIds
-        }
-      }
+      this.s[`custom_code_${field}_scope`] = 'all'
+      this.s[`custom_code_${field}_menu_ids`] = '[]'
     }
-
-    const rawItems = window.aiBoostMenuItems || []
-    const groupMap = {}
-    for (const item of rawItems) {
-      if (!groupMap[item.menutype]) groupMap[item.menutype] = []
-      groupMap[item.menutype].push(item)
-    }
-    const menuGroups = Object.entries(groupMap).map(([type, items]) => ({ type, items }))
-
-    return {
-      selectedHeadIds:   parseIds('custom_code_head_menu_ids'),
-      selectedBodyIds:   parseIds('custom_code_body_menu_ids'),
-      selectedFooterIds: parseIds('custom_code_footer_menu_ids'),
-      menuGroups,
-    }
+    this.s.custom_code_scope = 'all'
+    this.s.custom_code_menu_ids = '[]'
   },
 
   computed: {
@@ -233,8 +186,9 @@ export default {
 
 <style scoped>
 .ab-code-tab { max-width: 860px; }
-/* .ab-scope-block / .ab-menu-select styles live in components/ScopeSelector.vue
-   (scoped styles here cannot reach inside the child component). */
+/* Custom code applies to all pages for now; the per-menu ScopeSelector was
+   removed from this tab (kept in components/ for future scope options). */
+.ab-scope-note { margin-top: .5rem; }
 
 .ab-code-meta {
   display: flex;
