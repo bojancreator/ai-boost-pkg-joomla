@@ -607,6 +607,15 @@ class SchemaProBuilder
             return null;
         }
 
+        // Per-language resolution (mirrors buildFaq): when a TranslationService
+        // is wired (the Pro + Multilang null-thread), each HowTo string is looked
+        // up by its translation key for the active language, falling back to the
+        // base (default-language) value entered in schema_howto.
+        $lc = $this->translations !== null ? $this->ctx->getActiveLanguage() : '';
+        if ($lc !== '' && $this->translations !== null) {
+            $name = $this->translations->get('howto_name', $lc, $name);
+        }
+
         $schema = [
             '@context' => 'https://schema.org',
             '@type'    => 'HowTo',
@@ -614,6 +623,9 @@ class SchemaProBuilder
         ];
 
         $desc = trim((string) ($data['description'] ?? ''));
+        if ($lc !== '' && $this->translations !== null && $desc !== '') {
+            $desc = $this->translations->get('howto_desc', $lc, $desc);
+        }
         if ($desc !== '') {
             $schema['description'] = $desc;
         }
@@ -627,6 +639,14 @@ class SchemaProBuilder
         foreach ($steps as $i => $step) {
             $stepName = trim((string) ($step['name'] ?? ''));
             $stepText = trim((string) ($step['text'] ?? ''));
+            if ($lc !== '' && $this->translations !== null) {
+                if ($stepName !== '') {
+                    $stepName = $this->translations->get('howto_step_' . $i . '_name', $lc, $stepName);
+                }
+                if ($stepText !== '') {
+                    $stepText = $this->translations->get('howto_step_' . $i . '_text', $lc, $stepText);
+                }
+            }
             if ($stepName === '') {
                 $stepName = 'Step ' . ($i + 1);
             }

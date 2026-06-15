@@ -50,6 +50,16 @@ export const TRANSLATABLE_FIELDS = [
   // article ID of the event article (entered by admin in schema_event_article_ids).
   // SchemaBuilder::buildEvent() reads this key using $this->id (article_id).
   { key: 'event_0_desc',       label: 'Event Description (article #…)', tab: 'schema', pro: true, dynamic: true },
+
+  // ── Schema.org — HowTo (SchemaTab, dynamic) ───────────────────────────────
+  // howto_name / howto_desc translate the HowTo title + description; per-step
+  // keys follow howto_step_{idx}_name / howto_step_{idx}_text (idx = step index
+  // in howto.steps). SchemaProBuilder::buildHowTo() resolves these for the
+  // active language, falling back to the base schema_howto value.
+  { key: 'howto_name',         label: 'HowTo Name',                 tab: 'schema',  pro: true },
+  { key: 'howto_desc',         label: 'HowTo Description',           tab: 'schema',  pro: true },
+  { key: 'howto_step_0_name',  label: 'HowTo Step #1 Name',         tab: 'schema',  pro: true, dynamic: true },
+  { key: 'howto_step_0_text',  label: 'HowTo Step #1 Text',         tab: 'schema',  pro: true, dynamic: true },
 ]
 
 export default TRANSLATABLE_FIELDS

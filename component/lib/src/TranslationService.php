@@ -58,16 +58,20 @@ class TranslationService
     {
         $effectiveLang = $langCode !== '' ? $langCode : $this->defaultLangCode;
 
-        // Source language — return the master value unchanged
-        if ($effectiveLang === $this->defaultLangCode) {
-            return $default;
-        }
-
         $this->ensureLoaded();
 
         $entry = $this->cache[$fieldKey] ?? [];
         $value = $entry[$effectiveLang] ?? '';
 
+        // Return the per-language override when one exists, otherwise the base
+        // ($default). We deliberately do NOT early-return for
+        // $effectiveLang === defaultLangCode: on a multilingual Joomla front-end
+        // the System - Language Filter plugin overwrites $app->get('language')
+        // (the source of $defaultLangCode) with the ACTIVE request language, so a
+        // default short-circuit would equal the active language and suppress
+        // EVERY translation. #__aiboost_translations only ever holds non-default
+        // rows (TranslationExpander excludes the default language), so the default
+        // language naturally resolves to $default by the absent-row fallback.
         return ($value !== '') ? $value : $default;
     }
 

@@ -673,6 +673,7 @@
               <label class="ab-label">HowTo Name <span class="text-danger">*</span></label>
               <input v-model="howto.name" type="text" class="ab-input"
                 placeholder="How to Install AI Boost for Joomla">
+              <TranslationExpander field-key="howto_name" />
             </div>
             <div class="col-md-6">
               <label class="ab-label">Total Time <span class="text-muted">(ISO 8601)</span></label>
@@ -684,6 +685,7 @@
               <label class="ab-label">Description</label>
               <textarea v-model="howto.description" class="ab-input" rows="2"
                 placeholder="A step-by-step guide to…"></textarea>
+              <TranslationExpander field-key="howto_desc" field-type="textarea" />
             </div>
           </div>
 
@@ -695,6 +697,8 @@
                 :placeholder="'Step ' + (i + 1) + ' name (optional)'">
               <textarea v-model="step.text" class="ab-input form-control-sm" rows="2"
                 :placeholder="'Describe what the user does in step ' + (i + 1)"></textarea>
+              <TranslationExpander :field-key="'howto_step_' + i + '_name'" />
+              <TranslationExpander :field-key="'howto_step_' + i + '_text'" field-type="textarea" />
             </div>
             <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost ab-btn--danger-ghost ms-2 ab-howto-del"
               @click="removeStep(i)" title="Remove step">✕</button>
