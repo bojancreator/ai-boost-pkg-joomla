@@ -77,12 +77,14 @@ def php_binary() -> str:
         sys.exit("ERROR: php executable not found on PATH")
     return php
 
-# Map manifest sku → physical Pro plugin folder name
+# Map manifest sku → physical plugin folder that hosts the Pro feature class.
+# Collapsed plugins (single-plugin @pro): the Pro feature class lives in the
+# FREE plugin dir and is omitted from the Free ZIP via the build's FREE_EXCLUDE.
 SKU_TO_PRO_DIR = {
-    "schema":   "aiboost_schema_pro",
-    "aeo":      "aiboost_aeo_pro",
-    "og":       "aiboost_social_pro",
-    "hreflang": "aiboost_hreflang_pro",
+    "schema":   "aiboost_schema",       # collapsed: Pro classes relocated into the free plugin
+    "aeo":      "aiboost_aeo",           # collapsed: Pro classes relocated into the free plugin
+    "og":       "aiboost_social",        # collapsed: Pro classes relocated into the free plugin
+    "hreflang": "aiboost_aeo",           # collapsed: hreflang renders inside the AEO tab/plugin
     "code":     "aiboost_code_pro",
 }
 
@@ -169,10 +171,9 @@ def gen_feature_stub(field: dict, write: bool) -> tuple[str, str]:
         return ("exists", str(target.relative_to(WORKSPACE)))
 
     ns = {
-        "aiboost_schema_pro":   "AiBoost\\Plugin\\System\\AiBoostSchemaPro\\Features",
-        "aiboost_aeo_pro":      "AiBoost\\Plugin\\System\\AiBoostAeoPro\\Features",
-        "aiboost_social_pro":   "AiBoost\\Plugin\\System\\AiBoostSocialPro\\Features",
-        "aiboost_hreflang_pro": "AiBoost\\Plugin\\System\\AiBoostHreflangPro\\Features",
+        "aiboost_schema":       "AiBoost\\Plugin\\System\\AiBoostSchema\\Features",
+        "aiboost_aeo":          "AiBoost\\Plugin\\System\\AiBoostAeo\\Features",
+        "aiboost_social":       "AiBoost\\Plugin\\System\\AiBoostSocial\\Features",
         "aiboost_code_pro":     "AiBoost\\Plugin\\System\\AiBoostCodePro\\Features",
     }[pro_dir]
 

@@ -103,11 +103,12 @@ class Pkg_Aiboost_ProInstallerScript
         // Each plugin still checks license/update entitlement internally.
         $this->enableProPlugins();
 
-        // Publish the admin Health module that ships in this add-on package.
-        // Ensures exactly ONE instance, published in the 'cpanel'
-        // position at the top of the control panel, and removes any duplicate
-        // instances left by older base builds that used to bundle the module.
-        $this->publishHealthModule();
+        // v0.76.6 — the admin Health dashboard module is pulled from the product
+        // for now (owner decision). It no longer ships in this package, so on
+        // every install/update we REMOVE any instance an older Pro package
+        // placed on the control panel instead of publishing one. (The base
+        // package's pkg_script removes the module extension + files.)
+        $this->removeHealthModule();
 
         // Pro add-on installed → Components menu reads "AI Boost PRO".
         $this->relabelComponentMenu('COM_AIBOOST_MENU_PRO');
@@ -192,6 +193,11 @@ class Pkg_Aiboost_ProInstallerScript
      * duplicate instances. This keeps the lowest-id instance (creating one when
      * none exist), forces it to cpanel/ordering=1/published, and deletes every
      * other admin instance. Idempotent — safe on every install/upgrade.
+     *
+     * NOTE (v0.76.6): currently NOT called — the Health module is pulled from
+     * the product (owner decision); postflight calls removeHealthModule()
+     * instead. Retained so re-enabling the module is a one-line change (restore
+     * the call in postflight + re-add the module to the build/manifest).
      */
     private function publishHealthModule(): void
     {

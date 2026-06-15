@@ -2,11 +2,12 @@
 
 namespace AiBoost\Tests\Service;
 
-use AiBoost\Plugin\System\AiBoostSchemaPro\Service\SiteTypePresetService;
+use AiBoost\Plugin\System\AiBoostSchema\Service\SiteTypePresetService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-require_once dirname(__DIR__, 2) . '/plugins/system/aiboost_schema_pro/src/Service/SiteTypePresetService.php';
+// Relocated into the free aiboost_schema plugin during the Pro-replaces-Free collapse.
+require_once dirname(__DIR__, 2) . '/plugins/system/aiboost_schema/src/Service/SiteTypePresetService.php';
 
 final class SiteTypePresetServiceTest extends TestCase
 {

@@ -16,7 +16,7 @@
 
 declare(strict_types=1);
 
-namespace AiBoost\Plugin\System\AiBoostSchemaPro\Features;
+namespace AiBoost\Plugin\System\AiBoostSchema\Features;
 
 defined('_JEXEC') or die;
 

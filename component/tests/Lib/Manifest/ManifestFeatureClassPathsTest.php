@@ -21,10 +21,10 @@ final class ManifestFeatureClassPathsTest extends TestCase
 
     /** Mirrors SKU_TO_PRO_DIR in scripts/codegen-from-manifest.py */
     private const SKU_TO_PRO_DIR = [
-        'schema'   => 'aiboost_schema_pro',
-        'aeo'      => 'aiboost_aeo_pro',
-        'og'       => 'aiboost_social_pro',
-        'hreflang' => 'aiboost_hreflang_pro',
+        'schema'   => 'aiboost_schema',   // collapsed: Pro classes relocated into the free plugin
+        'aeo'      => 'aiboost_aeo',      // collapsed: Pro classes relocated into the free plugin
+        'og'       => 'aiboost_social',   // collapsed: Pro classes relocated into the free plugin
+        'hreflang' => 'aiboost_aeo',      // collapsed: hreflang renders inside the AEO tab/plugin
         'code'     => 'aiboost_code_pro',
     ];
 

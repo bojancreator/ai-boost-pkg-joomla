@@ -24,4 +24,24 @@ class Factory
         }
         return self::$db;
     }
+
+    /**
+     * Minimal Date stub: pkg_script's INSERTs need a SQL timestamp for the
+     * NOT NULL created_at/updated_at columns. A frozen value keeps tests
+     * deterministic.
+     */
+    public static function getDate($time = 'now', $tz = null): object
+    {
+        return new class {
+            public function toSql(): string
+            {
+                return '2026-01-01 00:00:00';
+            }
+
+            public function __toString(): string
+            {
+                return '2026-01-01 00:00:00';
+            }
+        };
+    }
 }

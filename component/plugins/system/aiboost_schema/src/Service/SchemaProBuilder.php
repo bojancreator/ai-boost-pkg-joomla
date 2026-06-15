@@ -3,7 +3,7 @@
  * AI Boost — SchemaProBuilder (Pro)
  *
  * Decorates the core schema blocks and appends extended schema blocks.
- * Invoked from AiBoostSchemaPro::onAiBoostFilterSchemaBlocks.
+ * Invoked from AiBoostSchema::onAiBoostFilterSchemaBlocks.
  *
  * Overlays the identity block (any business type recognised by
  * SiteTypePresetService, not only Organization / LocalBusiness):
@@ -20,12 +20,12 @@
  *   - HowTo
  *   - Event
  *
- * @package     AiBoost\Plugin\System\AiBoostSchemaPro
+ * @package     AiBoost\Plugin\System\AiBoostSchema
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
  * @license     GNU General Public License version 2 or later
  */
 
-namespace AiBoost\Plugin\System\AiBoostSchemaPro\Service;
+namespace AiBoost\Plugin\System\AiBoostSchema\Service;
 
 defined('_JEXEC') or die;
 

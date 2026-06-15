@@ -503,6 +503,51 @@ final class PluginRegistry
     }
 
     /**
+     * "Is this a Pro INSTALL?" — drives the admin-UI unlock (ProGate / the
+     * Licenses surface), NOT the runtime emitters (those use isProActive()).
+     *
+     * True when ANY of:
+     *   1. the combined Pro package set the `pro_installed` install marker —
+     *      the signal that survives the single-plugin collapse, where the Pro
+     *      package shares the `pkg_aiboost` element with Free so the package
+     *      element alone can no longer distinguish the edition;
+     *   2. Pro is activated / dev-previewed (isProActive);
+     *   3. a legacy split layout is physically present — the old
+     *      `pkg_aiboost_pro` package row or any `aiboost_*_pro` plugin row.
+     *
+     * Must stay TRUE for a paying customer who has installed Pro but not yet
+     * entered a key, so the Licenses page + Pro controls remain reachable.
+     * False only on a genuine Free install.
+     */
+    public static function isProInstall(): bool
+    {
+        $settings = self::loadMainSettings();
+
+        // 1. install-edition marker (survives the collapse) + 2. activation.
+        if (self::settingEnabled($settings, 'pro_installed') || self::isProActive($settings)) {
+            return true;
+        }
+
+        // 3. legacy split layout physically present in #__extensions.
+        try {
+            $db    = AdapterRegistry::database()->getConnection();
+            $count = (int) $db->setQuery(
+                $db->getQuery(true)
+                    ->select('COUNT(*)')
+                    ->from($db->quoteName('#__extensions'))
+                    ->where(
+                        '(' . $db->quoteName('element') . ' = ' . $db->quote('pkg_aiboost_pro')
+                        . ' OR ' . $db->quoteName('element') . ' LIKE ' . $db->quote('aiboost_%\\_pro') . ' ESCAPE ' . $db->quote('\\')
+                        . ')'
+                    )
+            )->loadResult();
+            return $count > 0;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * @param array<string,mixed> $settings
      */
     private static function settingEnabled(array $settings, string $key): bool

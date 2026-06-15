@@ -20,7 +20,7 @@
  * @license     GNU General Public License version 2 or later
  */
 
-namespace AiBoost\Plugin\System\AiBoostAeoPro\Service;
+namespace AiBoost\Plugin\System\AiBoostAeo\Service;
 
 defined('_JEXEC') or die;
 

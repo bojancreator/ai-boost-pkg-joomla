@@ -56,8 +56,7 @@ use AiBoost\Lib\AppContextInterface;
 use AiBoost\Lib\Integration\FilterResult;
 use AiBoost\Lib\PluginRegistry;
 use AiBoost\Lib\TranslationService;
-use AiBoost\Plugin\System\AiBoostSocialPro\Extension\AiBoostSocialPro;
-use AiBoost\Plugin\System\AiBoostSocialPro\Service\OgTagProDecorator;
+use AiBoost\Plugin\System\AiBoostSocial\Service\OgTagProDecorator;
 use Joomla\Database\DatabaseInterface;
 
 \define('_JEXEC', 1);
@@ -71,9 +70,8 @@ require_once $base . '/lib/src/TranslationService.php';
 require_once $base . '/lib/src/Integration/FilterResult.php';
 require_once $base . '/lib/src/PluginRegistry.php';
 require_once $base . '/plugins/system/aiboost_social/src/Service/OgTagBuilder.php';
-require_once $base . '/plugins/system/aiboost_social_pro/src/Service/CustomFieldReader.php';
-require_once $base . '/plugins/system/aiboost_social_pro/src/Service/OgTagProDecorator.php';
-require_once $base . '/plugins/system/aiboost_social_pro/src/Extension/AiBoostSocialPro.php';
+require_once $base . '/plugins/system/aiboost_social/src/Service/CustomFieldReader.php';
+require_once $base . '/plugins/system/aiboost_social/src/Service/OgTagProDecorator.php';
 
 $passed = 0;
 $failed = 0;
@@ -434,32 +432,15 @@ assert_equals('website', $out['og']['og:type'] ?? null, 'og:type stays Free base
 assert_missing($out['og'], 'article:published_time', 'no article:published_time when disabled');
 assert_missing($out['og'], 'article:author', 'no article:author when disabled');
 
-// ── Test 16: activation gate — Pro 'og' inactive leaves baseline untouched ────
-echo "\nTest 16: hasPro('og') inactive → onAiBoostFilterSocialProps is a no-op\n";
-
-// Seed PluginRegistry's capability cache so hasPro('og') resolves to false
-// without any DB / AdapterRegistry bootstrap.
-$rc   = new \ReflectionClass(PluginRegistry::class);
-$prop = $rc->getProperty('cache');
-$prop->setAccessible(true);
-$prop->setValue(null, ['pro_og' => ['license_state' => 'not_licensed']]);
-
-assert_equals(false, PluginRegistry::hasPro('og'), "hasPro('og') is false with inactive license");
-
-$listener = (new \ReflectionClass(AiBoostSocialPro::class))->newInstanceWithoutConstructor();
-
-$baseline = [
-    'props'    => base_props(['option' => 'com_content', 'view' => 'article', 'id' => 5]),
-    'settings' => ['enable_og_locale' => 1, 'fb_app_id' => '999', 'twitter_site_handle' => 'aiboost'],
-];
-$result = new FilterResult($baseline);
-$listener->onAiBoostFilterSocialProps(['settings' => $baseline['settings']], $result);
-
-assert_equals(0, $result->mutationCount(), 'no mutation recorded when Pro inactive');
-assert_true($result->getOutput() === $baseline, 'output identical to Free baseline when Pro inactive');
-$gatedOg = $result->getOutput()['props']['og'];
-assert_missing($gatedOg, 'og:locale', 'no Pro og:locale leaked on inactive install');
-assert_missing($gatedOg, 'fb:app_id', 'no Pro fb:app_id leaked on inactive install');
+// Test 16 (activation gate) RETIRED in the Pro-replaces-Free collapse: the
+// inactive-Pro no-op gate moved OFF the (now-neutered) aiboost_social_pro
+// decorator and INTO the free aiboost_social plugin's onBeforeCompileHead,
+// where OgTagProDecorator is invoked only behind
+// `class_exists(OgTagProDecorator::class) && PluginRegistry::isProActive()`.
+// That gate (isProActive) is unit-covered by PluginRegistryIsProActiveTest;
+// the decorator itself no longer self-gates, so a standalone listener test is
+// no longer meaningful. The enrichment-logic tests above remain the coverage
+// for OgTagProDecorator::decorate().
 
 // ── Summary ──────────────────────────────────────────────────────────────────
 echo "\n" . str_repeat('-', 50) . "\n";

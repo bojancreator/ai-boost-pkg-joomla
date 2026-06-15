@@ -9,7 +9,7 @@
     <authorEmail>info@aiboostnow.com</authorEmail>
     <authorUrl>https://aiboostnow.com</authorUrl>
     <version>0.45.0</version>
-    <description>AI Boost for Joomla — Pro Upgrade. Installs the Pro plugins (Schema.org Pro, AEO Pro, Social/OpenGraph Pro, Hreflang Pro, Custom Code Pro) and the admin Health dashboard module on top of the AI Boost for Joomla base package, which must be installed first. Manage your licence under Components → AI Boost → License &amp; Updates.</description>
+    <description>AI Boost for Joomla — Pro Upgrade. Installs the Pro plugins (Schema.org Pro, AEO Pro, Social/OpenGraph Pro, Hreflang Pro, Custom Code Pro) on top of the AI Boost for Joomla base package, which must be installed first. Manage your licence under Components → AI Boost → License &amp; Updates.</description>
     <php_minimum>8.1.0</php_minimum>
     <joomla_minimum>5.0.0</joomla_minimum>
     <url>https://aiboostnow.com</url>
@@ -40,8 +40,5 @@
         <file type="plugin"
               id="aiboost_code_pro"
               group="system">plg_system_aiboost_code_pro-0.41.0.zip</file>
-        <file type="module"
-              id="mod_aiboost_health"
-              client="administrator">mod_aiboost_health-0.41.0.zip</file>
     </files>
 </extension>

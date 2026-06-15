@@ -67,30 +67,12 @@ class HtmlView extends BaseHtmlView
         if ($cached !== null) {
             return $cached;
         }
-        try {
-            // v0.55.4 — do NOT require enabled=1. Packages (type=package)
-            // don't have a meaningful enabled flag, and individual Pro
-            // plugins may be toggled off by the admin without uninstalling
-            // the bundle. The presence of the row in #__extensions is what
-            // "Pro install" means — the Licenses page must remain reachable
-            // either way, otherwise the user has no path back to entering
-            // a key after they disabled a single Pro plugin or after they
-            // hit Release (Bojan's bug: Licenses tab disappeared on Pro
-            // install after a license Release).
-            $db    = Factory::getDbo();
-            $query = $db->getQuery(true)
-                ->select('COUNT(*)')
-                ->from($db->quoteName('#__extensions'))
-                ->where(
-                    '(' . $db->quoteName('element') . ' = ' . $db->quote('pkg_aiboost_pro')
-                    . ' OR ' . $db->quoteName('element') . ' LIKE ' . $db->quote('aiboost_%\\_pro') . ' ESCAPE ' . $db->quote('\\')
-                    . ')'
-                );
-            $db->setQuery($query);
-            $cached = ((int) $db->loadResult()) > 0;
-        } catch (\Throwable $e) {
-            $cached = false;
-        }
+        // Phase 5a — single source of truth: the install marker (survives the
+        // single-plugin collapse) OR a live activation OR a legacy split layout.
+        // The Licenses page must stay reachable on any Pro install — even one
+        // whose key was Released or whose Pro plugins were toggled off — so the
+        // user always has a path back to entering a key (Bojan's bug).
+        $cached = \AiBoost\Lib\PluginRegistry::isProInstall();
         return $cached;
     }
 

@@ -3,17 +3,17 @@
  * AI Boost — RobotsBotRules (Pro)
  *
  * Per-bot rules for the 26 supported AI + SEO crawlers. Appended to the
- * Free baseline robots.txt by AiBoostAeoPro::onAiBoostFilterRobotsRules.
+ * Free baseline robots.txt by AiBoostAeo::onAiBoostFilterRobotsRules.
  *
  * Each bot has a default policy (allow/disallow) that customers can
  * override via `bot_*` settings keys bound to the AEO tab UI.
  *
- * @package     AiBoost\Plugin\System\AiBoostAeoPro
+ * @package     AiBoost\Plugin\System\AiBoostAeo
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
  * @license     GNU General Public License version 2 or later
  */
 
-namespace AiBoost\Plugin\System\AiBoostAeoPro\Service;
+namespace AiBoost\Plugin\System\AiBoostAeo\Service;
 
 defined('_JEXEC') or die;
 

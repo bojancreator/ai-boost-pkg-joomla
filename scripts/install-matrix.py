@@ -86,8 +86,10 @@ def edition_zips(edition: str, skip_base: bool = False) -> list[str]:
     """
     base = _latest("pkg_aiboost-*.zip")  # '_pro-' does not match this glob
     if edition == "pro":
+        # The combined Pro edition (pkg_aiboost_pro, packagename `aiboost`) IS the
+        # base built full — installing it creates/upgrades the aiboost package in
+        # place AND sweeps the legacy *_pro decorators. No separate Free base step.
         zips = [
-            base,
             _latest("pkg_aiboost_pro-*.zip"),
             _latest("plg_system_aiboost_int_falang_pro-*.zip"),
             _latest("plg_system_aiboost_int_yootheme_pro-*.zip"),

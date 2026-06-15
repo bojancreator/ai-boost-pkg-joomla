@@ -26,7 +26,10 @@ use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
 use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Lib\PluginRegistry;
+use AiBoost\Lib\TranslationService;
 use AiBoost\Plugin\System\AiBoostSchema\Service\SchemaBuilder;
+use AiBoost\Plugin\System\AiBoostSchema\Service\SchemaProBuilder;
 use AiBoost\Version;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -114,6 +117,26 @@ class AiBoostSchema extends CMSPlugin
             );
             if (isset($filtered['blocks']) && is_array($filtered['blocks'])) {
                 $schemas = $filtered['blocks'];
+            }
+        }
+
+        // Pro decoration (relocated from the former aiboost_schema_pro decorator).
+        // SchemaProBuilder ships ONLY in the Pro build — the Free package omits it
+        // (build FREE_EXCLUDE) — so class_exists() is false on Free and the base
+        // blocks pass through unchanged. Gated on the canonical activation flag.
+        if (class_exists(SchemaProBuilder::class) && PluginRegistry::isProActive($settings)) {
+            try {
+                $defaultLang  = (string) Factory::getApplication()->get('language', 'en-GB');
+                // D3 (Multilang Pro): translated Schema is an overlay gated on the
+                // Multilang licence, layered on the 'schema' bundle Pro. Build the
+                // TranslationService only when Multilang is active; SchemaProBuilder
+                // null-guards every translation site for bundle-only owners.
+                $translations = PluginRegistry::hasPro('int_falang')
+                    ? new TranslationService($db, $defaultLang)
+                    : null;
+                $schemas = (new SchemaProBuilder($settings, $ctx, $db, $translations))->decorateAll($schemas);
+            } catch (\Throwable $e) {
+                // On any error, leave the base blocks untouched — never break the page.
             }
         }
 

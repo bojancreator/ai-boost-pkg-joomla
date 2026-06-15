@@ -60,9 +60,35 @@ PLUGIN_NAMES = [
     "aiboost_code",
 ]
 
-MODULE_NAMES = [
-    "mod_aiboost_health",
-]
+# Whole-file Pro omission for the FREE (stripped) build. The single-plugin @pro
+# collapse relocates each Pro Service/Feature class INTO its free plugin dir;
+# these paths are omitted from the Free ZIP (strip_pro_blocks cannot drop a whole
+# file) and INCLUDED in the Pro-variant build. Paths are relative to the plugin dir.
+FREE_EXCLUDE: dict[str, set[str]] = {
+    "aiboost_schema": {
+        "src/Service/SchemaProBuilder.php",
+        "src/Service/BusinessHoursBuilder.php",
+        "src/Service/FalangBridge.php",
+        "src/Service/SiteTypePresetService.php",
+        "src/Features/BreadcrumbPro.php",
+    },
+    "aiboost_social": {
+        "src/Service/OgTagProDecorator.php",
+        "src/Service/CustomFieldReader.php",
+    },
+    "aiboost_aeo": {
+        "src/Service/LlmsTxtProGenerator.php",
+        "src/Service/IndexNowService.php",
+        "src/Service/RobotsBotRules.php",
+    },
+}
+
+# The admin Health dashboard module (mod_aiboost_health) is pulled from the
+# product for now (owner decision, v0.76.6). Leave this list empty so no module
+# ZIP is built or referenced; pkg_script removes any copy a prior Pro package
+# installed. Re-add "mod_aiboost_health" here (and its <file> in
+# pkg_aiboost_pro.xml) to bring it back.
+MODULE_NAMES: list[str] = []
 
 # Task #428 — Pro plugins (closed-source upgrade plugins).
 # Physical extraction is staged as follow-up tasks; manifest already
@@ -156,27 +182,67 @@ def strip_pro_blocks(text: str) -> str:
     return out
 
 
+def _resolve_display_name(src_dir: Path, name_value: str) -> str:
+    """Resolve a manifest <name> that is a language KEY (e.g.
+    PLG_SYSTEM_AIBOOST_SCHEMA) to its en-GB literal. Returns name_value
+    unchanged when it is already a literal or no .ini value is found."""
+    if not re.fullmatch(r"[A-Z][A-Z0-9_]+", name_value):
+        return name_value  # already a literal
+    for ini in src_dir.rglob("en-GB/*.ini"):
+        try:
+            for line in ini.read_text(encoding="utf-8", errors="replace").splitlines():
+                m = re.match(rf'^\s*{re.escape(name_value)}\s*=\s*"(.*)"\s*$', line)
+                if m:
+                    return m.group(1)
+        except OSError:
+            continue
+    return name_value
+
+
+def inject_pro_name(xml_content: str, src_dir: Path) -> str:
+    """Pro-edition build: rewrite the manifest <name> to a LITERAL
+    '<resolved> (Pro)' so Extensions -> Manage shows the (Pro) suffix.
+    Idempotent (skips when the name already ends with '(Pro)')."""
+    m = re.search(r"<name>([^<]*)</name>", xml_content)
+    if not m:
+        return xml_content
+    resolved = _resolve_display_name(src_dir, m.group(1).strip())
+    if resolved.rstrip().endswith("(Pro)"):
+        return xml_content
+    return xml_content.replace(m.group(0), f"<name>{resolved} (Pro)</name>", 1)
+
+
 def add_dir_to_zip(
     zf: zipfile.ZipFile,
     src_dir: Path,
     arc_prefix: str = "",
     strip_pro: bool = False,
     manifest_version: str | None = None,
+    exclude: set[str] | None = None,
+    pro_name: bool = False,
 ) -> None:
     """Recursively add all files in src_dir to zf under arc_prefix.
 
     When `strip_pro=True`, *.php files have @pro:start/@pro:end blocks
-    removed before being added (Task #462 build-time stripping).
+    removed before being added (Task #462 build-time stripping), AND any file
+    whose plugin-relative posix path is in `exclude` is omitted entirely
+    (FREE_EXCLUDE: relocated Pro classes ship only in the Pro build).
     """
+    exclude = exclude or set()
     for fpath in sorted(src_dir.rglob("*")):
         if fpath.is_file():
             rel_path = fpath.relative_to(src_dir)
-            if _is_test_artifact(rel_path.as_posix()):
+            rel_posix = rel_path.as_posix()
+            if _is_test_artifact(rel_posix):
                 continue
-            arcname = arc_prefix + "/" + rel_path.as_posix() if arc_prefix else rel_path.as_posix()
+            if strip_pro and rel_posix in exclude:
+                continue
+            arcname = arc_prefix + "/" + rel_posix if arc_prefix else rel_posix
             if manifest_version and len(rel_path.parts) == 1 and fpath.suffix.lower() == ".xml":
                 content = fpath.read_text(encoding="utf-8", errors="replace")
                 content = re.sub(r"<version>[^<]+</version>", f"<version>{manifest_version}</version>", content)
+                if pro_name:
+                    content = inject_pro_name(content, src_dir)
                 zf.writestr(arcname, content)
                 continue
             if strip_pro and fpath.suffix.lower() == ".php":
@@ -188,8 +254,9 @@ def add_dir_to_zip(
             zf.write(fpath, arcname)
 
 
-def build_component_zip(version: str, tmp_dir: Path) -> Path:
-    """Build com_aiboost-{version}.zip."""
+def build_component_zip(version: str, tmp_dir: Path, pro_name: bool = False) -> Path:
+    """Build com_aiboost-{version}.zip. pro_name=True appends " (Pro)" to the
+    component's Extensions->Manage display name (the COM_AIBOOST sys.ini key)."""
     zip_path = tmp_dir / f"com_aiboost-{version}.zip"
 
     print(f"  → Building {zip_path.name} ...")
@@ -236,6 +303,17 @@ def build_component_zip(version: str, tmp_dir: Path) -> Path:
                 if _is_test_artifact(rel):
                     continue
                 arcname = "admin/" + rel
+                if pro_name and fpath.name == "com_aiboost.sys.ini":
+                    # Pro edition: the component's Extensions -> Manage name is the
+                    # COM_AIBOOST key here — append " (Pro)" (idempotent).
+                    content = fpath.read_text(encoding="utf-8", errors="replace")
+                    content = re.sub(
+                        r'(?m)^(COM_AIBOOST\s*=\s*")([^"]*)(")',
+                        lambda m: m.group(1) + (m.group(2) if m.group(2).rstrip().endswith("(Pro)") else m.group(2) + " (Pro)") + m.group(3),
+                        content, count=1,
+                    )
+                    zf.writestr(arcname, content)
+                    continue
                 if fpath.suffix == ".php":
                     content = fpath.read_text(encoding="utf-8", errors="replace")
                     stripped = strip_pro_blocks(content)
@@ -289,7 +367,7 @@ def build_component_zip(version: str, tmp_dir: Path) -> Path:
     return zip_path
 
 
-def build_plugin_zip(plugin_name: str, version: str, tmp_dir: Path, strip_pro: bool = True) -> Path:
+def build_plugin_zip(plugin_name: str, version: str, tmp_dir: Path, strip_pro: bool = True, pro_name: bool = False) -> Path:
     """Build plg_system_{plugin_name}-{version}.zip.
 
     Task #462: free plugins are stripped of any `// @pro:start ... // @pro:end`
@@ -309,7 +387,11 @@ def build_plugin_zip(plugin_name: str, version: str, tmp_dir: Path, strip_pro: b
         # Add all plugin source files.
         # Plugins no longer bundle lib/ classes — ProGate/ConflictManager removed in P01.
         # Each plugin Extension class reads #__aiboost_settings directly via Factory::getDbo().
-        add_dir_to_zip(zf, plugin_dir, strip_pro=strip_pro, manifest_version=version)
+        # FREE_EXCLUDE omits relocated Pro classes from the Free (stripped) build only.
+        add_dir_to_zip(
+            zf, plugin_dir, strip_pro=strip_pro, manifest_version=version,
+            exclude=FREE_EXCLUDE.get(plugin_name), pro_name=pro_name,
+        )
 
     print(f"    ✓ {zip_name} ({zip_path.stat().st_size // 1024} KB)")
     return zip_path
@@ -361,8 +443,15 @@ def build_vue_admin() -> None:
     print(f"  ✓ Vue admin bundle built ({bundle.stat().st_size // 1024} KB)")
 
 
-def build_package_zip(version: str, dry_run: bool = False) -> Path:
-    """Orchestrate: build all sub-ZIPs, then assemble outer package ZIP."""
+def build_package_zip(version: str, dry_run: bool = False, pro_edition: bool = False) -> Path:
+    """Orchestrate: build all sub-ZIPs, then assemble outer package ZIP.
+
+    pro_edition=True builds the COMBINED Pro edition: the SAME pkg_aiboost
+    (packagename `aiboost`, so it upgrades a Free base in place) but with the
+    plugins built FULL (Pro classes included, FREE_EXCLUDE not applied), (Pro)
+    display names, no update server, and IS_PRO_EDITION=true in pkg_script (so
+    its postflight sets the pro_installed marker + sweeps the legacy decorators).
+    """
 
     print(f"\n{'='*60}")
     print(f"  AI Boost — Package Build v{version}")
@@ -377,16 +466,19 @@ def build_package_zip(version: str, dry_run: bool = False) -> Path:
         tmp_dir = Path(tmp_str)
 
         print("Building sub-packages:")
-        com_zip = build_component_zip(version, tmp_dir)
+        com_zip = build_component_zip(version, tmp_dir, pro_name=pro_edition)
 
         plg_zips = []
         for plugin_name in PLUGIN_NAMES:
-            plg_zips.append(build_plugin_zip(plugin_name, version, tmp_dir))
+            plg_zips.append(build_plugin_zip(
+                plugin_name, version, tmp_dir,
+                strip_pro=not pro_edition, pro_name=pro_edition,
+            ))
 
         # The admin Health module is a Pro-only surface — it ships in
         # pkg_aiboost_pro, NOT in this base (Free) package.
 
-        output_name = f"pkg_aiboost-{version}.zip"
+        output_name = f"pkg_aiboost_pro-{version}.zip" if pro_edition else f"pkg_aiboost-{version}.zip"
         output_path = DELIVERABLES / output_name
 
         if dry_run:
@@ -410,6 +502,11 @@ def build_package_zip(version: str, dry_run: bool = False) -> Path:
                     f"plg_system_{pn}-{version}.zip",
                     xml_content,
                 )
+            if pro_edition:
+                # (Pro) package display name + drop the JED update server (Pro is
+                # Lemon-Squeezy-delivered; the preflight version-floor is the lock).
+                xml_content = inject_pro_name(xml_content, PKG_DIR)
+                xml_content = re.sub(r"<updateservers>.*?</updateservers>", "", xml_content, flags=re.DOTALL)
             zf.writestr("pkg_aiboost.xml", xml_content)
 
             # Package installer script — sync VERSION constant from Version.php
@@ -421,6 +518,12 @@ def build_package_zip(version: str, dry_run: bool = False) -> Path:
                     f"\\g<1>{version}\\g<2>",
                     script_content,
                 )
+                if pro_edition:
+                    script_content = re.sub(
+                        r"(public const IS_PRO_EDITION\s*=\s*)false(\s*;)",
+                        r"\g<1>true\g<2>",
+                        script_content,
+                    )
                 zf.writestr("pkg_script.php", script_content)
 
             # GPL v2+ license text ships in the package root (GPL compliance /
@@ -485,8 +588,9 @@ def build_pro_package_zip(version: str, dry_run: bool = False) -> Path:
             # Pro plugins ARE the Pro payload — keep their @pro blocks intact.
             pro_zips.append(build_plugin_zip(plugin_name, version, tmp_dir, strip_pro=False))
 
-        # The admin Health module is a Pro-only surface — it ships here, not in
-        # the base (Free) package.
+        # Admin modules to ship in the Pro package. Currently empty — the Health
+        # dashboard module is pulled for now (see MODULE_NAMES). The loop stays so
+        # re-adding a module is a one-line change.
         mod_zips = []
         for module_name in MODULE_NAMES:
             mod_zips.append(build_module_zip(module_name, version, tmp_dir))
@@ -673,10 +777,11 @@ def main() -> None:
     build_package_zip(version, dry_run=args.dry_run)
 
     if target_choice in ("pro", "all"):
-        if not PRO_PLUGIN_NAMES:
-            print("  ℹ️  No Pro plugins registered yet — skipping --target=pro stage.")
-        else:
-            build_pro_package_zip(version, dry_run=args.dry_run)
+        # Combined Pro edition: the SAME pkg_aiboost (packagename `aiboost`),
+        # built FULL with (Pro) display names + IS_PRO_EDITION. Installing it
+        # upgrades a Free base in place + sweeps the legacy *_pro decorators.
+        # Replaces the old decorator-only add-on package (pkg_aiboost_pro).
+        build_package_zip(version, dry_run=args.dry_run, pro_edition=True)
 
     if target_choice == "all":
         for name in INTEGRATION_PLUGIN_NAMES:

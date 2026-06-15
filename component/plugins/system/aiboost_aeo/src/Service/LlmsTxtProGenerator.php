@@ -14,12 +14,12 @@
  *
  * Also generates /llms-full.txt (complete article + category index).
  *
- * @package     AiBoost\Plugin\System\AiBoostAeoPro
+ * @package     AiBoost\Plugin\System\AiBoostAeo
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
  * @license     GNU General Public License version 2 or later
  */
 
-namespace AiBoost\Plugin\System\AiBoostAeoPro\Service;
+namespace AiBoost\Plugin\System\AiBoostAeo\Service;
 
 defined('_JEXEC') or die;
 

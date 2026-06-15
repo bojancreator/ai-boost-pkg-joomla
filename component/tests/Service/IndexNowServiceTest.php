@@ -2,7 +2,7 @@
 
 namespace AiBoost\Tests\Service;
 
-use AiBoost\Plugin\System\AiBoostAeoPro\Service\IndexNowService;
+use AiBoost\Plugin\System\AiBoostAeo\Service\IndexNowService;
 use PHPUnit\Framework\TestCase;
 
 /**

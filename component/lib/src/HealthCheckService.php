@@ -1221,7 +1221,10 @@ class HealthCheckService
      */
     private function infoSocialOgPro(): array
     {
-        $enabled = $this->isPluginEnabled('aiboost_social_pro');
+        // Post-collapse the Pro OG/Twitter enrichment lives in the free
+        // aiboost_social plugin (relocated OgTagProDecorator), gated on a
+        // verified-active 'og' license — not in a separate *_pro decorator.
+        $enabled = $this->isPluginEnabled('aiboost_social');
         $active  = false;
         try {
             $active = \AiBoost\Lib\PluginRegistry::hasPro('og');

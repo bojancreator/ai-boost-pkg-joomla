@@ -32,7 +32,10 @@ use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
 use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Lib\PluginRegistry;
+use AiBoost\Lib\TranslationService;
 use AiBoost\Plugin\System\AiBoostSocial\Service\OgTagBuilder;
+use AiBoost\Plugin\System\AiBoostSocial\Service\OgTagProDecorator;
 use AiBoost\Version;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -118,6 +121,23 @@ class AiBoostSocial extends CMSPlugin
             }
         }
 
+        // Pro decoration (relocated from the former aiboost_social_pro decorator).
+        // OgTagProDecorator ships ONLY in the Pro build (build FREE_EXCLUDE) so
+        // class_exists() is false on Free and the base props pass through. Runs
+        // here — before renderProps() and before the EVENT_FILTER_OG_TAGS bridge
+        // pass below — so Falang/bridge ordering is preserved exactly.
+        if (class_exists(OgTagProDecorator::class) && PluginRegistry::isProActive($settings)) {
+            try {
+                $defaultLang  = (string) Factory::getApplication()->get('language', 'en-GB');
+                $translations = PluginRegistry::hasPro('int_falang')
+                    ? new TranslationService($db, $defaultLang)
+                    : null;
+                $props = (new OgTagProDecorator($ctx, $db, $translations))->decorate($props, $settings);
+            } catch (\Throwable $e) {
+                // On any error, leave the Free baseline untouched — never break the page.
+            }
+        }
+
         $tags = OgTagBuilder::renderProps($props);
 
         // Task #486 — bridges (Falang etc.) can still mutate the rendered tags.
@@ -143,6 +163,65 @@ class AiBoostSocial extends CMSPlugin
             HeadBlockBuilder::SECTION_SOCIAL,
             implode("\n", $tags)
         );
+    }
+
+    /**
+     * Defensive NULL/empty guard for the AI Boost OG custom fields (Task #548).
+     *
+     * Pure, idempotent, lib-free and Joomla-free: normalises NULL/empty values
+     * on the OG custom-field object before any type-specific core field plugin
+     * reads them, avoiding PHP 8.1+ deprecations. A no-op on Free (the OG fields
+     * are a Pro install artifact) and when values are already set. Relocated
+     * here from the former aiboost_social_pro decorator during the
+     * Pro-replaces-Free collapse so it survives the decorator sweep.
+     *
+     * @param   string     $context  The content context (e.g. 'com_content.article')
+     * @param   \stdClass  $item     The item carrying the fields
+     * @param   \stdClass  $field    The field object being prepared (mutated in place)
+     *
+     * @return  void
+     *
+     * @libReady-exempt deliberately lib-free AND Joomla-free (pure in-place
+     *                  normalisation, no $this state) so it keeps working in
+     *                  every partial-install state; exercised standalone by
+     *                  scripts/test-og-field-guard.php. Do not add boot()/libReady().
+     */
+    public function onCustomFieldsPrepareField($context, $item, $field): void
+    {
+        if ($context !== 'com_content.article') {
+            return;
+        }
+
+        if (!\is_object($field) || !isset($field->name)) {
+            return;
+        }
+
+        static $ogFields = [
+            'aiboost_og_title',
+            'aiboost_og_description',
+            'aiboost_og_image',
+            'aiboost_og_type',
+            'aiboost_og_video',
+            'aiboost_twitter_card',
+        ];
+
+        if (!\in_array($field->name, $ogFields, true)) {
+            return;
+        }
+
+        // Media fields decode JSON; everything else is wrapped in a CDATA node.
+        // Both PHP 8.1+ deprecations are avoided by replacing NULL/'' with a
+        // safe, non-null default. Empty valid JSON keeps the Media renderer happy.
+        $default = (string) ($field->type ?? '') === 'media' ? '{"imagefile":""}' : '';
+
+        if (($field->value ?? null) === null || $field->value === '') {
+            $field->value = $default;
+        }
+
+        if (property_exists($field, 'rawvalue')
+            && (($field->rawvalue ?? null) === null || $field->rawvalue === '')) {
+            $field->rawvalue = $default;
+        }
     }
 
     /**

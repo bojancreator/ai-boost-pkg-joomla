@@ -32,7 +32,11 @@ use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
 use AiBoost\Lib\JoomlaAppContext;
 use AiBoost\Lib\MarkdownConverterService;
+use AiBoost\Lib\PluginRegistry;
+use AiBoost\Lib\TranslationService;
+use AiBoost\Plugin\System\AiBoostAeo\Service\IndexNowService;
 use AiBoost\Plugin\System\AiBoostAeo\Service\LlmsTxtGenerator;
+use AiBoost\Plugin\System\AiBoostAeo\Service\LlmsTxtProGenerator;
 use AiBoost\Version;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -67,6 +71,78 @@ class AiBoostAeo extends CMSPlugin
 
         $settings = $this->getAiBoostSettings();
 
+        // Pro virtual-file routes (relocated from aiboost_aeo_pro):
+        // /llms-full.txt, /llms-{sef}.txt, /{indexnow_key}.txt. LlmsTxtProGenerator
+        // ships ONLY in the Pro build (FREE_EXCLUDE) → class_exists() is false on
+        // Free. Runs BEFORE the Markdown fall-through so a Pro virtual path is
+        // never misread as a Markdown candidate.
+        if ($path !== '' && class_exists(LlmsTxtProGenerator::class) && PluginRegistry::isProActive($settings)) {
+            try {
+                $indexNowOn = (int) ($settings['indexnow_enabled'] ?? 0);
+                $apiKey     = trim((string) ($settings['indexnow_api_key'] ?? ''));
+                $isLlmsFull = ($path === 'llms-full.txt');
+                $isKeyFile  = ($indexNowOn && $apiKey !== '' && $path === $apiKey . '.txt');
+                $langSef    = null;
+                $isLlmsLang = false;
+                if (!$isLlmsFull && !$isKeyFile && preg_match('/^llms-([a-z]{2,5})\.txt$/i', $path, $m)) {
+                    $langSef    = strtolower($m[1]);
+                    $isLlmsLang = true;
+                }
+
+                if ($isLlmsFull || $isKeyFile || $isLlmsLang) {
+                    $defaultLang = (string) Factory::getApplication()->get('language', 'en-GB');
+
+                    if ($isLlmsLang && (int) ($settings['llmstxt_enabled'] ?? 1)) {
+                        $db = Factory::getDbo();
+                        try {
+                            $q = $db->getQuery(true)
+                                ->select($db->quoteName('lang_code'))
+                                ->from($db->quoteName('#__languages'))
+                                ->where($db->quoteName('sef') . ' = ' . $db->quote($langSef))
+                                ->where($db->quoteName('published') . ' = 1');
+                            $langCode = (string) ($db->setQuery($q)->loadResult() ?? '');
+                        } catch (\Throwable $e) {
+                            $langCode = '';
+                        }
+                        if ($langCode !== '' && $langCode !== $defaultLang) {
+                            $ctx = new JoomlaAppContext();
+                            $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), $langCode);
+                            header('Content-Type: text/plain; charset=utf-8');
+                            header('Cache-Control: public, max-age=86400');
+                            echo $gen->generate();
+                            Factory::getApplication()->close();
+                            return;
+                        }
+                    }
+
+                    if ($isLlmsFull && (int) ($settings['llms_full_txt_enabled'] ?? 0)) {
+                        $ctx = new JoomlaAppContext();
+                        $db  = Factory::getDbo();
+                        $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang));
+                        header('Content-Type: text/plain; charset=utf-8');
+                        header('Cache-Control: public, max-age=3600');
+                        echo $gen->generateFull();
+                        Factory::getApplication()->close();
+                        return;
+                    }
+
+                    if ($isKeyFile) {
+                        header('Content-Type: text/plain; charset=utf-8');
+                        header('Cache-Control: public, max-age=86400');
+                        echo $apiKey;
+                        Factory::getApplication()->close();
+                        return;
+                    }
+
+                    // A matched Pro virtual path whose feature is OFF must 404
+                    // cleanly — never fall through to the Markdown detector below.
+                    return;
+                }
+            } catch (\Throwable $e) {
+                // Never break routing — fall through to Free behaviour.
+            }
+        }
+
         if ($path !== 'llms.txt') {
             // Any non-llms.txt path (including the root URL) may be a Markdown
             // request — detect .md suffix / ?markdown=1 / Accept: text/markdown.
@@ -80,9 +156,21 @@ class AiBoostAeo extends CMSPlugin
         if ((int) ($settings['llmstxt_enabled'] ?? 1)) {
             $text = (new LlmsTxtGenerator($settings, $ctx, $db))->generate();
 
-            // Pro decorator hook — aiboost_aeo_pro listens here and can
-            // rebuild the response with per-language translations and
-            // append the "Full Index" reference when llms-full is enabled.
+            // Pro: rebuild with per-language translations + the "Full Index"
+            // reference (relocated from aiboost_aeo_pro). LlmsTxtProGenerator
+            // ships only in the Pro build (FREE_EXCLUDE). Applied BEFORE the
+            // dispatch below so third-party EVENT_FILTER_LLMS_TXT bridges still
+            // get the last word over the Pro output.
+            if (class_exists(LlmsTxtProGenerator::class) && PluginRegistry::isProActive($settings)) {
+                try {
+                    $defaultLang = (string) Factory::getApplication()->get('language', 'en-GB');
+                    $text = (new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang)))->generate();
+                } catch (\Throwable $e) {
+                    // keep the Free baseline $text
+                }
+            }
+
+            // Bridge hook — third-party extensions may decorate /llms.txt.
             if (class_exists(FilterDispatcher::class)) {
                 $filtered = FilterDispatcher::dispatch(
                     Sdk::EVENT_FILTER_LLMS_TXT,
@@ -126,6 +214,12 @@ class AiBoostAeo extends CMSPlugin
             return;
         }
 
+        // Pro: X-Robots-Tag header (relocated from aiboost_aeo_pro). isProActive
+        // is the single source of truth (emits only a header, no relocated class).
+        if (PluginRegistry::isProActive($settings) && (int) ($settings['enable_x_robots_header'] ?? 0)) {
+            header('X-Robots-Tag: index, follow');
+        }
+
         // AI Signals (Free) — lightweight hints that tell AI engines the page
         // is AI-optimised and point them at /llms.txt.
         if ((int) ($settings['aeo_ai_meta_enabled'] ?? 0)) {
@@ -162,6 +256,93 @@ class AiBoostAeo extends CMSPlugin
             } catch (\Throwable $e) {
                 // Document may not be HTML; silently skip.
             }
+        }
+    }
+
+    /**
+     * onContentAfterSave — Pro: auto-submit to IndexNow when an article is
+     * saved as published (relocated from aiboost_aeo_pro). IndexNowService ships
+     * only in the Pro build (FREE_EXCLUDE) → class_exists() is false on Free.
+     */
+    public function onContentAfterSave(string $context, object $article, bool $isNew): void
+    {
+        if (!$this->libReady()) {
+            return;
+        }
+        if ($context !== 'com_content.article') {
+            return;
+        }
+        if ((int) ($article->state ?? 0) !== 1) {
+            return;
+        }
+        $settings = $this->getAiBoostSettings();
+        if (!class_exists(IndexNowService::class) || !PluginRegistry::isProActive($settings)) {
+            return;
+        }
+        if (!(int) ($settings['indexnow_enabled'] ?? 0) || !(int) ($settings['indexnow_auto_submit'] ?? 0)) {
+            return;
+        }
+        $apiKey = trim((string) ($settings['indexnow_api_key'] ?? ''));
+        if ($apiKey === '') {
+            return;
+        }
+        $siteRoot = rtrim(Uri::root(), '/');
+        $url      = $this->buildArticleUrl((int) ($article->id ?? 0));
+        if ($url !== '') {
+            (new IndexNowService($apiKey, $siteRoot))->submit($url);
+        }
+    }
+
+    /**
+     * onContentChangeState — Pro: auto-submit to IndexNow when an article's
+     * state changes to published (relocated from aiboost_aeo_pro).
+     *
+     * @param array<int|string,int|string> $pks
+     */
+    public function onContentChangeState(string $context, array $pks, int $value): void
+    {
+        if (!$this->libReady()) {
+            return;
+        }
+        if ($context !== 'com_content.article' || $value !== 1) {
+            return;
+        }
+        $settings = $this->getAiBoostSettings();
+        if (!class_exists(IndexNowService::class) || !PluginRegistry::isProActive($settings)) {
+            return;
+        }
+        if (!(int) ($settings['indexnow_enabled'] ?? 0) || !(int) ($settings['indexnow_auto_submit'] ?? 0)) {
+            return;
+        }
+        $apiKey = trim((string) ($settings['indexnow_api_key'] ?? ''));
+        if ($apiKey === '') {
+            return;
+        }
+        $siteRoot = rtrim(Uri::root(), '/');
+        $svc      = new IndexNowService($apiKey, $siteRoot);
+        foreach ($pks as $pk) {
+            $url = $this->buildArticleUrl((int) $pk);
+            if ($url !== '') {
+                $svc->submit($url);
+            }
+        }
+    }
+
+    /**
+     * Build the canonical article URL for an IndexNow submission (relocated
+     * from aiboost_aeo_pro).
+     */
+    private function buildArticleUrl(int $id): string
+    {
+        if ($id <= 0) {
+            return '';
+        }
+        try {
+            $uri = Uri::getInstance();
+            return $uri->getScheme() . '://' . $uri->getHost()
+                . '/index.php?option=com_content&view=article&id=' . $id;
+        } catch (\Throwable $e) {
+            return '';
         }
     }
 

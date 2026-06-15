@@ -21,12 +21,12 @@
  *   - twitter:site handle
  *   - twitter:card type override (custom field)
  *
- * @package     AiBoost\Plugin\System\AiBoostSocialPro
+ * @package     AiBoost\Plugin\System\AiBoostSocial
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
  * @license     GNU General Public License version 2 or later
  */
 
-namespace AiBoost\Plugin\System\AiBoostSocialPro\Service;
+namespace AiBoost\Plugin\System\AiBoostSocial\Service;
 
 defined('_JEXEC') or die;
 

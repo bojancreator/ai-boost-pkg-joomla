@@ -1,23 +1,15 @@
 <?php
 /**
- * AI Boost — Schema.org Legacy Decorator
+ * AI Boost — Schema.org Pro Plugin (dormant decorator)
  *
- * Compatibility decorator for installations that still have the historical
- * split schema package present. The active one-product package now emits the
- * core business schema directly from `aiboost_schema`; this decorator remains
- * to support older add-on deployments and extended JSON-LD blocks.
- *
- *   - 13 Site Type presets (LocalBusiness, Hotel, Restaurant, etc.)
- *   - openingHoursSpecification (BusinessHoursBuilder)
- *   - AggregateRating
- *   - Type-specific fields (priceRange, servesCuisine, starRating, …)
- *   - Per-language org translations (TranslationService + FalangBridge)
- *   - FAQPage, QAPage, Article, HowTo, Event blocks
- *   - Per-author Person block (custom-field driven)
- *
- * Wiring: listens on `EVENT_FILTER_SCHEMA_BLOCKS` fired by the core
- * aiboost_schema plugin and applies `SchemaProBuilder::decorateAll()` to the
- * structured blocks array when the legacy entitlement gate allows it.
+ * As of the "Pro replaces Free" collapse, the Pro schema logic (SchemaProBuilder
+ * + BusinessHoursBuilder, FalangBridge, SiteTypePresetService, BreadcrumbPro) was
+ * relocated INTO the free `aiboost_schema` plugin, which now applies it directly,
+ * gated on PluginRegistry::isProActive(). This element is retained only so an
+ * existing split-package install keeps a valid extension row until it is swept in
+ * the final phase; it intentionally does nothing. The Pro fields are declared by
+ * the manifest (codegen), not here. The libReady() guard is kept so the plugin can
+ * never fatal on a partial base-package uninstall (incident 2026-06-11).
  *
  * @package     AiBoost\Plugin\System\AiBoostSchemaPro
  * @copyright   (C) 2025 AI Boost (aiboostnow.com). All rights reserved.
@@ -28,13 +20,6 @@ namespace AiBoost\Plugin\System\AiBoostSchemaPro\Extension;
 
 defined('_JEXEC') or die;
 
-use AiBoost\Lib\Integration\FilterResult;
-use AiBoost\Lib\JoomlaAppContext;
-use AiBoost\Lib\PluginRegistry;
-use AiBoost\Lib\TranslationService;
-use AiBoost\Plugin\System\AiBoostSchemaPro\Features\BreadcrumbPro;
-use AiBoost\Plugin\System\AiBoostSchemaPro\Service\SchemaProBuilder;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 class AiBoostSchemaPro extends CMSPlugin
@@ -52,145 +37,9 @@ class AiBoostSchemaPro extends CMSPlugin
         if (!$this->libReady()) {
             return;
         }
-    }
-
-    /**
-    * Decorate the core schema blocks and append extended blocks
-    * (FAQPage, QAPage, Article, HowTo, Event).
-     *
-    * Listener for `EVENT_FILTER_SCHEMA_BLOCKS`. The core plugin fires this
-    * event after building its blocks.
-     */
-    public function onAiBoostFilterSchemaBlocks(array $input, FilterResult $result): void
-    {
-        $this->boot();
-        if (!$this->libReady()) {
-            return;
-        }
-
-        // Legacy activation gate; retained for older split-package installs.
-        if (!PluginRegistry::hasPro('schema')) {
-            return;
-        }
-
-        $current = $result->getOutput();
-        $blocks  = $current['blocks'] ?? null;
-        if (!is_array($blocks)) {
-            return;
-        }
-
-        $settings = $current['settings'] ?? ($input['settings'] ?? []);
-        if (!is_array($settings)) {
-            $settings = [];
-        }
-
-        try {
-            $ctx          = new JoomlaAppContext();
-            $db           = Factory::getDbo();
-            $defaultLang  = (string) Factory::getApplication()->get('language', 'en-GB');
-            // D3 (Multilang Pro): translated Schema is an overlay gated on the
-            // Multilang licence, layered on top of the 'schema' bundle Pro. Only
-            // construct the TranslationService when Multilang is active;
-            // SchemaProBuilder null-guards every translation site, so bundle-only
-            // owners keep all non-translation Pro blocks (FAQ/Event/Org/…).
-            $translations = PluginRegistry::hasPro('int_falang')
-                ? new TranslationService($db, $defaultLang)
-                : null;
-            $builder      = new SchemaProBuilder($settings, $ctx, $db, $translations);
-            $decorated    = $builder->decorateAll($blocks);
-        } catch (\Throwable $e) {
-            // On any error, leave the core blocks untouched — never break the page.
-            return;
-        }
-
-        $current['blocks'] = $decorated;
-        $result->setOutput($current, $this->getName(), 'apply schema decoration');
-    }
-
-    /**
-    * Contribute legacy marker field(s) to the manifest for split-package
-    * compatibility.
-     *
-     * @return array<int, array<string,mixed>>
-     */
-    public function onAiBoostRegisterFields(): array
-    {
-        $this->boot();
-        if (!$this->libReady()) {
-            return [];
-        }
-
-        return [
-            [
-                'key'           => BreadcrumbPro::SETTING_KEY,
-                'tab'           => 'schema',
-                'section'       => 'breadcrumb',
-                'label'         => 'Enhanced BreadcrumbList (Pro)',
-                'type'          => 'toggle',
-                'default'       => '0',
-                'tier'          => 'pro',
-                'sku'           => 'schema',
-                'description'   => 'Emit a richer BreadcrumbList with per-item images and structured position metadata. The core plugin emits the basic BreadcrumbList.',
-                'feature_class' => 'BreadcrumbPro',
-                'health'        => [
-                    'id'                => 'info_schema_breadcrumb_pro_active',
-                    'category'          => 'Schema',
-                    'message'           => 'Enhanced BreadcrumbList is active. Pages should emit a JSON-LD BreadcrumbList with image and position attributes on every item.',
-                    'expected_artifact' => 'application/ld+json with @type=BreadcrumbList including itemListElement[].image',
-                    'fix_actions'       => [
-                        ['label' => 'Open Schema tab → Breadcrumb', 'target_tab' => 'schema', 'target_field' => 'schema_breadcrumb_pro'],
-                    ],
-                ],
-                'i18n'          => [
-                    'label_key'       => 'PLG_SYSTEM_AIBOOST_SCHEMA_BREADCRUMB_PRO_LABEL',
-                    'description_key' => 'PLG_SYSTEM_AIBOOST_SCHEMA_BREADCRUMB_PRO_DESC',
-                ],
-            ],
-        ];
-    }
-
-    /**
-    * Per-request BreadcrumbPro stub trigger (codegen-managed apply()).
-    * Extended decoration of the Breadcrumb block runs through
-     * SchemaProBuilder above — this hook stays so the codegen `apply()`
-     * stub keeps its declared lifecycle.
-     */
-    public function onBeforeCompileHead(): void
-    {
-        $this->boot();
-        if (!$this->libReady()) {
-            return;
-        }
-        try {
-            if (!PluginRegistry::hasPro('schema')) {
-                return;
-            }
-
-            $db = Factory::getDbo();
-            $raw = (string) $db->setQuery(
-                $db->getQuery(true)
-                    ->select($db->quoteName('settings_json'))
-                    ->from($db->quoteName('#__aiboost_settings'))
-                    ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
-            )->loadResult();
-            $settings = $raw !== '' ? (json_decode($raw, true) ?: []) : [];
-
-            if (BreadcrumbPro::isEnabled($settings)) {
-                BreadcrumbPro::apply($settings);
-            }
-        } catch (\Throwable $e) {
-            // The try may have failed BECAUSE a lib class could not load
-            // (partial base-package uninstall) — referencing Logger here would
-            // then throw a secondary, uncatchable autoload error and 500 the
-            // page. Only log through Logger when the class is already in
-            // memory: class_exists(..., false) never triggers a load and
-            // never throws. Otherwise fall back to error_log().
-            if (class_exists('AiBoost\\Lib\\Logger', false)) {
-                \AiBoost\Lib\Logger::warning('[AiBoostSchemaPro] onBeforeCompileHead failed: ' . $e->getMessage());
-            } else {
-                @error_log('[AiBoostSchemaPro] onBeforeCompileHead failed: ' . $e->getMessage());
-            }
-        }
+        // No-op: Pro schema decoration now runs inside the free aiboost_schema
+        // plugin (relocated during the Pro-replaces-Free collapse). This element
+        // is dormant until the final phase retires it.
     }
 
     private function boot(): void
@@ -206,17 +55,6 @@ class AiBoostSchemaPro extends CMSPlugin
         }
     }
 
-    /**
-     * Whether the shared AiBoost\Lib library is fully loadable.
-     *
-     * boot() only checks that lib/autoload.php exists — not enough: a partial
-     * base-package uninstall can leave autoload.php on disk while individual
-     * lib/src class files are gone, and the first lib reference then fatals
-     * on every page. Probing two core lib classes detects that state so every
-     * event handler can no-op instead. This is a tripwire, not an exhaustive
-     * integrity check. The try/catch matters: under JDEBUG Joomla's debug
-     * class loader THROWS on a missing class file instead of returning false.
-     */
     private function libReady(): bool
     {
         if ($this->libReady !== null) {

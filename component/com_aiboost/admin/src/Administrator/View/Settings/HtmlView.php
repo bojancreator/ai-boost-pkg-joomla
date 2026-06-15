@@ -1499,21 +1499,10 @@ JS
      */
     private function detectProInstall(): bool
     {
-        try {
-            $db    = Factory::getDbo();
-            $query = $db->getQuery(true)
-                ->select('COUNT(*)')
-                ->from($db->quoteName('#__extensions'))
-                ->where(
-                    '(' . $db->quoteName('element') . ' = ' . $db->quote('pkg_aiboost_pro')
-                    . ' OR ' . $db->quoteName('element') . ' LIKE ' . $db->quote('aiboost_%\\_pro') . ' ESCAPE ' . $db->quote('\\')
-                    . ')'
-                );
-            $db->setQuery($query);
-            return ((int) $db->loadResult()) > 0;
-        } catch (\Throwable $e) {
-            return false;
-        }
+        // Phase 5a — single source of truth (mirrors the App view): install
+        // marker OR live activation OR legacy split layout. See
+        // PluginRegistry::isProInstall().
+        return \AiBoost\Lib\PluginRegistry::isProInstall();
     }
 
     private function loadSettings(): array

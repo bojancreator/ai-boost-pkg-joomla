@@ -116,6 +116,10 @@ final class InstallIntegrityTest extends TestCase
 
     public function testCleanProBaselineReportsNoProblems(): void
     {
+        // The Health module (proModuleRows) is seeded as a LEFTOVER: as of
+        // v0.76.6 it is pulled from the product, so it is no longer expected.
+        // The audit must silently ignore a stray module row — neither count it
+        // (not "ok"), nor flag it ("missing"/"orphan").
         $rows  = array_merge($this->coreRows(), $this->proModuleRows(), $this->freePluginRows(), $this->proPluginRows());
         $db    = $this->db($rows);
         $audit = InstallIntegrity::audit($db, true, self::VERSION);
@@ -125,8 +129,10 @@ final class InstallIntegrityTest extends TestCase
         $this->assertSame([], $audit['disabled']);
         $this->assertSame([], $audit['orphan']);
         $this->assertSame([], $audit['mismatch']);
+        // Pro now expects only the Free + Pro plugins + the component (the
+        // module is no longer part of the count).
         $this->assertSame(
-            count(InstallIntegrity::FREE_SYSTEM_PLUGINS) + count(InstallIntegrity::PRO_SYSTEM_PLUGINS) + 2,
+            count(InstallIntegrity::FREE_SYSTEM_PLUGINS) + count(InstallIntegrity::PRO_SYSTEM_PLUGINS) + 1,
             $audit['active_count']
         );
         $this->assertSame($audit['expected_count'], $audit['active_count']);

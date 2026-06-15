@@ -46,26 +46,52 @@ final class InstallIntegrity
         'aiboost_code',
     ];
 
-    /** Legacy add-on plugins (mirror pkg_aiboost_pro.xml / PluginRegistry::PRO_SKUS keys). */
-    public const PRO_SYSTEM_PLUGINS = [
-        'aiboost_schema_pro',
-        'aiboost_aeo_pro',
-        'aiboost_social_pro',
-        'aiboost_hreflang_pro',
-        'aiboost_code_pro',
-    ];
+    /**
+     * Pro adds NO separate system plugins anymore. After the "Pro replaces Free"
+     * collapse, Pro IS the same 7 core elements built full (the legacy *_pro
+     * decorator plugins were relocated into the free plugins + swept on the
+     * combined Pro install). So a Pro site expects exactly the 7 FREE elements —
+     * any surviving aiboost_*_pro row is now an ORPHAN, correctly flagged.
+     */
+    public const PRO_SYSTEM_PLUGINS = [];
 
     /** Non-plugin extensions audited alongside the package plugins. */
     public const COMPONENT_ELEMENT = 'com_aiboost';
     public const MODULE_ELEMENT    = 'mod_aiboost_health';
 
     /**
-     * True when the legacy add-on package is physically installed. This is the
-     * signal that the *_pro plugins are *expected* (rather than orphan leftovers).
+     * True when this is a Pro install. After the collapse the edition is no
+     * longer signalled by a separate pkg_aiboost_pro package (it is swept), so
+     * the primary signal is the `pro_installed` install marker (set by the
+     * combined Pro package) or the perpetual `pro_activated` flag. The legacy
+     * pkg_aiboost_pro / aiboost_*_pro rows are kept as fallbacks so an
+     * un-collapsed split site (mid-migration) still reads as Pro.
      */
     public static function isProEdition(DatabaseInterface $db): bool
     {
         try {
+            // 1. Install marker / perpetual activation (the collapsed-world signal).
+            $raw = (string) $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName('settings_json'))
+                    ->from($db->quoteName('#__aiboost_settings'))
+                    ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
+            )->loadResult();
+            if ($raw !== '') {
+                $data = json_decode($raw, true) ?: [];
+                if ((string) ($data['pro_installed'] ?? '0') === '1'
+                    || (string) ($data['pro_activated'] ?? '0') === '1') {
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            // table/row may be absent — fall through to the physical checks.
+        }
+
+        try {
+            // 2. Legacy add-on package still physically present (un-collapsed
+            //    split site, mid-migration). On a collapsed Pro site this row is
+            //    swept, so clause 1 (the marker) is what keeps it reading Pro.
             $count = (int) $db->setQuery(
                 $db->getQuery(true)
                     ->select('COUNT(*)')
@@ -144,11 +170,13 @@ final class InstallIntegrity
      */
     private static function expectedNonPlugins(bool $isPro): array
     {
-        $expected = ['component' => self::COMPONENT_ELEMENT];
-        if ($isPro) {
-            $expected['module'] = self::MODULE_ELEMENT;
-        }
-        return $expected;
+        // v0.76.6 — the admin Health module (mod_aiboost_health) is pulled from
+        // the product for now (owner decision), so it is no longer "expected" on
+        // a Pro install. Without this, the integrity audit would report it as
+        // "missing" after it has been removed. A leftover module row is harmless:
+        // it is neither expected here nor an orphan (orphan detection covers
+        // plugins only). Re-add it here when the module ships again.
+        return ['component' => self::COMPONENT_ELEMENT];
     }
 
     /**

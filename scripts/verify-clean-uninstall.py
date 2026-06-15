@@ -875,8 +875,22 @@ def pass_clean_uninstall(session: requests.Session, latest_zip: str) -> bool:
         results.append(("(b) #__extensions empty", False,
                         "manage view never settled (listing kept timing out)"))
     elif remaining:
-        names = ", ".join(f"{label}#{eid}" for eid, label, _etype in remaining)
-        results.append(("(b) #__extensions empty", False, f"leftover: {names}"))
+        # Integration bridges (aiboost_int_*, display name "... Integration") are
+        # SEPARATE paid add-on ZIPs. A base-package uninstall intentionally leaves
+        # them in place — owner decision: never remove a paying customer's paid
+        # add-ons on a base uninstall. They are NOT unclean leftovers, so exclude
+        # them from this assertion and report them as expected.
+        expected = [r for r in remaining if "integration" in r[1].lower()]
+        unexpected = [r for r in remaining if "integration" not in r[1].lower()]
+        if expected:
+            exp = ", ".join(f"{label}#{eid}" for eid, label, _ in expected)
+            print(f"   ℹ️  expected paid add-on leftover(s), not counted: {exp}")
+        if unexpected:
+            names = ", ".join(f"{label}#{eid}" for eid, label, _etype in unexpected)
+            results.append(("(b) #__extensions empty", False, f"leftover: {names}"))
+        else:
+            results.append(("(b) #__extensions empty", True,
+                            "no aiboost rows except expected paid add-ons (integration bridges)"))
     else:
         results.append(("(b) #__extensions empty", True, "no aiboost rows in manage view"))
 

@@ -16,6 +16,10 @@ use Joomla\CMS\Factory;
 class Pkg_AiboostInstallerScript
 {
     public const VERSION     = '0.50.2';
+    // Build-injected (scripts/build-package-zip.py): the Free build keeps
+    // `false`; the combined Pro-edition build flips this to `true`. Drives the
+    // `pro_installed` marker + the one-time sweep of the legacy *_pro decorators.
+    public const IS_PRO_EDITION = false;
     public const MIN_PHP     = '8.1.0';
     public const MIN_JOOMLA  = '5.0.0';
 
@@ -106,11 +110,49 @@ class Pkg_AiboostInstallerScript
             return false;
         }
 
+        // Phase 6.4 — downgrade lock. A Pro-installed or perpetually-activated
+        // site must never be silently downgraded to an OLDER package (e.g. the
+        // Free JED ZIP installed over a paid site). The combined Pro package
+        // ships no update server; this is the belt to that suspenders.
+        if (in_array($type, ['install', 'update', 'discover_install'], true)) {
+            $installed = $this->installedPackageVersion();
+            if ($installed !== ''
+                && version_compare(self::VERSION, $installed, '<')
+                && $this->isProSiteByFlags()) {
+                Factory::getApplication()->enqueueMessage(
+                    sprintf(
+                        'AI Boost: refusing to downgrade an activated/Pro install from %s to %s. '
+                        . 'Please install the current or a newer package.',
+                        $installed,
+                        self::VERSION
+                    ),
+                    'error'
+                );
+                return false;
+            }
+        }
+
         return true;
     }
 
     public function postflight(string $type, object $parent): void
     {
+        // Phase 0.1 — NEVER act on uninstall. Joomla invokes postflight() with
+        // $type='uninstall' AFTER uninstall() has already preserved the data;
+        // without this guard everything below (CREATE TABLE, the settings
+        // migrations, the *_pro plugin re-enable) re-runs over a half-removed
+        // filesystem and rewrites the customer's settings blob. Mirrors the
+        // guard pkg_script_pro.php already uses. The narrower in_array() check
+        // further down is now redundant but left in place.
+        if (!in_array($type, ['install', 'update', 'discover_install'], true)) {
+            return;
+        }
+
+        // Phase 0.3 — back up the live `main` settings blob BEFORE any migration
+        // can touch it, so support can revert a corrupted upgrade with zero data
+        // loss. No-op on a fresh install (no row yet). Never touches `main`.
+        $this->backupMainSettings();
+
         // v0.7.0 — ensure new tables exist on upgrade
         $this->ensureNewTables();
 
@@ -142,6 +184,23 @@ class Pkg_AiboostInstallerScript
         // Task #482 — backfill page-level default policy and rewrite legacy
         // per-bot 'default' values to '' so the new radio UI is unambiguous.
         $this->migrateCrawlerDefaultPolicy();
+
+        // Phase 6 — record the installed EDITION (Pro vs Free) into the `main`
+        // blob BEFORE the isProInstall() gates below consult it. The build
+        // injects IS_PRO_EDITION (Free=false, combined Pro=true). This keeps a
+        // freshly-installed, not-yet-activated Pro buyer reading as Pro so their
+        // OG fields are kept (ensureOgCustomFields), never removed.
+        $this->setInstalledEdition(self::IS_PRO_EDITION);
+
+        // Phase 6 — on the combined Pro edition, sweep the now-redundant legacy
+        // *_pro decorator plugins + the old pkg_aiboost_pro add-on package. The
+        // Pro logic was relocated into the 7 free plugins (already upgraded in
+        // place by this package install), so the decorators are dead weight; a
+        // Pro site should show ONLY the 7 single elements. Cascade-safe.
+        if (self::IS_PRO_EDITION) {
+            $this->sweepCollapsedProDecorators();
+        }
+
         // Split model (Free base + Pro add-on package): only clean up ORPHANED
         // Pro/add-on extension rows on a genuinely Free install. When the Pro
         // package IS present (or a Pro licence is active), the *_pro plugins are
@@ -156,6 +215,11 @@ class Pkg_AiboostInstallerScript
         // BOTH Free and Pro installs — these elements no longer exist in any
         // current package and must be removed regardless of licence state.
         $this->removeObsoleteIntegrationPlugins();
+        // v0.76.6 — the admin Health dashboard module (mod_aiboost_health) is
+        // pulled from the product for now (owner decision). Remove any copy a
+        // previous Pro package installed, including the placed dashboard
+        // instance, so it stops appearing in Extensions and on the dashboard.
+        $this->removeHealthAdminModule();
         $this->enablePlugins();
         $this->enableIntegrationPlugins();
 
@@ -481,6 +545,15 @@ class Pkg_AiboostInstallerScript
                 )->loadResult();
                 if ($raw !== '') {
                     $data = json_decode($raw, true) ?: [];
+                    // Phase 6 — the install-edition marker (set by the combined
+                    // Pro package) + the perpetual activation flag. Either marks
+                    // a Pro install even when no *_pro row / license_tier exists
+                    // (e.g. a direct-Pro buyer who has not yet entered a key, or
+                    // a collapsed Pro site where the *_pro rows were swept).
+                    if ((string) ($data['pro_installed'] ?? '0') === '1'
+                        || (string) ($data['pro_activated'] ?? '0') === '1') {
+                        return true;
+                    }
                     $tier = strtolower((string) ($data['license_tier'] ?? 'free'));
                     if (in_array($tier, ['pro', 'developer', 'agency'], true)) {
                         return true;
@@ -491,7 +564,8 @@ class Pkg_AiboostInstallerScript
                 }
             }
 
-            // 2. Pro package physically installed in #__extensions
+            // 2. Legacy split layout physically present: the old pkg_aiboost_pro
+            //    add-on package row, OR any live aiboost_*_pro decorator plugin.
             $proRow = (int) $db->setQuery(
                 $db->getQuery(true)
                     ->select('COUNT(*)')
@@ -502,11 +576,173 @@ class Pkg_AiboostInstallerScript
             if ($proRow > 0) {
                 return true;
             }
+            if ($this->hasLiveProExtension()) {
+                return true;
+            }
         } catch (\Throwable $e) {
             // On any error, fail closed → Free (no Pro features installed).
             self::logEvent('warning', '[AiBoost] isProInstall() failed, defaulting to Free: ' . $e->getMessage());
         }
         return false;
+    }
+
+    /**
+     * Phase 6.4 — the installed pkg_aiboost package version (from its
+     * #__extensions manifest_cache), or '' when not installed / unreadable.
+     */
+    private function installedPackageVersion(): string
+    {
+        try {
+            $db  = Factory::getDbo();
+            $row = (string) $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName('manifest_cache'))
+                    ->from($db->quoteName('#__extensions'))
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('package'))
+                    ->where($db->quoteName('element') . ' = ' . $db->quote('pkg_aiboost'))
+            )->loadResult();
+            if ($row === '') {
+                return '';
+            }
+            $cache = json_decode($row, true) ?: [];
+            return trim((string) ($cache['version'] ?? ''));
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
+
+    /**
+     * Phase 6.4 — true when this is a paying/Pro install by FLAG (the install
+     * marker or the perpetual activation flag). Gates ONLY the downgrade lock —
+     * a genuine Free site is never blocked from installing anything.
+     */
+    private function isProSiteByFlags(): bool
+    {
+        $raw  = $this->readMainSettingsJson();
+        $data = ($raw !== null && $raw !== '') ? json_decode($raw, true) : [];
+        if (!is_array($data)) {
+            return false;
+        }
+        return (string) ($data['pro_installed'] ?? '0') === '1'
+            || (string) ($data['pro_activated'] ?? '0') === '1';
+    }
+
+    /**
+     * Phase 6.5 — sweep the legacy *_pro decorator plugins + the old
+     * pkg_aiboost_pro add-on package. The Pro logic was relocated into the 7
+     * free plugins (the "Pro replaces Free" collapse), so these are dead weight;
+     * a Pro site should show ONLY the 7 single elements. Runs ONLY from the
+     * combined Pro-edition install (gated by IS_PRO_EDITION), AFTER the 7 core
+     * plugins have upgraded in place, so no live logic is stripped.
+     *
+     * Cascade-safe: the old pkg_aiboost_pro set blockChildUninstall, so we NEVER
+     * call Installer->uninstall() on it. Per child: detach from the parent
+     * package (package_id=0, enabled=0) → row-delete the child rows; ONLY THEN
+     * row-delete the package row directly. Any row that survives is logged AND
+     * enqueued so a partial sweep is visible, never silent.
+     */
+    private function sweepCollapsedProDecorators(): void
+    {
+        $decorators = [
+            'aiboost_schema_pro',
+            'aiboost_aeo_pro',
+            'aiboost_social_pro',
+            'aiboost_hreflang_pro',
+            'aiboost_code_pro',
+        ];
+        $survivors = [];
+
+        try {
+            $db = Factory::getDbo();
+
+            foreach ($decorators as $element) {
+                $ids = array_map('intval', (array) $db->setQuery(
+                    $db->getQuery(true)
+                        ->select($db->quoteName('extension_id'))
+                        ->from($db->quoteName('#__extensions'))
+                        ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                        ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+                        ->where($db->quoteName('element') . ' = ' . $db->quote($element))
+                )->loadColumn());
+
+                foreach ($ids as $extId) {
+                    // (1) detach from the parent package so no cascade fires.
+                    try {
+                        $db->setQuery(
+                            $db->getQuery(true)
+                                ->update($db->quoteName('#__extensions'))
+                                ->set($db->quoteName('package_id') . ' = 0')
+                                ->set($db->quoteName('enabled') . ' = 0')
+                                ->where($db->quoteName('extension_id') . ' = ' . (int) $extId)
+                        )->execute();
+                    } catch (\Throwable $e) {
+                        // best-effort; the row-delete below still removes it.
+                    }
+                    // (2) row-delete the child (#__extensions + #__schemas).
+                    $this->deleteLegacyExtensionRows($extId);
+                }
+
+                // (3) remove the orphaned plugin folder on disk (harmless if absent).
+                $this->deleteProDecoratorFolder($element);
+
+                $still = (int) $db->setQuery(
+                    $db->getQuery(true)
+                        ->select('COUNT(*)')
+                        ->from($db->quoteName('#__extensions'))
+                        ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                        ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+                        ->where($db->quoteName('element') . ' = ' . $db->quote($element))
+                )->loadResult();
+                if ($still > 0) {
+                    $survivors[] = $element;
+                }
+            }
+
+            // (4) ONLY NOW row-delete the old pkg_aiboost_pro package row directly
+            //     — never via Installer->uninstall() (blockChildUninstall cascade).
+            $pkgIds = array_map('intval', (array) $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName('extension_id'))
+                    ->from($db->quoteName('#__extensions'))
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('package'))
+                    ->where($db->quoteName('element') . ' = ' . $db->quote('pkg_aiboost_pro'))
+            )->loadColumn());
+            foreach ($pkgIds as $pid) {
+                $this->deleteLegacyExtensionRows($pid);
+            }
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] sweepCollapsedProDecorators failed: ' . $e->getMessage());
+        }
+
+        if ($survivors) {
+            $list = implode(', ', $survivors);
+            self::logEvent('warning', '[AiBoost] sweep: legacy Pro decorator row(s) survived: ' . $list);
+            try {
+                Factory::getApplication()->enqueueMessage(
+                    'AI Boost: some legacy Pro plugin rows could not be removed (' . $list
+                    . '). You can remove them under Extensions → Manage.',
+                    'warning'
+                );
+            } catch (\Throwable $e) {
+            }
+        }
+    }
+
+    /**
+     * Best-effort, guarded delete of a swept decorator's on-disk plugin folder.
+     * A leftover folder with no #__extensions row is harmless, so any failure is
+     * logged and ignored.
+     */
+    private function deleteProDecoratorFolder(string $element): void
+    {
+        try {
+            $dir = JPATH_ROOT . '/plugins/system/' . $element;
+            if (is_dir($dir) && class_exists('\\Joomla\\Filesystem\\Folder')) {
+                \Joomla\Filesystem\Folder::delete($dir);
+            }
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] deleteProDecoratorFolder(' . $element . ') failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -1024,14 +1260,25 @@ class Pkg_AiboostInstallerScript
             }
 
             $data['install_id'] = $this->generateUuidV4();
-            $newJson = json_encode($data, JSON_UNESCAPED_SLASHES);
+            $newJson = $this->encodeSettingsBlobSafe($data);
+            if ($newJson === null) {
+                self::logEvent('warning', '[AiBoost] ensureInstallId: skipped — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+                return;
+            }
 
             if ($existingJson === null) {
+                // created_at/updated_at are DATETIME NOT NULL with no default.
+                $now = Factory::getDate()->toSql();
                 $db->setQuery(
                     $db->getQuery(true)
                         ->insert($db->quoteName('#__aiboost_settings'))
-                        ->columns([$db->quoteName('setting_key'), $db->quoteName('settings_json')])
-                        ->values($db->quote('main') . ', ' . $db->quote($newJson))
+                        ->columns([
+                            $db->quoteName('setting_key'),
+                            $db->quoteName('settings_json'),
+                            $db->quoteName('created_at'),
+                            $db->quoteName('updated_at'),
+                        ])
+                        ->values($db->quote('main') . ', ' . $db->quote($newJson) . ', ' . $db->quote($now) . ', ' . $db->quote($now))
                 )->execute();
             } else {
                 $db->setQuery(
@@ -1047,6 +1294,209 @@ class Pkg_AiboostInstallerScript
                 . $e->getMessage() . ')',
                 'warning'
             );
+        }
+    }
+
+    /**
+     * Phase 0 — read the raw `settings_json` for the `main` row, or null when
+     * the table or row is absent. No decode: callers that need exact bytes
+     * (the pre-upgrade backup) use it verbatim; callers that mutate decode it.
+     */
+    private function readMainSettingsJson(): ?string
+    {
+        try {
+            $db     = Factory::getDbo();
+            $table  = $db->getPrefix() . 'aiboost_settings';
+            $exists = $db->setQuery('SHOW TABLES LIKE ' . $db->quote($table))->loadColumn();
+            if (!in_array($table, $exists, true)) {
+                return null;
+            }
+            $raw = $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName('settings_json'))
+                    ->from($db->quoteName('#__aiboost_settings'))
+                    ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
+            )->loadResult();
+            return is_string($raw) ? $raw : null;
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] readMainSettingsJson failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Phase 0.2 — encode a settings-blob array to JSON that is SAFE for the
+     * NOT NULL `settings_json` column: an object even when empty, tolerant of a
+     * stray bad byte, and NEVER '' / '[]' / false. Returns null when no safe
+     * non-empty object can be produced — callers MUST then skip the write and
+     * leave the existing row intact. Mirrors the hardened uninstall path so
+     * every settings writer behaves identically.
+     */
+    private function encodeSettingsBlobSafe(array $data): ?string
+    {
+        $json = $data === []
+            ? '{}'
+            : json_encode($data, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR);
+        return (is_string($json) && $json !== '' && $json !== '[]') ? $json : null;
+    }
+
+    /**
+     * Phase 0.3 — write a VERBATIM backup of the live `main` settings blob into a
+     * sibling row `main_backup_<version>` before any migration mutates it, so
+     * support can revert a corrupted upgrade with zero data loss. Never touches
+     * `main`. Idempotent (skips when the row already exists). Keeps the newest 3.
+     */
+    private function backupMainSettings(): void
+    {
+        try {
+            $raw = $this->readMainSettingsJson();
+            if (!is_string($raw) || $raw === '' || $raw === '[]') {
+                return; // Fresh install / nothing meaningful to back up.
+            }
+            $db      = Factory::getDbo();
+            $version = class_exists('AiBoost\\Version') ? \AiBoost\Version::VERSION : 'unknown';
+            $key     = 'main_backup_' . $version;
+
+            $count = (int) $db->setQuery(
+                $db->getQuery(true)
+                    ->select('COUNT(*)')
+                    ->from($db->quoteName('#__aiboost_settings'))
+                    ->where($db->quoteName('setting_key') . ' = ' . $db->quote($key))
+            )->loadResult();
+
+            if ($count === 0) {
+                // created_at/updated_at are DATETIME NOT NULL with no default —
+                // a 2-column INSERT throws under strict sql_mode. Supply all four
+                // (matches SettingsController + migrateSettings).
+                $now = Factory::getDate()->toSql();
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->insert($db->quoteName('#__aiboost_settings'))
+                        ->columns([
+                            $db->quoteName('setting_key'),
+                            $db->quoteName('settings_json'),
+                            $db->quoteName('created_at'),
+                            $db->quoteName('updated_at'),
+                        ])
+                        ->values($db->quote($key) . ', ' . $db->quote($raw) . ', ' . $db->quote($now) . ', ' . $db->quote($now))
+                )->execute();
+            }
+
+            $this->pruneSettingsBackups(3);
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] backupMainSettings failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Keep only the newest $keep `main_backup_%` rows (by id); delete the rest.
+     */
+    private function pruneSettingsBackups(int $keep): void
+    {
+        try {
+            $db  = Factory::getDbo();
+            $ids = array_map('intval', (array) $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName('id'))
+                    ->from($db->quoteName('#__aiboost_settings'))
+                    ->where($db->quoteName('setting_key') . ' LIKE ' . $db->quote('main_backup_%'))
+                    ->order($db->quoteName('id') . ' DESC')
+            )->loadColumn());
+
+            $stale = array_slice($ids, max(0, $keep));
+            if ($stale) {
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->delete($db->quoteName('#__aiboost_settings'))
+                        ->where($db->quoteName('id') . ' IN (' . implode(',', $stale) . ')')
+                )->execute();
+            }
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] pruneSettingsBackups failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Phase 0.4 — record which EDITION installed this site into the `main` blob.
+     * `pro_installed` = '1' for the combined Pro package, '0' for the Free build.
+     * Distinct from `pro_activated` (a verified licence key): the marker drives
+     * the admin-UI unlock + the OG-field branch, so a paying customer who has
+     * installed Pro but not yet entered a key still sees Pro. NEVER consulted by
+     * the runtime emitters (those still require `pro_activated`) and NEVER wiped
+     * on uninstall. Not called yet in Phase 0 — wired up in Phase 6.
+     */
+    private function setInstalledEdition(bool $isProBuild): void
+    {
+        try {
+            $raw  = $this->readMainSettingsJson();
+            $data = ($raw !== null && $raw !== '') ? json_decode($raw, true) : [];
+            if (!is_array($data)) {
+                return; // Present-but-unparseable blob — never overwrite user data.
+            }
+            $data['pro_installed'] = $isProBuild ? '1' : '0';
+            $newJson = $this->encodeSettingsBlobSafe($data);
+            if ($newJson === null) {
+                self::logEvent('warning', '[AiBoost] setInstalledEdition: skipped — re-encode yielded empty/invalid; row left intact.');
+                return;
+            }
+
+            $db = Factory::getDbo();
+            if ($raw === null) {
+                // created_at/updated_at are DATETIME NOT NULL with no default.
+                $now = Factory::getDate()->toSql();
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->insert($db->quoteName('#__aiboost_settings'))
+                        ->columns([
+                            $db->quoteName('setting_key'),
+                            $db->quoteName('settings_json'),
+                            $db->quoteName('created_at'),
+                            $db->quoteName('updated_at'),
+                        ])
+                        ->values($db->quote('main') . ', ' . $db->quote($newJson) . ', ' . $db->quote($now) . ', ' . $db->quote($now))
+                )->execute();
+            } else {
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->update($db->quoteName('#__aiboost_settings'))
+                        ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
+                        ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
+                )->execute();
+            }
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] setInstalledEdition failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Phase 0.5 — true when ANY AI Boost Pro plugin is physically present and
+     * enabled (an `aiboost_*_pro` system plugin). Used to VETO the Free-only
+     * artifact cleanup so a live Pro plugin is never row-deleted out from under
+     * a paying site. Fails SAFE: on any error it returns true (assume Pro
+     * present → skip the destructive cleanup).
+     */
+    private function hasLiveProExtension(): bool
+    {
+        try {
+            $db = Factory::getDbo();
+            $enabled = (array) $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName('element'))
+                    ->from($db->quoteName('#__extensions'))
+                    ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
+                    ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
+                    ->where($db->quoteName('enabled') . ' = 1')
+            )->loadColumn();
+            foreach ($enabled as $el) {
+                $el = (string) $el;
+                if (str_starts_with($el, 'aiboost_') && str_ends_with($el, '_pro')) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] hasLiveProExtension check failed, assuming Pro present: ' . $e->getMessage());
+            return true;
         }
     }
 
@@ -1082,13 +1532,17 @@ class Pkg_AiboostInstallerScript
             }
 
             $data['conflict_mode'] = 'cooperative';
-            $newJson = json_encode($data, JSON_UNESCAPED_SLASHES);
-            $db->setQuery(
-                $db->getQuery(true)
-                    ->update($db->quoteName('#__aiboost_settings'))
-                    ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
-                    ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
-            )->execute();
+            $newJson = $this->encodeSettingsBlobSafe($data);
+            if ($newJson !== null) {
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->update($db->quoteName('#__aiboost_settings'))
+                        ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
+                        ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
+                )->execute();
+            } else {
+                self::logEvent('warning', '[AiBoost] ensureConflictModeDefault: skipped write — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+            }
         } catch (\Throwable $e) {
             // Non-fatal — DocumentInspector falls back to 'cooperative' anyway.
         }
@@ -1163,13 +1617,17 @@ class Pkg_AiboostInstallerScript
                 return;
             }
 
-            $newJson = json_encode($data, JSON_UNESCAPED_SLASHES);
-            $db->setQuery(
-                $db->getQuery(true)
-                    ->update($db->quoteName('#__aiboost_settings'))
-                    ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
-                    ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
-            )->execute();
+            $newJson = $this->encodeSettingsBlobSafe($data);
+            if ($newJson !== null) {
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->update($db->quoteName('#__aiboost_settings'))
+                        ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
+                        ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'))
+                )->execute();
+            } else {
+                self::logEvent('warning', '[AiBoost] migrateCrawlerDefaultPolicy: skipped write — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+            }
         } catch (\Throwable $e) {
             self::logEvent('warning', '[AiBoost] migrateCrawlerDefaultPolicy failed: ' . $e->getMessage());
         }
@@ -1259,6 +1717,19 @@ class Pkg_AiboostInstallerScript
      */
     private function removeLegacySplitPackageArtifacts(): void
     {
+        // Phase 0.5 — presence-of-live-Pro veto. This Free-only cleanup
+        // row-deletes the split *_pro plugins. It must NEVER run while a Pro
+        // plugin is physically present AND enabled, regardless of the licence
+        // flag that gated us here — deleting a live Pro plugin out from under
+        // its own running files 500s a paying customer (incident class
+        // 2026-06-11). Presence of running Pro vetoes the cleanup independently
+        // of any flag. (Disabled orphan *_pro rows are NOT vetoed — cleaning
+        // those up on a genuine Free site is exactly this method's job.)
+        if ($this->hasLiveProExtension()) {
+            self::logEvent('warning', '[AiBoost] removeLegacySplitPackageArtifacts: skipped — a live (enabled) Pro plugin is present; refusing to delete Pro artifacts on the Free path.');
+            return;
+        }
+
         $legacyPlugins = [
             'aiboost_schema_pro',
             'aiboost_aeo_pro',
@@ -1310,6 +1781,67 @@ class Pkg_AiboostInstallerScript
             } catch (\Throwable $e) {
                 self::logEvent('warning', '[AiBoost] removeObsoleteIntegrationPlugins: could not remove ' . $element . ': ' . $e->getMessage());
             }
+        }
+    }
+
+    /**
+     * Remove the admin Health dashboard module (mod_aiboost_health) that earlier
+     * Pro packages shipped. Pulled from the product for now (owner decision).
+     *
+     * Two parts, because a module has both an installed *extension* and any
+     * number of *placed instances*:
+     *   1. removeLegacyExtension('module', …, 1) — uninstall the administrator
+     *      module via Joomla's Installer (drops files + #__extensions row, and
+     *      cleans #__modules when the uninstall succeeds).
+     *   2. A defensive sweep of #__modules / #__modules_menu for any instance
+     *      still referencing the module, in case the Installer was blocked
+     *      (the Pro package sets blockChildUninstall) and only the row-level
+     *      fallback ran — otherwise a placed dashboard instance would linger
+     *      and point at a now-missing module type.
+     */
+    private function removeHealthAdminModule(): void
+    {
+        $element = 'mod_aiboost_health';
+
+        try {
+            // client_id 1 = administrator module.
+            $this->removeLegacyExtension('module', $element, '', 1);
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] removeHealthAdminModule: uninstall failed for ' . $element . ': ' . $e->getMessage());
+        }
+
+        try {
+            $db = Factory::getDbo();
+
+            $moduleIds = array_map(
+                'intval',
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->select($db->quoteName('id'))
+                        ->from($db->quoteName('#__modules'))
+                        ->where($db->quoteName('module') . ' = ' . $db->quote($element))
+                )->loadColumn()
+            );
+
+            if (!$moduleIds) {
+                return;
+            }
+
+            $idList = implode(',', $moduleIds);
+
+            $db->setQuery(
+                $db->getQuery(true)
+                    ->delete($db->quoteName('#__modules_menu'))
+                    ->where($db->quoteName('moduleid') . ' IN (' . $idList . ')')
+            )->execute();
+
+            $db->setQuery(
+                $db->getQuery(true)
+                    ->delete($db->quoteName('#__modules'))
+                    ->where($db->quoteName('id') . ' IN (' . $idList . ')')
+            )->execute();
+        } catch (\Throwable $e) {
+            self::logEvent('warning', '[AiBoost] removeHealthAdminModule: could not clear placed instances: ' . $e->getMessage());
         }
     }
 
@@ -1388,7 +1920,7 @@ class Pkg_AiboostInstallerScript
     {
         $plugins = [
             'aiboost_schema', 'aiboost_sitemap', 'aiboost_social',
-            'aiboost_analytics', 'aiboost_aeo', 'aiboost_core',
+            'aiboost_analytics', 'aiboost_aeo', 'aiboost_core', 'aiboost_code',
         ];
 
         try {
@@ -1490,14 +2022,17 @@ class Pkg_AiboostInstallerScript
             }
 
             if ($changed && $row) {
-                $db->setQuery(
-                    $db->getQuery(true)
-                        ->update($db->quoteName('#__aiboost_settings'))
-                        ->set($db->quoteName('settings_json') . ' = ' . $db->quote(
-                            json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                        ))
-                        ->where($db->quoteName('id') . ' = ' . (int) $row->id)
-                )->execute();
+                $newJson = $this->encodeSettingsBlobSafe($settings);
+                if ($newJson !== null) {
+                    $db->setQuery(
+                        $db->getQuery(true)
+                            ->update($db->quoteName('#__aiboost_settings'))
+                            ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
+                            ->where($db->quoteName('id') . ' = ' . (int) $row->id)
+                    )->execute();
+                } else {
+                    self::logEvent('warning', '[AiBoost] enableIntegrationPlugins: skipped settings write — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+                }
             }
         } catch (\Throwable $e) {
             Factory::getApplication()->enqueueMessage(
@@ -1632,15 +2167,19 @@ class Pkg_AiboostInstallerScript
                     }
                 }
 
-                $newJson = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $newJson = $this->encodeSettingsBlobSafe($data);
 
-                $db->setQuery(
-                    $db->getQuery(true)
-                        ->update('#__aiboost_settings')
-                        ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
-                        ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
-                        ->where($db->quoteName('setting_key') . ' = ' . $db->quote($key))
-                )->execute();
+                if ($newJson !== null) {
+                    $db->setQuery(
+                        $db->getQuery(true)
+                            ->update('#__aiboost_settings')
+                            ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
+                            ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
+                            ->where($db->quoteName('setting_key') . ' = ' . $db->quote($key))
+                    )->execute();
+                } else {
+                    self::logEvent('warning', '[AiBoost] migrateRobotsBlockScrapers: skipped write for ' . $key . ' — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+                }
             }
         } catch (\Throwable $e) {
             self::logEvent('warning', '[AiBoost] migrateRobotsBlockScrapers failed: ' . $e->getMessage());
@@ -1718,15 +2257,19 @@ class Pkg_AiboostInstallerScript
                     unset($data[$k]);
                 }
 
-                $newJson = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                $newJson = $this->encodeSettingsBlobSafe($data);
 
-                $db->setQuery(
-                    $db->getQuery(true)
-                        ->update('#__aiboost_settings')
-                        ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
-                        ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
-                        ->where($db->quoteName('setting_key') . ' = ' . $db->quote($key))
-                )->execute();
+                if ($newJson !== null) {
+                    $db->setQuery(
+                        $db->getQuery(true)
+                            ->update('#__aiboost_settings')
+                            ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
+                            ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
+                            ->where($db->quoteName('setting_key') . ' = ' . $db->quote($key))
+                    )->execute();
+                } else {
+                    self::logEvent('warning', '[AiBoost] migrateSchemaAuthorEntity: skipped write for ' . $key . ' — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+                }
             }
         } catch (\Throwable $e) {
             self::logEvent('warning', '[AiBoost] migrateSchemaAuthorEntity failed: ' . $e->getMessage());
@@ -1821,9 +2364,14 @@ class Pkg_AiboostInstallerScript
                     : 'migrated';
             }
 
+            $newJson = $this->encodeSettingsBlobSafe($data);
+            if ($newJson === null) {
+                self::logEvent('warning', '[AiBoost] migrateActivateProPerpetual: skipped write — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+                return;
+            }
             $update = $db->getQuery(true)
                 ->update($db->quoteName('#__aiboost_settings'))
-                ->set($db->quoteName('settings_json') . ' = ' . $db->quote(json_encode($data)))
+                ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
                 ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
             $db->setQuery($update);
             $db->execute();
@@ -1907,9 +2455,14 @@ class Pkg_AiboostInstallerScript
                 unset($data['license_tier']);
             }
 
+            $newJson = $this->encodeSettingsBlobSafe($data);
+            if ($newJson === null) {
+                self::logEvent('warning', '[AiBoost] migrateLicenseTierToProSkuMap: skipped write — re-encoding settings_json yielded an empty/invalid value; row left intact.');
+                return;
+            }
             $update = $db->getQuery(true)
                 ->update($db->quoteName('#__aiboost_settings'))
-                ->set($db->quoteName('settings_json') . ' = ' . $db->quote(json_encode($data)))
+                ->set($db->quoteName('settings_json') . ' = ' . $db->quote($newJson))
                 ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
             $db->setQuery($update);
             $db->execute();

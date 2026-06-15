@@ -35,11 +35,13 @@ namespace Joomla\CMS\Plugin {
 
 namespace {
 
-use AiBoost\Plugin\System\AiBoostSocialPro\Extension\AiBoostSocialPro;
+use AiBoost\Plugin\System\AiBoostSocial\Extension\AiBoostSocial;
 
 \define('_JEXEC', 1);
 
-require_once __DIR__ . '/../component/plugins/system/aiboost_social_pro/src/Extension/AiBoostSocialPro.php';
+// The OG-field null-guard was relocated into the free aiboost_social plugin
+// during the Pro-replaces-Free collapse.
+require_once __DIR__ . '/../component/plugins/system/aiboost_social/src/Extension/AiBoostSocial.php';
 
 $passed = 0;
 $failed = 0;
@@ -79,7 +81,7 @@ echo "\nAI Boost — OG Custom Field NULL/empty Guard Test\n";
 echo str_repeat('=', 50) . "\n\n";
 
 // Instantiate the real listener without invoking the CMSPlugin constructor.
-$ref      = new \ReflectionClass(AiBoostSocialPro::class);
+$ref      = new \ReflectionClass(AiBoostSocial::class);
 $listener = $ref->newInstanceWithoutConstructor();
 
 $article = 'com_content.article';
