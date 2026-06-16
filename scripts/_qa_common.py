@@ -77,7 +77,7 @@ _TARGETS = {
     "free":    ("env:FREE_URL", "FREE_ADMIN_USER", "FREE_ADMIN_PASS", "AIBOOST_NO_SSL_VERIFY"),
     "ml":      ("env:ML_URL", "ML_ADMIN_USER", "ML_ADMIN_PASS", "ML_NO_SSL_VERIFY"),
     # testmyweb.info matrix (J5/J6 × Free/Pro), shared creds, self-signed TLS.
-    "j5free":  ("https://joomla5-free.testmyweb.info/administrator/", "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "TESTMYWEB_NO_SSL_VERIFY"),
+    "j5free":  ("https://joomla5-free.testmyweb.info/administrator/", "TESTMYWEB_ADMIN_USER", "J5FREE_ADMIN_PASS", "TESTMYWEB_NO_SSL_VERIFY"),  # j5free has its OWN password (4 marks) + third-party addons (Admin Tools/Falang/Tassos)
     "j5pro":   ("https://joomla5-pro.testmyweb.info/administrator/",  "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "TESTMYWEB_NO_SSL_VERIFY"),
     "j6free":  ("https://joomla6-free.testmyweb.info/administrator/", "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "TESTMYWEB_NO_SSL_VERIFY"),
     "j6pro":   ("https://joomla6-pro.testmyweb.info/administrator/",  "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "TESTMYWEB_NO_SSL_VERIFY"),

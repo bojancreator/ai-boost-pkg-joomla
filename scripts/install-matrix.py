@@ -54,7 +54,7 @@ for _s in (sys.stdout, sys.stderr):
 SITES = {
     "free":    ("env:FREE_URL", "FREE_ADMIN_USER", "FREE_ADMIN_PASS", "free", "AIBOOST_NO_SSL_VERIFY"),
     "staging": ("env:STAGING_URL", "STAGING_ADMIN_USER", "STAGING_ADMIN_PASS", "pro", "AIBOOST_NO_SSL_VERIFY"),
-    "j5free":  ("https://joomla5-free.testmyweb.info/administrator/", "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "free", "TESTMYWEB_NO_SSL_VERIFY"),
+    "j5free":  ("https://joomla5-free.testmyweb.info/administrator/", "TESTMYWEB_ADMIN_USER", "J5FREE_ADMIN_PASS", "free", "TESTMYWEB_NO_SSL_VERIFY"),  # j5free: own password (4 marks)
     "j5pro":   ("https://joomla5-pro.testmyweb.info/administrator/",  "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "pro",  "TESTMYWEB_NO_SSL_VERIFY"),
     "j6free":  ("https://joomla6-free.testmyweb.info/administrator/", "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "free", "TESTMYWEB_NO_SSL_VERIFY"),
     "j6pro":   ("https://joomla6-pro.testmyweb.info/administrator/",  "TESTMYWEB_ADMIN_USER", "TESTMYWEB_ADMIN_PASS", "pro",  "TESTMYWEB_NO_SSL_VERIFY"),
