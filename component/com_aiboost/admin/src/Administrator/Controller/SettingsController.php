@@ -98,7 +98,11 @@ class SettingsController extends BaseController
                 $existingForMerge = json_decode($raw, true) ?: [];
             } catch (\Throwable $e) {
             }
-            foreach (['dismissed_checks'] as $preservedKey) {
+            // 'conflict_setup_done' is the first-run Conflict Manager flag. It is
+            // owned by the Conflict Manager wizard/page, not the Settings tabs, so
+            // preserve it here the same way as dismissed_checks — a Settings save
+            // that doesn't post it must never reset the wizard.
+            foreach (['dismissed_checks', 'conflict_setup_done'] as $preservedKey) {
                 if (!isset($settings[$preservedKey]) && isset($existingForMerge[$preservedKey])) {
                     $settings[$preservedKey] = $existingForMerge[$preservedKey];
                 }
@@ -167,7 +171,7 @@ class SettingsController extends BaseController
             // every system-preserved key (license/activation state, install
             // identity, dev overrides), which never changes through this save.
             $changeBookkeepingKeys = array_merge(
-                ['change_counter', 'last_changed_at', 'dismissed_checks'],
+                ['change_counter', 'last_changed_at', 'dismissed_checks', 'conflict_setup_done'],
                 SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS
             );
             $changeCount = 0;
@@ -1670,14 +1674,50 @@ class SettingsController extends BaseController
             $states = PluginRegistry::loadLicenseStates();
             $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
             echo json_encode([
-                'success' => true,
-                'states'  => (object) $states,
-                'mock'    => true,
+                'success'      => true,
+                'states'       => (object) $states,
+                'integrations' => $this->installedSellableIntegrations(),
+                'mock'         => true,
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $this->app->close();
         } catch (\Throwable $e) {
             $this->sendJsonResponse(false, 'licenseStateGet failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Sellable integration products surfaced in the Licenses UI, keyed by license
+     * SKU. `detect` is the third-party extension element whose presence makes the
+     * integration relevant to this site (so a license row appears — even before
+     * any verification — once the customer has the integration installed), and
+     * `label` is the customer-facing product name.
+     */
+    private const SELLABLE_INTEGRATIONS = [
+        'int_falang'   => ['label' => 'AI Boost for Multilang', 'detect' => 'falang'],
+        'int_yootheme' => ['label' => 'AI Boost for YOOtheme',  'detect' => 'yootheme'],
+    ];
+
+    /**
+     * The sellable integrations whose third-party dependency is installed on this
+     * site (via the shared BridgeDetector). Drives the Licenses UI so a customer
+     * can paste the key before any license_state row exists for that SKU.
+     *
+     * @return array<int,array{sku:string,label:string,installed:bool}>
+     */
+    private function installedSellableIntegrations(): array
+    {
+        $out = [];
+        try {
+            \AiBoost\Lib\BridgeDetector::init(Factory::getDbo());
+            foreach (self::SELLABLE_INTEGRATIONS as $sku => $meta) {
+                if (\AiBoost\Lib\BridgeDetector::isInstalled($meta['detect'])) {
+                    $out[] = ['sku' => $sku, 'label' => $meta['label'], 'installed' => true];
+                }
+            }
+        } catch (\Throwable $e) {
+            // Non-fatal: the Licenses page still renders core + any stored states.
+        }
+        return $out;
     }
 
     /**
@@ -1821,10 +1861,12 @@ class SettingsController extends BaseController
         $instanceId   = is_array($existing) ? (string) ($existing['instance_id'] ?? '') : '';
         $instanceName = rtrim(\Joomla\CMS\Uri\Uri::root(), '/');
 
-        // Plan 2a — integration SKUs are product-pinned; core SKUs are not.
+        // Integration SKUs are pinned to their single product; core SKUs are
+        // pinned to the SET of core tier products (3/10/unlimited) so a cheap
+        // same-store add-on key cannot unlock the core bundle.
         $expectedProductId = str_starts_with($sku, 'int_')
             ? \AiBoost\Lib\LicenseValidator::expectedProductId($sku)
-            : null;
+            : \AiBoost\Lib\LicenseValidator::expectedCoreProductIds();
 
         return \AiBoost\Lib\LicenseValidator::verify($key, $instanceName, $instanceId, $expectedProductId);
     }

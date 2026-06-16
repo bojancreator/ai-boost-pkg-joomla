@@ -229,6 +229,22 @@ class HtmlView extends BaseHtmlView
             // Silent: SPA falls back to inline (non-gated) render.
         }
 
+        // Conflict Manager — seed the first-run wizard + nav badge from the CHEAP,
+        // DB-only named-competitor scan (no HTTP). `conflict_setup_done` gates the
+        // one-time wizard; the SPA lazy-loads the heavier HTTP generic scan
+        // (DuplicateTagScanner) via ConflictsController::scan when the page opens.
+        $conflictSetupDone = (string) ($settings['conflict_setup_done'] ?? '0') === '1';
+        $detectedConflicts = [];
+        try {
+            if (class_exists('AiBoost\\Lib\\ConflictDetector')) {
+                $dismissed = json_decode((string) ($settings['dismissed_checks'] ?? '[]'), true);
+                $dismissed = is_array($dismissed) ? $dismissed : [];
+                $detectedConflicts = (new \AiBoost\Lib\ConflictDetector(Factory::getDbo(), $settings, $dismissed))->scan();
+            }
+        } catch (\Throwable $e) {
+            // Detection must never break the SPA shell.
+        }
+
         return [
             'version'          => Version::VERSION,
             // True only under Joomla debug mode — the Licenses UI uses this to
@@ -269,6 +285,7 @@ class HtmlView extends BaseHtmlView
                 'app'           => Route::_('index.php?option=com_aiboost&view=app', false),
                 'settingsSave'  => Route::_('index.php?option=com_aiboost&task=settings.save&format=json', false),
                 'pluginManager' => Route::_('index.php?option=com_plugins&filter[folder]=system&filter[search]=ai+boost', false),
+                'conflictsScan' => Route::_('index.php?option=com_aiboost&task=conflicts.scan&format=json', false),
             ],
             'legacyUrls' => [
                 'dashboard'    => Route::_('index.php?option=com_aiboost&view=dashboard',    false),
@@ -292,11 +309,19 @@ class HtmlView extends BaseHtmlView
                 'integrations' => Text::_('COM_AIBOOST_NAV_INTEGRATIONS'),
                 'analyzers'    => Text::_('COM_AIBOOST_NAV_ANALYZERS'),
                 'errors'       => Text::_('COM_AIBOOST_NAV_ERRORS'),
+                'conflicts'    => Text::_('COM_AIBOOST_NAV_CONFLICTS'),
                 'help'         => Text::_('COM_AIBOOST_NAV_HELP'),
             ],
             // Task #512 — seed the nav badge + Errors page so the user
             // sees the count without an extra round-trip on first paint.
             'errorsSummary' => ErrorsController::buildSummary(),
+            // Conflict Manager — first-run wizard gate + detected named conflicts
+            // (cheap DB scan) for the nav badge, both on first paint.
+            'conflictSetupDone' => $conflictSetupDone,
+            'conflicts'         => [
+                'setupDone' => $conflictSetupDone,
+                'detected'  => $detectedConflicts,
+            ],
         ];
     }
 }

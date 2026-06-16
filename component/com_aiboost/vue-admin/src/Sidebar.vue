@@ -51,6 +51,11 @@
                   class="ab-sidebar__badge"
                   :title="errorsBadge + ' error(s) in last 24h'"
                 >{{ errorsBadge }}</span>
+                <span
+                  v-if="item.badge === 'conflicts' && conflictsBadge > 0"
+                  class="ab-sidebar__badge"
+                  :title="conflictsBadge + ' conflict(s) detected'"
+                >{{ conflictsBadge }}</span>
               </router-link>
             </li>
           </ul>
@@ -87,9 +92,10 @@ export default {
     }
 
     const errorsBadge = (boot.errorsSummary && Number(boot.errorsSummary.errors_24h)) || 0
+    const conflictsBadge = (boot.conflicts && Array.isArray(boot.conflicts.detected) && boot.conflicts.detected.length) || 0
     const version = boot.version ? ('v' + String(boot.version).replace(/^v/, '')) : ''
 
-    return { groups, isItemActive, errorsBadge, version }
+    return { groups, isItemActive, errorsBadge, conflictsBadge, version }
   },
 
   data() {

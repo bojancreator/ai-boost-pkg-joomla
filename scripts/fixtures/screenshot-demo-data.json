@@ -1,0 +1,33 @@
+{
+  "_comment": "Neutral US placeholder data overlaid onto settings.getSettings responses by scripts/marketing-screenshots.mjs so marketing/store screenshots NEVER show a real customer site's data. The DB is not modified — this is a network overlay only. Values are deliberately generic (Acme / example.com / 555 numbers).",
+  "settings": {
+    "site_name": "Acme Corporation",
+    "org_name": "Acme Corporation",
+    "org_legal_name": "Acme Corporation, Inc.",
+    "org_description": "Acme Corporation delivers dependable products and services to homes and businesses across the United States.",
+    "org_url": "https://www.example.com",
+    "org_email": "info@example.com",
+    "org_phone": "+1 (555) 123-4567",
+    "org_address_street": "123 Main Street",
+    "org_address_city": "Anytown",
+    "org_address_state": "CA",
+    "org_address_zip": "90210",
+    "org_address_country": "US",
+    "org_founding_date": "2010-01-01",
+    "org_vat_id": "",
+    "org_latitude": "34.0522",
+    "org_longitude": "-118.2437",
+    "org_map_url": "https://maps.example.com/acme-corporation",
+    "org_logo_alt": "Acme Corporation logo",
+    "social_facebook": "https://www.facebook.com/example",
+    "social_instagram": "https://www.instagram.com/example",
+    "social_linkedin": "https://www.linkedin.com/company/example",
+    "social_youtube": "https://www.youtube.com/@example",
+    "social_tiktok": "https://www.tiktok.com/@example",
+    "social_twitter": "https://twitter.com/example",
+    "twitter_site_handle": "@example",
+    "og_description_override": "Acme Corporation — dependable products and services across the USA.",
+    "fb_app_id": "000000000000000",
+    "meta_pixel_id": "000000000000000"
+  }
+}

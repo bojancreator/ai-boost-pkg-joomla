@@ -77,6 +77,28 @@ final class SettingsSaveDefinitionTest extends TestCase
         $this->assertSame('cooperative', $defaults['conflict_mode'] ?? null);
     }
 
+    /**
+     * The per-feature Conflict Manager overrides + the first-run flag are free
+     * manifest fields: accepted on save, default to 'inherit'/'0', never locked.
+     */
+    public function testConflictManagerKeysAreManifestBacked(): void
+    {
+        $accepted = SettingsSaveDefinition::acceptedKeys();
+        $defaults = SettingsSaveDefinition::defaults();
+        $locked = ProFeatureRegistry::lockedSettingsKeys();
+
+        foreach (['schema', 'og', 'sitemap', 'analytics', 'canonical', 'titles'] as $feature) {
+            $key = 'conflict_' . $feature;
+            $this->assertContains($key, $accepted, "$key must be accepted on save");
+            $this->assertSame('inherit', $defaults[$key] ?? null, "$key default must be 'inherit'");
+            $this->assertSame('manifest', SettingsSaveDefinition::field($key)['source'] ?? null);
+            $this->assertNotContains($key, $locked, "$key is a free field — never locked");
+        }
+
+        $this->assertContains('conflict_setup_done', $accepted);
+        $this->assertSame('0', $defaults['conflict_setup_done'] ?? null);
+    }
+
     public function testLegacyProManifestFieldsCanExtendAcceptedKeysWithoutLocks(): void
     {
         $accepted = SettingsSaveDefinition::acceptedKeys();

@@ -95,7 +95,7 @@
     <section v-if="!loadError && integrations.length" class="ab-license-section" style="margin-top: 32px;">
       <h3 class="ab-section-title">Integration plugins</h3>
       <p class="small text-muted" style="margin-top: -4px;">
-        Each installed bridge plugin (AcyMailing, K2, etc.) has its own license key.
+        Each installed integration (Multilang, YOOtheme, …) is sold separately and has its own license key.
       </p>
       <table class="ab-table">
         <thead>
@@ -237,7 +237,10 @@ import { ref, computed, onMounted } from 'vue'
 const CORE_SKU = 'bundle'
 const CORE_LABEL = 'AI Boost'
 
+// Fallback labels if the server omits one; licenseStateGet normally supplies them.
 const INTEGRATION_LABELS = {
+  int_falang: 'AI Boost for Multilang',
+  int_yootheme: 'AI Boost for YOOtheme',
 }
 
 function emptyCore() {
@@ -297,28 +300,38 @@ export default {
         const next = emptyCore()
         if (states[CORE_SKU]) applyStateToRow(next, states[CORE_SKU])
         core.value = next
-        // Integrations: anything that isn't the core SKU.
-        // Also skip legacy per-feature SKUs (schema/og/hreflang/code/aeo) — those are
-        // now part of the single Pro license and must not appear as separate rows.
+
+        // Integration rows, merged by SKU from two sources:
+        //  1) installed sellable integrations reported by the server, so a row
+        //     appears for entering the key BEFORE any verification; and
+        //  2) any stored license_state for a non-core SKU, so an already-licensed
+        //     integration still shows even if dependency detection misses it.
+        // Legacy per-feature SKUs (schema/og/hreflang/code/aeo) are part of the
+        // single Pro license and must never appear as separate rows.
         const LEGACY_CORE = new Set([CORE_SKU, 'schema', 'og', 'hreflang', 'code', 'aeo'])
-        const list = []
+        const rows = new Map()
+        const emptyRow = (sku, label) => ({
+          sku,
+          label: label || INTEGRATION_LABELS[sku] || sku,
+          key: '',
+          status: 'not_licensed',
+          message: '',
+          expires_at: null,
+          activations_remaining: null,
+          busy: false,
+        })
+        for (const it of (data.integrations || [])) {
+          if (!it || !it.sku || LEGACY_CORE.has(it.sku)) continue
+          rows.set(it.sku, emptyRow(it.sku, it.label))
+        }
         for (const sku of Object.keys(states)) {
           if (LEGACY_CORE.has(sku)) continue
           const s = states[sku] || {}
-          const row = {
-            sku,
-            label: INTEGRATION_LABELS[sku] || s.label || sku,
-            key: '',
-            status: 'not_licensed',
-            message: '',
-            expires_at: null,
-            activations_remaining: null,
-            busy: false,
-          }
+          const row = rows.get(sku) || emptyRow(sku, s.label)
           applyStateToRow(row, s)
-          list.push(row)
+          rows.set(sku, row)
         }
-        integrations.value = list
+        integrations.value = Array.from(rows.values())
       } catch (e) {
         loadError.value = String(e)
       }

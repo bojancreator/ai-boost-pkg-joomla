@@ -37,7 +37,8 @@ class ConflictDetector
      * Run all conflict checks.
      *
      * @return list<array{id:string,status:string,category:string,label:string,pass:bool,
-     *                     show_pass:bool,message:string,fix_url:string,fix_actions:list<array>,dismissed:bool}>
+     *                     show_pass:bool,message:string,fix_url:string,fix_actions:list<array>,
+     *                     affects:list<string>,dismissed:bool}>
      */
     public function scan(): array
     {
@@ -74,7 +75,8 @@ class ConflictDetector
             [
                 ['label' => 'Disable 4SEO in Plugin Manager', 'url' => 'index.php?option=com_plugins&filter[folder]=system&filter[search]=4seo'],
                 ['label' => 'View conflict guide', 'url' => 'https://aiboostnow.com/docs/conflicts#4seo'],
-            ]
+            ],
+            ['titles', 'canonical', 'og', 'schema']
         );
     }
 
@@ -93,7 +95,8 @@ class ConflictDetector
             [
                 ['label' => 'Configure Sh404SEF overlap', 'url' => 'index.php?option=com_plugins&filter[folder]=system&filter[search]=sh404sef'],
                 ['label' => 'View conflict guide', 'url' => 'https://aiboostnow.com/docs/conflicts#sh404sef'],
-            ]
+            ],
+            ['canonical', 'titles']
         );
     }
 
@@ -113,7 +116,8 @@ class ConflictDetector
             [
                 ['label' => 'Manage SEF plugins', 'url' => 'index.php?option=com_plugins&filter[folder]=system&filter[search]=joomsef'],
                 ['label' => 'View conflict guide', 'url' => 'https://aiboostnow.com/docs/conflicts#joomsef'],
-            ]
+            ],
+            ['canonical', 'titles']
         );
     }
 
@@ -147,7 +151,8 @@ class ConflictDetector
                 ['label' => 'Configure Admin Tools', 'url' => 'index.php?option=com_admintools'],
                 ['label' => 'AI Boost robots.txt settings', 'url' => 'index.php?option=com_aiboost&view=app#/crawlers-robots'],
                 ['label' => 'View conflict guide', 'url' => 'https://aiboostnow.com/docs/conflicts#admintools'],
-            ]
+            ],
+            [] // robots.txt overlap only — outside the six steerable output features
         );
     }
 
@@ -165,7 +170,8 @@ class ConflictDetector
             [
                 ['label' => 'Manage Extensions', 'url' => 'index.php?option=com_installer&view=manage'],
                 ['label' => 'View conflict guide', 'url' => 'https://aiboostnow.com/docs/conflicts#osmap'],
-            ]
+            ],
+            ['sitemap']
         );
     }
 
@@ -194,7 +200,8 @@ class ConflictDetector
             [
                 ['label' => 'Open Global Configuration', 'url' => 'index.php?option=com_config'],
                 ['label' => 'AI Boost Social Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-social-btn'],
-            ]
+            ],
+            ['og']
         );
     }
 
@@ -235,13 +242,19 @@ class ConflictDetector
      * Build a conflict check result item.
      *
      * @param list<array{label:string,url:string}> $fixActions
+     * @param list<string>                         $affects ConflictPolicy feature
+     *        keys this competitor overlaps (schema/og/sitemap/analytics/canonical/
+     *        titles) — drives the Conflict Manager's per-feature attribution. An
+     *        empty list means the overlap is outside the six steerable features
+     *        (e.g. robots.txt).
      */
     private function makeConflict(
         string $id,
         string $severity,
         string $label,
         string $message,
-        array  $fixActions = []
+        array  $fixActions = [],
+        array  $affects = []
     ): array {
         return [
             'id'          => $id,
@@ -253,6 +266,7 @@ class ConflictDetector
             'message'     => $message,
             'fix_url'     => $fixActions[0]['url'] ?? '',
             'fix_actions' => $fixActions,
+            'affects'     => array_values($affects),
             'dismissed'   => in_array($id, $this->dismissed, true),
         ];
     }

@@ -114,8 +114,15 @@ final class HeadBlockBuilder
     /** Request-scoped hide-comments flag. Any plugin can set it from onBeforeCompileHead. */
     private static bool $hideComments = false;
 
-    /** Request-scoped conflict_mode (cooperative|aggressive|off). Set by aiboost_core. */
-    private static string $conflictMode = 'cooperative';
+    /**
+     * Request-scoped per-section conflict mode (section => cooperative|aggressive|off).
+     * Seeded by aiboost_core from the per-feature ConflictPolicy, so Schema / Social /
+     * AEO / Analytics can each cooperate or take over independently. A section with no
+     * entry falls back to 'cooperative' (the safe, trim-our-duplicate default).
+     *
+     * @var array<string,string>
+     */
+    private static array $sectionMode = [];
 
     // ─── Accumulation API (called from plugins' onBeforeCompileHead) ──────────
 
@@ -161,19 +168,42 @@ final class HeadBlockBuilder
     }
 
     /**
-     * Set the cooperative conflict-resolution mode for this request. Called by
-     * aiboost_core from onBeforeCompileHead with the `conflict_mode` setting.
-     * Unknown values fall back to the safe default.
+     * Set the legacy conflict mode (cooperative|aggressive|off) for ONE render
+     * section. Called by aiboost_core per output feature via ConflictPolicy, so
+     * Schema / Social / AEO / Analytics can each cooperate or take over
+     * independently. Unknown values fall back to the safe 'cooperative' default.
+     */
+    public static function setSectionMode(string $section, string $mode): void
+    {
+        if (!isset(self::LABELS[$section])) {
+            return;
+        }
+        $mode = strtolower(trim($mode));
+        self::$sectionMode[$section] = in_array($mode, ['cooperative', 'aggressive', 'off'], true) ? $mode : 'cooperative';
+    }
+
+    /**
+     * Back-compat shim: fan a single conflict_mode out to every trimmable
+     * section. Retained so a caller that still speaks the old global vocabulary
+     * (and the unit tests) keeps working.
      */
     public static function setConflictMode(string $mode): void
     {
-        $mode = strtolower(trim($mode));
-        self::$conflictMode = in_array($mode, ['cooperative', 'aggressive', 'off'], true) ? $mode : 'cooperative';
+        foreach ([self::SECTION_SCHEMA, self::SECTION_SOCIAL, self::SECTION_AEO, self::SECTION_ANALYTICS] as $section) {
+            self::setSectionMode($section, $mode);
+        }
     }
 
+    /** Effective legacy mode for a section (defaults to 'cooperative'). */
+    public static function sectionMode(string $section): string
+    {
+        return self::$sectionMode[$section] ?? 'cooperative';
+    }
+
+    /** Back-compat: a representative global mode (the Schema section's). */
     public static function conflictMode(): string
     {
-        return self::$conflictMode;
+        return self::sectionMode(self::SECTION_SCHEMA);
     }
 
     public static function reset(): void
@@ -183,7 +213,7 @@ final class HeadBlockBuilder
         self::$skipped       = [];
         self::$finalized     = false;
         self::$hideComments  = false;
-        self::$conflictMode  = 'cooperative';
+        self::$sectionMode   = [];
     }
 
     // ─── Render & inject ──────────────────────────────────────────────────────
@@ -252,21 +282,20 @@ final class HeadBlockBuilder
     /**
      * Apply the cooperative dedup to OUR section data (Schema/Social/AEO/Analytics)
      * before render — NEVER to SECTION_CODE, so a tag a user pasted into Custom
-     * Code is carried verbatim. Mutates self::$sections in place. Each trim no-ops
-     * on a section that doesn't contain its tag type, so running the full trim per
-     * owned section is safe.
+     * Code is carried verbatim. Mutates self::$sections in place. Each section is
+     * trimmed ONLY when its own mode (set per output feature) is 'cooperative', so
+     * a feature set to take over keeps its tags. Each trim no-ops on a section that
+     * doesn't contain its tag type, so running the full trim per owned section is
+     * safe.
      */
-    private static function trimOwnSections(string $theirs, string $mode): void
+    private static function trimOwnSections(string $theirs): void
     {
-        if (strtolower(trim($mode)) !== 'cooperative') {
-            return;
-        }
         foreach ([self::SECTION_SCHEMA, self::SECTION_SOCIAL, self::SECTION_AEO, self::SECTION_ANALYTICS] as $section) {
-            if (empty(self::$sections[$section])) {
+            if (self::sectionMode($section) !== 'cooperative' || empty(self::$sections[$section])) {
                 continue;
             }
             foreach (self::$sections[$section] as $i => $content) {
-                self::$sections[$section][$i] = self::trimBlockConflicts((string) $content, $theirs, $mode);
+                self::$sections[$section][$i] = self::trimBlockConflicts((string) $content, $theirs, 'cooperative');
             }
         }
     }
@@ -485,7 +514,7 @@ final class HeadBlockBuilder
         // section — so a `gtag()` or `og:` tag a user pasted into custom_code_head
         // is never collateral-trimmed. `$body` here is the page WITHOUT our block,
         // i.e. the third-party head; the trim edits only our own section strings.
-        self::trimOwnSections($body, self::$conflictMode);
+        self::trimOwnSections($body);
 
         $block = self::render($version);
         if ($block === '') {

@@ -119,7 +119,9 @@ test('ScopeSelector writes scope + menu_ids keys and emits update:selectedIds', 
 test('CodeTab no longer embeds a runtime template: component', () => {
   const src = readFileSync(path.join(root, 'src/tabs/CodeTab.vue'), 'utf8')
   assert.doesNotMatch(src, /template:\s*`/, 'runtime template string must not return')
-  assert.match(src, /import ScopeSelector from '\.\.\/components\/ScopeSelector\.vue'/, 'uses the compiled SFC')
+  // The per-menu ScopeSelector was removed (Custom Code applies to all pages);
+  // CodeTab is still a compiled SFC — it imports ProGate for the Pro gate.
+  assert.match(src, /import ProGate from '\.\.\/components\/ProGate\.vue'/, 'uses the compiled SFC')
 })
 
 /* ── Bug 2 — cache hits must not unmount; dirty settings must be guarded ── */

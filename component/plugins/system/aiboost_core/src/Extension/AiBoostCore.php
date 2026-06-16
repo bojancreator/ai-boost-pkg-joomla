@@ -13,6 +13,7 @@ namespace AiBoost\Plugin\System\AiBoostCore\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BodyBlockBuilder;
+use AiBoost\Lib\ConflictPolicy;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Version;
 use Joomla\CMS\Factory;
@@ -215,12 +216,16 @@ CSS;
         HeadBlockBuilder::setHideComments($hide);
         BodyBlockBuilder::setHideComments($hide);
 
-        // Cooperative conflict-resolution mode — also before early returns, so the
+        // Per-feature conflict policy — also before early returns, so the
         // finalize-time dedup (Deliverable B) honours it regardless of which path
-        // this request takes.
-        $conflictMode = (string) ($settings['conflict_mode'] ?? 'cooperative');
-        HeadBlockBuilder::setConflictMode($conflictMode);
-        BodyBlockBuilder::setConflictMode($conflictMode);
+        // this request takes. Each head section maps to one output feature; the
+        // AEO meta section folds under 'schema' (no dedicated competitor). Body
+        // analytics (GTM/Pixel noscript) tracks the analytics feature.
+        HeadBlockBuilder::setSectionMode(HeadBlockBuilder::SECTION_SCHEMA, ConflictPolicy::legacyModeFor(ConflictPolicy::FEATURE_SCHEMA, $settings));
+        HeadBlockBuilder::setSectionMode(HeadBlockBuilder::SECTION_SOCIAL, ConflictPolicy::legacyModeFor(ConflictPolicy::FEATURE_OG, $settings));
+        HeadBlockBuilder::setSectionMode(HeadBlockBuilder::SECTION_AEO, ConflictPolicy::legacyModeFor(ConflictPolicy::FEATURE_SCHEMA, $settings));
+        HeadBlockBuilder::setSectionMode(HeadBlockBuilder::SECTION_ANALYTICS, ConflictPolicy::legacyModeFor(ConflictPolicy::FEATURE_ANALYTICS, $settings));
+        BodyBlockBuilder::setConflictMode(ConflictPolicy::legacyModeFor(ConflictPolicy::FEATURE_ANALYTICS, $settings));
 
         if (!empty($settings['staging_mode'])) {
             return;
@@ -234,7 +239,8 @@ CSS;
         // (not addCustomTag), so it can't live inside the consolidated AI Boost
         // head block. Task #380: register the name with HeadBlockBuilder so the
         // outer block header lists it under "Also emitted via Joomla head".
-        if (!empty($settings['enable_canonical'])) {
+        if (!empty($settings['enable_canonical'])
+            && ConflictPolicy::shouldApplyExclusive(ConflictPolicy::FEATURE_CANONICAL, $settings)) {
             $canonical = $this->resolveCanonical($settings);
             if ($canonical) {
                 $document->addHeadLink(htmlspecialchars($canonical), 'canonical');
@@ -242,18 +248,24 @@ CSS;
             }
         }
 
-        // Title Template (per-content-type or global fallback)
-        // setTitle() rewrites <title> in place — register with the builder
-        // so it shows up in the consolidated header summary.
-        $titleApplied = $this->applyTitleTemplate($document, $settings);
-        if ($titleApplied) {
-            HeadBlockBuilder::noteNative('title template');
-        }
+        // Title + meta-description templates REWRITE the document's <title> /
+        // meta description in place, so "defer" means: don't apply ours, leave
+        // whatever Joomla / another SEO extension produced. Skipped only on an
+        // explicit per-feature defer (Conflict Manager) — never silently on the
+        // global cooperative default, so existing sites keep their templates.
+        if (ConflictPolicy::shouldApplyExclusive(ConflictPolicy::FEATURE_TITLES, $settings)) {
+            // setTitle() rewrites <title> in place — register with the builder
+            // so it shows up in the consolidated header summary.
+            $titleApplied = $this->applyTitleTemplate($document, $settings);
+            if ($titleApplied) {
+                HeadBlockBuilder::noteNative('title template');
+            }
 
-        // Meta Description Template — same caveat as title (setMetaData rewrites).
-        $metaApplied = $this->applyMetaDescTemplate($document, $settings);
-        if ($metaApplied) {
-            HeadBlockBuilder::noteNative('meta description template');
+            // Meta Description Template — same caveat as title (setMetaData rewrites).
+            $metaApplied = $this->applyMetaDescTemplate($document, $settings);
+            if ($metaApplied) {
+                HeadBlockBuilder::noteNative('meta description template');
+            }
         }
     }
 

@@ -38,6 +38,7 @@ const sidebarGroupFactories = [
     { id: 'org', to: settingsTo('org'), tab: 'org', icon: 'icon-users', label: 'Site Identity' },
     { id: 'licenses', to: '/licenses', icon: 'icon-key', label: 'License & Updates' },
     { id: 'integrations', to: '/integrations', icon: 'icon-puzzle-piece', label: 'Integrations' },
+    { id: 'conflicts', to: '/conflicts', icon: 'icon-shield', label: 'Conflict Manager', badge: 'conflicts' },
   ] }),
   () => ({ title: 'SEO', items: [
     { id: 'technical', to: settingsTo('technical'), tab: 'technical', icon: 'icon-cog', label: 'Technical SEO' },

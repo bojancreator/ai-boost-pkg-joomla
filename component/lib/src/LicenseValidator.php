@@ -44,12 +44,14 @@ final class LicenseValidator
      * response whose meta.store_id does not strictly equal this value, and
      * FAILS CLOSED (loud "not configured" error, no API call) while null.
      *
-     * RELEASE BLOCKER: replace null with the production aiboostnow.com store
-     * ID (int, from the Lemon Squeezy dashboard) before launch. Do not guess.
+     * Configured 2026-06-16 to the aiboostnow.com Lemon Squeezy store. Store and
+     * product IDs are stable across Lemon Squeezy test and live mode, so this same
+     * value serves the demo and production; re-confirm against the dashboard before
+     * the first public launch.
      *
      * @var int|null
      */
-    public const EXPECTED_STORE_ID = null;
+    public const EXPECTED_STORE_ID = 367944;
 
     /**
      * Plan 2a — per-integration product pinning. Maps each independently-sold
@@ -63,15 +65,37 @@ final class LicenseValidator
      * SKU, and the controller refuses to even call out for an int_* SKU whose ID
      * is still null (fail-closed, exactly like EXPECTED_STORE_ID).
      *
-     * RELEASE BLOCKER: replace each null with the production aiboostnow.com
-     * Lemon Squeezy product ID (int) before launch. Do not guess.
+     * Configured 2026-06-16 to the aiboostnow.com Lemon Squeezy products
+     * (stable across test/live mode; re-confirm before the first public launch).
      *
      * @var array<string,int|null>
      */
     public const EXPECTED_PRODUCT_IDS = [
-        'int_yootheme' => null,
-        'int_falang'   => null,
+        'int_yootheme' => 1138446,
+        'int_falang'   => 1138396,
     ];
+
+    /**
+     * Core product pinning — the Lemon Squeezy product IDs of the core Pro
+     * tiers (PRO 3-site / PRO+ 10-site / Unlimited web sites). All three unlock
+     * the SAME core bundle (`pro_activated`); the tier differs only commercially
+     * (the plugin never counts sites), so any one of these IDs activates core.
+     *
+     * SECURITY — keep the cheap add-on products out of core. The integration
+     * products (Multilang, YOOtheme) are issued by the SAME store, so store
+     * pinning alone would let a €20 YOOtheme key activate the €65+ core bundle.
+     * When this list is non-empty, verify() rejects any core key whose
+     * meta.product_id is not one of these IDs (fail closed, exactly like the
+     * per-integration product pin). Left EMPTY, core falls back to store-pin
+     * only — the looser, pre-launch behaviour.
+     *
+     * Configured 2026-06-16 to the three core tiers (PRO 3-site / PRO+ 10-site /
+     * Unlimited) of the aiboostnow.com Lemon Squeezy store (stable across
+     * test/live mode; re-confirm before the first public launch).
+     *
+     * @var array<int>
+     */
+    public const EXPECTED_CORE_PRODUCT_IDS = [1126398, 1126399, 1126400];
 
     /**
      * Per-request cache: licenseKey => 'pro'|'free'
@@ -107,6 +131,18 @@ final class LicenseValidator
 
     /** True while setExpectedProductId() has installed an override. */
     private static bool $expectedProductIdsOverridden = false;
+
+    /**
+     * Test-only override for EXPECTED_CORE_PRODUCT_IDS so the core product-set
+     * pinning branch can be exercised before the production core products
+     * exist. Only honoured while $expectedCoreProductIdsOverridden is true.
+     *
+     * @var array<int>
+     */
+    private static array $expectedCoreProductIdsOverride = [];
+
+    /** True while setExpectedCoreProductIds() has installed an override. */
+    private static bool $expectedCoreProductIdsOverridden = false;
 
     /**
      * Optional transport override so unit tests never hit the network.
@@ -147,6 +183,19 @@ final class LicenseValidator
     {
         self::$expectedProductIdsOverride[$sku] = $productId;
         self::$expectedProductIdsOverridden     = true;
+    }
+
+    /**
+     * Override the pinned core product IDs (the 3/10/unlimited tiers). Intended
+     * for use in tests — production code must rely on the
+     * EXPECTED_CORE_PRODUCT_IDS constant only.
+     *
+     * @param array<int> $productIds
+     */
+    public static function setExpectedCoreProductIds(array $productIds): void
+    {
+        self::$expectedCoreProductIdsOverride   = array_values(array_filter($productIds, 'is_int'));
+        self::$expectedCoreProductIdsOverridden = true;
     }
 
     /**
@@ -225,21 +274,36 @@ final class LicenseValidator
      * instance is gone) /activate a new instance for this site. The result is
      * FAIL-CLOSED — `status` is only ever 'active' when Lemon Squeezy itself
      * returns valid===true AND license_key.status==='active' AND the response's
-     * meta.store_id strictly matches EXPECTED_STORE_ID (store pinning). Any
-     * network error, missing HTTP transport, empty response, malformed payload,
-     * foreign store or unconfigured pin yields a non-active status, so Pro is
-     * never unlocked without a confirmed live license from our own store.
-     * meta.product_id is captured into the state for future tier mapping but
-     * is never a rejection criterion.
+     * meta.store_id strictly matches EXPECTED_STORE_ID (store pinning) AND,
+     * when a product pin is supplied, meta.product_id is one of the allowed
+     * products. Any network error, missing HTTP transport, empty response,
+     * malformed payload, foreign store, wrong product or unconfigured pin
+     * yields a non-active status, so Pro is never unlocked without a confirmed
+     * live license from our own store. meta.product_id is always captured into
+     * the state for tier mapping.
      *
-     * @param  string $licenseKey   Raw key from the Licenses tab.
-     * @param  string $instanceName Human label for the activation (site root URL).
-     * @param  string $instanceId   Previously stored LS instance id, if any.
+     * @param  string         $licenseKey   Raw key from the Licenses tab.
+     * @param  string         $instanceName Human label for the activation (site root URL).
+     * @param  string         $instanceId   Previously stored LS instance id, if any.
+     * @param  int|array<int>|null $expectedProductId  Product pin: null/[] = store-pin
+     *         only (core default); a single int = one pinned integration product;
+     *         a list = any-of several pinned products (the core 3/10/unlimited tiers).
      * @return array<string,mixed>
      */
-    public static function verify(string $licenseKey, string $instanceName, string $instanceId = '', ?int $expectedProductId = null): array
+    public static function verify(string $licenseKey, string $instanceName, string $instanceId = '', int|array|null $expectedProductId = null): array
     {
         $licenseKey = trim($licenseKey);
+
+        // Normalise the product pin to a list of allowed product IDs. An empty
+        // list means store-pin only (core's pre-launch default); a non-empty
+        // list means meta.product_id MUST be one of these (fail closed).
+        $allowedProductIds = [];
+        if (is_int($expectedProductId)) {
+            $allowedProductIds = [$expectedProductId];
+        } elseif (is_array($expectedProductId)) {
+            $allowedProductIds = array_values(array_filter($expectedProductId, 'is_int'));
+        }
+
         $state = [
             'key'                   => $licenseKey,
             'mock'                  => false,
@@ -326,21 +390,22 @@ final class LicenseValidator
             return $state;
         }
 
-        // SECURITY — Plan 2a product pinning (fail closed). When a specific
-        // product is required (integration SKUs), reject any active key whose
-        // product_id does not match it, or that proves no product at all. This
-        // is what keeps the same-store integration products apart: a YOOtheme
-        // key cannot activate Multilang and vice-versa. Core SKUs pass
-        // $expectedProductId === null and skip this branch (store pinning only).
+        // SECURITY — product pinning (fail closed). When the caller supplies an
+        // allowed-product list, reject any active key whose product_id is not in
+        // it, or that proves no product at all. This keeps the same-store
+        // products apart in both directions: a YOOtheme key cannot activate
+        // Multilang (single-product pin), and neither cheap add-on key can
+        // activate the core bundle (core's 3/10/unlimited list). An empty list
+        // (core's pre-launch default) skips this branch — store pinning only.
         if (
-            $expectedProductId !== null
+            $allowedProductIds !== []
             && (
-                ($productId !== null && $productId !== $expectedProductId)
+                ($productId !== null && !in_array($productId, $allowedProductIds, true))
                 || ($productId === null && $valid && $lsStatus === 'active')
             )
         ) {
             $state['message'] = 'This license key is for a different AI Boost product. '
-                . 'Use the key from the matching purchase email for this integration.';
+                . 'Use the key from the matching purchase email for this product.';
             return $state;
         }
 
@@ -466,6 +531,20 @@ final class LicenseValidator
     }
 
     /**
+     * The pinned core product IDs (the 3/10/unlimited tiers) — the test override
+     * when installed, otherwise the EXPECTED_CORE_PRODUCT_IDS release constant.
+     * An empty list means core is store-pinned only (pre-launch behaviour).
+     *
+     * @return array<int>
+     */
+    public static function expectedCoreProductIds(): array
+    {
+        return self::$expectedCoreProductIdsOverridden
+            ? self::$expectedCoreProductIdsOverride
+            : self::EXPECTED_CORE_PRODUCT_IDS;
+    }
+
+    /**
      * Generate a stable instance identifier based on the site's root URL.
      * Used so LS can track activations per site.
      */
@@ -490,6 +569,8 @@ final class LicenseValidator
         self::$expectedStoreIdOverridden = false;
         self::$expectedProductIdsOverride   = [];
         self::$expectedProductIdsOverridden = false;
+        self::$expectedCoreProductIdsOverride   = [];
+        self::$expectedCoreProductIdsOverridden = false;
     }
 }
 

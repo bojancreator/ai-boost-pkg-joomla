@@ -22,26 +22,46 @@
         <component :is="Component" />
       </router-view>
     </div>
+
+    <ConflictWizard v-if="showWizard" :conflicts="wizardConflicts" @close="onWizardClose" />
   </div>
 </template>
 
 <script>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import ToastStack from './components/ToastStack.vue'
+import ConflictWizard from './ConflictWizard.vue'
 import { useColorScheme } from './composables/useColorScheme.js'
 import { ensureLegacyGlobals, isLegacyGlobalsReady } from './composables/useLegacyGlobals.js'
 
 export default {
   name: 'AppShell',
-  components: { Sidebar, ToastStack },
+  components: { Sidebar, ToastStack, ConflictWizard },
 
   setup() {
     const { scheme } = useColorScheme()
     const route = useRoute()
+    const router = useRouter()
     const loading = ref(false)
     const error = ref('')
+
+    // First-run Conflict Manager wizard — auto-open once when conflicts were
+    // detected and the user hasn't answered yet. Both flags come from the cheap
+    // bootstrap scan, so this needs no round-trip on first paint.
+    const boot = (window.aiBoostBootstrap) || {}
+    const conflictsBoot = boot.conflicts || {}
+    const wizardConflicts = Array.isArray(conflictsBoot.detected) ? conflictsBoot.detected : []
+    const setupDone = boot.conflictSetupDone === true || conflictsBoot.setupDone === true
+    const showWizard = ref(!setupDone && wizardConflicts.length > 0)
+
+    function onWizardClose(payload) {
+      showWizard.value = false
+      if (payload && payload.goTo) {
+        router.push(payload.goTo)
+      }
+    }
 
     const legacyHref = computed(() => {
       const meta = route.meta || {}
@@ -78,7 +98,7 @@ export default {
     onMounted(() => loadGlobalsForRoute(route))
     watch(() => route.fullPath, () => loadGlobalsForRoute(route))
 
-    return { scheme, loading, error, legacyHref }
+    return { scheme, loading, error, legacyHref, showWizard, wizardConflicts, onWizardClose }
   },
 }
 </script>

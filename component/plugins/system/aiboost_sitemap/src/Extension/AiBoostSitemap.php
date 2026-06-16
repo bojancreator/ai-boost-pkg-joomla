@@ -28,6 +28,7 @@ namespace AiBoost\Plugin\System\AiBoostSitemap\Extension;
 
 defined('_JEXEC') or die;
 
+use AiBoost\Lib\ConflictPolicy;
 use AiBoost\Plugin\System\AiBoostSitemap\Service\HreflangSitemapExtension;
 use AiBoost\Plugin\System\AiBoostSitemap\Service\ImageSitemapExtension;
 use AiBoost\Plugin\System\AiBoostSitemap\Service\NewsSitemapGenerator;
@@ -105,6 +106,14 @@ class AiBoostSitemap extends CMSPlugin
         $settings = $this->getAiBoostSettings();
 
         if (!(int)($settings['enable_sitemap'] ?? 1)) {
+            return;
+        }
+
+        // Defer to an existing sitemap extension (OSMap / Xmap / …) only on an
+        // explicit per-feature defer (Conflict Manager) — never silently on the
+        // global cooperative default. When deferred we don't claim our
+        // /sitemap.xml route, leaving the other extension to serve it.
+        if (!ConflictPolicy::shouldApplyExclusive(ConflictPolicy::FEATURE_SITEMAP, $settings)) {
             return;
         }
 

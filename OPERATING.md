@@ -262,19 +262,40 @@ Per public release, in order:
 
 ---
 
-## Pricing / Entitlement (updated 2026-06-04)
+## Pricing / Entitlement (updated 2026-06-16)
 
-**One product, one commercial license** — per-feature SKUs and visible Free/Pro
-feature locking are retired from the admin experience. Legacy license keys and
-historical Pro markers may remain as compatibility shims during the transition.
+**Core = one commercial license, three site-count tiers** — all three core tiers
+ship the SAME Pro code and unlock the same perpetual activation (`pro_activated`);
+the tier differs only commercially (the plugin never counts sites). The two
+integrations are sold separately, each its own Lemon Squeezy product + key.
 
-| Product | Price/year |
-|---------|-----------|
-| AI Boost for Joomla | TBD / commercial license |
-| Integration bridges (AcyMailing, K2, …) | sold separately |
+| Lemon Squeezy product | Price/year | License SKU (code) |
+|---|---|---|
+| AI Boost for Joomla — PRO (3 sites) | €65 | `bundle` (core) |
+| AI Boost for Joomla — PRO+ (10 sites) | €120 | `bundle` (core) |
+| AI Boost for Joomla — Unlimited web sites | €180 | `bundle` (core) |
+| AI Boost Joomla plugin for Multilang — PRO | €25 | `int_falang` |
+| AI Boost Joomla plugin for YOOtheme Pro — PRO | €20 | `int_yootheme` |
 
-Processor: Lemon Squeezy (Merchant of Record, handles EU VAT). Bridge plugins may
-keep their own entitlement keys and appear in License & Updates only when installed.
+Processor: Lemon Squeezy (Merchant of Record, handles EU VAT).
+
+**Per-product locking (each key unlocks only its product).** A same-store key for
+one product can never activate another: core is pinned to the set of the three core
+product IDs, each integration to its single product ID. This closes the leak where a
+cheap €20/€25 add-on key could otherwise unlock the €65+ core bundle.
+
+**RELEASE BLOCKERS — fill these constants in `component/lib/src/LicenseValidator.php`
+before launch (from the Lemon Squeezy dashboard; store + product IDs are stable across
+test and live mode):**
+
+- `EXPECTED_STORE_ID` — the aiboostnow.com store ID.
+- `EXPECTED_CORE_PRODUCT_IDS` — `[<PRO 3>, <PRO+ 10>, <Unlimited>]` product IDs.
+- `EXPECTED_PRODUCT_IDS['int_falang']` — the Multilang product ID.
+- `EXPECTED_PRODUCT_IDS['int_yootheme']` — the YOOtheme product ID.
+
+While any are unset they FAIL CLOSED (core falls back to store-pin only if core IDs
+are empty; integrations refuse to verify until their product ID is set). The Licenses
+screen shows one core "AI Boost" key plus a row per installed sellable integration.
 
 ---
 

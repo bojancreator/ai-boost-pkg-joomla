@@ -24,6 +24,7 @@ import AnalyzerPage     from './AnalyzerPage.vue'
 import RedirectsPage    from './RedirectsPage.vue'
 import UrlCheckerPage   from './UrlCheckerPage.vue'
 import ImportPage       from './ImportPage.vue'
+import ConflictManagerPage from './ConflictManagerPage.vue'
 import StyleguidePage   from './StyleguidePage.vue'
 import { pageRouteAliases, settingsRouteAliases } from './navigation.js'
 
@@ -123,6 +124,12 @@ export function createSpaRouter() {
       name: 'import',
       component: ImportPage,
       meta: { legacyUrl: '', title: 'Import' },
+    },
+    {
+      path: '/conflicts',
+      name: 'conflicts',
+      component: ConflictManagerPage,
+      meta: { legacyUrl: '', title: 'Conflict Manager' },
     },
 
     // Internal design-system reference page (no nav entry — open via URL hash).

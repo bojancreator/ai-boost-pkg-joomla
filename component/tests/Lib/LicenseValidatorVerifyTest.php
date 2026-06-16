@@ -334,15 +334,101 @@ final class LicenseValidatorVerifyTest extends TestCase
 
     public function testExpectedProductIdReadsConstantAndOverride(): void
     {
-        // Shipped (pre-release) state: integration product IDs are null
-        // (fail-closed until configured), core SKUs are never product-pinned.
-        $this->assertNull(LicenseValidator::expectedProductId('int_yootheme'));
-        $this->assertNull(LicenseValidator::expectedProductId('int_falang'));
+        // The accessor reads the configured constants; 'bundle' is never in the
+        // per-integration map (core is product-pinned via EXPECTED_CORE_PRODUCT_IDS).
+        $this->assertSame(LicenseValidator::EXPECTED_PRODUCT_IDS['int_yootheme'], LicenseValidator::expectedProductId('int_yootheme'));
+        $this->assertSame(LicenseValidator::EXPECTED_PRODUCT_IDS['int_falang'], LicenseValidator::expectedProductId('int_falang'));
         $this->assertNull(LicenseValidator::expectedProductId('bundle'));
 
+        // An override wins over the constant and is per-SKU.
         LicenseValidator::setExpectedProductId('int_yootheme', 555);
         $this->assertSame(555, LicenseValidator::expectedProductId('int_yootheme'));
-        $this->assertNull(LicenseValidator::expectedProductId('int_falang'), 'override is per-SKU');
+        $this->assertSame(LicenseValidator::EXPECTED_PRODUCT_IDS['int_falang'], LicenseValidator::expectedProductId('int_falang'), 'override is per-SKU');
+    }
+
+    // ------------------------------------------------------------------
+    // Core product-set pinning — the 3/10/unlimited tiers share the bundle
+    // ------------------------------------------------------------------
+
+    /** Stand-in Lemon Squeezy product IDs for the three core tiers. */
+    private const CORE_PRODUCT_IDS = [201, 202, 203];
+
+    public function testAnyCoreTierProductActivatesTheBundle(): void
+    {
+        // A key for the PRO+ (10-site) tier must activate the same core bundle
+        // as the PRO (3-site) tier — the plugin never distinguishes tiers.
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-core10'],
+            'meta'        => ['store_id' => self::STORE_ID, 'product_id' => 202],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-CORE10', 'https://example.test', '', self::CORE_PRODUCT_IDS);
+
+        $this->assertSame('active', $state['status'], 'any core tier product unlocks core');
+        $this->assertSame(202, $state['product_id']);
+    }
+
+    public function testAddonKeyCannotActivateCoreWhenCorePinned(): void
+    {
+        // The leak this closes: a same-store €20 YOOtheme key entered into the
+        // core "AI Boost" field must NOT activate the €65+ core bundle.
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-yoo'],
+            'meta'        => ['store_id' => self::STORE_ID, 'product_id' => self::PRODUCT_ID],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-YOO', 'https://example.test', '', self::CORE_PRODUCT_IDS);
+
+        $this->assertSame('invalid', $state['status'], 'an add-on product must not unlock core');
+        $this->assertStringContainsString('different AI Boost product', (string) $state['message']);
+    }
+
+    public function testActiveCoreKeyWithoutProductIdIsRejectedWhenCorePinned(): void
+    {
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-anon'],
+            'meta'        => ['store_id' => self::STORE_ID],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-ANON', 'https://example.test', '', self::CORE_PRODUCT_IDS);
+
+        $this->assertSame('invalid', $state['status']);
+        $this->assertStringContainsString('different AI Boost product', (string) $state['message']);
+    }
+
+    public function testEmptyCoreProductSetFallsBackToStorePinOnly(): void
+    {
+        // Pre-launch behaviour: with no core product IDs configured, any
+        // product_id from our store activates core (store pinning only).
+        self::applyTransportBehaviour(['json', [
+            'valid'       => true,
+            'license_key' => ['status' => 'active'],
+            'instance'    => ['id' => 'inst-core'],
+            'meta'        => ['store_id' => self::STORE_ID, 'product_id' => 999999],
+        ]]);
+
+        $state = LicenseValidator::verify('LS-KEY-CORE', 'https://example.test', '', []);
+
+        $this->assertSame('active', $state['status'], 'an empty allowed list means store-pin only');
+    }
+
+    public function testExpectedCoreProductIdsReadsConstantAndOverride(): void
+    {
+        // Defaults to the configured constant (the three core tiers).
+        $this->assertSame(LicenseValidator::EXPECTED_CORE_PRODUCT_IDS, LicenseValidator::expectedCoreProductIds());
+
+        LicenseValidator::setExpectedCoreProductIds([201, 202, 203]);
+        $this->assertSame([201, 202, 203], LicenseValidator::expectedCoreProductIds());
+
+        // Non-int values are filtered out of the override.
+        LicenseValidator::setExpectedCoreProductIds([201, 'x', null, 202]);
+        $this->assertSame([201, 202], LicenseValidator::expectedCoreProductIds());
     }
 
     // ------------------------------------------------------------------

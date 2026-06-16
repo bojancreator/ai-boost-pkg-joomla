@@ -9,10 +9,12 @@
  * <head>, is anything already there?" — if yes, the plugin silently
  * skips its injection so we never produce duplicate SEO tags.
  *
- * Modes (settings key `conflict_mode`, default `cooperative`):
- *   - off          → inspector always returns false (we always inject)
- *   - cooperative  → inspector inspects existing head content
- *   - aggressive   → inspector always returns false (we always inject)
+ * The decision is per OUTPUT FEATURE via {@see ConflictPolicy}: each signature
+ * maps to a feature (og / schema / analytics / canonical) whose effective mode
+ * is resolved from the per-feature override `conflict_<feature>` or, when that is
+ * `inherit`, the global `conflict_mode`:
+ *   - defer (← cooperative) → inspector inspects existing head content and may skip
+ *   - takeover (← aggressive | off) → inspector always returns false (we always inject)
  *
  * Inspection sources (read-only on the Joomla\CMS\Document\HtmlDocument):
  *   - getMetaData()          → meta tags set by Joomla core / other plugins
@@ -57,9 +59,12 @@ final class DocumentInspector
      */
     public static function shouldSkip(?object $doc, string $signature, array $settings): bool
     {
-        $mode = strtolower((string) ($settings['conflict_mode'] ?? 'cooperative'));
-        if ($mode !== 'cooperative') {
-            return false; // off / aggressive → always emit
+        // Resolve the per-feature conflict policy for this signature. Only DEFER
+        // inspects the existing head and may skip; TAKEOVER always emits ours.
+        // 'inherit' on the feature falls back to the global conflict_mode, so a
+        // legacy settings blob (cooperative everywhere) behaves exactly as before.
+        if (ConflictPolicy::effectiveMode(self::featureForSignature($signature), $settings) !== ConflictPolicy::MODE_DEFER) {
+            return false; // takeover → always emit ours
         }
         if (!$doc) {
             return false;
@@ -145,5 +150,32 @@ final class DocumentInspector
         }
 
         return false;
+    }
+
+    /**
+     * Map a SIG_* signature to its ConflictPolicy output feature. OG + Twitter
+     * share the 'og' feature; GA4/GTM/Pixel share 'analytics'; the AEO
+     * ai-content-verified meta folds under 'schema' (it has no dedicated
+     * competitor and rides with structured-data takeover/defer).
+     */
+    private static function featureForSignature(string $signature): string
+    {
+        switch ($signature) {
+            case self::SIG_OG_TITLE:
+            case self::SIG_OG_DESCRIPTION:
+            case self::SIG_OG_IMAGE:
+            case self::SIG_TWITTER_CARD:
+                return ConflictPolicy::FEATURE_OG;
+            case self::SIG_GA4:
+            case self::SIG_GTM:
+            case self::SIG_META_PIXEL:
+                return ConflictPolicy::FEATURE_ANALYTICS;
+            case self::SIG_CANONICAL:
+                return ConflictPolicy::FEATURE_CANONICAL;
+            case self::SIG_SCHEMA_ORG:
+            case self::SIG_AI_META_VERIFIED:
+            default:
+                return ConflictPolicy::FEATURE_SCHEMA;
+        }
     }
 }

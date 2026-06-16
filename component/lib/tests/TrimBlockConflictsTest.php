@@ -212,7 +212,9 @@ final class TrimBlockConflictsTest extends TestCase
         if (PHP_VERSION_ID < 80500) {
             $m->setAccessible(true);
         }
-        $m->invoke(null, $theirs, 'cooperative');
+        // After reset(), every section defaults to 'cooperative', so the Social
+        // OG is deduped while Custom Code (never trimmed) survives.
+        $m->invoke(null, $theirs);
 
         $block = HeadBlockBuilder::render('1.0');
         $this->assertStringNotContainsString('OURS', $block, 'our Social OG is deduped');
