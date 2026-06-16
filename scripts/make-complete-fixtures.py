@@ -100,11 +100,16 @@ OVERRIDES_EN = {
     "indexnow_api_key": "0123456789abcdef0123456789abcdef",
     "llmstxt_description": "AI Boost Demo Bistro — seasonal food and great coffee in Springfield.",
     "news_publication_name": "AI Boost Demo News",
+    # Title/meta tokens are AI Boost's: {page_title} {site_name} {separator} {category} {year} {description}
     "title_separator": " | ",
-    "title_template": "{title} | {sitename}",
-    "title_template_home": "{sitename} — {slogan}",
-    "title_template_article": "{title} | {category} | {sitename}",
-    "meta_desc_template": "{intro}",
+    "title_template": "{page_title} {separator} {site_name}",
+    "title_template_home": "{site_name} {separator} {page_title}",
+    "title_template_article": "{page_title} {separator} {category} {separator} {site_name}",
+    "title_template_category": "{category} {separator} {site_name}",
+    "title_template_default": "{page_title} {separator} {site_name}",
+    "meta_desc_template": "{description}",
+    "meta_desc_template_article": "{description} {separator} {site_name}",
+    "meta_desc_template_default": "{description}",
     "custom_code_head": "<!-- demo head code -->",
     "custom_code_body": "<!-- demo body code -->",
     "custom_code_footer": "<!-- demo footer code -->",
@@ -197,6 +202,11 @@ def value_for(row: dict) -> str:
         return default if default not in ("", None) else "[]"
     if typ == "media":
         return "images/demo/" + key + ".jpg"
+    # Title/meta template fields not explicitly overridden: leave EMPTY so AI Boost
+    # uses its built-in default. A literal "AI Boost demo …" would be a broken
+    # template (no {page_title}/{site_name}/{separator} tokens) and render verbatim.
+    if key.startswith(("title_template", "meta_desc_template")):
+        return ""
     # text / textarea
     return default if default not in ("", None) else ("AI Boost demo " + key.replace("_", " "))
 
