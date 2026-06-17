@@ -286,12 +286,11 @@ class HealthCheckService
         $msg  = $pass
             ? sprintf('Site Health score is %d/100 — good.', $score)
             : sprintf(
-                'Site Health score is %d/100. Score = 100 minus %d per failing critical check and %d per failing warning. '
+                'Site Health score is %d/100 — the share of weighted checks that pass (each critical counts %dx a warning). '
                 . 'Resolve the items flagged above (or dismiss the ones that do not apply to this site) to raise it. '
                 . 'Conflicts and informational checks do not affect the score.',
                 $score,
-                self::CRITICAL_PENALTY,
-                self::WARNING_PENALTY
+                (int) round(self::CRITICAL_PENALTY / self::WARNING_PENALTY)
             );
 
         return $this->make(
@@ -2989,11 +2988,14 @@ class HealthCheckService
      * Compute the Site Health score shown in the animated circle on the
      * Health tab.
      *
-     * Formula (Task #485):
-     *   score = 100
-     *         − CRITICAL_PENALTY (15) × failing critical checks
-     *         − WARNING_PENALTY  (5)  × failing warning checks
-     *   clamped to [0, 100].
+     * Formula (Task #485; reworked v0.79.x — item 13):
+     *   score = round(100 × earnedWeight ÷ totalWeight)
+     *   where each scoring check weighs CRITICAL_PENALTY (15) when critical or
+     *   WARNING_PENALTY (5) when a warning, and earns its weight when it passes.
+     *   The score is therefore the share of weighted checks that pass — partial
+     *   success is always reflected and it only reaches 0 when EVERY scoring
+     *   check fails (the old "100 − penalties" model bottomed out at 0 even when
+     *   many checks passed). No scoring checks at all ⇒ 100.
      *
      * What is EXCLUDED from the score (and why):
      *   • status = 'info'           — informational, never a fail.
@@ -3013,7 +3015,15 @@ class HealthCheckService
      */
     private function calculateScore(array $checks): int
     {
-        $score = 100;
+        // Weighted-proportional: each scoring check contributes its weight
+        // (critical = CRITICAL_PENALTY, warning = WARNING_PENALTY) to the total
+        // and earns that weight when it passes. The score is the percentage of
+        // weighted checks that pass, so partial success is always reflected and
+        // the score only reaches 0 when EVERY scoring check fails — fixing the
+        // old "100 − penalties" model that bottomed out at 0 even when many
+        // checks passed (item 13).
+        $totalWeight  = 0;
+        $earnedWeight = 0;
         foreach ($checks as $check) {
             if ($check['status'] === 'info') {
                 continue;
@@ -3024,11 +3034,16 @@ class HealthCheckService
             if (in_array($check['id'], $this->dismissed, true)) {
                 continue;
             }
-            if (!$check['pass']) {
-                $score -= $check['status'] === 'critical' ? self::CRITICAL_PENALTY : self::WARNING_PENALTY;
+            $weight       = $check['status'] === 'critical' ? self::CRITICAL_PENALTY : self::WARNING_PENALTY;
+            $totalWeight += $weight;
+            if (!empty($check['pass'])) {
+                $earnedWeight += $weight;
             }
         }
-        return max(0, min(100, $score));
+        if ($totalWeight === 0) {
+            return 100;
+        }
+        return (int) round(100 * $earnedWeight / $totalWeight);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

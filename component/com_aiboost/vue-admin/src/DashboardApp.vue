@@ -284,7 +284,7 @@
       <div class="ab-card__body p-0">
         <div class="table-responsive">
           <table class="table table-sm ab-table--hover mb-0">
-            <thead class="table-light">
+            <thead style="background: var(--bs-tertiary-bg, rgba(0,0,0,.03));">
               <tr>
                 <th>404 URL</th>
                 <th class="text-end" style="width:70px">Hits</th>

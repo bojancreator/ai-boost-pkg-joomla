@@ -465,8 +465,9 @@ export default {
      // comment on HealthCheckService::calculateScore() — keep both in
      // lockstep when the penalty constants or excluded categories change.
     const scoreTooltip =
-      'Site Health score = 100 minus 15 per failing critical check '
-      + 'and 5 per failing warning, clamped to 0–100. '
+      'Site Health score = the share of weighted checks that pass — '
+      + 'each failing critical counts 3× a warning. It reflects partial '
+      + 'success and only reaches 0 when every scoring check fails. '
       + 'Informational, dismissed, and Conflicts-category items do not '
       + 'lower the score — conflicts are reported separately in the '
       + 'Conflicts pill.'

@@ -167,7 +167,8 @@ A task is done only when every applicable step is finished, in order. **Never re
 "done" from a build alone — verify on staging first.**
 
 1. **Do the work.**
-2. **Update the Health registry** if any option was added/changed/removed (see rule below).
+2. **Update the Health registry** AND **verify the import/export round-trip** if any option
+   was added/changed/removed (see the two MANDATORY rules below).
 3. **Bump the version** before building (see Versioning Rule).
 4. **Build:** `python3 scripts/build-package-zip.py`.
 5. **Install to staging:** `python3 scripts/install-to-staging.py` (also
@@ -223,6 +224,21 @@ and **fix_actions[]** (≥1 link to target tab+field: `#tab-{name}-btn` +
 Locations: server check `HealthCheckService.php` · duplicate scan
 `DuplicateTagScanner.php` · conflict scan `ConflictDetector.php` · frontend
 `vue-admin/src/HealthApp.vue`.
+
+### 🔁 Import/export round-trip rule (MANDATORY)
+
+Every time you add/change/remove ANY option, verify the settings **import/export JSON
+round-trip** — a setting that saves but is dropped on export (or is lost on re-import) is a
+silent data-loss bug, and it is invisible without this check. The three-way key alignment
+(Vue `v-model` ↔ `SettingsController::$fields` whitelist ↔ consuming Service) is exactly
+what breaks here, so this gate runs alongside the Health registry rule for any option change.
+
+Run the non-destructive verifier against a live test site:
+`python _creds_run.py scripts/verify-import-export.py --target staging`. It confirms the
+export covers the new key, the Free/Pro licence boundary holds, and a sentinel value
+survives an export → import → export round-trip idempotently. To author test variants as
+JSON (no manual backend entry), generate the full-key template with
+`scripts/make-import-template.py`, then change only the keys you want to test (import merges).
 
 ---
 
