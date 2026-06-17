@@ -48,8 +48,12 @@ Thumbs.db
 .cache/
 .local/
 
-# Local vendor/license keys for integration test plugin downloads
-/test-plugins/api_keys.txt
+# Local test-plugin downloads and their API/license keys — NEVER commit.
+# The `.api_keys.txt` credentials file lives here (the old narrow rule only
+# matched `api_keys.txt`, missing the dot-prefixed name). Already-tracked
+# fixture ZIPs stay in git; new files here are ignored — use `git add -f` to
+# deliberately track one.
+/test-plugins/
 
 # PHPUnit cache (regenerated automatically on each run)
 .phpunit.result.cache
