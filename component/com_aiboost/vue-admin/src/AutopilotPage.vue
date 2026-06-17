@@ -2,7 +2,7 @@
   <div class="ab-autopilot-page">
     <header class="ab-page-header ab-autopilot-header">
       <div>
-        <h2>Autopilot</h2>
+        <h2>Quick Setup</h2>
         <p class="text-muted">A guided setup checklist for the core AI Boost configuration.</p>
       </div>
       <div class="ab-autopilot-score" aria-live="polite">
@@ -11,7 +11,7 @@
       </div>
     </header>
 
-    <section class="ab-autopilot-progress" aria-label="Autopilot progress">
+    <section class="ab-autopilot-progress" aria-label="Quick Setup progress">
       <div class="ab-autopilot-progress__bar">
         <div class="ab-autopilot-progress__fill" :style="{ width: progressPercent + '%' }"></div>
       </div>

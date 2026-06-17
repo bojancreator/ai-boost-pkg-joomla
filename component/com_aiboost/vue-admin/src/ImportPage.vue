@@ -67,6 +67,46 @@
         </div>
       </div>
     </div>
+
+    <!-- Danger Zone — Uninstall (moved from the Dashboard in Phase 2, item 12b).
+         Joomla's Extensions → Manage uninstall flow cannot be intercepted with a
+         custom modal, so we explain what uninstall really does here, next to the
+         export/backup tools. Removing the package PRESERVES all database data and
+         the licence — only extension files and generated root files are cleaned up. -->
+    <div class="ab-card mt-4" style="border-left:4px solid var(--ab-danger)">
+      <div class="ab-card-body">
+        <h3 class="ab-h3 mb-3" style="color:var(--ab-danger)">
+          <span class="icon-warning-2 me-2" aria-hidden="true"></span>Danger Zone — Uninstall
+        </h3>
+        <p class="mb-2">
+          Uninstalling the AI Boost package from
+          <strong>System → Manage → Extensions</strong> removes the extension files
+          but <strong>keeps your data</strong>. Uninstalling:
+        </p>
+        <ul class="mb-3 small">
+          <li><strong>Preserves</strong> all settings in
+            <code>#__aiboost_settings</code>, every per-language translation in
+            <code>#__aiboost_translations</code>, your redirect list, and the 404 log</li>
+          <li><strong>Preserves</strong> your licence and Pro activation —
+            Pro features unlock again as soon as you reinstall</li>
+          <li>Removes the extension files and cleans up generated root files: the
+            AI Boost-managed block in <code>robots.txt</code> (hand-edited
+            <code>robots.txt</code> content is left alone), <code>llms.txt</code>,
+            and the sitemap files</li>
+          <li>Clears developer override keys</li>
+        </ul>
+        <p class="mb-3 small text-muted">
+          Reinstalling restores full function with your data intact. Before any major
+          change, download a settings export above anyway — it is a single JSON file
+          containing every option, redirect, and translation.
+        </p>
+        <a href="https://github.com/bojancreator/aiboost-joomla/blob/main/docs/uninstall-guide.md"
+           target="_blank" rel="noopener"
+           class="ab-btn ab-btn--ghost ab-btn--sm">
+          Read the uninstall guide →
+        </a>
+      </div>
+    </div>
   </div>
 </template>
 

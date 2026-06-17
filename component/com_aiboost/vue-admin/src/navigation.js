@@ -10,6 +10,8 @@ export const settingsRouteAliases = [
   { path: '/organization', tab: 'org' },
   { path: '/schema', tab: 'schema' },
   { path: '/technical-seo', tab: 'technical' },
+  { path: '/titles', tab: 'titles' },
+  { path: '/titles-meta', tab: 'titles' },
   { path: '/sitemap', tab: 'sitemap' },
   { path: '/robots', tab: 'crawlers' },
   { path: '/crawlers-robots', tab: 'crawlers' },
@@ -34,7 +36,7 @@ const sidebarGroupFactories = [
     { id: 'health', to: '/health', icon: 'icon-heart', label: 'Health', badge: 'errors' },
   ] }),
   () => ({ title: 'SETUP', items: [
-    { id: 'autopilot', to: '/autopilot', icon: 'icon-lightning', label: 'Autopilot' },
+    { id: 'autopilot', to: '/autopilot', icon: 'icon-lightning', label: 'Quick Setup' },
     { id: 'org', to: settingsTo('org'), tab: 'org', icon: 'icon-users', label: 'Site Identity' },
     { id: 'licenses', to: '/licenses', icon: 'icon-key', label: 'License & Updates' },
     { id: 'integrations', to: '/integrations', icon: 'icon-puzzle-piece', label: 'Integrations' },
@@ -42,13 +44,14 @@ const sidebarGroupFactories = [
   ] }),
   () => ({ title: 'SEO', items: [
     { id: 'technical', to: settingsTo('technical'), tab: 'technical', icon: 'icon-cog', label: 'Technical SEO' },
+    { id: 'titles', to: settingsTo('titles'), tab: 'titles', icon: 'icon-tag', label: 'Titles & Meta' },
     { id: 'schema', to: settingsTo('schema'), tab: 'schema', icon: 'icon-code', label: 'Schema.org' },
     { id: 'sitemap', to: settingsTo('sitemap'), tab: 'sitemap', icon: 'icon-list', label: 'Sitemap' },
     { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'icon-share', label: 'Social Meta / OG' },
     { id: 'analytics', to: settingsTo('analytics'), tab: 'analytics', icon: 'icon-chart', label: 'Analytics & Tracking' },
   ] }),
   () => ({ title: 'AI VISIBILITY', items: [
-    { id: 'aeo', to: settingsTo('aeo'), tab: 'aeo', icon: 'icon-comments', label: 'AI Visibility' },
+    { id: 'aeo', to: settingsTo('aeo'), tab: 'aeo', icon: 'icon-comments', label: 'AEO' },
     { id: 'crawlers', to: settingsTo('crawlers'), tab: 'crawlers', icon: 'icon-link', label: 'Crawlers & Robots' },
   ] }),
   () => ({ title: 'TOOLS', items: [

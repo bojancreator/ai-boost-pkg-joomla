@@ -61,7 +61,7 @@ export function createSpaRouter() {
       path: '/autopilot',
       name: 'autopilot',
       component: AutopilotPage,
-      meta: { legacyUrl: u.settings, title: 'Autopilot' },
+      meta: { legacyUrl: u.settings, title: 'Quick Setup' },
     },
     {
       path: '/settings',

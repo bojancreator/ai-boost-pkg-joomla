@@ -53,6 +53,21 @@ Cross-references `BACKLOG.md`, the website-refresh plan, and
   verified (shows on Health, hidden on Dashboard). **All of Phase 1 (T0, T1, T2 items 1–20 in
   scope) is done and staging-verified.** Next: Phase 2 (admin navigation IA rework).
 
+- **2026-06-17 (v0.80.0) — PHASE 2 COMPLETE (admin IA slice):** the remaining IA work shipped
+  (most groups/aliases were already in place from earlier work). Done + staging-verified on
+  offroadserbia (J6/PHP8.5): **item 15** ✅ real bug — Sidebar `isItemActive` fell back to `'general'`
+  but the default settings tab is `'technical'`, so Technical SEO never lit up; fixed fallback →
+  `'technical'`. **item 14** ✅ "Autopilot" → "Quick Setup" (visible labels only; route/id/`/setup`
+  alias kept). **item 20** ✅ AEO page/menu label "AI Visibility" → "AEO" (section header "AI
+  VISIBILITY" kept; Analyzer "AI Visibility" kept). **items 4/16** ✅ Page Title + Meta Description
+  templates moved out of Technical SEO into a new **"Titles & Meta"** SEO page (`TitlesMetaTab.vue`);
+  Technical SEO now reads cleanly (Domain · Conflict · Canonical · 404). **item 5** ✅ canonical
+  stays in Technical SEO (already there). **item 12b** ✅ Danger-Zone uninstall explanation moved to
+  the Import/Export page; dashboard keeps a calm "Settings Backup" card + short pointer. **items 1,
+  18, 19** ✅ verified already satisfied (Schema sub-nav basic→advanced; settings already split;
+  Custom Code already in ADVANCED). Build clean (codegen guard + leak check), 3/3 standalone tests,
+  import/export round-trip PASS ("Titles / Meta" = 14 keys, no key dropped). **Next: Phase 3 (own conversation).**
+
 ## Phase 1 — Quick wins (no IA changes, low risk, ship fast)
 
 - **T0 · Process rule: import/export round-trip gate** (item 0) — S. Add to OPERATING.md

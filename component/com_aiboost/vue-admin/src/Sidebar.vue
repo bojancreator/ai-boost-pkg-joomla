@@ -86,7 +86,7 @@ export default {
 
     const isItemActive = (item) => {
       if (item.tab) {
-        return route.name === 'settings' && (route.query.tab || 'general') === item.tab
+        return route.name === 'settings' && (route.query.tab || 'technical') === item.tab
       }
       return route.name === item.id
     }

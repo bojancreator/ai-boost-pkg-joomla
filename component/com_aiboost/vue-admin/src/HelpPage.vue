@@ -150,7 +150,7 @@ export default {
           icon: 'icon-flag',
           goal: 'Use this when the site is not fully configured yet.',
           steps: ['Complete Site Identity first.', 'Choose the correct Schema Type.', 'Enable Sitemap and Social Meta, then save.'],
-          openLabel: 'Autopilot',
+          openLabel: 'Quick Setup',
           url: this.route('/autopilot'),
         },
         {

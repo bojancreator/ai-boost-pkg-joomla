@@ -71,6 +71,7 @@
       <OrgTab       v-show="activeTab === 'org'"        :s="s" />
       <SchemaTab    v-show="activeTab === 'schema'"     :s="s" />
       <TechnicalSeoTab v-show="activeTab === 'technical'" :s="s" />
+      <TitlesMetaTab v-show="activeTab === 'titles'"    :s="s" />
       <SitemapTab   v-show="activeTab === 'sitemap'"    :s="s" />
       <SocialTab    v-show="activeTab === 'social'"     :s="s" />
       <AnalyticsTab v-show="activeTab === 'analytics'"  :s="s" />
@@ -99,6 +100,7 @@ import { loadTranslationData, getAllTranslations } from './composables/useTransl
 import OrgTab       from './tabs/OrgTab.vue'
 import SchemaTab    from './tabs/SchemaTab.vue'
 import TechnicalSeoTab from './tabs/TechnicalSeoTab.vue'
+import TitlesMetaTab from './tabs/TitlesMetaTab.vue'
 import SitemapTab   from './tabs/SitemapTab.vue'
 import SocialTab    from './tabs/SocialTab.vue'
 import AnalyticsTab from './tabs/AnalyticsTab.vue'
@@ -128,6 +130,21 @@ const FIELD_TAB_ALIASES = {
   auto_domain_detection: 'technical',
   manual_domain: 'technical',
   conflict_mode: 'technical',
+  // Page title + meta-description templates moved to their own "Titles & Meta" tab.
+  title_separator: 'titles',
+  title_template: 'titles',
+  title_template_maxlen: 'titles',
+  title_template_home: 'titles',
+  title_template_article: 'titles',
+  title_template_category: 'titles',
+  title_template_search: 'titles',
+  title_template_tag: 'titles',
+  title_template_default: 'titles',
+  meta_desc_maxlen: 'titles',
+  meta_desc_template: 'titles',
+  meta_desc_template_article: 'titles',
+  meta_desc_template_category: 'titles',
+  meta_desc_template_default: 'titles',
   enable_canonical: 'technical',
   canonical_url_map: 'technical',
   redirect_404_log_enabled: 'technical',
@@ -171,7 +188,7 @@ const DEFAULTS = {
 
 export default {
   name: 'AiBoostSettings',
-  components: { OrgTab, SchemaTab, TechnicalSeoTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab, ConfirmDialog },
+  components: { OrgTab, SchemaTab, TechnicalSeoTab, TitlesMetaTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab, ConfirmDialog },
 
   mounted() {
     // Ctrl/Cmd + S → save (power-user shortcut)
@@ -277,10 +294,11 @@ export default {
         { id: 'org',       label: 'Site Identity', icon: ICONS.org,       color: '#3b82f6' },
         { id: 'schema',    label: 'Schema.org',    icon: ICONS.schema,    color: '#8b5cf6' },
         { id: 'technical', label: 'Technical SEO', icon: ICONS.general,   color: '#0ea5e9' },
+        { id: 'titles',    label: 'Titles & Meta', icon: ICONS.general,   color: '#0ea5e9' },
         { id: 'sitemap',   label: 'Sitemap',       icon: ICONS.sitemap,   color: '#14b8a6' },
         { id: 'social',    label: 'Social Meta / OG', icon: ICONS.social,  color: '#ec4899' },
         { id: 'analytics', label: 'Analytics & Tracking', icon: ICONS.analytics, color: '#f97316' },
-        { id: 'aeo',       label: 'AI Visibility', icon: ICONS.aeo,       color: '#06b6d4' },
+        { id: 'aeo',       label: 'AEO',           icon: ICONS.aeo,       color: '#06b6d4' },
         { id: 'crawlers',  label: 'Crawlers & Robots', icon: ICONS.urlchecker, color: '#22c55e' },
         { id: 'code',      label: 'Custom Code',   icon: ICONS.code,      color: '#f59e0b' },
         { id: 'debug',     label: 'Debug',         icon: ICONS.debug,     color: '#64748b' },
