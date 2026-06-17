@@ -129,11 +129,110 @@ class UrlCheckerService
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
+     * SSRF guard — only permit fetching public http(s) URLs. The site's own
+     * host is always allowed (its sitemap normally lives there); any other
+     * host (a custom sitemap URL or a sitemap-index child <loc>) must resolve
+     * exclusively to routable public addresses, so loopback, private (RFC1918),
+     * link-local and reserved ranges — including 169.254.169.254 cloud
+     * metadata — are rejected.
+     */
+    private function isFetchTargetAllowed(string $url): bool
+    {
+        $parts = parse_url($url);
+        if ($parts === false || empty($parts['scheme']) || empty($parts['host'])) {
+            return false;
+        }
+        $scheme = strtolower((string) $parts['scheme']);
+        if ($scheme !== 'http' && $scheme !== 'https') {
+            return false;
+        }
+        $host = strtolower(trim((string) $parts['host'], '[]'));
+        if ($host === '') {
+            return false;
+        }
+
+        $siteHost = strtolower((string) parse_url(Uri::root(), PHP_URL_HOST));
+        if ($siteHost !== '' && $host === $siteHost) {
+            return true;
+        }
+
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips[] = $host;
+        } else {
+            $v4 = @gethostbynamel($host);
+            if (is_array($v4)) {
+                $ips = array_merge($ips, $v4);
+            }
+            $aaaa = @dns_get_record($host, DNS_AAAA);
+            if (is_array($aaaa)) {
+                foreach ($aaaa as $rec) {
+                    if (!empty($rec['ipv6'])) {
+                        $ips[] = $rec['ipv6'];
+                    }
+                }
+            }
+        }
+        if (empty($ips)) {
+            return false; // unresolvable — fail closed
+        }
+        foreach ($ips as $ip) {
+            if (!$this->isPublicIp((string) $ip)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * True only for a routable public IP (rejects loopback/private/link-local/
+     * unique-local/reserved ranges for IPv4 and IPv6).
+     */
+    private function isPublicIp(string $ip): bool
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return filter_var(
+                $ip,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            ) !== false;
+        }
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            if (strpos($ip, '.') !== false) {
+                $v4 = substr($ip, (int) strrpos($ip, ':') + 1);
+                if (filter_var($v4, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                    return $this->isPublicIp($v4);
+                }
+            }
+            $bin = @inet_pton($ip);
+            if ($bin === false) {
+                return false;
+            }
+            if ($ip === '::1' || $ip === '::') {
+                return false;
+            }
+            $first = ord($bin[0]);
+            if (($first & 0xFE) === 0xFC) {
+                return false; // fc00::/7
+            }
+            if ($first === 0xFE && (ord($bin[1]) & 0xC0) === 0x80) {
+                return false; // fe80::/10
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Fetch raw content from a URL (first 256 KB, with timeout).
      * Returns null on failure.
      */
     private function fetchRaw(string $url): ?string
     {
+        if (!$this->isFetchTargetAllowed($url)) {
+            return null;
+        }
+
         if (!function_exists('curl_init')) {
             $ctx = stream_context_create([
                 'http' => ['timeout' => 15, 'user_agent' => 'AI Boost URL Checker/1.0'],
@@ -157,7 +256,7 @@ class UrlCheckerService
         ]);
         $body  = curl_exec($ch);
         $errno = curl_errno($ch);
-        curl_close($ch);
+        // curl_close() omitted — deprecated no-op since PHP 8.0.
 
         if ($errno || $body === false) {
             return null;

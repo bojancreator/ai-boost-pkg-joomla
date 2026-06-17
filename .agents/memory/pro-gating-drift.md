@@ -75,26 +75,42 @@ updates/support via the update server. **How to apply:** any new server/runtime
 Pro gate must call `isProActive()`/`hasPro($sku)`; never re-derive from
 `license_tier` or scan `license_state` directly.
 
-## Pro plugins gate per-hook on hasPro() — except aiboost_social_pro (LEAK)
+## Pro plugins gate per-hook on hasPro() — aiboost_social_pro leak FIXED (v0.85.2 re-review)
 
 The `_pro` plugin entry points are thin skeletons (require_once + class_alias);
 real logic is in `src/Extension/*`. The Free plugin always fires its
 `EVENT_FILTER_*` (settings-gated, NOT license-gated), so each Pro listener MUST
 gate itself on `PluginRegistry::hasPro($sku)`. schema_pro and aeo_pro do
-(hasPro count 3 and 7); code_pro/hreflang_pro have no runtime yet. **aiboost_social_pro
-has ZERO hasPro gate** (`onAiBoostFilterSocialProps` calls `OgTagProDecorator::decorate()`
-unconditionally) → Pro OG/Twitter tags leak on a Pro-inactive frontend. Fix +
-both DRIFTs handed to consolidation #537. Full audit: deliverables/audit/3state/server-plugins.md.
+(hasPro count 3 and 7); code_pro/hreflang_pro have no runtime yet.
 
-## Import endpoint bypasses the save-endpoint Pro hardening
+**The old aiboost_social_pro LEAK is FIXED** (re-verified in the v0.85.2 pre-launch
+re-review). `AiBoostSocialPro` is now a documented dormant no-op; the OG/Twitter
+Pro decoration was relocated INTO the free `aiboost_social` plugin where it is
+double-gated: `class_exists(OgTagProDecorator::class)` (the decorator class ships
+ONLY in the Pro build, absent on Free) AND `PluginRegistry::isProActive($settings)`
+(`AiBoostSocial.php` ~L129); per-language overlays additionally require
+`hasPro('int_falang')`. So Pro OG/Twitter tags no longer leak on a Pro-inactive
+front-end. Full audit: deliverables/audit/3state/server-plugins.md.
 
-`settings.save` is hardened against Free→Pro self-promotion (reads existing row
-before merge, force carries-forward/strips `license_tier`/`license_state`/`dev_*`,
-fail-closed stripLocked/stripProOptions). **`ImportController::upload()` does NONE
-of this** — it writes the imported `settings` JSON verbatim to
-`#__aiboost_settings`, and `mapLegacyParams()` even maps `jb_is_paid→license_tier`
-and `license_key_value→license_key`. So an admin import (core.manage) can inject
-`license_tier='pro'` or a fabricated active `license_state` and self-promote a
-Free/Pro-inactive install. **How to apply:** any new code path that writes the
-settings blob must run the same strip/carry-forward pipeline as settings.save —
-never trust client-supplied `license_*`/`dev_*` keys.
+## Import endpoint Pro hardening — FIXED (v0.85.2 re-review)
+
+**This section described a PAST state; the hole is now closed.** Do NOT re-flag it.
+`ImportController::IMPORT_DENYLIST` is defined as
+`SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS` (the single shared constant), and
+`upload()` strips every denylisted key (`license_key`/`license_tier`/`license_state`/
+`pro_activated*`/`install_id`/`dev_*`) from the imported payload BEFORE the single
+DB write — and after `mapLegacyParams()`, so even legacy-mapped `jb_is_paid→
+license_tier` / `license_key_value→license_key` are removed. The merge is
+merge-over-existing, so destination licence/identity values are preserved. An admin
+import can therefore NOT self-promote Free→Pro or forge `license_state`. Re-verified
+by full-file read + adversarial check in the v0.85.2 pre-launch re-review.
+
+Note: the import path does not separately call `stripLocked()` on Pro *feature*
+keys, but that is harmless — in the one-product model `stripLocked()`/
+`stripProOptions()` are deliberate no-ops, runtime gating is fail-closed on
+`pro_activated`, so imported Pro-feature values are inert dormant keys (saved but
+never emitted on a Pro-inactive install), not a leak.
+
+**Standing rule:** any new code path that writes the settings blob must still run
+the same carry-forward/strip pipeline as `settings.save` — never trust
+client-supplied `license_*`/`dev_*` keys.

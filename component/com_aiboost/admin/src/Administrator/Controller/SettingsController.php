@@ -332,19 +332,27 @@ class SettingsController extends BaseController
             // Task #500 — record server-side last backup timestamp so the
             // Health check can warn admins when no backup has been taken in
             // 30 days. We update in-place on the existing settings row.
-            try {
-                $settings['last_backup_at'] = Factory::getDate()->toISO8601();
-                $update = $db->getQuery(true)
-                    ->update($db->quoteName('#__aiboost_settings'))
-                    ->set($db->quoteName('settings_json') . '=' . $db->quote(
-                        json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-                    ))
-                    ->set($db->quoteName('updated_at') . '=' . $db->quote(Factory::getDate()->toSql()))
-                    ->where($db->quoteName('setting_key') . '=' . $db->quote('main'));
-                $db->setQuery($update)->execute();
-            } catch (\Throwable $e) {
-                // Persisting the timestamp is best-effort; never block the export.
-                \AiBoost\Lib\Logger::warning('[AiBoost] last_backup_at persist failed: ' . $e->getMessage());
+            //
+            // Only for a token-bearing (genuine SPA-initiated) export: the
+            // download link is intentionally token-less so it can be a plain
+            // <a href>, but the side-effecting timestamp write must not be
+            // forgeable via a cross-site GET, which would silently reset the
+            // backup reminder. The SPA appends the CSRF token to the export URL.
+            if ((Session::checkToken('get') || Session::checkToken()) && $row) {
+                try {
+                    $settings['last_backup_at'] = Factory::getDate()->toISO8601();
+                    $update = $db->getQuery(true)
+                        ->update($db->quoteName('#__aiboost_settings'))
+                        ->set($db->quoteName('settings_json') . '=' . $db->quote(
+                            json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                        ))
+                        ->set($db->quoteName('updated_at') . '=' . $db->quote(Factory::getDate()->toSql()))
+                        ->where($db->quoteName('setting_key') . '=' . $db->quote('main'));
+                    $db->setQuery($update)->execute();
+                } catch (\Throwable $e) {
+                    // Persisting the timestamp is best-effort; never block the export.
+                    \AiBoost\Lib\Logger::warning('[AiBoost] last_backup_at persist failed: ' . $e->getMessage());
+                }
             }
 
             $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -400,80 +408,6 @@ class SettingsController extends BaseController
             'params'       => $settings,
             'translations' => $translations,
         ];
-    }
-
-    public function debugsettings(): void
-    {
-        if (!$this->app->getIdentity()->authorise('core.manage', 'com_aiboost')) {
-            $this->sendJsonResponse(false, 'Access denied.');
-            return;
-        }
-        try {
-            $db     = Factory::getDbo();
-            $q      = $db->getQuery(true)->select(['setting_key','settings_json','updated_at'])->from('#__aiboost_settings');
-            $rows   = $db->setQuery($q)->loadObjectList();
-            $out    = [];
-            foreach ($rows as $row) {
-                $decoded = json_decode($row->settings_json ?? '{}', true);
-                $out[] = [
-                    'key'      => $row->setting_key,
-                    'updated'  => $row->updated_at,
-                    'count'    => count($decoded),
-                    'sample'   => array_slice($decoded, 0, 8, true),
-                    'org_name' => $decoded['org_name_en'] ?? '(missing)',
-                    'enable_schema' => $decoded['enable_schema'] ?? '(missing)',
-                    'schema_type'   => $decoded['schema_type'] ?? '(missing)',
-                ];
-            }
-            // Also check plugin status
-            $q2  = $db->getQuery(true)->select(['element','enabled','ordering'])->from('#__extensions')
-                      ->where($db->quoteName('type') . '=' . $db->quote('plugin'))
-                      ->where($db->quoteName('folder') . '=' . $db->quote('system'))
-                      ->where($db->quoteName('element') . ' LIKE ' . $db->quote('aiboost_%'));
-            $plgs = $db->setQuery($q2)->loadObjectList();
-            $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
-            echo json_encode(['settings_rows' => $out, 'plugins' => $plgs], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-            $this->app->close();
-        } catch (\Throwable $e) {
-            $this->sendJsonResponse(false, $e->getMessage());
-        }
-    }
-
-    public function enableplugins(): void
-    {
-        if (!$this->app->getIdentity()->authorise('core.manage', 'com_aiboost')) {
-            $this->sendJsonResponse(false, 'Access denied.');
-            return;
-        }
-
-        try {
-            $db = Factory::getDbo();
-
-            // Enable all aiboost system plugins
-            $query = $db->getQuery(true)
-                ->update('#__extensions')
-                ->set($db->quoteName('enabled') . '=1')
-                ->where($db->quoteName('type')   . '=' . $db->quote('plugin'))
-                ->where($db->quoteName('folder') . '=' . $db->quote('system'))
-                ->where($db->quoteName('element') . ' LIKE ' . $db->quote('aiboost_%'));
-            $db->setQuery($query)->execute();
-            $affected = $db->getAffectedRows();
-
-            // Query what got enabled
-            $q2 = $db->getQuery(true)
-                ->select(['element', 'enabled'])
-                ->from('#__extensions')
-                ->where($db->quoteName('type')   . '=' . $db->quote('plugin'))
-                ->where($db->quoteName('folder') . '=' . $db->quote('system'))
-                ->where($db->quoteName('element') . ' LIKE ' . $db->quote('aiboost_%'));
-            $rows = $db->setQuery($q2)->loadObjectList();
-
-            $list = array_map(fn($r) => $r->element . '=' . $r->enabled, $rows);
-
-            $this->sendJsonResponse(true, "Enabled {$affected} plugins. Status: " . implode(', ', $list));
-        } catch (\Throwable $e) {
-            $this->sendJsonResponse(false, 'Error: ' . $e->getMessage());
-        }
     }
 
     /**
@@ -1322,8 +1256,8 @@ class SettingsController extends BaseController
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_TIMEOUT        => 12,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_SSL_VERIFYHOST => 0,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                    CURLOPT_SSL_VERIFYHOST => 2,
                     CURLOPT_USERAGENT      => 'AIBoost-Admin-Preview/1.0',
                 ]);
                 $body  = (string) curl_exec($ch);
@@ -1331,7 +1265,7 @@ class SettingsController extends BaseController
                 if ($body === '' || $body === false) {
                     $error = (string) curl_error($ch);
                 }
-                curl_close($ch);
+                // curl_close() omitted — deprecated no-op since PHP 8.0.
             } else {
                 $ctx  = stream_context_create(['http' => ['timeout' => 12, 'user_agent' => 'AIBoost-Admin-Preview/1.0']]);
                 $body = (string) @file_get_contents($robotsUrl, false, $ctx);
@@ -1604,8 +1538,8 @@ class SettingsController extends BaseController
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_TIMEOUT        => 12,
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_SSL_VERIFYHOST => 0,
+                    CURLOPT_SSL_VERIFYPEER => true,
+                    CURLOPT_SSL_VERIFYHOST => 2,
                     CURLOPT_USERAGENT      => 'AIBoost-Admin-Preview/1.0',
                 ]);
                 $xml  = (string) curl_exec($ch);
@@ -1613,7 +1547,7 @@ class SettingsController extends BaseController
                 if ($xml === '' || $xml === false) {
                     $error = (string) curl_error($ch);
                 }
-                curl_close($ch);
+                // curl_close() omitted — deprecated no-op since PHP 8.0.
             } else {
                 $ctx = stream_context_create(['http' => ['timeout' => 12, 'user_agent' => 'AIBoost-Admin-Preview/1.0']]);
                 $xml = @file_get_contents($sitemapUrl, false, $ctx);

@@ -763,8 +763,11 @@ export default {
       backupFlash.value   = ''
       backupFlashOk.value = true
       try {
+        // CSRF token on the export URL so the server records the backup
+        // timestamp (the last_backup_at write is token-gated server-side).
+        const tn = (window.aiBoostBootstrap && window.aiBoostBootstrap.tokenName) || window.aiBoostToken || ''
         const resp = await fetch(
-          'index.php?option=com_aiboost&task=settings.export',
+          'index.php?option=com_aiboost&task=settings.export' + (tn ? '&' + tn + '=1' : ''),
           { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } }
         )
         if (!resp.ok) {

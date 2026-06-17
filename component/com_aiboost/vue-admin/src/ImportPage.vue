@@ -112,12 +112,14 @@
 
 <script>
 import { ref } from 'vue'
-import { postWithCsrf } from './api.js'
+import { postWithCsrf, getCsrfTokenName } from './api.js'
 
 export default {
   name: 'ImportPage',
   setup() {
-    const exportUrl = 'index.php?option=com_aiboost&task=settings.export'
+    // Token on the export link so the server records the backup timestamp
+    // (the side-effecting last_backup_at write is now token-gated).
+    const exportUrl = 'index.php?option=com_aiboost&task=settings.export&' + getCsrfTokenName() + '=1'
     const importUrl = 'index.php?option=com_aiboost&task=import.upload'
 
     const fileInput     = ref(null)

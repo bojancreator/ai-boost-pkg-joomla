@@ -19,6 +19,13 @@ use Joomla\CMS\Session\Session;
 
 class UrlcheckerController extends BaseController
 {
+    /**
+     * Per-request cache of SSRF host verdicts (host => allowed?).
+     *
+     * @var array<string,bool>
+     */
+    private array $fetchTargetCache = [];
+
     public function display($cachable = false, $urlparams = []): static
     {
         $this->app->getInput()->set('view', 'urlchecker');
@@ -105,7 +112,7 @@ class UrlcheckerController extends BaseController
         $urls    = array_slice(array_map('trim', $urls), 0, 50);
         $results = [];
         foreach ($urls as $url) {
-            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            if (!filter_var($url, FILTER_VALIDATE_URL) || !$this->isFetchTargetAllowed($url)) {
                 $results[] = [
                     'url'              => $url,
                     'status'           => 0,
@@ -115,7 +122,7 @@ class UrlcheckerController extends BaseController
                     'is_noindex'       => false,
                     'is_thin_content'  => false,
                     'content_chars'    => 0,
-                    'error'            => 'Invalid URL',
+                    'error'            => 'Invalid or non-public URL',
                 ];
                 continue;
             }
@@ -351,8 +358,8 @@ class UrlcheckerController extends BaseController
         $url      = trim((string) $this->app->getInput()->getString('url', ''));
         $issue    = trim((string) $this->app->getInput()->getString('issue', ''));
         $expected = trim((string) $this->app->getInput()->getString('expected', ''));
-        if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
-            $this->sendJson(false, 'Invalid URL.'); return;
+        if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL) || !$this->isFetchTargetAllowed($url)) {
+            $this->sendJson(false, 'Invalid or non-public URL.'); return;
         }
 
         try {
@@ -418,13 +425,13 @@ class UrlcheckerController extends BaseController
                 }
             }
 
-            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            if (!filter_var($url, FILTER_VALIDATE_URL) || !$this->isFetchTargetAllowed($url)) {
                 $results[] = [
                     'url'              => $url, 'status' => 0,
                     'redirect_chain'   => [], 'canonical' => null,
                     'canonical_status' => 'skipped', 'is_noindex' => false,
                     'is_thin_content'  => false, 'content_chars' => 0,
-                    'error'            => 'Invalid URL',
+                    'error'            => 'Invalid or non-public URL',
                 ];
             } else {
                 $results[] = $this->checkUrl($url);
@@ -717,6 +724,12 @@ class UrlcheckerController extends BaseController
         $visited = [];
 
         for ($hop = 0; $hop < 10; $hop++) {
+            // SSRF guard: re-validate every hop so an external 3xx cannot
+            // redirect the fetch to an internal/private address.
+            if (!$this->isFetchTargetAllowed($current)) {
+                $chain[] = ['url' => $current, 'status' => 0, 'error' => 'Blocked: non-public address'];
+                break;
+            }
             if (isset($visited[$current])) {
                 // Redirect loop detected — stop here
                 $chain[] = ['url' => $current, 'status' => 0, 'error' => 'Redirect loop detected'];
@@ -739,7 +752,8 @@ class UrlcheckerController extends BaseController
             $headerStr = (string) curl_exec($ch);
             $status    = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $curlError = curl_errno($ch) ? curl_error($ch) : null;
-            curl_close($ch);
+            // curl_close() intentionally omitted — deprecated no-op since PHP 8.0
+            // that emits an E_DEPRECATED notice on 8.5 (pollutes the JSON body).
 
             if ($curlError) {
                 $chain[] = ['url' => $current, 'status' => 0, 'error' => $curlError];
@@ -784,6 +798,13 @@ class UrlcheckerController extends BaseController
      */
     private function fetchBodyWithHeaders(string $url, string &$responseHeaders): ?string
     {
+        // Defence in depth: the URL arrives from an already-validated redirect
+        // chain, but never fetch a non-public target.
+        if (!$this->isFetchTargetAllowed($url)) {
+            $responseHeaders = '';
+            return null;
+        }
+
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL            => $url,
@@ -799,7 +820,7 @@ class UrlcheckerController extends BaseController
         $raw       = curl_exec($ch);
         $headerLen = (int) curl_getinfo($ch, CURLINFO_HEADER_SIZE);
         $errno     = curl_errno($ch);
-        curl_close($ch);
+        // curl_close() omitted — deprecated no-op since PHP 8.0.
 
         if ($errno || $raw === false) {
             $responseHeaders = '';
@@ -888,7 +909,7 @@ class UrlcheckerController extends BaseController
             $body  = (string) curl_exec($ch);
             $code  = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $errno = curl_errno($ch);
-            curl_close($ch);
+            // curl_close() omitted — deprecated no-op since PHP 8.0.
 
             if ($errno || $code !== 200) {
                 return $startRow > 0 ? $pages : null;
@@ -915,6 +936,120 @@ class UrlcheckerController extends BaseController
     // ─────────────────────────────────────────────────────────────────────────
     // Private: DB + response helpers
     // ─────────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Private: SSRF guard
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * SSRF guard — only permit fetching public http(s) URLs.
+     *
+     * The URL Checker must never let an authenticated admin (or a same-origin
+     * XSS riding their session) coerce the server into requesting internal
+     * services. The site's OWN host is always allowed (intranet/staging
+     * installs legitimately scan their own pages); for any other host every
+     * resolved IP must be a routable public address, so loopback, private
+     * (RFC1918), link-local and reserved ranges — including 169.254.169.254
+     * cloud metadata — are rejected. Re-checked on every redirect hop so an
+     * external 3xx cannot pivot the fetch inward.
+     */
+    private function isFetchTargetAllowed(string $url): bool
+    {
+        $parts = parse_url($url);
+        if ($parts === false || empty($parts['scheme']) || empty($parts['host'])) {
+            return false;
+        }
+        $scheme = strtolower((string) $parts['scheme']);
+        if ($scheme !== 'http' && $scheme !== 'https') {
+            return false;
+        }
+        $host = strtolower(trim((string) $parts['host'], '[]'));
+        if ($host === '') {
+            return false;
+        }
+        if (isset($this->fetchTargetCache[$host])) {
+            return $this->fetchTargetCache[$host];
+        }
+
+        // The site's own host is always allowed (its front-end may resolve to a
+        // private address on intranet/staging installs).
+        $siteHost = strtolower((string) parse_url(\Joomla\CMS\Uri\Uri::root(), PHP_URL_HOST));
+        if ($siteHost !== '' && $host === $siteHost) {
+            return $this->fetchTargetCache[$host] = true;
+        }
+
+        // Resolve to IP(s); every candidate must be a public address.
+        $ips = [];
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            $ips[] = $host;
+        } else {
+            $v4 = @gethostbynamel($host);
+            if (is_array($v4)) {
+                $ips = array_merge($ips, $v4);
+            }
+            $aaaa = @dns_get_record($host, DNS_AAAA);
+            if (is_array($aaaa)) {
+                foreach ($aaaa as $rec) {
+                    if (!empty($rec['ipv6'])) {
+                        $ips[] = $rec['ipv6'];
+                    }
+                }
+            }
+        }
+        if (empty($ips)) {
+            // Unresolvable host — fail closed.
+            return $this->fetchTargetCache[$host] = false;
+        }
+        foreach ($ips as $ip) {
+            if (!$this->isPublicIp((string) $ip)) {
+                return $this->fetchTargetCache[$host] = false;
+            }
+        }
+        return $this->fetchTargetCache[$host] = true;
+    }
+
+    /**
+     * True only for a routable public IP. Rejects loopback, private (RFC1918),
+     * link-local, unique-local and other reserved ranges for IPv4 and IPv6.
+     */
+    private function isPublicIp(string $ip): bool
+    {
+        // IPv4 — PHP's reserved+private flags cover 0/8, 10/8, 127/8,
+        // 169.254/16, 172.16/12, 192.168/16, 240/4, etc.
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return filter_var(
+                $ip,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            ) !== false;
+        }
+        // IPv6
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            // IPv4-mapped / -compatible (::ffff:a.b.c.d) — validate the v4 part.
+            if (strpos($ip, '.') !== false) {
+                $v4 = substr($ip, (int) strrpos($ip, ':') + 1);
+                if (filter_var($v4, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                    return $this->isPublicIp($v4);
+                }
+            }
+            $bin = @inet_pton($ip);
+            if ($bin === false) {
+                return false;
+            }
+            if ($ip === '::1' || $ip === '::') {
+                return false; // loopback / unspecified
+            }
+            $first = ord($bin[0]);
+            if (($first & 0xFE) === 0xFC) {
+                return false; // fc00::/7 unique-local
+            }
+            if ($first === 0xFE && (ord($bin[1]) & 0xC0) === 0x80) {
+                return false; // fe80::/10 link-local
+            }
+            return true;
+        }
+        return false;
+    }
 
     private function loadSettings(): array
     {
