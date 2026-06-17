@@ -82,6 +82,8 @@ class HealthCheckService
         'warning_staging_mode_on'        => 'General',
         'warning_debug_on_prod'          => 'General',
         'warning_backup_stale'           => 'General',
+        'warning_global_noindex'         => 'General',
+        'warning_robots_not_writable'    => 'Crawlers & Robots',
         'warning_license_unverified'     => 'License',
         'critical_license_invalid'       => 'License',
         'info_auto_update_disabled'      => 'License',
@@ -187,6 +189,8 @@ class HealthCheckService
             $this->checkStagingMode(),
             $this->checkDebugMode(),
             $this->checkBackupStale(),
+            $this->checkGlobalNoIndex(),
+            $this->checkRobotsWritable(),
             $this->checkLicenseVerified(),
             $this->criticalLicenseInvalid(),
             $this->infoAutoUpdateDisabled(),
@@ -3321,6 +3325,103 @@ class HealthCheckService
             $this->appUrl('integrations'),
             [['label' => 'Open Integrations tab', 'url' => $this->appUrl('integrations'), 'target_tab' => 'integrations', 'target_field' => '']],
             []
+        );
+    }
+
+    /**
+     * Item 3 — warn when Joomla's Global Configuration Robots metadata is set to
+     * noindex/nofollow. That silently de-indexes the whole site and overrides
+     * every AI Boost SEO/AEO signal. Global config only (a per-article/menu scan
+     * is a deferred follow-up). Suppressed on a staging/dev install, where a
+     * site-wide noindex is the expected, deliberate state.
+     */
+    private function checkGlobalNoIndex(): array
+    {
+        $configured = trim($this->ctx->getConfigValue('robots', ''));
+        $robots     = strtolower($configured);
+        $noindex    = strpos($robots, 'noindex') !== false;
+        $nofollow   = strpos($robots, 'nofollow') !== false;
+        $bad        = $noindex || $nofollow;
+        $staging    = $this->isStagingMode();
+        $pass       = !$bad || $staging;
+
+        if (!$bad) {
+            $msg = 'Joomla Global Configuration allows indexing (Site → Metadata → Robots is not noindex/nofollow).';
+        } elseif ($staging) {
+            $msg = sprintf(
+                'Global Robots is "%s", but this install is in staging/dev mode, so a site-wide noindex is expected.',
+                $configured
+            );
+        } else {
+            $what = $noindex && $nofollow
+                ? 'NOT to index pages and NOT to follow links'
+                : ($noindex ? 'NOT to index any page' : 'NOT to follow links');
+            $msg = sprintf(
+                'Joomla Global Configuration → Site → Metadata → Robots is set to "%s", telling search engines and AI '
+                . 'crawlers %s. This silently overrides ALL AI Boost SEO/AEO output for the whole site. Set it to '
+                . '"Index, Follow" unless the site is intentionally private.',
+                $configured,
+                $what
+            );
+        }
+
+        return $this->make(
+            'warning_global_noindex',
+            'warning',
+            'Global indexing (Robots)',
+            $pass,
+            false,
+            $msg,
+            $pass ? '' : 'index.php?option=com_config'
+        );
+    }
+
+    /**
+     * Item 9 — warn when AI Boost manages robots.txt but the site root / file is
+     * not writable, so regeneration silently fails (it uses @file_put_contents).
+     * sitemap.xml and llms.txt are served dynamically, so they have no on-disk
+     * write step that could fail.
+     */
+    private function checkRobotsWritable(): array
+    {
+        if ((string) ($this->settings['enable_robots'] ?? '0') !== '1') {
+            return $this->make(
+                'warning_robots_not_writable',
+                'warning',
+                'robots.txt is writable',
+                true,
+                false,
+                'robots.txt management is off — AI Boost writes nothing to disk.',
+                ''
+            );
+        }
+
+        $writable = true;
+        try {
+            $root = rtrim(AdapterRegistry::filesystem()->siteRoot(), '/\\');
+            $file = $root . '/robots.txt';
+            // Writable when the file exists and is writable, or — if it does not
+            // exist yet — the site root is writable so AI Boost can create it.
+            $writable = is_file($file) ? is_writable($file) : is_writable($root);
+        } catch (\Throwable $e) {
+            $writable = true; // can't resolve the path → do not raise a false alarm
+        }
+
+        $msg = $writable
+            ? 'AI Boost can write robots.txt (file and permissions are OK).'
+            : 'AI Boost cannot write robots.txt — the file (or the site root) is not writable by the web server, so '
+                . 'robots.txt management silently fails and your crawler / AI-bot rules are not applied. Fix: make '
+                . 'robots.txt (or the site root) writable by the web-server user, or delete a read-only robots.txt so '
+                . 'AI Boost can recreate it.';
+
+        return $this->make(
+            'warning_robots_not_writable',
+            'warning',
+            'robots.txt is writable',
+            $writable,
+            false,
+            $msg,
+            $writable ? '' : $this->settingsUrl('tab-crawlers-btn', 'enable_robots')
         );
     }
 

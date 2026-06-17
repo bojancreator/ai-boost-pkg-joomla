@@ -147,6 +147,60 @@ final class HealthCheckFixActionUrlTest extends TestCase
             }
         }
     }
+
+    // ── Item 3: global NoIndex/NoFollow Health check ──────────────────────────
+
+    /** Build a service whose AppContext returns $robots for the 'robots' key. */
+    private function serviceWithRobots(string $robots, array $settings = []): HealthCheckService
+    {
+        $ctx = $this->createMock(AppContextInterface::class);
+        $ctx->method('getConfigValue')->willReturnCallback(
+            static fn (string $key, string $default = ''): string => $key === 'robots' ? $robots : $default
+        );
+
+        return new HealthCheckService($settings, new FakeHealthDatabase(0), $ctx, true);
+    }
+
+    public function testGlobalNoIndexWarnsWhenConfigBlocksIndexing(): void
+    {
+        $service = $this->serviceWithRobots('noindex, nofollow');
+        $row = (new \ReflectionMethod($service, 'checkGlobalNoIndex'))->invoke($service);
+
+        $this->assertFalse($row['pass']);
+        $this->assertSame('warning', $row['status']);
+        $this->assertSame('index.php?option=com_config', $row['fix_url']);
+        $this->assertStringContainsStringIgnoringCase('noindex', (string) $row['message']);
+    }
+
+    public function testGlobalNoIndexPassesWhenIndexingAllowed(): void
+    {
+        $service = $this->serviceWithRobots('index, follow');
+        $row = (new \ReflectionMethod($service, 'checkGlobalNoIndex'))->invoke($service);
+
+        $this->assertTrue($row['pass']);
+        $this->assertSame('', $row['fix_url']);
+    }
+
+    public function testGlobalNoIndexSuppressedInStagingMode(): void
+    {
+        // A site-wide noindex is expected on a staging/dev install, so the check
+        // must not nag there.
+        $service = $this->serviceWithRobots('noindex, nofollow', ['staging_mode' => '1']);
+        $row = (new \ReflectionMethod($service, 'checkGlobalNoIndex'))->invoke($service);
+
+        $this->assertTrue($row['pass']);
+    }
+
+    // ── Item 9: robots.txt writability Health check ───────────────────────────
+
+    public function testRobotsWritablePassesWhenManagementOff(): void
+    {
+        // enable_robots unset → nothing is written to disk, so the check passes
+        // without touching the filesystem.
+        $row = $this->runCheck('checkRobotsWritable', [], 0);
+        $this->assertTrue($row['pass']);
+        $this->assertSame('warning', $row['status']);
+    }
 }
 
 /**

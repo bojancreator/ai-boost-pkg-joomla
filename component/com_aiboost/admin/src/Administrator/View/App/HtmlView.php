@@ -247,6 +247,9 @@ class HtmlView extends BaseHtmlView
 
         return [
             'version'          => Version::VERSION,
+            // item 12a — lets the global CriticalBar gate the "no backup yet"
+            // notice (don't nag a fresh install with nothing to back up).
+            'hasSettings'      => !empty($settings),
             // True only under Joomla debug mode — the Licenses UI uses this to
             // show the offline mock-validation hint. Production verifies keys
             // against the real Lemon Squeezy licence API.

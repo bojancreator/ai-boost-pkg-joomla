@@ -4,6 +4,7 @@
 
     <div class="ab-spa-main">
       <ToastStack />
+      <CriticalBar />
 
       <div v-if="loading" class="ab-spa-loader" role="status" aria-live="polite">
         <div class="ab-spinner ab-spinner--sm text-primary me-2" aria-hidden="true"></div>
@@ -33,12 +34,13 @@ import { useRoute, useRouter } from 'vue-router'
 import Sidebar from './Sidebar.vue'
 import ToastStack from './components/ToastStack.vue'
 import ConflictWizard from './ConflictWizard.vue'
+import CriticalBar from './components/CriticalBar.vue'
 import { useColorScheme } from './composables/useColorScheme.js'
 import { ensureLegacyGlobals, isLegacyGlobalsReady } from './composables/useLegacyGlobals.js'
 
 export default {
   name: 'AppShell',
-  components: { Sidebar, ToastStack, ConflictWizard },
+  components: { Sidebar, ToastStack, ConflictWizard, CriticalBar },
 
   setup() {
     const { scheme } = useColorScheme()

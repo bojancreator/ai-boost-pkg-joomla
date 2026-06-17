@@ -53,9 +53,9 @@ export default {
   padding: 1rem;
 }
 .ab-confirm {
-  background: var(--bs-body-bg, #fff);
-  color: var(--bs-body-color, #1a1a1a);
-  border: 1px solid var(--bs-border-color, #e5e7eb);
+  background: var(--ab-bg-elev, #fff);
+  color: var(--ab-text, #1a1a1a);
+  border: 1px solid var(--ab-border, #e5e7eb);
   border-radius: 10px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, .3);
   max-width: 420px;
@@ -65,7 +65,7 @@ export default {
 .ab-confirm__title { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; }
 .ab-confirm__body {
   font-size: .9rem;
-  color: var(--bs-secondary-color, #555);
+  color: var(--ab-text-muted, #555);
   margin-bottom: 18px;
   line-height: 1.55;
 }

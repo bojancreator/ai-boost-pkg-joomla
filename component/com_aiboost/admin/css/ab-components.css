@@ -236,6 +236,18 @@ body[class*="com_aiboost"] .ab-help {
   color: var(--ab-text-muted);
   margin-top: var(--ab-space-1);
 }
+/* A field description inside a toggle/checkbox row (which is a flex container)
+   wraps onto its own full-width line below the control + label, instead of being
+   squeezed into a narrow side column (item 17). */
+body[class*="com_aiboost"] .ab-check,
+body[class*="com_aiboost"] .ab-toggle {
+  flex-wrap: wrap;
+}
+body[class*="com_aiboost"] .ab-check > .ab-help,
+body[class*="com_aiboost"] .ab-toggle > .ab-help {
+  flex-basis: 100%;
+  width: 100%;
+}
 
 /* ─────────────────────────────────────────────────────────────────── */
 /* BADGE                                                               */
@@ -329,16 +341,17 @@ body[class*="com_aiboost"] .ab-tab--active {
 /* ALERT                                                               */
 /* ─────────────────────────────────────────────────────────────────── */
 body[class*="com_aiboost"] .ab-alert {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--ab-space-3);
+  /* Block flow so explanatory text with inline <strong>/<code>/<em> reads as a
+     single paragraph. Alerts that need an icon+content row add Bootstrap d-flex
+     explicitly (item 17). Slightly smaller than body text, never larger. */
+  display: block;
   padding: var(--ab-space-3) var(--ab-space-4);
   border: 1px solid var(--ab-border);
   border-left-width: 4px;
   border-radius: var(--ab-radius);
   background: var(--ab-bg-elev);
   color: var(--ab-text);
-  font-size: var(--ab-font-size-base);
+  font-size: var(--ab-font-size-sm);
   line-height: var(--ab-line-height-base);
 }
 body[class*="com_aiboost"] .ab-alert--success {

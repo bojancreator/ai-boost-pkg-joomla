@@ -1,31 +1,17 @@
 <template>
   <div class="ab-vue-dashboard">
 
-    <!-- Task #492 — Backup-staleness reminder. Surfaces the same signal as
-         the Danger Zone "Last backup" line, but at the top of the dashboard
-         so admins see it before they scroll. Dismissible for 7 days. -->
-    <div v-if="showBackupReminder"
-         class="ab-alert d-flex align-items-center justify-content-between flex-wrap gap-2"
-         :class="backupSignalKind === 'never' ? 'ab-alert--danger' : 'ab-alert--warning'"
+    <!-- CRITICAL notification (item 12a) — "no settings backup yet" stays
+         always-visible above the collapsible notifications panel. -->
+    <div v-if="showBackupReminder && backupSignalKind === 'never'"
+         class="ab-alert ab-alert--danger d-flex align-items-center justify-content-between flex-wrap gap-2"
          role="status"
          aria-live="polite">
       <span>
         <span class="icon-warning me-1" aria-hidden="true"></span>
-        <template v-if="backupSignalKind === 'never'">
-          <strong>No settings backup yet.</strong>
-          Download one now so you can restore your configuration after a
-          migration, a major update, or anything unexpected.
-        </template>
-        <template v-else-if="backupSignalKind === 'changes'">
-          <strong>You've changed {{ changesSinceBackup }} settings since your last backup.</strong>
-          Download a fresh backup so you don't lose recent configuration
-          changes if something goes wrong.
-        </template>
-        <template v-else>
-          <strong>Backup is {{ lastBackupAgeDays }} days old.</strong>
-          Download a fresh settings backup so you don't lose recent changes
-          if something goes wrong.
-        </template>
+        <strong>No settings backup yet.</strong>
+        Download one now so you can restore your configuration after a
+        migration, a major update, or anything unexpected.
       </span>
       <span class="d-flex align-items-center gap-2">
         <button type="button"
@@ -63,47 +49,81 @@
         <span class="ab-setup-banner__cta">Set up now →</span>
       </div>
     </a>
-    <div v-else class="ab-alert ab-alert--success d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <span>
-        <span class="icon-checkmark me-1" aria-hidden="true"></span>
-        Settings active — all plugins reading from <code>#__aiboost_settings</code>.
-        <!-- Multilingual status is shown by the single "Multilingual — detected"
-             banner below (Task #483); the small inline badge that used to live
-             here was removed to avoid two language notices on one screen. -->
-      </span>
-      <span class="text-muted small" style="white-space:nowrap">
-        <span class="icon-calendar me-1" aria-hidden="true"></span>
-        <template v-if="data.lastSaved">Settings last saved: <strong>{{ data.lastSaved }}</strong></template>
-        <template v-else>Never saved</template>
-      </span>
-    </div>
-
-    <!-- Task #483 — Multilingual detected banner (Pro discovery).
-         Shown when Joomla Multilanguage is active with ≥2 published content
-         languages. It routes to the Sitemap tab focused on the enable_hreflang field. -->
-    <a v-if="data.multilingualLangCount >= 2"
-       :href="multilingualBannerHref"
-       :target="multilingualBannerTarget"
-       :rel="multilingualBannerTarget === '_blank' ? 'noopener' : null"
-       class="ab-card ab-ml-banner mb-4"
-      title="Open Settings → Sitemap → hreflang">
-      <div class="ab-card__body d-flex align-items-center gap-3 py-3">
-        <span class="ab-ml-banner__icon" aria-hidden="true">🌐</span>
-        <div class="flex-grow-1">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-            <strong class="ab-ml-banner__title">Multilingual — detected</strong>
-            <span class="ab-badge ab-badge--success">{{ data.multilingualLangCount }} languages</span>
-          </div>
-          <div class="text-muted small mt-1">
-            AI Boost can emit hreflang alternates and store per-language
-            translations for every field. Click to configure.
-          </div>
-        </div>
-        <span class="ab-ml-banner__cta">
-          Configure →
+    <!-- Non-critical notifications (item 12a) — collapse to a single bar; the
+         open/closed choice is remembered in localStorage. -->
+    <div v-if="data.hasSettings && nonCriticalNotifCount > 0" class="ab-notif-panel mb-4">
+      <button type="button" class="ab-notif-panel__bar"
+              :aria-expanded="notifOpen ? 'true' : 'false'"
+              @click="toggleNotif">
+        <span class="ab-notif-panel__title">
+          <span class="icon-bell me-1" aria-hidden="true"></span>
+          Notifications
+          <span class="ab-badge ab-badge--muted ms-1">{{ nonCriticalNotifCount }}</span>
         </span>
+        <span class="ab-notif-panel__right">
+          <span v-if="!notifOpen" class="text-muted small me-2">Open to see notifications</span>
+          <span class="ab-notif-panel__chev" :class="{ 'is-open': notifOpen }" aria-hidden="true">▾</span>
+        </span>
+      </button>
+      <div v-show="notifOpen" class="ab-notif-panel__body">
+        <!-- Settings active -->
+        <div class="ab-alert ab-alert--success d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span>
+            <span class="icon-checkmark me-1" aria-hidden="true"></span>
+            Settings active — all plugins reading from <code>#__aiboost_settings</code>.
+          </span>
+          <span class="text-muted small" style="white-space:nowrap">
+            <span class="icon-calendar me-1" aria-hidden="true"></span>
+            <template v-if="data.lastSaved">Settings last saved: <strong>{{ data.lastSaved }}</strong></template>
+            <template v-else>Never saved</template>
+          </span>
+        </div>
+
+        <!-- Stale / changed-since backup nag (non-critical) -->
+        <div v-if="showBackupReminder && backupSignalKind !== 'never'"
+             class="ab-alert ab-alert--warning d-flex align-items-center justify-content-between flex-wrap gap-2"
+             role="status" aria-live="polite">
+          <span>
+            <span class="icon-warning me-1" aria-hidden="true"></span>
+            <template v-if="backupSignalKind === 'changes'">
+              <strong>You've changed {{ changesSinceBackup }} settings since your last backup.</strong>
+              Download a fresh backup so you don't lose recent configuration changes if something goes wrong.
+            </template>
+            <template v-else>
+              <strong>Backup is {{ lastBackupAgeDays }} days old.</strong>
+              Download a fresh settings backup so you don't lose recent changes if something goes wrong.
+            </template>
+          </span>
+          <span class="d-flex align-items-center gap-2">
+            <button type="button" class="ab-btn ab-btn--primary ab-btn--sm" @click="scrollToBackup">Back up now →</button>
+            <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" title="Hide for 7 days" @click="dismissBackupReminder">Dismiss</button>
+          </span>
+        </div>
+
+        <!-- Multilingual detected (Pro discovery) -->
+        <a v-if="data.multilingualLangCount >= 2"
+           :href="multilingualBannerHref"
+           :target="multilingualBannerTarget"
+           :rel="multilingualBannerTarget === '_blank' ? 'noopener' : null"
+           class="ab-card ab-ml-banner"
+           title="Open Settings → Sitemap → hreflang">
+          <div class="ab-card__body d-flex align-items-center gap-3 py-3">
+            <span class="ab-ml-banner__icon" aria-hidden="true">🌐</span>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <strong class="ab-ml-banner__title">Multilingual — detected</strong>
+                <span class="ab-badge ab-badge--success">{{ data.multilingualLangCount }} languages</span>
+              </div>
+              <div class="text-muted small mt-1">
+                AI Boost can emit hreflang alternates and store per-language
+                translations for every field. Click to configure.
+              </div>
+            </div>
+            <span class="ab-ml-banner__cta">Configure →</span>
+          </div>
+        </a>
       </div>
-    </a>
+    </div>
 
     <!-- Module status grid -->
     <div class="ab-card mb-4">
@@ -831,9 +851,33 @@ export default {
       return appBase + '#/autopilot'
     })
 
+    // ── Notifications panel (item 12a) ──────────────────────────────────────
+    // Non-critical notifications (settings-active, multilingual, a stale-backup
+    // nag) live in a collapsible panel that shrinks to a single bar; the user's
+    // open/closed choice is remembered. The CRITICAL "no backup yet" notice is
+    // rendered above the panel and stays always-visible.
+    const NOTIF_LS_KEY = 'aiboost.dashboard.notifOpen'
+    const notifOpen = ref((() => {
+      try { return window.localStorage.getItem(NOTIF_LS_KEY) !== '0' } catch { return true }
+    })())
+    function toggleNotif() {
+      notifOpen.value = !notifOpen.value
+      try { window.localStorage.setItem(NOTIF_LS_KEY, notifOpen.value ? '1' : '0') } catch { /* ignore */ }
+    }
+    const nonCriticalNotifCount = computed(() => {
+      let n = 0
+      if (data.hasSettings) n++                                                  // "Settings active"
+      if (showBackupReminder.value && backupSignalKind.value !== 'never') n++    // stale / changed-since backup nag
+      if (data.multilingualLangCount >= 2) n++                                   // multilingual detected
+      return n
+    })
+
     return {
       data,
       plugins,
+      notifOpen,
+      toggleNotif,
+      nonCriticalNotifCount,
       isProEdition,
       multilingualBannerHref,
       multilingualBannerTarget,
@@ -1015,4 +1059,37 @@ export default {
   color: var(--body-color, #212529);
   text-decoration: underline;
 }
+
+/* Notifications panel (item 12a) — collapsible non-critical notifications. */
+.ab-notif-panel {
+  border: 1px solid var(--ab-border, #e2e6ec);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ab-bg-elev, #fff);
+}
+.ab-notif-panel__bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--ab-bg-muted, #eef0f3);
+  border: 0;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--ab-text, inherit);
+  text-align: left;
+}
+.ab-notif-panel__bar:hover { background: var(--ab-border, #e2e6ec); }
+.ab-notif-panel__right { display: flex; align-items: center; }
+.ab-notif-panel__chev { transition: transform .15s ease; display: inline-block; font-size: 1.1rem; line-height: 1; }
+.ab-notif-panel__chev.is-open { transform: rotate(180deg); }
+.ab-notif-panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.ab-notif-panel__body > * { margin-bottom: 0 !important; }
 </style>

@@ -22,6 +22,37 @@ Cross-references `BACKLOG.md`, the website-refresh plan, and
   may not flag unsaved changes — needs a closer look), 17 (NEEDS Bojan's screenshot — his
   example is not multi-column). **12b moved to Phase 2** (relocates content into the Settings IA).
 
+- **2026-06-17 (v0.79.3):** item 12a — Dashboard notifications reworked: the critical
+  "no backup yet" notice stays always-visible at the top; the non-critical notifications
+  (Settings active, Multilingual, stale-backup nag) now live in a **collapsible panel** that
+  shrinks to a single "Open to see notifications ▾" bar (state remembered in localStorage).
+  Staging-verified. **Still TODO for 12a:** show critical notifications on EVERY page (a global
+  bar in AppShell fed by the bootstrap) — currently the critical notice is Dashboard-only.
+
+- **2026-06-17 (v0.79.4):** items 3, 9, 10 done. **3** ✅ new Health check `warning_global_noindex`
+  — warns when Joomla Global Config Robots = noindex/nofollow (suppressed on staging); **9** ✅ new
+  Health check `warning_robots_not_writable` — warns when robots.txt/site root isn't writable
+  (sitemap.xml & llms.txt are served dynamically, no disk write to fail); both unit-tested + present
+  & executing on staging. **10** ✅ no bug — the AI Crawler Allow-all/Block-all `setAllBots()`
+  correctly marks the form dirty (the earlier "dirty=false" was the QA clicking the wrong "Block all").
+  **Phase 1 T2 remaining:** item 12a "step 2" (critical notifications on every page) + item 17
+  (needs Bojan's screenshot). Everything else in Phase 1 is done.
+
+- **2026-06-17 (v0.79.5):** item 17 ✅ — explanatory text no longer renders in columns. Root
+  cause: `.ab-alert` was `display:flex`, so inline `<strong>/<code>/<em>` became separate columns;
+  and a `.ab-help` description inside a flex `.ab-check/.ab-toggle` row was squeezed into a side
+  column. Fix (ab-components.css, both admin/ + media/ copies): `.ab-alert` → `display:block` +
+  `font-size: sm` (slightly smaller); field-description `.ab-help` wraps full-width below the
+  toggle+label. Staging-verified on the "Submitting to search engines" callout + Article Schema
+  description. **Phase 1 now done except item 12a "step 2"** (critical notifications on every page).
+
+- **2026-06-17 (v0.79.6) — PHASE 1 COMPLETE:** item 12a "step 2" ✅ — a global `CriticalBar`
+  (AppShell) now shows critical notifications on EVERY SPA page (suppressed on the Dashboard,
+  which renders its own). First wired critical = "no settings backup yet" (gated on a new
+  bootstrap `hasSettings` flag + localStorage); extensible for future critical events. Staging-
+  verified (shows on Health, hidden on Dashboard). **All of Phase 1 (T0, T1, T2 items 1–20 in
+  scope) is done and staging-verified.** Next: Phase 2 (admin navigation IA rework).
+
 ## Phase 1 — Quick wins (no IA changes, low risk, ship fast)
 
 - **T0 · Process rule: import/export round-trip gate** (item 0) — S. Add to OPERATING.md
