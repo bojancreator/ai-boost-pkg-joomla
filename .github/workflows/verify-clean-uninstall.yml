@@ -32,6 +32,9 @@ jobs:
   build-package:
     name: Build pkg_aiboost ZIPs
     runs-on: ubuntu-latest
+    outputs:
+      has_pro: ${{ steps.secretcheck.outputs.has_pro }}
+      has_free: ${{ steps.secretcheck.outputs.has_free }}
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -61,6 +64,23 @@ jobs:
           path: deliverables/plugin/pkg_aiboost*.zip
           retention-days: 7
           if-no-files-found: error
+      # The verify stage hits a LIVE site, so it can only run when the staging
+      # credentials are configured as repo secrets. Detect their presence here
+      # (secrets cannot be read in a job-level `if`) so the verify job can skip
+      # cleanly — green, not red — when they are absent.
+      - name: Detect target credentials
+        id: secretcheck
+        run: |
+          if [ -n "${{ secrets.STAGING_URL }}" ] && [ -n "${{ secrets.STAGING_ADMIN_USER }}" ] && [ -n "${{ secrets.STAGING_ADMIN_PASS }}" ]; then
+            echo "has_pro=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_pro=0" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -n "${{ secrets.FREE_URL }}" ] && [ -n "${{ secrets.FREE_ADMIN_USER }}" ] && [ -n "${{ secrets.FREE_ADMIN_PASS }}" ]; then
+            echo "has_free=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_free=0" >> "$GITHUB_OUTPUT"
+          fi
 
   verify-uninstall:
     name: verify-clean-uninstall (${{ matrix.target }})
@@ -85,6 +105,9 @@ jobs:
           name: pkg-aiboost-zips
           path: deliverables/plugin/
       - name: Run verifier (--target ${{ matrix.target }})
+        if: >-
+          ${{ (matrix.target == 'pro'  && needs.build-package.outputs.has_pro  == '1') ||
+              (matrix.target == 'free' && needs.build-package.outputs.has_free == '1') }}
         env:
           STAGING_URL:        ${{ secrets.STAGING_URL }}
           STAGING_ADMIN_USER: ${{ secrets.STAGING_ADMIN_USER }}
@@ -93,3 +116,10 @@ jobs:
           FREE_ADMIN_USER:    ${{ secrets.FREE_ADMIN_USER }}
           FREE_ADMIN_PASS:    ${{ secrets.FREE_ADMIN_PASS }}
         run: python3 scripts/verify-clean-uninstall.py --target ${{ matrix.target }}
+
+      - name: Skip notice (no credentials configured)
+        if: >-
+          ${{ (matrix.target == 'pro'  && needs.build-package.outputs.has_pro  != '1') ||
+              (matrix.target == 'free' && needs.build-package.outputs.has_free != '1') }}
+        run: |
+          echo "::notice title=verify-clean-uninstall skipped::No '${{ matrix.target }}' staging credentials in repo secrets. Add STAGING_URL/STAGING_ADMIN_USER/STAGING_ADMIN_PASS (pro) or FREE_URL/FREE_ADMIN_USER/FREE_ADMIN_PASS (free) in Settings → Secrets and variables → Actions to enable this live check."
