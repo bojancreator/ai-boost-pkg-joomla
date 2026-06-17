@@ -337,6 +337,11 @@ class SchemaBuilder
                 $schema['openingHoursSpecification'] = $hours;
             }
 
+            $specialHours = $this->buildSpecialOpeningHours();
+            if ($specialHours) {
+                $schema['specialOpeningHoursSpecification'] = $specialHours;
+            }
+
             $priceRange = trim((string) ($this->settings['specific_price_range'] ?? ''));
             if ($priceRange !== '') {
                 $schema['priceRange'] = $priceRange;
@@ -685,6 +690,73 @@ class SchemaBuilder
 
         [$hour, $minute] = explode(':', $time);
         return (int) $hour <= 23 && (int) $minute <= 59;
+    }
+
+    /**
+     * Date-specific opening-hours exceptions (holidays / seasonal hours) from the
+     * schema_special_hours JSON repeater, emitted as specialOpeningHoursSpecification.
+     * Each row: { label?, from (YYYY-MM-DD), to? (YYYY-MM-DD), closed (bool), opens, closes }.
+     * A row with `closed` emits opens=closes=00:00 (the Schema.org "closed all day"
+     * convention); otherwise opens/closes must be valid HH:MM. Missing `to` ⇒ single day.
+     *
+     * @return array<int, array<string, string>>
+     */
+    private function buildSpecialOpeningHours(): array
+    {
+        $raw = (string) ($this->settings['schema_special_hours'] ?? '');
+        if ($raw === '') {
+            return [];
+        }
+
+        $rows = json_decode($raw, true);
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $specs = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $from = trim((string) ($row['from'] ?? ''));
+            if (!$this->isValidBusinessDate($from)) {
+                continue;
+            }
+
+            $to = trim((string) ($row['to'] ?? ''));
+            if (!$this->isValidBusinessDate($to)) {
+                $to = $from;
+            }
+
+            $closedRaw = $row['closed'] ?? false;
+            $closed    = $closedRaw === true || $closedRaw === 1 || $closedRaw === '1';
+            if ($closed) {
+                $opens  = '00:00';
+                $closes = '00:00';
+            } else {
+                $opens  = trim((string) ($row['opens'] ?? ''));
+                $closes = trim((string) ($row['closes'] ?? ''));
+                if (!$this->isValidBusinessTime($opens) || !$this->isValidBusinessTime($closes)) {
+                    continue;
+                }
+            }
+
+            $specs[] = [
+                '@type'        => 'OpeningHoursSpecification',
+                'opens'        => $opens,
+                'closes'       => $closes,
+                'validFrom'    => $from,
+                'validThrough' => $to,
+            ];
+        }
+
+        return $specs;
+    }
+
+    private function isValidBusinessDate(string $date): bool
+    {
+        return (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $date);
     }
 
     /**

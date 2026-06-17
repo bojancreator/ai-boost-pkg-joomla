@@ -821,10 +821,126 @@ class SettingsController extends BaseController
         }
     }
 
+    /**
+     * AJAX: one-click create the 5 author Joomla user custom fields that the
+     * Author Entity (Person schema) feature reads. Idempotent — existing fields
+     * are left untouched (the user may have customised them).
+     * URL: index.php?option=com_aiboost&task=settings.createAuthorFields&format=json
+     */
+    public function createAuthorFields(): void
+    {
+        if (!Session::checkToken('get') && !Session::checkToken()) {
+            $this->sendJsonResponse(false, 'Invalid security token.');
+            return;
+        }
+
+        if (!$this->app->getIdentity()->authorise('core.manage', 'com_aiboost')) {
+            $this->sendJsonResponse(false, 'Access denied.');
+            return;
+        }
+
+        try {
+            $db      = Factory::getDbo();
+            $context = 'com_users.user';
+            $now     = Factory::getDate()->toSql();
+            $userId  = (int) ($this->app->getIdentity()->id ?? 0);
+
+            // Detect optional columns (Joomla version differences)
+            $prefix    = $db->getPrefix();
+            $fieldCols = array_map(
+                static fn($c) => (string) $c->Field,
+                $db->setQuery('SHOW COLUMNS FROM `' . $prefix . 'fields`')->loadObjectList() ?: []
+            );
+            $hasFieldparams = in_array('fieldparams', $fieldCols, true);
+            $hasOnlySubform = in_array('only_use_in_subform', $fieldCols, true);
+            // #__fields audit columns are NOT NULL without a default on strict MySQL.
+            $fieldAudit = [
+                'created_time'    => $db->quote($now),
+                'created_user_id' => (string) $userId,
+                'modified_time'   => $db->quote($now),
+                'modified_by'     => (string) $userId,
+            ];
+
+            // Ensure field group
+            $groupId = $this->ensureFieldGroupInline(
+                $db,
+                $context,
+                'AI Boost — Author',
+                'AI Boost author identity fields, read into the Person entity in Article schema (E-E-A-T).'
+            );
+
+            // MUST match the names SchemaProBuilder::loadAuthorCustomFields() reads.
+            $fieldDefs = [
+                ['name' => 'aiboost_job_title', 'title' => 'AI Boost: Job Title',     'type' => 'text',     'description' => 'Author job title / role — emitted as Person.jobTitle. Multilingual sites can add aiboost_job_title_en, _de, etc.', 'fieldparams' => '{}',                          'ordering' => 1],
+                ['name' => 'aiboost_bio',       'title' => 'AI Boost: Bio',           'type' => 'textarea', 'description' => 'Short author biography — emitted as Person.description.',                                                            'fieldparams' => '{"rows":"4","cols":""}',      'ordering' => 2],
+                ['name' => 'aiboost_website',   'title' => 'AI Boost: Website URL',   'type' => 'url',      'description' => 'Author website — emitted as Person.url and added to Person.sameAs.',                                                'fieldparams' => '{}',                          'ordering' => 3],
+                ['name' => 'aiboost_linkedin',  'title' => 'AI Boost: LinkedIn URL',  'type' => 'url',      'description' => 'Author LinkedIn profile — added to Person.sameAs.',                                                                 'fieldparams' => '{}',                          'ordering' => 4],
+                ['name' => 'aiboost_wikipedia', 'title' => 'AI Boost: Wikipedia URL', 'type' => 'url',      'description' => 'Author Wikipedia page — strong entity disambiguation signal in Person.sameAs.',                                     'fieldparams' => '{}',                          'ordering' => 5],
+            ];
+
+            $note    = 'aiboost_version:author-' . date('Ymd');
+            $created = $skipped = 0;
+
+            foreach ($fieldDefs as $def) {
+                $query = $db->getQuery(true)
+                    ->select($db->quoteName('id'))
+                    ->from('#__fields')
+                    ->where($db->quoteName('name')    . '=' . $db->quote($def['name']))
+                    ->where($db->quoteName('context') . '=' . $db->quote($context));
+                $db->setQuery($query, 0, 1);
+
+                // Idempotent: never overwrite a field the user may already have.
+                if ((int) ($db->loadResult() ?? 0) > 0) {
+                    $skipped++;
+                    continue;
+                }
+
+                $columns = ['asset_id', 'context', 'group_id', 'title', 'name', 'label', 'default_value', 'type', 'note', 'description', 'state', 'language', 'ordering', 'access', 'params'];
+                $values  = ['0', $db->quote($context), (string) (int) $groupId, $db->quote($def['title']), $db->quote($def['name']), $db->quote($def['title']), $db->quote(''), $db->quote($def['type']), $db->quote($note), $db->quote($def['description']), '1', $db->quote('*'), (string) (int) $def['ordering'], '1', $db->quote('{}')];
+                if ($hasFieldparams) { $columns[] = 'fieldparams';         $values[] = $db->quote($def['fieldparams']); }
+                if ($hasOnlySubform) { $columns[] = 'only_use_in_subform'; $values[] = '0'; }
+                foreach ($fieldAudit as $auditCol => $auditVal) {
+                    if (in_array($auditCol, $fieldCols, true)) { $columns[] = $auditCol; $values[] = $auditVal; }
+                }
+                $db->setQuery($db->getQuery(true)->insert('#__fields')->columns($columns)->values(implode(',', $values)))->execute();
+                $created++;
+            }
+
+            $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
+            echo json_encode([
+                'success' => true,
+                'created' => $created,
+                'skipped' => $skipped,
+                'message' => "Author fields: {$created} created, {$skipped} already existed. Find them under Users → Manage → (a user) → group \"AI Boost — Author\".",
+            ]);
+            $this->app->close();
+        } catch (\Throwable $e) {
+            $this->sendJsonResponse(false, 'Error: ' . $e->getMessage());
+        }
+    }
+
     private function ensureOgFieldGroupInline(
         \Joomla\Database\DatabaseInterface $db,
         string $context,
         string $title
+    ): int {
+        return $this->ensureFieldGroupInline(
+            $db,
+            $context,
+            $title,
+            'AI Boost per-article OpenGraph override fields'
+        );
+    }
+
+    /**
+     * Generic "ensure a custom-field group exists" for any context, with a
+     * caller-supplied description. Mirrors ensureOgFieldGroupInline().
+     */
+    private function ensureFieldGroupInline(
+        \Joomla\Database\DatabaseInterface $db,
+        string $context,
+        string $title,
+        string $description
     ): int {
         $query = $db->getQuery(true)
             ->select($db->quoteName('id'))
@@ -832,7 +948,7 @@ class SettingsController extends BaseController
             ->where($db->quoteName('context') . '=' . $db->quote($context))
             ->where($db->quoteName('title')   . '=' . $db->quote($title));
         $db->setQuery($query, 0, 1);
-        $id = (int)($db->loadResult() ?? 0);
+        $id = (int) ($db->loadResult() ?? 0);
 
         if ($id > 0) {
             return $id;
@@ -841,12 +957,12 @@ class SettingsController extends BaseController
         // Detect columns to avoid issues with Joomla version differences
         $prefix    = $db->getPrefix();
         $groupCols = array_map(
-            static fn($c) => (string)$c->Field,
+            static fn($c) => (string) $c->Field,
             $db->setQuery('SHOW COLUMNS FROM `' . $prefix . 'fields_groups`')->loadObjectList() ?: []
         );
 
         $columns = ['asset_id', 'context', 'title', 'description', 'state', 'language', 'ordering', 'params'];
-        $values  = ['0', $db->quote($context), $db->quote($title), $db->quote('AI Boost per-article OpenGraph override fields'), '1', $db->quote('*'), '1', $db->quote('{}')];
+        $values  = ['0', $db->quote($context), $db->quote($title), $db->quote($description), '1', $db->quote('*'), '1', $db->quote('{}')];
 
         if (in_array('note', $groupCols, true)) {
             $columns[] = 'note';
@@ -857,6 +973,18 @@ class SettingsController extends BaseController
             $values[]  = '1';
         }
 
+        // #__fields_groups audit columns are NOT NULL without a default on strict MySQL.
+        $now    = Factory::getDate()->toSql();
+        $userId = (int) ($this->app->getIdentity()->id ?? 0);
+        foreach ([
+            'created'     => $db->quote($now),
+            'created_by'  => (string) $userId,
+            'modified'    => $db->quote($now),
+            'modified_by' => (string) $userId,
+        ] as $auditCol => $auditVal) {
+            if (in_array($auditCol, $groupCols, true)) { $columns[] = $auditCol; $values[] = $auditVal; }
+        }
+
         $db->setQuery(
             $db->getQuery(true)
                 ->insert('#__fields_groups')
@@ -864,7 +992,7 @@ class SettingsController extends BaseController
                 ->values(implode(',', $values))
         )->execute();
 
-        return (int)$db->insertid();
+        return (int) $db->insertid();
     }
 
     /**
@@ -931,6 +1059,77 @@ class SettingsController extends BaseController
      * Return current settings + all stored translations as JSON.
      * URL: index.php?option=com_aiboost&task=settings.getSettings&format=json
      */
+    /**
+     * AJAX: search published articles for the Event Schema visual picker.
+     * Pass `ids` (comma-separated) to resolve specific IDs to titles, or `q`
+     * to search by title. Read-only, admin-gated (no token — same as getSettings).
+     * URL: index.php?option=com_aiboost&task=settings.searchArticles&format=json
+     */
+    public function searchArticles(): void
+    {
+        if (!$this->app->getIdentity()->authorise('core.manage', 'com_aiboost')) {
+            $this->sendJsonResponse(false, 'Access denied.');
+            return;
+        }
+        try {
+            $input = $this->app->getInput();
+            $db    = Factory::getDbo();
+
+            $query = $db->getQuery(true)
+                ->select([
+                    $db->quoteName('c.id'),
+                    $db->quoteName('c.title'),
+                    $db->quoteName('cat.title', 'category'),
+                ])
+                ->from($db->quoteName('#__content', 'c'))
+                ->join(
+                    'LEFT',
+                    $db->quoteName('#__categories', 'cat') . ' ON ' . $db->quoteName('cat.id') . ' = ' . $db->quoteName('c.catid')
+                )
+                ->where($db->quoteName('c.state') . ' = 1');
+
+            $idsRaw = (string) $input->get('ids', '', 'string');
+            if ($idsRaw !== '') {
+                $ids = array_values(array_filter(
+                    array_map('intval', explode(',', $idsRaw)),
+                    static fn($n) => $n > 0
+                ));
+                if (empty($ids)) {
+                    $this->jsonArticles([]);
+                    return;
+                }
+                $query->where($db->quoteName('c.id') . ' IN (' . implode(',', $ids) . ')');
+            } else {
+                $q = trim((string) $input->get('q', '', 'string'));
+                if ($q !== '') {
+                    $query->where($db->quoteName('c.title') . ' LIKE ' . $db->quote('%' . $db->escape($q, true) . '%', false));
+                }
+                $query->order($db->quoteName('c.modified') . ' DESC');
+            }
+
+            $db->setQuery($query, 0, 30);
+            $rows = $db->loadObjectList() ?: [];
+
+            $articles = array_map(static fn($r) => [
+                'id'       => (int) $r->id,
+                'title'    => (string) $r->title,
+                'category' => (string) ($r->category ?? ''),
+            ], $rows);
+
+            $this->jsonArticles($articles);
+        } catch (\Throwable $e) {
+            $this->sendJsonResponse(false, 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /** @param array<int,array<string,mixed>> $articles */
+    private function jsonArticles(array $articles): void
+    {
+        $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
+        echo json_encode(['success' => true, 'articles' => $articles]);
+        $this->app->close();
+    }
+
     public function getSettings(): void
     {
         if (!$this->app->getIdentity()->authorise('core.manage', 'com_aiboost')) {

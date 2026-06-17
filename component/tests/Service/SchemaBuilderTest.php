@@ -111,6 +111,50 @@ final class SchemaBuilderTest extends TestCase
         $this->assertSame('https://schema.org/Monday', $restaurant['openingHoursSpecification'][0]['dayOfWeek']);
     }
 
+    public function testSpecialOpeningHoursAreEmitted(): void
+    {
+        $special = json_encode([
+            // Closed holiday range → opens/closes 00:00, validFrom..validThrough.
+            ['label' => 'Christmas', 'from' => '2026-12-25', 'to' => '2026-12-26', 'closed' => true, 'opens' => '09:00', 'closes' => '17:00'],
+            // Single-day special hours (no `to` ⇒ validThrough == validFrom).
+            ['label' => 'New Year half-day', 'from' => '2026-12-31', 'to' => '', 'closed' => false, 'opens' => '09:00', 'closes' => '13:00'],
+            // Invalid (no date) — must be skipped.
+            ['label' => 'bad', 'from' => '', 'closed' => true],
+        ]);
+
+        $blocks   = $this->buildBlocks([
+            'org_name'             => 'Test Restaurant',
+            'schema_type'          => 'Restaurant',
+            'schema_special_hours' => $special,
+        ]);
+        $business = $blocks[0];
+
+        $this->assertArrayHasKey('specialOpeningHoursSpecification', $business);
+        $specs = $business['specialOpeningHoursSpecification'];
+        $this->assertCount(2, $specs); // the no-date row is dropped
+
+        $this->assertSame('OpeningHoursSpecification', $specs[0]['@type']);
+        $this->assertSame('00:00', $specs[0]['opens']);
+        $this->assertSame('00:00', $specs[0]['closes']);
+        $this->assertSame('2026-12-25', $specs[0]['validFrom']);
+        $this->assertSame('2026-12-26', $specs[0]['validThrough']);
+
+        $this->assertSame('09:00', $specs[1]['opens']);
+        $this->assertSame('13:00', $specs[1]['closes']);
+        $this->assertSame('2026-12-31', $specs[1]['validFrom']);
+        $this->assertSame('2026-12-31', $specs[1]['validThrough']);
+    }
+
+    public function testSpecialOpeningHoursOmittedWhenUnset(): void
+    {
+        $blocks = $this->buildBlocks([
+            'org_name'    => 'Test Restaurant',
+            'schema_type' => 'Restaurant',
+        ]);
+
+        $this->assertArrayNotHasKey('specialOpeningHoursSpecification', $blocks[0]);
+    }
+
     public function testAutomotiveServiceAndAreaServedAreEmitted(): void
     {
         $blocks = $this->buildBlocks([

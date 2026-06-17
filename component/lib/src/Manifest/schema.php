@@ -632,10 +632,22 @@ return [
         'tier'        => 'free',
         'sku'         => 'schema',
     ],
-    // schema_hours_temp_closed + schema_holiday_closed removed (v0.73.42):
-    // dead options (no runtime consumer) that fed the special/holiday-hours
-    // concept we decided to skip (specialOpeningHoursSpecification). The wired
-    // hours are the day-by-day hours_{day}_* fields above.
+    // schema_special_hours (v0.85.0): date-specific exceptions (public holidays,
+    // seasonal hours), emitted as specialOpeningHoursSpecification by
+    // SchemaBuilder::buildSpecialOpeningHours(). Supersedes the old dead
+    // schema_holiday_closed / schema_hours_temp_closed (removed v0.73.42) — this
+    // time WITH a real runtime consumer. JSON repeater, hand-rendered in SchemaTab.
+    [
+        'key'         => 'schema_special_hours',
+        'tab'         => 'schema',
+        'section'     => 'hours',
+        'label'       => 'Holiday / Special Hours',
+        'type'        => 'json',
+        'default'     => '[]',
+        'tier'        => 'free',
+        'sku'         => 'schema',
+        'description' => 'Date-specific opening-hours exceptions (holidays, seasonal hours), emitted as specialOpeningHoursSpecification.',
+    ],
     ...array_merge(...array_map(
         static fn(string $day): array => [
             [

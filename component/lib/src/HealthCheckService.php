@@ -91,6 +91,7 @@ class HealthCheckService
         'info_license_renewal'           => 'License',
         'critical_license_domain_collision' => 'License',
         'warning_article_schema_author'  => 'Schema',
+        'warning_schema_author_fields_missing' => 'Schema',
         'warning_article_schema_image'   => 'Schema',
         'info_og_description_override_active' => 'Social',
         'info_social_og_pro_active'           => 'Social',
@@ -198,6 +199,7 @@ class HealthCheckService
             $this->infoLicenseRenewal(),
             $this->criticalLicenseDomainCollision(),
             $this->checkArticleSchemaAuthor(),
+            $this->checkSchemaAuthorFieldsExist(),
             $this->infoSchemaAuthorFieldsCoverage(),
             $this->checkArticleSchemaImage(),
             $this->infoOgDescriptionOverride(),
@@ -1077,6 +1079,81 @@ class HealthCheckService
             'info_schema_author_fields_coverage', 'info', 'Author Entity — Custom Fields Coverage',
             true, $allGood, $msg,
             $this->settingsUrl('tab-schema-btn', 'schema_author_entity_enabled'),
+            $fixActions
+        );
+    }
+
+    /**
+     * Warn when Author Entity is on but the 5 aiboost_* user custom field
+     * definitions don't exist yet — without them the Person entity has nothing
+     * to read. Fix points to Schema → Author Entity where the one-click
+     * "Create author custom fields" button lives. Counts a field as present if
+     * any language variant exists (e.g. aiboost_job_title_en).
+     */
+    private function checkSchemaAuthorFieldsExist(): array
+    {
+        $entityOn = (string) ($this->settings['schema_author_entity_enabled'] ?? '0') === '1';
+
+        $fixActions = [[
+            'label' => 'Open Schema → Author Entity',
+            'url'   => $this->settingsUrl('tab-schema-btn', 'schema_author_entity_enabled'),
+            'tab'   => 'tab-schema-btn',
+            'field' => 'schema_author_entity_enabled',
+        ]];
+
+        if (!$entityOn) {
+            return $this->make(
+                'warning_schema_author_fields_missing', 'warning', 'Author Entity — Custom Fields Exist',
+                true, false,
+                'Author Entity toggle is off — the author custom fields are not required.',
+                '',
+                $fixActions
+            );
+        }
+
+        $prefixes = ['aiboost_job_title', 'aiboost_bio', 'aiboost_website', 'aiboost_linkedin', 'aiboost_wikipedia'];
+
+        try {
+            $db    = $this->db;
+            $likes = [];
+            foreach ($prefixes as $p) {
+                $likes[] = $db->quoteName('name') . ' LIKE ' . $db->quote($p . '%');
+            }
+            $names = $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName('name'))
+                    ->from('#__fields')
+                    ->where($db->quoteName('context') . ' = ' . $db->quote('com_users.user'))
+                    ->where('(' . implode(' OR ', $likes) . ')')
+            )->loadColumn() ?: [];
+        } catch (\Throwable $e) {
+            $names = [];
+        }
+
+        $present = 0;
+        foreach ($prefixes as $p) {
+            foreach ($names as $name) {
+                if (strpos((string) $name, $p) === 0) {
+                    $present++;
+                    break;
+                }
+            }
+        }
+
+        $total = count($prefixes);
+        $pass  = $present >= $total;
+        $msg   = $pass
+            ? sprintf('All %d author custom fields exist (group "AI Boost — Author") — editors can fill them on user profiles.', $total)
+            : sprintf(
+                '%d of %d author custom fields exist. Open Schema → Author Entity and click "Create author custom fields" to add the rest — without them the Author Entity has nothing to read.',
+                $present,
+                $total
+            );
+
+        return $this->make(
+            'warning_schema_author_fields_missing', 'warning', 'Author Entity — Custom Fields Exist',
+            $pass, $pass, $msg,
+            $pass ? '' : $this->settingsUrl('tab-schema-btn', 'schema_author_entity_enabled'),
             $fixActions
         );
     }

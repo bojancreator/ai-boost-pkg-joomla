@@ -133,6 +133,22 @@
             All fields are optional. If a user has none of them, AI Boost falls back to a basic <code>Person</code> with
             just <code>name</code>.
           </div>
+
+          <!-- One-click: create the 5 user custom fields documented above -->
+          <div class="ab-author-fields-row mt-3">
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--primary"
+              :disabled="authorFieldsBusy" @click="createAuthorFields">
+              <span v-if="authorFieldsBusy">⏳ Working…</span>
+              <span v-else>✨ Create author custom fields</span>
+            </button>
+            <span class="ab-help d-block mt-1">
+              Creates all 5 fields (group “AI Boost — Author”) in one click. Safe to re-run — existing fields are never overwritten.
+            </span>
+            <div v-if="authorFieldsMsg" class="ab-author-fields-msg mt-2"
+              :class="authorFieldsOk ? 'ab-author-ok' : 'ab-author-err'">
+              {{ authorFieldsMsg }}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -587,10 +603,43 @@
       </div>
     </div>
 
+    <!-- Holiday / Special Hours -->
+    <div v-if="hasHours" class="ab-card" data-ab-field="schema_special_hours">
+      <div class="ab-card-header">🎄 Holiday / Special Hours</div>
+      <div class="ab-card-body">
+        <div class="ab-help mb-2">
+          Date-specific exceptions (public holidays, seasonal hours). Emitted as
+          <code>specialOpeningHoursSpecification</code> so Google and AI engines show the right hours on those dates.
+        </div>
+        <div v-for="(row, i) in specialHours" :key="i" class="ab-special-hour-row">
+          <input v-model="row.label" type="text" class="ab-input form-control-sm ab-sh-label"
+            placeholder="Label (e.g. Christmas Day)">
+          <input v-model="row.from" type="date" class="ab-input form-control-sm ab-sh-date" title="Date (or start of range)">
+          <span class="ab-bh-sep">→</span>
+          <input v-model="row.to" type="date" class="ab-input form-control-sm ab-sh-date"
+            title="End date — leave empty for a single day">
+          <label class="ab-check ab-toggle mb-0 ab-sh-closed">
+            <input v-model="row.closed" type="checkbox" class="ab-toggle__input">
+            <span class="ab-check__label">Closed</span>
+          </label>
+          <template v-if="!row.closed">
+            <input v-model="row.opens" type="time" class="ab-input form-control-sm ab-bh-time">
+            <span class="ab-bh-sep">–</span>
+            <input v-model="row.closes" type="time" class="ab-input form-control-sm ab-bh-time">
+          </template>
+          <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost ab-btn--danger-ghost ms-1"
+            @click="removeSpecialHour(i)" title="Remove">✕</button>
+        </div>
+        <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost mt-2" @click="addSpecialHour">
+          + Add special date
+        </button>
+      </div>
+    </div>
+
     </template>
 
-    <!-- ═══════════ FAQ / RICH RESULTS ═══════════ -->
-    <template v-if="schemaSection === 'rich'">
+    <!-- ═══════════ FAQ ═══════════ -->
+    <template v-if="schemaSection === 'faq'">
     <!-- FAQ Schema — whole card is Pro (single FAQ source, also feeds /llms.txt) -->
     <ProGate mode="card" label="FAQ / QAPage">
     <div class="ab-card">
@@ -652,7 +701,10 @@
       </div>
     </div>
     </ProGate>
+    </template>
 
+    <!-- ═══════════ HOWTO ═══════════ -->
+    <template v-if="schemaSection === 'howto'">
     <!-- Pro: HowTo Schema -->
     <ProGate mode="card" label="HowTo Schema">
     <div class="ab-card">
@@ -711,7 +763,10 @@
     </div>
 
     </ProGate>
+    </template>
 
+    <!-- ═══════════ EVENTS ═══════════ -->
+    <template v-if="schemaSection === 'events'">
     <!-- Pro: Event Schema -->
     <ProGate mode="card" label="Event Schema">
     <div class="ab-card">
@@ -729,12 +784,11 @@
           <div class="ab-help">Joomla category ID containing event articles. Set to <code>0</code> to disable.</div>
         </div>
         <div class="mb-0">
-          <label class="ab-label">Event Article IDs for translations</label>
-          <input v-model="s.schema_event_article_ids" type="text" class="ab-input"
-            placeholder="e.g. 42,57,103 — comma-separated Joomla article IDs">
+          <label class="ab-label">Event Articles</label>
+          <ArticlePicker v-model="s.schema_event_article_ids" />
           <div class="ab-help">
-            Enter the Joomla article IDs of your event articles (comma-separated).
-            A per-language description expander will appear for each — key: <code>event_{index}_desc</code> (0-based order).
+            Search and pick the Joomla articles that describe your events. A per-language description
+            expander appears for each below — key: <code>event_{index}_desc</code> (0-based, in the order shown).
           </div>
           <!-- event_{index}_desc keys — index = 0-based position in list above (matches PHP resolveEventIndex) -->
           <template v-if="parsedEventArticleIds.length > 0">
@@ -998,8 +1052,32 @@ function parseServices(raw) {
   return []
 }
 
+// Parse the stored special-hours JSON into editable rows. Each row is
+// { label, from, to, closed (bool), opens, closes }; emitted server-side as
+// specialOpeningHoursSpecification by SchemaBuilder::buildSpecialOpeningHours().
+function parseSpecialHours(raw) {
+  try {
+    const rows = JSON.parse(raw || '[]')
+    if (Array.isArray(rows)) {
+      return rows
+        .filter(r => r && typeof r === 'object')
+        .map(r => ({
+          label:  String(r.label || ''),
+          from:   String(r.from || ''),
+          to:     String(r.to || ''),
+          closed: r.closed === true || r.closed === '1' || r.closed === 1,
+          opens:  String(r.opens || '09:00'),
+          closes: String(r.closes || '17:00'),
+        }))
+    }
+  } catch { /**/ }
+  return []
+}
+
 import TranslationExpander from '../components/TranslationExpander.vue'
 import ProGate from '../components/ProGate.vue'
+import ArticlePicker from '../components/ArticlePicker.vue'
+import { getCsrfTokenName } from '../api.js'
 
 // Two-tier picker: a category groups several schema.org @types. The stored
 // value is still the final schema_type (@type); the category is a UI-only
@@ -1068,7 +1146,7 @@ const SCHEMA_TYPE_OPTIONS = SCHEMA_CATEGORIES.flatMap(c => c.types)
 
 export default {
   name: 'SchemaTab',
-  components: { TranslationExpander, ProGate },
+  components: { TranslationExpander, ProGate, ArticlePicker },
   props: { s: { type: Object, required: true } },
 
   data() {
@@ -1076,8 +1154,12 @@ export default {
       days:  { mon:'Monday', tue:'Tuesday', wed:'Wednesday', thu:'Thursday', fri:'Friday', sat:'Saturday', sun:'Sunday' },
       howto: parseHowto(this.s.schema_howto),
       serviceRows: parseServices(this.s.schema_services),
+      specialHours: parseSpecialHours(this.s.schema_special_hours),
       schemaCategory: '',
       schemaSection: 'core',
+      authorFieldsBusy: false,
+      authorFieldsMsg: '',
+      authorFieldsOk: false,
     }
   },
 
@@ -1090,6 +1172,10 @@ export default {
   watch: {
     howto: {
       handler(v) { this.s.schema_howto = JSON.stringify(v) },
+      deep: true,
+    },
+    specialHours: {
+      handler(v) { this.s.schema_special_hours = JSON.stringify(v) },
       deep: true,
     },
     serviceRows: {
@@ -1138,12 +1224,16 @@ export default {
       return LOCAL_BUSINESS_TYPES.includes(this.s.schema_type) && this.s.schema_type !== 'NewsMediaOrganization'
     },
     // Sub-tab groups; Hours only appears for types that emit opening hours.
+    // FAQ / HowTo / Events are split into their own sub-tabs (one rich-result
+    // type per tab) so this long tab stays scannable.
     visibleSchemaSections() {
       return [
         { id: 'core', label: '⚙️ Core' },
         { id: 'business', label: '🏪 Business' },
         ...(this.hasHours ? [{ id: 'hours', label: '🕐 Hours' }] : []),
-        { id: 'rich', label: '❓ FAQ / Rich' },
+        { id: 'faq', label: '❓ FAQ' },
+        { id: 'howto', label: '🔧 HowTo' },
+        { id: 'events', label: '🎟 Events' },
       ]
     },
     hasAvailableService() {
@@ -1304,6 +1394,15 @@ export default {
       this.serviceRows.splice(idx, 1)
     },
 
+    // Holiday / special-hours repeater — the deep watcher serialises specialHours
+    // back to s.schema_special_hours, so these just mutate the local array.
+    addSpecialHour() {
+      this.specialHours.push({ label: '', from: '', to: '', closed: false, opens: '09:00', closes: '17:00' })
+    },
+    removeSpecialHour(i) {
+      this.specialHours.splice(i, 1)
+    },
+
     isClosed(dk) {
       return (this.s['hours_' + dk + '_closed'] ?? '0') === '1'
     },
@@ -1321,6 +1420,26 @@ export default {
 
     removeStep(i) {
       this.howto.steps.splice(i, 1)
+    },
+
+    // One-click creation of the 5 author user custom fields (idempotent server-side).
+    async createAuthorFields() {
+      this.authorFieldsBusy = true
+      this.authorFieldsMsg  = ''
+      try {
+        const token = getCsrfTokenName()
+        const base  = 'index.php?option=com_aiboost&task=settings.createAuthorFields&format=json'
+        const url   = token ? `${base}&${token}=1` : base
+        const res   = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        const data  = await res.json()
+        this.authorFieldsOk  = !!data.success
+        this.authorFieldsMsg = data.message || (data.success ? 'Done.' : 'Unknown error.')
+      } catch (e) {
+        this.authorFieldsOk  = false
+        this.authorFieldsMsg = 'Request failed: ' + e.message
+      } finally {
+        this.authorFieldsBusy = false
+      }
     },
   },
 }
@@ -1463,6 +1582,20 @@ export default {
 .ab-bh-times  { display: flex; align-items: center; gap: 6px; }
 .ab-bh-time   { max-width: 110px; }
 .ab-bh-sep    { color: var(--secondary-color, #6c757d); }
+
+.ab-special-hour-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 6px 0; border-bottom: 1px solid var(--border-color, #dee2e6);
+}
+.ab-special-hour-row:last-of-type { border-bottom: none; }
+.ab-sh-label  { flex: 1 1 180px; min-width: 140px; }
+.ab-sh-date   { max-width: 160px; }
+.ab-sh-closed { flex-shrink: 0; }
+
+/* Author "Create custom fields" result message (theme-aware). */
+.ab-author-fields-msg { font-size: .85rem; }
+.ab-author-ok  { color: var(--ab-success, #16a34a); }
+.ab-author-err { color: var(--ab-danger, #dc2626); }
 
 /* HowTo steps */
 .ab-howto-step {

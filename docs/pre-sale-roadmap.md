@@ -68,6 +68,87 @@ Cross-references `BACKLOG.md`, the website-refresh plan, and
   Custom Code already in ADVANCED). Build clean (codegen guard + leak check), 3/3 standalone tests,
   import/export round-trip PASS ("Titles / Meta" = 14 keys, no key dropped). **Next: Phase 3 (own conversation).**
 
+- **2026-06-17 (v0.81.0) — PHASE 3 Slice A (item 8a) DONE:** Schema tab's single
+  "❓ FAQ / Rich" section split into three separate sub-tabs — **❓ FAQ · 🔧 HowTo · 🎟 Events**
+  (`SchemaTab.vue`: `visibleSchemaSections` + three `<template v-if="schemaSection===…">` blocks;
+  pure front-end, no setting keys / emission / manifest touched). Staging-verified on offroadserbia
+  (J6/PHP8.5) via Playwright: nav bar = `Core · Business · Hours · FAQ · HowTo · Events`, each sub-tab
+  clicks + renders correct card (FAQ→FAQ/QAPage card, Events→Event Schema card), no AI-Boost console
+  errors, Pro unlocked. composer test 3/3, PHPUnit 415/415, import/export round-trip PASS (site
+  byte-identical). NOTE (Windows): run PHPUnit as `php vendor/bin/phpunit` (no `.bat` shim → bare
+  `composer phpunit` fails). **Next: Slice B (item 2 — Author Entity one-click + Health).**
+
+- **2026-06-17 (v0.82.0) — PHASE 3 Slice B (item 2) DONE:** one-click "Create author custom fields"
+  button + Health check. New `SettingsController::createAuthorFields()` (AJAX, idempotent) creates the
+  5 `aiboost_*` user custom fields (job_title/bio/website/linkedin/wikipedia, context `com_users.user`,
+  group "AI Boost — Author") that `SchemaProBuilder::loadAuthorCustomFields()` reads; button lives in
+  Schema → Core → Author Entity card (`SchemaTab.vue`, mirrors SocialTab's OG-repair pattern). New
+  Health check `checkSchemaAuthorFieldsExist()` (`warning_schema_author_fields_missing`, category
+  Schema) flags "X of 5 author custom fields exist" with a fix-action to the Author Entity tab.
+  **Bug fixed along the way:** `#__fields`/`#__fields_groups` audit columns (created/created_by/
+  modified/modified_by + created_time/created_user_id) are NOT NULL without a default on strict MySQL,
+  so the field-group INSERT threw "Field 'created' doesn't have a default value" — now filled when the
+  columns exist. Same latent bug existed in the OG `ensureOgFieldGroupInline` (masked because that
+  group pre-existed on staging); refactored OG to delegate to the new generic `ensureFieldGroupInline`,
+  fixing both. Staging-verified (Playwright): Health "0 of 5"→warning, button → "5 created", re-click →
+  "0 created, 5 already existed" (idempotent), health.rerun → "All 5 exist" pass. composer test 3/3,
+  PHPUnit 415/415, import/export round-trip PASS. **Next: Slice C (item 25 — integration options UI).**
+
+- **2026-06-17 (v0.83.0) — PHASE 3 Slice C / T5 (item 25) DONE:** Falang (6) + YOOtheme (6) integration
+  option fields now render + save on the Integrations page (were registered + saveable but had no UI).
+  Each falang/yootheme card gets a collapsible **Options** `<details>`; Free fields plain, Pro fields
+  wrapped in `<ProGate mode="card">`. New `components/IntegrationOptionField.vue` (toggle/select/text,
+  v-model, `:data-ab-field`) renders each field. IntegrationsPage fetches the settings blob once on
+  mount (`settings.getSettings`, defaults fill unset keys). **Save uses a new read-modify-write endpoint
+  `IntegrationsController::saveOptions()`** (mirrors `saveToggle`; whitelisted `INTEGRATION_OPTION_KEYS`
+  only) — NOT settings.save, which rebuilds the whole blob and would drop unposted keys. Staging-verified
+  (Playwright): both cards render, falang_hreflang_head flip 1→0 persists, **sentinel schema_type
+  unchanged + 239/239 keys before==after (no settings wiped)**, value restored. composer test 3/3,
+  PHPUnit 415/415, import/export round-trip PASS. **Next: Slice D (item 8b — visual article picker).**
+
+- **2026-06-17 (v0.84.0) — PHASE 3 Slice D (item 8b) DONE:** the Event Schema "article IDs" text box is
+  now a visual picker with search. New `components/ArticlePicker.vue` (v-model on the same
+  `schema_event_article_ids` comma-id string — no manifest/three-way change): selected articles as chips
+  (index + title + id), debounced title-search dropdown, click to add / ✕ to remove. Backed by a new
+  read-only endpoint `SettingsController::searchArticles()` (admin-gated, no token; `ids=` resolves
+  IDs→titles, `q=` searches `#__content` by title, 30 cap, joins `#__categories`). Wired into the Events
+  sub-tab in `SchemaTab.vue`; existing `event_{index}_desc` translation expanders still track picker order.
+  Staging-verified (Playwright): endpoint returns 30 articles, typing filters, click adds a chip with the
+  real title ("test proba" #220), expander "Event #0 (article #220)" appears. composer test 3/3, PHPUnit
+  415/415, import/export round-trip PASS. **Next: Slice E (item 6 — holiday / special opening hours).**
+
+- **2026-06-17 (v0.85.0) — PHASE 3 Slice E (item 6) DONE → PHASE 3 COMPLETE:** holiday / special opening
+  hours. New manifest key `schema_special_hours` (type `json`, section `hours`, tier `free` — consistent
+  with the free weekly hours; supersedes the dead schema_holiday_closed removed v0.73.42, this time WITH a
+  consumer). Codegen run; the json field is hand-rendered so a `data-ab-field="schema_special_hours"`
+  control in `SchemaTab.vue` satisfies the STRICT complex-coverage guard. UI: new "🎄 Holiday / Special
+  Hours" repeater card in the Schema → Hours sub-tab (rows = label · from · to · Closed · opens/closes;
+  parse/serialize like the howto repeater). **Emission (real consumer):** new
+  `SchemaBuilder::buildSpecialOpeningHours()` emits `specialOpeningHoursSpecification` next to
+  `openingHoursSpecification` in `decorateBusinessDetails()` (closed ⇒ 00:00/00:00; missing `to` ⇒ single
+  day; invalid dates/times skipped). The orphaned `BusinessHoursBuilder` class was left as-is (emission
+  stays inline in SchemaBuilder, same as the weekly hours). 2 new PHPUnit tests. Staging-verified
+  (Playwright): repeater renders, row saves, **FRONT-END homepage JSON-LD emits
+  specialOpeningHoursSpecification incl. the 2026-12-25 date** (AI Boost is the live emitter), row removed
+  + restored. composer test 3/3, PHPUnit 417/417, import/export round-trip PASS.
+
+  **★ PHASE 3 COMPLETE (v0.85.0).** All 5 slices done + staging-verified (offroadserbia J6/PHP8.5),
+  **NOT yet committed**. T4 (items 2/6/8) + T5 (item 25) all shipped. Next per roadmap: Phase 4 (T6
+  update-server, T7 perf/memory, T8 security) in its own conversation.
+
+- **2026-06-17 (v0.85.1) — Slice D ArticlePicker UI fix (Bojan-reported):** the Events article-search
+  dropdown (1) was clipped because `body[class*="com_aiboost"] .ab-card` has `overflow:hidden` and the
+  list was `position:absolute`, and (2) showed a white background in dark mode because it used
+  non-existent `--ab-surface`/`--ab-surface-2` tokens (fell back to white). Fix: render the results list
+  **in normal flow** (card grows, never clips, any theme) + real theme-aware tokens
+  (`--ab-bg-elev`/`--ab-bg-muted`/`--ab-text`/`--ab-border`). Also defined the previously-missing
+  `ab-author-ok`/`ab-author-err` message colors (Slice B). **Verified in BOTH light AND dark themes via
+  Playwright** (computed style: dark list bg = #23272f, text #e5e7eb, position static; visual screenshots
+  of picker-open + Hours repeater + Author card + Integrations options in both themes; no console errors).
+  composer test 3/3, import/export PASS. **Lesson:** admin CSS must use the real `--ab-*` tokens from
+  `ab-tokens.css` (NOT invented names) and account for `.ab-card { overflow:hidden }`; always click-test
+  dropdowns/overlays in BOTH themes, not just functional flow.
+
 ## Phase 1 — Quick wins (no IA changes, low risk, ship fast)
 
 - **T0 · Process rule: import/export round-trip gate** (item 0) — S. Add to OPERATING.md

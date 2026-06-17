@@ -81,6 +81,40 @@
                 <p class="text-muted mb-0 mt-1">{{ copyFor(item).off }}</p>
               </template>
             </details>
+
+            <!-- Expandable: editable per-integration options -->
+            <details v-if="optionsFor(item) && optsLoaded" class="ab-int-details small">
+              <summary>Options</summary>
+              <div class="ab-int-opts mt-2">
+                <p v-if="!item.installed" class="text-muted small mb-2">
+                  Not detected on this site — these options take effect once the extension is installed and active.
+                </p>
+
+                <!-- Free fields -->
+                <IntegrationOptionField
+                  v-for="f in optionsFor(item).free" :key="f.key"
+                  :field="f" v-model="settings[f.key]" />
+
+                <!-- Pro fields -->
+                <ProGate v-if="optionsFor(item).pro.length" mode="card" :label="item.name + ' (Pro)'">
+                  <IntegrationOptionField
+                    v-for="f in optionsFor(item).pro" :key="f.key"
+                    :field="f" v-model="settings[f.key]" />
+                </ProGate>
+
+                <div class="d-flex align-items-center gap-2 mt-2">
+                  <button
+                    type="button" class="ab-btn ab-btn--sm ab-btn--primary"
+                    :disabled="!!savingOpts[item.key]" @click="saveOptions(item)">
+                    <span v-if="savingOpts[item.key]">⏳ Saving…</span>
+                    <span v-else>Save options</span>
+                  </button>
+                  <span
+                    v-if="optsMsg[item.key]" class="small"
+                    :class="optsOk[item.key] ? 'text-success' : 'text-danger'">{{ optsMsg[item.key] }}</span>
+                </div>
+              </div>
+            </details>
           </div>
 
           <!-- Card footer: CTAs -->
@@ -119,8 +153,44 @@
 
 <script>
 import { postWithCsrf } from './api.js'
+import ProGate from './components/ProGate.vue'
+import IntegrationOptionField from './components/IntegrationOptionField.vue'
 
-const TOGGLE_URL = 'index.php?option=com_aiboost&task=integrations.saveToggle'
+const TOGGLE_URL       = 'index.php?option=com_aiboost&task=integrations.saveToggle'
+const OPTIONS_URL      = 'index.php?option=com_aiboost&task=integrations.saveOptions'
+const GET_SETTINGS_URL = 'index.php?option=com_aiboost&task=settings.getSettings&format=json'
+
+// Editable option fields per integration. Keys MUST match the bridge plugin's
+// onAiBoostRegisterFields() AND IntegrationsController::INTEGRATION_OPTION_KEYS.
+const INTEGRATION_OPTIONS = {
+  falang: {
+    free: [],
+    pro: [
+      { key: 'falang_hreflang_head',    type: 'toggle', label: 'Emit hreflang link tags in the page <head>', default: '1' },
+      { key: 'falang_hreflang_sitemap', type: 'toggle', label: 'List translated URLs as hreflang alternates in the XML sitemap', default: '1' },
+      { key: 'falang_hreflang_mode',    type: 'select', label: 'Hreflang source', default: 'auto', options: [
+        { value: 'auto',          label: 'Auto (recommended)' },
+        { value: 'joomla_native', label: 'Joomla language associations' },
+        { value: 'falang',        label: 'Falang translations' },
+      ] },
+      { key: 'falang_schema_translate', type: 'toggle', label: 'Translate Schema.org per language', default: '1' },
+      { key: 'falang_og_translate',     type: 'toggle', label: 'Translate OpenGraph per language', default: '1' },
+      { key: 'falang_primary_language', type: 'text',   label: 'Primary language code', default: 'en', placeholder: 'en' },
+    ],
+  },
+  yootheme: {
+    free: [
+      { key: 'yootheme_meta_override',  type: 'toggle', label: 'Use the YOOtheme page title & description for meta and OpenGraph', default: '1' },
+    ],
+    pro: [
+      { key: 'yootheme_faq_enabled',     type: 'toggle', label: 'Build FAQ schema from YOOtheme Accordion elements', default: '1' },
+      { key: 'yootheme_gallery_enabled', type: 'toggle', label: 'Build ImageGallery schema from YOOtheme Gallery elements', default: '1' },
+      { key: 'yootheme_schema_mapping',  type: 'toggle', label: 'Map Schema.org type from YOOtheme menu params', default: '1' },
+      { key: 'yootheme_accordion_selector', type: 'text', label: 'Accordion CSS selector', default: '.uk-accordion', placeholder: '.uk-accordion' },
+      { key: 'yootheme_sitemap_exclude_builder', type: 'toggle', label: 'Exclude builder-only pages from the XML sitemap', default: '1' },
+    ],
+  },
+}
 
 // Per-integration plain-English copy for the expandable card section. Keep in
 // sync with docs/integrations.md.
@@ -141,6 +211,7 @@ const INTEGRATION_COPY = {
 
 export default {
   name: 'IntegrationsPage',
+  components: { ProGate, IntegrationOptionField },
 
   data() {
     return {
@@ -148,6 +219,39 @@ export default {
       search:          '',
       categoryFilter:  '',
       saving:          {},
+      settings:        {},
+      optsLoaded:      false,
+      savingOpts:      {},
+      optsMsg:         {},
+      optsOk:          {},
+    }
+  },
+
+  async mounted() {
+    // Integration option fields are not part of this view's bootstrap, so pull
+    // the current settings blob once. Defaults fill any key not yet stored so
+    // toggles render in their correct state.
+    try {
+      const res  = await fetch(GET_SETTINGS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      const data = await res.json()
+      const s    = (data && data.settings) || {}
+      for (const intKey of Object.keys(INTEGRATION_OPTIONS)) {
+        const def = INTEGRATION_OPTIONS[intKey]
+        for (const f of [...def.free, ...def.pro]) {
+          if (s[f.key] === undefined || s[f.key] === null) s[f.key] = f.default
+        }
+      }
+      this.settings = s
+    } catch (_e) {
+      // Leave settings empty — fields fall back to defaults below.
+      const s = {}
+      for (const intKey of Object.keys(INTEGRATION_OPTIONS)) {
+        const def = INTEGRATION_OPTIONS[intKey]
+        for (const f of [...def.free, ...def.pro]) s[f.key] = f.default
+      }
+      this.settings = s
+    } finally {
+      this.optsLoaded = true
     }
   },
 
@@ -272,6 +376,36 @@ export default {
         const s = { ...this.saving }
         delete s[item.key]
         this.saving = s
+      }
+    },
+
+    optionsFor(item) {
+      return INTEGRATION_OPTIONS[item.key] || null
+    },
+
+    async saveOptions(item) {
+      const def = this.optionsFor(item)
+      if (!def || this.savingOpts[item.key]) return
+
+      const opts = {}
+      for (const f of [...def.free, ...def.pro]) {
+        opts[f.key] = this.settings[f.key] ?? f.default
+      }
+
+      this.savingOpts = { ...this.savingOpts, [item.key]: true }
+      this.optsMsg    = { ...this.optsMsg, [item.key]: '' }
+      try {
+        const resp = await postWithCsrf(OPTIONS_URL, { integration: item.key, options: JSON.stringify(opts) })
+        const ok   = !!resp && resp.success === true
+        this.optsOk  = { ...this.optsOk, [item.key]: ok }
+        this.optsMsg = { ...this.optsMsg, [item.key]: ok ? '✓ Saved' : ((resp && resp.message) || 'Save failed') }
+      } catch (_e) {
+        this.optsOk  = { ...this.optsOk, [item.key]: false }
+        this.optsMsg = { ...this.optsMsg, [item.key]: 'Request failed' }
+      } finally {
+        const s = { ...this.savingOpts }
+        delete s[item.key]
+        this.savingOpts = s
       }
     },
   },

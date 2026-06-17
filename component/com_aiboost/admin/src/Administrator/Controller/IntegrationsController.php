@@ -28,6 +28,31 @@ class IntegrationsController extends BaseController
     private const STATIC_TOGGLE_KEYS = ['falang', 'yootheme'];
 
     /**
+     * Per-integration option keys the Integrations page may write. Whitelist —
+     * any key not listed here is ignored, so the endpoint can never be coerced
+     * into writing arbitrary settings. Mirrors the fields each bridge plugin
+     * registers via onAiBoostRegisterFields().
+     */
+    private const INTEGRATION_OPTION_KEYS = [
+        'falang' => [
+            'falang_hreflang_head',
+            'falang_hreflang_sitemap',
+            'falang_hreflang_mode',
+            'falang_schema_translate',
+            'falang_og_translate',
+            'falang_primary_language',
+        ],
+        'yootheme' => [
+            'yootheme_meta_override',
+            'yootheme_faq_enabled',
+            'yootheme_gallery_enabled',
+            'yootheme_schema_mapping',
+            'yootheme_accordion_selector',
+            'yootheme_sitemap_exclude_builder',
+        ],
+    ];
+
+    /**
      * AJAX: flip a single integration master switch (`integration_<key>_enabled`).
      *
      * This is a deliberate read-modify-write of ONE key into the settings blob
@@ -127,6 +152,101 @@ class IntegrationsController extends BaseController
         } catch (\Throwable $e) {
             \AiBoost\Lib\Logger::warning('[AiBoost] integration saveToggle error: ' . $e->getMessage());
             $this->sendJson(false, 'Could not update the integration. Check the server error log.');
+        }
+    }
+
+    /**
+     * AJAX: save a single integration's option fields (e.g. falang_*, yootheme_*).
+     *
+     * Like saveToggle, this is a deliberate read-modify-write of ONLY the
+     * whitelisted keys into the settings blob — NOT a settings.save, which would
+     * rebuild the whole blob from the posted form and drop everything the
+     * Integrations page does not post.
+     *
+     * POST: integration=<key>, options=<json {key:value}>
+     * URL:  index.php?option=com_aiboost&task=integrations.saveOptions
+     */
+    public function saveOptions(): void
+    {
+        if (!Session::checkToken()) {
+            $this->sendJson(false, 'Invalid security token.');
+            return;
+        }
+
+        if (!$this->app->getIdentity()->authorise('core.manage', 'com_aiboost')) {
+            $this->sendJson(false, 'Access denied.');
+            return;
+        }
+
+        try {
+            $input = $this->app->getInput();
+            $key   = preg_replace('/[^a-z0-9_]/', '', strtolower((string) $input->get('integration', '', 'string')));
+
+            if ($key === '' || !isset(self::INTEGRATION_OPTION_KEYS[$key])) {
+                $this->sendJson(false, 'Unknown integration.');
+                return;
+            }
+            $allowed = self::INTEGRATION_OPTION_KEYS[$key];
+
+            $posted = json_decode((string) $input->get('options', '', 'raw'), true);
+            if (!is_array($posted)) {
+                $this->sendJson(false, 'No options received.');
+                return;
+            }
+
+            $db  = Factory::getDbo();
+            $now = Factory::getDate()->toSql();
+
+            // Load → modify whitelisted keys → write back the whole blob.
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('settings_json'))
+                ->from($db->quoteName('#__aiboost_settings'))
+                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
+            $raw      = (string) $db->setQuery($query)->loadResult();
+            $settings = $raw !== '' ? (json_decode($raw, true) ?: []) : [];
+            if (!is_array($settings)) {
+                $settings = [];
+            }
+
+            $applied = 0;
+            foreach ($allowed as $optKey) {
+                if (array_key_exists($optKey, $posted)) {
+                    $settings[$optKey] = (string) $posted[$optKey];
+                    $applied++;
+                }
+            }
+
+            $json = json_encode($settings, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            $idQuery = $db->getQuery(true)
+                ->select($db->quoteName('id'))
+                ->from($db->quoteName('#__aiboost_settings'))
+                ->where($db->quoteName('setting_key') . ' = ' . $db->quote('main'));
+            $existingId = (int) $db->setQuery($idQuery)->loadResult();
+
+            if ($existingId) {
+                $update = $db->getQuery(true)
+                    ->update($db->quoteName('#__aiboost_settings'))
+                    ->set($db->quoteName('settings_json') . ' = ' . $db->quote($json))
+                    ->set($db->quoteName('updated_at') . ' = ' . $db->quote($now))
+                    ->where($db->quoteName('id') . ' = ' . $existingId);
+            } else {
+                $update = $db->getQuery(true)
+                    ->insert($db->quoteName('#__aiboost_settings'))
+                    ->columns([$db->quoteName('setting_key'), $db->quoteName('settings_json'), $db->quoteName('created_at'), $db->quoteName('updated_at')])
+                    ->values($db->quote('main') . ',' . $db->quote($json) . ',' . $db->quote($now) . ',' . $db->quote($now));
+            }
+            $db->setQuery($update)->execute();
+
+            $this->invalidateCaches();
+
+            $this->sendJson(true, 'Integration options saved.', [
+                'integration' => $key,
+                'applied'     => $applied,
+            ]);
+        } catch (\Throwable $e) {
+            \AiBoost\Lib\Logger::warning('[AiBoost] integration saveOptions error: ' . $e->getMessage());
+            $this->sendJson(false, 'Could not save the integration options. Check the server error log.');
         }
     }
 
