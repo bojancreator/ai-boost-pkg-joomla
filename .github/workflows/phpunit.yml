@@ -1,4 +1,4 @@
-name: PHPUnit — Service DI Tests (PHP 8.1–8.5)
+name: PHPUnit — Service DI Tests (PHP 8.2–8.5)
 
 on:
   push:
@@ -13,7 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ["8.1", "8.2", "8.3", "8.4", "8.5"]
+        # phpunit 11.x (locked in composer.lock) requires PHP >= 8.2, so the
+        # test runner cannot execute on 8.1. The product still supports 8.1 —
+        # that floor is covered by PHPStan (phpqa.yml) and the standalone
+        # safety tests (ci.yml), which run on the 8.1 runtime.
+        php-version: ["8.2", "8.3", "8.4", "8.5"]
 
     steps:
       - name: Checkout
