@@ -3,9 +3,9 @@
 > **Status: evergreen methodology reference — not a status tracker.**
 > The decision gates below are reusable for any future structural refactor.
 > They do *not* describe in-flight work and are not a checklist to "finish".
-> Current v0.5 release status and the remaining release-hardening work live in
-> `ROADMAP-v0.5.md`. If a gate here ever conflicts with a shipped decision in the
-> ROADMAP Decision Log, the ROADMAP wins.
+> Current release status and remaining work live in `STATUS.md` (`ROADMAP-v0.5.md` is an
+> archive — its Decision Log + Verification Log are kept as history). If a gate here ever
+> conflicts with a shipped decision in the ROADMAP Decision Log, that decision wins.
 
 This document is an architecture decision guide for structural refactors. It is
 not a parallel task board. The forward work list stays in `BACKLOG.md`, and the

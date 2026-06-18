@@ -1,8 +1,11 @@
-# ROADMAP — AI Boost for Joomla v0.5
+# ROADMAP — AI Boost for Joomla v0.5 — ⚠️ ARCHIVE
 
-**Komandni sto za v0.5 sprint.** Svaka sesija počinje ovde: pročitaj ovaj fajl →
-`BACKLOG.md` → relevantan fajl iz `docs/` → radi tačno jedan slice → ažuriraj
-ovaj fajl na kraju.
+> **ARCHIVE since 2026-06-18 — this is NO LONGER the live board.** Current status (version,
+> what's deployed on which site, what's left to launch) lives in **`STATUS.md`**; forward work
+> in **`BACKLOG.md`**; procedures in **`OPERATING.md`**. Kept here only as **history**: the
+> **Decision Log** and **Verification Log** below are the durable record of *why* and *what was
+> tested* — don't delete them, and don't treat the stale "Current Status" / "Phase Board" /
+> "Next Handoff" sections as live (they stop at v0.76.0; the project is now well past that).
 
 Ostali dokumenti:
 - `BACKLOG.md` — sve što postoji kao posao (dugoročna lista)

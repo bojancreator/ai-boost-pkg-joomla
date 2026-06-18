@@ -1,12 +1,13 @@
 # Workspace — AI Boost for Joomla
 
-Single global plan: everything operational that isn't code. Status lives in exactly
-two places — **this file** (procedures) and **`BACKLOG.md`** (remaining work). Active
-sprint execution is tracked in **`ROADMAP-v0.5.md`** (current v0.5 status, phase board,
-and next handoff). No parallel ledger or status panel beyond these three.
+Single global plan: everything operational that isn't code. The live status board is
+**`STATUS.md`** (current version, what's deployed on which site, what's left to launch) —
+read it first, update it last. **This file** holds procedures; **`BACKLOG.md`** holds
+remaining work. `ROADMAP-v0.5.md` is now an **ARCHIVE** (decision log + verification
+history). Auto-memory only **points** to `STATUS.md` — it is never a parallel ledger.
 
-Companion files: `BACKLOG.md` (forward work), `docs/architecture-refactor-plan.md`
-(decision gates for large structural refactors — not a status board).
+Companion files: `STATUS.md` (live board), `BACKLOG.md` (forward work),
+`docs/architecture-refactor-plan.md` (decision gates for large structural refactors — not a status board).
 
 ---
 
@@ -56,7 +57,7 @@ non-English content only when Bojan explicitly asks — after English is final.
 ## 🤖 Agent Operating Procedure
 
 1. **Language** — Serbian with Bojan; English for all code, UI, docs, marketing.
-2. **Orientation (read in order):** `ROADMAP-v0.5.md` (active sprint status) →
+2. **Orientation (read in order):** `STATUS.md` (live board — where we are now) →
    `OPERATING.md` → `BACKLOG.md` → for `component/` work,
    load `joomla-development` skill → for
    options, the matching `Manifest/*.php` → before requesting any secret/API key,
@@ -171,18 +172,24 @@ A task is done only when every applicable step is finished, in order. **Never re
    was added/changed/removed (see the two MANDATORY rules below).
 3. **Bump the version** before building (see Versioning Rule).
 4. **Build:** `python3 scripts/build-package-zip.py`.
-5. **Install to staging:** `python3 scripts/install-to-staging.py` (also
-   `install-to-free.py` for Free-affecting changes).
+5. **Install to a Pro AND a Free test site** — Free and Pro share one codebase, so every
+   shipped change is Free-affecting; never verify Pro only. Routine:
+   `python _creds_run.py scripts/install-matrix.py --sites j6pro,j6free` (add `j5pro,j5free`
+   when an install/schema path changed). The **live** sites (offroadserbia / offroadbalkans)
+   are touched only at release (Release runbook).
 6. **Schema / install / pkg_script changes only** — run the clean-uninstall verifier,
    **both targets**: `python3 scripts/verify-clean-uninstall.py` (`--target pro`
    default) and `--target free`. It checks no leftover `#__aiboost_*` tables /
    `#__extensions` rows / `robots.txt` / `llms.txt` / `sitemap*.xml`, and that settings
    + translations survive an upgrade.
-7. **Verify on staging** — open the admin Dashboard
-   (`staging.offroadserbia.com/administrator/index.php?option=com_aiboost`), confirm the
-   feature works, the relevant **Health** item passes, and the front-end artifact
-   (meta tag / JSON-LD / script) actually appears.
-8. **Report** (step 4 of Operating Procedure) and **close** by deleting the item's line
+7. **Verify on BOTH a Pro and a Free test site** — open the admin Dashboard (Pro:
+   `joomla6-pro.testmyweb.info`; Free: `joomla6-free.testmyweb.info`), confirm the feature
+   works, the relevant **Health** item passes, the front-end artifact (meta tag / JSON-LD /
+   script) actually appears, and on Free that Pro-gated surfaces render **locked**.
+8. **Update `STATUS.md`** — run `python _creds_run.py scripts/install-matrix.py --check`
+   and refresh the **Deployed Versions** table; a task is not done until Free and Pro match
+   on the test sites. Bump `component/Version.php` if code changed.
+9. **Report** (step 4 of Operating Procedure) and **close** by deleting the item's line
    from `BACKLOG.md`.
 
 Doc-only / website / non-plugin changes skip steps 2–7 but still get a report and a
