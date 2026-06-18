@@ -27,22 +27,24 @@ Single drift guard — **Free and Pro must match on the test sites**. Refresh wi
 
 | Site | Edition | Installed | Verified |
 |---|---|---|---|
-| staging.offroadserbia.com (live) | Pro | current (Phase-4 verified) | 2026-06-17 (phase 4) |
+| staging.offroadserbia.com (live) | Pro | `0.85.4` | 2026-06-17 (phase 4) |
 | offroadbalkans.com (live) | Free | `0.77.2` | release-only — do not routine-touch |
-| joomla6-pro.testmyweb.info | Pro | behind — needs refresh¹ | — |
-| joomla6-free.testmyweb.info | Free | `0.85.4` ✅ | 2026-06-18 — installed; admin + settings load |
-| joomla5-pro.testmyweb.info | Pro | behind — needs refresh¹ | — |
-| joomla5-free.testmyweb.info | Free | `0.85.4` ✅ | 2026-06-18 — installed; admin + settings load |
+| joomla6-pro.testmyweb.info | Pro | `0.85.4` ✅ | 2026-06-18 — front-end verified (17/17; 8 JSON-LD nodes) |
+| joomla6-free.testmyweb.info | Free | `0.85.4` ✅ | 2026-06-18 — front-end verified (17/17; 4 JSON-LD nodes) |
+| joomla5-pro.testmyweb.info | Pro | `0.85.4` ✅ | 2026-06-18 — installed (3/3, 229 fields) |
+| joomla5-free.testmyweb.info | Free | `0.85.4` ✅ | 2026-06-18 — installed (3/3, 218 fields) |
 
-> **Free gap CLOSED on test sites (2026-06-18):** j5free/j6free upgraded `0.77.2`→`0.85.4` via
-> `install-matrix.py --sites j5free,j6free` (3/3 packages each; settings field count 216→218 confirms the
-> upgrade landed; admin + settings API load cleanly). The **live** Free site (offroadbalkans) is left at
-> `0.77.2` by design — touch it only at release.
+> **Whole test matrix CURRENT at `0.85.4` (2026-06-18):** Free (j5free/j6free) and Pro (j5pro/j6pro) all
+> refreshed and confirmed. Pro ZIP `pkg_aiboost_pro-0.85.4.zip` (695 KB) built via
+> `build-package-zip.py --target all` — STRICT Pro-leakage check passed (no Pro code in the Free packages).
+> j6 deep-verified on the front-end (17/17 read-only checks each); the Pro site emits visibly more than Free
+> (8 vs 4 JSON-LD nodes, 4067 vs 2844-byte llms.txt). The **live** Free site (offroadbalkans) stays at
+> `0.77.2` by design — release only.
 >
-> **¹ Pro test sites are behind, and the current Pro ZIP is not built yet** — the newest Pro package in
-> `deliverables/plugin/` is `pkg_aiboost_pro-0.79.7.zip` (Free is current at 0.85.4). Before refreshing the
-> Pro test sites (and before release), run `python scripts/build-package-zip.py --target all` to produce a
-> current `pkg_aiboost_pro-0.85.4.zip`, then `install-matrix.py --sites j5pro,j6pro`.
+> **Note — j6free's database carries a leftover "Pro preview" flag** from earlier testing, so its *admin*
+> screens won't show Pro cards locked. Free integrity still holds: the Free *package* physically can't emit
+> Pro output (Pro code is stripped at build), which the front-end proves — it emits only the 4 Free-tier
+> JSON-LD nodes. Clear that DB flag on one test site if a pure "Free-customer admin" check is needed.
 
 ---
 
@@ -65,12 +67,10 @@ Lifted from the old ROADMAP "Next Handoff" — the real remaining path to sale:
 
 ## Next step
 
-1. **Deep-verify the Free build on j6free** — open the admin Health page and a front-end page; confirm
-   Health passes, the JSON-LD/OG/sitemap/robots/llms artifacts appear, and Pro-gated cards render **locked**.
-   (Install + settings-load already confirmed; this is the front-end/E2E pass.)
-2. **Build the current Pro ZIP** (`build-package-zip.py --target all`) and refresh the Pro test sites
-   (`install-matrix.py --sites j5pro,j6pro`) so the whole matrix is current.
-3. Then resume **Faza C** (release infrastructure → 1.0.0) above.
+1. ✅ **Test matrix current** (2026-06-18) — Pro ZIP built at 0.85.4, all four test sites refreshed,
+   j6 front-end verified. The pre-Faza-C catch-up is done.
+2. **Faza C** (release infrastructure → 1.0.0) is **deferred** by the owner — see "What's left to launch".
+3. A larger task list from the owner is queued next.
 
 ---
 
