@@ -136,12 +136,45 @@ Some templates (including older YooTheme Pro and some Helix-based templates) gen
 
 ---
 
+## Performance & memory footprint
+
+AI Boost adds a small, bounded amount of work to each front-end page. All of its
+output (Schema.org JSON-LD, OpenGraph, AEO signals, analytics, custom code) is
+accumulated during Joomla's `onBeforeCompileHead` and written into the page in a
+single consolidation pass (`HeadBlockBuilder` / `BodyBlockBuilder::finalize()`).
+
+- **CPU:** the consolidation pass — encoding the JSON-LD graph and splicing the
+  blocks into the page — measures **~0.01 ms** on a representative page (a graph
+  of Organization + WebSite + BreadcrumbList + Article + an 8-item FAQ + a 6-step
+  HowTo encodes to ~7 KB). In practice AI Boost's per-page overhead is well under
+  1 ms; total request time is dominated by Joomla core and the active template.
+- **Memory:** AI Boost's own structures (the schema graph plus the accumulated
+  head/body sections) are on the order of tens of KB. They do not meaningfully
+  raise a request's peak memory, which is governed by Joomla core and the
+  template / page builder in use.
+
+**Recommended PHP `memory_limit`: 128 MB.** This matches the Joomla project's own
+guidance for Joomla 5/6 — 64 MB is the absolute floor, 128 MB is recommended for a
+typical site with a handful of extensions and a modern template. AI Boost runs
+comfortably within that budget; sites built on heavy page builders or with many
+extensions should provision 256 MB.
+
+**Measuring your own site:** turn on **Debug mode** (AI Boost → Settings → Debug).
+On the front end AI Boost then records a perf line for each page — `finalize`
+(consolidation time), `peak` (request peak memory) and `request` (total request
+time) — to the PHP error log, and, where the server allows response-header
+injection at that stage, as an `X-AiBoost-Perf` header. Turn Debug mode back off
+on production.
+
+---
+
 ## Minimum Server Requirements Summary
 
 | Component | Minimum |
 |-----------|---------|
 | Joomla | 5.0.0 |
 | PHP | 8.1.0 |
+| PHP `memory_limit` | 128 MB recommended (64 MB absolute minimum) |
 | MySQL / MariaDB | 5.7 / 10.3 |
 | Admin access | Super Administrator |
 

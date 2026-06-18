@@ -279,8 +279,44 @@ CSS;
         }
 
         $app = Factory::getApplication();
+
+        // Optional performance probe (Task: perf/memory baseline). Gated on the
+        // plugin's own debug_mode setting or Joomla's global Debug, so it is
+        // silent for ordinary visitors. getAiBoostSettings() is request-cached,
+        // so this read is free on the hot path. finalize() is the single
+        // idempotent point where ALL accumulated head/body output is rendered
+        // and spliced — bracketing it captures AI Boost's consolidation cost,
+        // and memory_get_peak_usage() gives the request's peak for sizing the
+        // documented PHP memory_limit floor.
+        $perf = !empty($this->getAiBoostSettings()['debug_mode'])
+            || (\defined('JDEBUG') && JDEBUG === true);
+        $t0   = $perf ? microtime(true) : 0.0;
+
         HeadBlockBuilder::finalize($app, Version::VERSION);
         BodyBlockBuilder::finalize($app);
+
+        if ($perf) {
+            $finalizeMs = (microtime(true) - $t0) * 1000;
+            $peakMb     = memory_get_peak_usage(true) / 1048576;
+            $reqMs      = isset($_SERVER['REQUEST_TIME_FLOAT'])
+                ? (microtime(true) - (float) $_SERVER['REQUEST_TIME_FLOAT']) * 1000
+                : 0.0;
+            $line = sprintf(
+                'finalize=%.2fms peak=%.1fMB request=%.0fms v=%s',
+                $finalizeMs,
+                $peakMb,
+                $reqMs,
+                Version::VERSION
+            );
+            if ($app->isClient('site')) {
+                try {
+                    $app->setHeader('X-AiBoost-Perf', $line, true);
+                } catch (\Throwable) {
+                    // Headers already sent on some SAPIs — log only.
+                }
+            }
+            error_log('[AI Boost perf] ' . $line);
+        }
     }
 
     /**

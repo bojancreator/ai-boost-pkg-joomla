@@ -868,10 +868,10 @@ class HealthCheckService
             }
         }
         $message = $hasActive
-            ? 'Auto-updates for licensed add-ons are enabled — Joomla will check updates.aiboostnow.com on its schedule.'
-            : 'No active license on file. The base package will still update; licensed add-on updates will not appear in Joomla → Update until a key is verified.';
+            ? 'Your licence is active. Pro and add-on updates are delivered through your AI Boost account — you are notified by e-mail when a new version is available. (One-click in-Joomla updates for Pro arrive in a later release.)'
+            : 'No active licence on file. The base package still updates normally; licensed add-on updates will not appear in Joomla → Update until a key is verified.';
         return $this->make(
-            'info_auto_update_disabled', 'info', 'Auto-update server',
+            'info_auto_update_disabled', 'info', 'Pro & add-on updates',
             true, true, $message,
             $hasActive ? '' : 'index.php?option=com_aiboost#/licenses'
         );
