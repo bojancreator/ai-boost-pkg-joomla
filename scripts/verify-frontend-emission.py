@@ -174,11 +174,19 @@ class Harness:
         self.core_pro = False
         self.multilang_pro = False
         try:
+            # Core Pro: read the AUTHORITATIVE admin bootstrap (isProActive →
+            # window.aiBoostBootstrap.isPro), which is exactly what the SPA
+            # <ProGate> gates on. Do NOT infer it from the per-field
+            # capabilities 'locked' flag: since the v0.5 one-product transition
+            # (Manifest\Registry::applyLockState) core tier=pro fields are no
+            # longer locked at field level, so "any unlocked pro field" reports
+            # Pro on EVERY site, Free included.
+            boot = self._bootstrap()
+            self.core_pro = bool(boot.get("isPro") or (boot.get("license") or {}).get("isPro"))
+            # Multilang/integration fields ARE still locked by applyLockState, so
+            # the capabilities signal stays valid for the Multilang (falang) SKU.
             caps = qa.get_capabilities(self.s, self.admin_php)
             fields = caps.get("fields") or []
-            self.core_pro = any(
-                f.get("tier") == "pro" and f.get("sku") not in ("int_falang", "int_yootheme")
-                and not f.get("locked") for f in fields)
             self.multilang_pro = any(
                 (f.get("integration") == "falang" or f.get("sku") == "int_falang")
                 and not f.get("locked") for f in fields)
@@ -186,6 +194,15 @@ class Harness:
                     + ("Multilang active" if self.multilang_pro else "Multilang locked"))
         except Exception as e:
             return f"undetected ({e})"
+
+    def _bootstrap(self) -> dict:
+        """Parse window.aiBoostBootstrap from the admin SPA (view=app) — the
+        authoritative live Pro/licence state the SPA itself boots from."""
+        import json as _json
+        import re as _re
+        r = self.s.get(self.admin_php + "?option=com_aiboost&view=app", timeout=60)
+        m = _re.search(r"aiBoostBootstrap\s*=\s*(\{.*?\})\s*;", r.text, _re.DOTALL)
+        return _json.loads(m.group(1)) if m else {}
 
     def restore_sim(self):
         """Re-apply EXACTLY the simulator overrides captured at connect (JDEBUG only).

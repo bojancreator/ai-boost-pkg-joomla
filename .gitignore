@@ -68,6 +68,11 @@ scripts/__pycache__/
 # Test site credentials (real admin passwords) — use test_sajtovi.example.md as template
 /test_sajtovi.md
 
+# Local secrets / env — NEVER commit (DB roots, phpMyAdmin, API keys)
+.env
+.env.*
+CREDENTIALS.local.md
+
 # Deliverables (ZIP-ovi, PDF-ovi, marketing materijali — ne idu u git)
 /deliverables/
 # Exception: text reports and docs in deliverables/docs/ are tracked

@@ -41,10 +41,14 @@ Single drift guard — **Free and Pro must match on the test sites**. Refresh wi
 > (8 vs 4 JSON-LD nodes, 4067 vs 2844-byte llms.txt). The **live** Free site (offroadbalkans) stays at
 > `0.77.2` by design — release only.
 >
-> **Note — j6free's database carries a leftover "Pro preview" flag** from earlier testing, so its *admin*
-> screens won't show Pro cards locked. Free integrity still holds: the Free *package* physically can't emit
-> Pro output (Pro code is stripped at build), which the front-end proves — it emits only the 4 Free-tier
-> JSON-LD nodes. Clear that DB flag on one test site if a pure "Free-customer admin" check is needed.
+> **Free test sites confirmed genuinely Free (2026-06-18):** j6free/j5free admin bootstrap reports
+> `isPro=false` / `proActivated=false`, and the DB settings carry no activation (`pro_activated` absent,
+> all `pro_skus` false) — so the SPA `<ProGate>` locks Pro surfaces exactly as a real Free customer sees.
+> The earlier scary "core-Pro active" reading was a **stale check in `verify-frontend-emission.py`**: it
+> inferred Pro from the per-field `locked` flag, but core `tier=pro` fields stopped being field-locked in
+> the v0.5 one-product transition (`Manifest\Registry::applyLockState`), so that signal reported Pro on
+> every site. Fixed to read the authoritative bootstrap `isPro` — it now shows Free=`core Free`,
+> Pro=`core-Pro active`. No data change was needed.
 
 ---
 
