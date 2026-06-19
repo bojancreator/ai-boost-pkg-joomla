@@ -75,8 +75,7 @@ try {
 // ── Package version and licence tier ─────────────────────────────────────────
 $abVersion = Version::VERSION;
 $abTier    = strtolower((string) ($abSettings['license_tier'] ?? 'free'));
-$abIsPro   = in_array($abTier, ['pro', 'developer', 'agency'], true)
-          || !empty($abSettings['dev_license_preview']);
+$abIsPro   = in_array($abTier, ['pro', 'developer', 'agency'], true);
 
 // ── Plugin enabled status from #__extensions ─────────────────────────────────
 // Keys: element slug => display label

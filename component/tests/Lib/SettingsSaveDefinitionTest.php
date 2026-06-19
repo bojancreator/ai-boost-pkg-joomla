@@ -233,8 +233,13 @@ final class SettingsSaveDefinitionTest extends TestCase
             $this->assertNotContains($key, ProFeatureRegistry::lockedSettingsKeys());
         }
 
-        foreach (['show_advanced_options', 'dev_license_preview', 'dev_force_free_tier'] as $key) {
-            $this->assertSame('compatibility', SettingsSaveDefinition::field($key)['source'] ?? null);
+        $this->assertSame('compatibility', SettingsSaveDefinition::field('show_advanced_options')['source'] ?? null);
+
+        // The dev-override keys were removed from COMPATIBILITY_KEYS — they are
+        // no longer accepted form fields (but stay in SYSTEM_PRESERVED_KEYS as
+        // defence-in-depth, asserted in SettingsSaveSystemPreservedKeysTest).
+        foreach (['dev_license_preview', 'dev_force_free_tier'] as $key) {
+            $this->assertNotContains($key, SettingsSaveDefinition::acceptedKeys());
         }
     }
 

@@ -9,10 +9,6 @@
         until you renew.
         Integration plugins (third-party bridges) are licensed separately and appear below once installed.
       </p>
-      <div v-if="mockNotice" class="ab-alert ab-alert--info" style="margin-top: 12px;">
-        <strong>Mock validation:</strong> the back-end is currently returning fake responses for development.
-        Try keys starting with <code>AB-VALID-</code>, <code>AB-EXPIRED-</code>, <code>AB-LIMIT-</code>, or <code>AB-DEACT-</code>.
-      </div>
     </header>
 
     <div v-if="loadError" class="ab-alert ab-alert--danger">
@@ -263,9 +259,6 @@ export default {
     const core = ref(emptyCore())
     const integrations = ref([])
     const loadError = ref('')
-    // Only shown under Joomla debug mode — production validates keys against
-    // the real Lemon Squeezy licence API, so no mock hint is displayed.
-    const mockNotice = ref(Boolean((window.aiBoostBootstrap || {}).debug))
 
     const boot = window.aiBoostBootstrap || {}
     const heartbeat = ref(boot.licenseHeartbeat || {})
@@ -470,7 +463,7 @@ export default {
     }
 
     return {
-      core, integrations, loadError, mockNotice,
+      core, integrations, loadError,
       verify, deactivate, badgeClass, statusLabel, formatDate,
       heartbeat, heartbeatBusy, heartbeatAlertClass, formatRelative, runHeartbeatNow,
       proActivated, proActivatedAt,

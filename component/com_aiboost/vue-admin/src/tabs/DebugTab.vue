@@ -120,12 +120,11 @@
     </div>
 
     <!--
-      Task #457 — The "Simulate Professional license" toggle was removed
-      from the UI. The underlying `dev_license_preview` setting is still
-      honoured by PHP for backwards compat with installs that toggled it
-      previously, but it is no longer exposed in the admin. See the
-      "Developer Pro simulation" note in replit.md for the supported QA
-      override (direct DB edit of #__aiboost_settings).
+      The "Simulate Professional license" toggle and the underlying
+      dev_license_preview / dev_force_free_tier overrides were removed from
+      the shipping product; they no longer have any runtime effect. To put a
+      test site into a Pro state, activate a real licence key, or seed
+      pro_activated directly in #__aiboost_settings (see OPERATING.md).
     -->
   </div>
 </template>

@@ -187,10 +187,9 @@ class HtmlView extends BaseHtmlView
                     // v0.54.2 — Pro UI is gated on a VERIFIED license key, not
                     // on `license_tier` alone. A Pro install with no entered
                     // license code must look identical to Free; only an active
-                    // license key (or the dev_license_preview QA flag) unlocks
-                    // the UI. This matches Bojan's directive: "Pro verzija se
-                    // isto ponaša kao Free dok se ne unese licence kod i
-                    // provjeri".
+                    // license key unlocks the UI. This matches Bojan's directive:
+                    // "Pro verzija se isto ponaša kao Free dok se ne unese licence
+                    // kod i provjeri".
                     //
                     // v0.69.1 — delegate to the single canonical gate so the
                     // admin UI, the settings-save endpoint and the sitemap
@@ -201,8 +200,7 @@ class HtmlView extends BaseHtmlView
                     // from the permanent `pro_activated` flag: once a key verifies
                     // active, Pro stays unlocked forever. An expired licence only
                     // pauses updates + support (shown as a renewal notice), it
-                    // never relocks the UI. The dev_force_free_tier QA override
-                    // (render Pro as Free for screenshots) still wins.
+                    // never relocks the UI.
                     $isPro            = \AiBoost\Lib\PluginRegistry::isProActive($settings);
                     $proActivated     = (string) ($settings['pro_activated'] ?? '0') === '1';
                     $proActivatedAt   = $settings['pro_activated_at'] ?? null;
@@ -250,10 +248,6 @@ class HtmlView extends BaseHtmlView
             // item 12a — lets the global CriticalBar gate the "no backup yet"
             // notice (don't nag a fresh install with nothing to back up).
             'hasSettings'      => !empty($settings),
-            // True only under Joomla debug mode — the Licenses UI uses this to
-            // show the offline mock-validation hint. Production verifies keys
-            // against the real Lemon Squeezy licence API.
-            'debug'            => (defined('JDEBUG') && JDEBUG === true),
             'tokenName'        => $tokenName,
             'csrfToken'        => $tokenName,
             'baseUrl'          => Route::_('index.php?option=com_aiboost', false),

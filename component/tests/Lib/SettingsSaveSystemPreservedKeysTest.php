@@ -132,6 +132,7 @@ final class SettingsSaveSystemPreservedKeysTest extends TestCase
                 'pro_activated_at',
                 'pro_activated_version',
                 'pro_skus',
+                'pro_installed',
                 'install_id',
                 'last_backup_at',
                 'dev_license_preview',

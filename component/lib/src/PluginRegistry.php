@@ -37,30 +37,8 @@ final class PluginRegistry
     /** @var array<string,array<string,mixed>>|null */
     private static ?array $cache = null;
 
-    /** @var array<string,mixed>|null  Cached license_simulation map. */
-    private static ?array $simulation = null;
-
     /** @var array<string,mixed>|null  Cached license_state map (real verifications, per SKU). */
     private static ?array $licenseStates = null;
-
-    /** Valid simulator states per SKU. */
-    public const SIM_STATES = ['active', 'expired', 'disabled', 'not_licensed'];
-
-    /** All Pro/bundle SKUs that the simulator UI can toggle. Integration SKUs
-     *  are appended dynamically by simSkus() from IntegrationRegistry. */
-    public const SIM_SKUS_STATIC = [
-        'schema', 'og', 'hreflang', 'code', 'aeo', 'bundle',
-    ];
-
-    /**
-     * Back-compat: a few call sites still read PluginRegistry::SIM_SKUS as
-     * a hardcoded list. Keep the two bridges that shipped before the dynamic
-     * registry so the simulator's UI never regresses.
-     */
-    public const SIM_SKUS = [
-        'schema', 'og', 'hreflang', 'code', 'aeo', 'bundle',
-        'int_falang', 'int_yootheme',
-    ];
 
     private const PRO_SKUS = [
         'aiboost_schema_pro'   => 'schema',
@@ -105,20 +83,6 @@ final class PluginRegistry
     }
 
     /**
-     * Public list of simulator-supported SKUs (Pro + every registered bridge).
-     *
-     * @return list<string>
-     */
-    public static function simSkus(): array
-    {
-        $skus = self::SIM_SKUS_STATIC;
-        foreach (self::integrations() as $key) {
-            $skus[] = 'int_' . $key;
-        }
-        return array_values(array_unique($skus));
-    }
-
-    /**
      * Return per-SKU and per-integration capabilities.
      *
      * Structure:
@@ -143,11 +107,8 @@ final class PluginRegistry
         $caps = ['core' => ['version' => self::coreVersion()]];
 
         // Precedence (highest first):
-        //   1. Simulator override (JDEBUG only) — never honored in production
-        //   2. Real per-SKU license_state (from verifyLicense AJAX flow)
-        //   3. Raw plugin scan from #__extensions (Pro plugin installed + row enabled)
-        $simEnforced = defined('JDEBUG') && JDEBUG === true;
-        $sim         = $simEnforced ? self::loadSimulation() : null;
+        //   1. Real per-SKU license_state (from verifyLicense AJAX flow)
+        //   2. Raw plugin scan from #__extensions (Pro plugin installed + row enabled)
         $licStates   = self::loadLicenseStates();
         $bundleReal  = self::resolveRealStatus($licStates['bundle'] ?? null);
 
@@ -157,39 +118,37 @@ final class PluginRegistry
             $intSettings = [];
         }
 
-        $caps += self::proCapabilities($rows, $sim, $licStates, $bundleReal);
-        $caps['pro_bundle'] = self::buildBundleCapability($sim, $bundleReal);
-        $caps += self::integrationCapabilities($rows, $sim, $intSettings);
+        $caps += self::proCapabilities($rows, $licStates, $bundleReal);
+        $caps['pro_bundle'] = self::buildBundleCapability($bundleReal);
+        $caps += self::integrationCapabilities($rows, $intSettings);
 
         return self::$cache = $caps;
     }
 
     /**
      * @param array<string, array<string,mixed>> $rows
-     * @param array<string,mixed>|null $sim
      * @param array<string, array<string,mixed>> $licStates
      * @return array<string, array<string,mixed>>
      */
-    private static function proCapabilities(array $rows, ?array $sim, array $licStates, ?string $bundleReal): array
+    private static function proCapabilities(array $rows, array $licStates, ?string $bundleReal): array
     {
         $caps = [];
         foreach (self::PRO_SKUS as $element => $sku) {
-            $caps['pro_' . $sku] = self::buildProCapability($rows[$element] ?? null, $element, $sku, $sim, $licStates, $bundleReal);
+            $caps['pro_' . $sku] = self::buildProCapability($rows[$element] ?? null, $element, $sku, $licStates, $bundleReal);
         }
         return $caps;
     }
 
     /**
      * @param array<string, array<string,mixed>> $rows
-     * @param array<string,mixed>|null $sim
      * @param array<string,mixed> $settings The decoded #__aiboost_settings 'main' blob.
      * @return array<string, array<string,mixed>>
      */
-    private static function integrationCapabilities(array $rows, ?array $sim, array $settings): array
+    private static function integrationCapabilities(array $rows, array $settings): array
     {
         $caps = [];
         foreach (self::integrations() as $element => $key) {
-            $caps['int_' . $key] = self::buildIntegrationCapability($rows[$element] ?? null, $element, $key, $sim, $settings);
+            $caps['int_' . $key] = self::buildIntegrationCapability($rows[$element] ?? null, $element, $key, $settings);
         }
         return $caps;
     }
@@ -208,17 +167,11 @@ final class PluginRegistry
 
     /**
      * @param array<string,mixed>|null $row
-     * @param array<string,mixed>|null $sim
      * @param array<string, array<string,mixed>> $licStates
      * @return array<string,mixed>
      */
-    private static function buildProCapability(?array $row, string $element, string $sku, ?array $sim, array $licStates, ?string $bundleReal): array
+    private static function buildProCapability(?array $row, string $element, string $sku, array $licStates, ?string $bundleReal): array
     {
-        $simState = self::simStateFor($sim, $sku);
-        if ($simState !== null) {
-            return self::simulatedCapability($row, $element, $simState);
-        }
-
         $installed  = $row !== null;
         $rowEnabled = self::extensionRowEnabled($row);
         $perSku = self::resolveRealStatus($licStates[$sku] ?? null);
@@ -231,23 +184,6 @@ final class PluginRegistry
             'version'       => self::manifestVersion($row),
             'element'       => $element,
             'license_state' => $licenseState,
-            'simulated'     => false,
-        ];
-    }
-
-    /**
-     * @param array<string,mixed>|null $row
-     * @return array<string,mixed>
-     */
-    private static function simulatedCapability(?array $row, string $element, string $simState): array
-    {
-        return [
-            'installed'     => $simState !== 'not_licensed',
-            'enabled'       => $simState === 'active',
-            'version'       => self::manifestVersion($row),
-            'element'       => $element,
-            'license_state' => $simState,
-            'simulated'     => true,
         ];
     }
 
@@ -284,56 +220,36 @@ final class PluginRegistry
     }
 
     /**
-     * @param array<string,mixed>|null $sim
      * @return array<string,mixed>
      */
-    private static function buildBundleCapability(?array $sim, ?string $bundleReal): array
+    private static function buildBundleCapability(?string $bundleReal): array
     {
-        $bundleSim = self::simStateFor($sim, 'bundle');
-        if ($bundleSim !== null) {
-            return [
-                'installed'     => $bundleSim !== 'not_licensed',
-                'enabled'       => $bundleSim === 'active',
-                'version'       => '',
-                'element'       => '',
-                'license_state' => $bundleSim,
-                'simulated'     => true,
-            ];
-        }
-
         return [
             'installed'     => $bundleReal !== null && $bundleReal !== 'not_licensed',
             'enabled'       => $bundleReal === 'active',
             'version'       => '',
             'element'       => '',
             'license_state' => $bundleReal ?? 'not_licensed',
-            'simulated'     => false,
         ];
     }
 
     /**
      * @param array<string,mixed>|null $row
-     * @param array<string,mixed>|null $sim
      * @return array<string,mixed>
      */
-    private static function buildIntegrationCapability(?array $row, string $element, string $key, ?array $sim, array $settings): array
+    private static function buildIntegrationCapability(?array $row, string $element, string $key, array $settings): array
     {
         $adminEnabled = self::integrationAdminEnabled($key, $settings);
 
-        $simState = self::simStateFor($sim, 'int_' . $key);
-        if ($simState !== null) {
-            return self::integrationCapability($row, $element, $key, $simState !== 'not_licensed', $simState === 'active', $simState, true, $adminEnabled);
-        }
-
         $installed = $row !== null;
-        return self::integrationCapability($row, $element, $key, $installed, self::extensionRowEnabled($row), null, false, $adminEnabled);
+        return self::integrationCapability($row, $element, $key, $installed, self::extensionRowEnabled($row), $adminEnabled);
     }
 
     /**
      * @param array<string,mixed>|null $row
      * @return array<string,mixed>
      */
-    private static function integrationCapability(?array $row, string $element, string $key, bool $installed, bool $enabled, ?string $simState, bool $simulated, bool $adminEnabled = true): array
+    private static function integrationCapability(?array $row, string $element, string $key, bool $installed, bool $enabled, bool $adminEnabled = true): array
     {
         return [
             'installed'            => $installed,
@@ -342,8 +258,7 @@ final class PluginRegistry
             'version'              => self::manifestVersion($row),
             'detected_third_party' => self::detectThirdParty($key),
             'element'              => $element,
-            'license_state'        => $simState ?? self::realIntegrationLicenseState($installed, $enabled),
-            'simulated'            => $simulated,
+            'license_state'        => self::realIntegrationLicenseState($installed, $enabled),
         ];
     }
 
@@ -353,22 +268,8 @@ final class PluginRegistry
     }
 
     /**
-     * Return the simulated license state for a SKU, or null if the simulator
-     * is not active for it. Reads directly from #__aiboost_settings so callers
-     * can short-circuit any real licensing logic.
-     */
-    public static function simulatedStatus(string $sku): ?string
-    {
-        if (!(defined('JDEBUG') && JDEBUG === true)) {
-            return null;
-        }
-        return self::simStateFor(self::loadSimulation(), $sku);
-    }
-
-    /**
      * Return the resolved license state for a SKU as a string:
      *   'active' | 'expired' | 'disabled' | 'not_licensed'
-     * Simulator state (when present) wins over the real plugin state.
      */
     public static function licenseStatus(string $sku): string
     {
@@ -379,16 +280,10 @@ final class PluginRegistry
     }
 
     /**
-     * True when the SKU is currently usable (real install enabled OR
-     * simulator state === 'active'). Wraps isProSku() for clarity.
+     * True when the SKU is currently usable (real install enabled / activated).
      */
     public static function hasPro(string $sku): bool
     {
-        $simState = self::simulatedStatus($sku);
-        if ($simState !== null) {
-            return $simState === 'active';
-        }
-
         // Plan 2a — per-integration licensing. Integration SKUs (`int_*`) are
         // unlocked by their OWN Lemon Squeezy key, recorded in
         // license_state['int_*'], strictly INDEPENDENT of the core bundle.
@@ -428,11 +323,8 @@ final class PluginRegistry
 
     /**
      * Plan 2a — resolve whether a single integration SKU (`int_*`) is licensed
-     * Pro, INDEPENDENTLY of the core bundle. Precedence mirrors isProActive():
-     *   1. dev_force_free_tier === '1' → false  (QA: force-Free)
-     *   2. dev_license_preview === '1' → true   (QA: force-Pro, unlocks all int_*)
-     *   3. otherwise → the integration's OWN license_state resolves to 'active'
-     *      (real key verified active and not expired).
+     * Pro, INDEPENDENTLY of the core bundle: the integration's OWN license_state
+     * must resolve to 'active' (real key verified active and not expired).
      *
      * Never consults `pro_activated` or the core bundle — an unactivated core
      * install can still hold a paid integration licence, and a core-bundle buyer
@@ -447,14 +339,7 @@ final class PluginRegistry
         }
         $result = false;
         try {
-            $settings = self::loadMainSettings();
-            if (self::settingEnabled($settings, 'dev_force_free_tier')) {
-                $result = false;
-            } elseif (self::settingEnabled($settings, 'dev_license_preview')) {
-                $result = true;
-            } else {
-                $result = self::resolveRealStatus(self::loadLicenseStates()[$sku] ?? null) === 'active';
-            }
+            $result = self::resolveRealStatus(self::loadLicenseStates()[$sku] ?? null) === 'active';
         } catch (\Throwable $e) {
             $result = false;
         }
@@ -479,11 +364,7 @@ final class PluginRegistry
      * the v0.54.2 "Pro without a currently-verified key looks like Free" rule:
      * the new rule is "Pro without an *ever-activated* key looks like Free".
      *
-     * Precedence:
-     *   1. `dev_force_free_tier === '1'` → false  (QA: render/enforce as Free)
-     *   2. `pro_activated === '1'`       → true   (a key verified active once)
-     *   3. `dev_license_preview === '1'` → true   (QA: force Pro)
-     *   4. otherwise → false
+     * The gate is a single flag: `pro_activated === '1'` → true, else false.
      *
      * NEVER gate on `license_tier`, on the current `license_state` status, or
      * on the heartbeat — those drift on expiry and were the source of the
@@ -493,13 +374,7 @@ final class PluginRegistry
      */
     public static function isProActive(array $settings): bool
     {
-        // 1. QA: force the install to behave as Free (screenshots / parity).
-        if (self::settingEnabled($settings, 'dev_force_free_tier')) {
-            return false;
-        }
-        // 2. Perpetual activation flag — set once a key verifies active, never cleared.
-        // 3. QA: force Pro on a Free / never-activated install.
-        return self::settingEnabled($settings, 'pro_activated') || self::settingEnabled($settings, 'dev_license_preview');
+        return self::settingEnabled($settings, 'pro_activated');
     }
 
     /**
@@ -511,7 +386,7 @@ final class PluginRegistry
      *      the signal that survives the single-plugin collapse, where the Pro
      *      package shares the `pkg_aiboost` element with Free so the package
      *      element alone can no longer distinguish the edition;
-     *   2. Pro is activated / dev-previewed (isProActive);
+     *   2. Pro is activated (isProActive);
      *   3. a legacy split layout is physically present — the old
      *      `pkg_aiboost_pro` package row or any `aiboost_*_pro` plugin row.
      *
@@ -553,90 +428,6 @@ final class PluginRegistry
     private static function settingEnabled(array $settings, string $key): bool
     {
         return (string) ($settings[$key] ?? '0') === '1';
-    }
-
-    /**
-     * Domain override stored by the simulator, used to fake a JUri::root()
-     * mismatch for the multi-site warning. Empty string when unset.
-     */
-    public static function simulatedDomainOverride(): string
-    {
-        if (!(defined('JDEBUG') && JDEBUG === true)) {
-            return '';
-        }
-        $sim = self::loadSimulation();
-        return (string) ($sim['_domain_override'] ?? '');
-    }
-
-    /**
-     * True when ANY simulator override is active for ANY SKU/integration.
-     * Used by the Health check to nag if the simulator is on outside debug.
-     */
-    public static function isSimulationActive(): bool
-    {
-        $sim = self::loadSimulation();
-        foreach (self::SIM_SKUS as $sku) {
-            if (self::simStateFor($sim, $sku) !== null) {
-                return true;
-            }
-        }
-        return !empty($sim['_domain_override']);
-    }
-
-    /**
-     * Persist the simulation map to #__aiboost_settings under license_simulation.
-     * Caller is responsible for permission + token + JDEBUG gating.
-     *
-     * @param array<string,mixed> $map  SKU => state, plus optional '_domain_override'.
-     */
-    public static function saveSimulation(array $map): void
-    {
-        try {
-            $data = self::loadMainSettings();
-            $data['license_simulation'] = self::cleanSimulationMap($map);
-            self::persistMainSettings($data);
-        } catch (\Throwable $e) {
-            error_log('[AI Boost PluginRegistry] saveSimulation failed: ' . $e->getMessage());
-        }
-
-        self::reset();
-    }
-
-    /**
-     * @param array<string,mixed>|null $sim
-     */
-    private static function simStateFor(?array $sim, string $sku): ?string
-    {
-        if (!$sim) {
-            return null;
-        }
-        $state = $sim[$sku] ?? null;
-        if (!is_string($state) || !in_array($state, self::SIM_STATES, true)) {
-            return null;
-        }
-        return $state;
-    }
-
-    /**
-     * Load license_simulation map from settings, request-cached.
-     *
-     * @return array<string,mixed>
-     */
-    public static function loadSimulation(): array
-    {
-        if (self::$simulation !== null) {
-            return self::$simulation;
-        }
-        $out = [];
-        try {
-            $sim = self::loadMainSettings()['license_simulation'] ?? [];
-            if (is_array($sim)) {
-                $out = $sim;
-            }
-        } catch (\Throwable $e) {
-            error_log('[AI Boost PluginRegistry] loadSimulation failed: ' . $e->getMessage());
-        }
-        return self::$simulation = $out;
     }
 
     /**
@@ -686,7 +477,6 @@ final class PluginRegistry
     public static function reset(): void
     {
         self::$cache         = null;
-        self::$simulation    = null;
         self::$licenseStates = null;
         // Task #486 — keep the integration registry cache in lockstep with
         // PluginRegistry so a bridge install/uninstall during the same
@@ -756,26 +546,6 @@ final class PluginRegistry
             error_log('[AI Boost PluginRegistry] saveLicenseState failed: ' . $e->getMessage());
         }
         self::reset();
-    }
-
-    /**
-     * @param array<string,mixed> $map
-     * @return array<string,mixed>
-     */
-    private static function cleanSimulationMap(array $map): array
-    {
-        $clean = [];
-        foreach (self::SIM_SKUS as $sku) {
-            $state = (string) ($map[$sku] ?? '');
-            if (in_array($state, self::SIM_STATES, true)) {
-                $clean[$sku] = $state;
-            }
-        }
-        $domain = trim((string) ($map['_domain_override'] ?? ''));
-        if ($domain !== '') {
-            $clean['_domain_override'] = $domain;
-        }
-        return $clean;
     }
 
     /**

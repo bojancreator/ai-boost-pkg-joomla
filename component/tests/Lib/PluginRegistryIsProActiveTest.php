@@ -18,7 +18,10 @@ use PHPUnit\Framework\TestCase;
  * update server). This reverses the v0.54.2 "Pro without a currently
  * verified key looks like Free" rule.
  *
- * Precedence: dev_force_free_tier → pro_activated → dev_license_preview → false.
+ * The gate is now a clean 2-state flag: `pro_activated === '1'` → Pro,
+ * absent/false → Free. The legacy dev-override keys (dev_license_preview /
+ * dev_force_free_tier) were removed from the shipping product and no longer
+ * have any effect on this gate.
  *
  * isProActive() reads only its $settings argument (no DB), so these tests
  * need no Factory / DB seam.
@@ -77,26 +80,20 @@ final class PluginRegistryIsProActiveTest extends TestCase
         $this->assertFalse(PluginRegistry::isProActive($settings));
     }
 
-    public function testDevLicensePreviewForcesPro(): void
+    public function testRemovedDevOverrideKeysHaveNoEffect(): void
     {
-        $this->assertTrue(PluginRegistry::isProActive(['dev_license_preview' => '1']));
-    }
+        // The simulation / dev-override keys were stripped from the shipping
+        // product. They must NOT promote a Free install to Pro any more.
+        $this->assertFalse(PluginRegistry::isProActive(['dev_license_preview' => '1']));
 
-    public function testDevForceFreeTierOverridesActivation(): void
-    {
-        $settings = [
+        // And they must NOT demote a genuinely activated Pro install.
+        $this->assertTrue(PluginRegistry::isProActive([
             'pro_activated'       => '1',
             'dev_force_free_tier' => '1',
-        ];
-        $this->assertFalse(PluginRegistry::isProActive($settings));
-    }
-
-    public function testDevForceFreeTierWinsOverDevLicensePreview(): void
-    {
-        $settings = [
+        ]));
+        $this->assertTrue(PluginRegistry::isProActive([
+            'pro_activated'       => '1',
             'dev_license_preview' => '1',
-            'dev_force_free_tier' => '1',
-        ];
-        $this->assertFalse(PluginRegistry::isProActive($settings));
+        ]));
     }
 }

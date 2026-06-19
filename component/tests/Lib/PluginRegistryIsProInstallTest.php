@@ -47,10 +47,13 @@ final class PluginRegistryIsProInstallTest extends TestCase
         $this->assertTrue(PluginRegistry::isProInstall());
     }
 
-    public function testTrueWhenDevPreview(): void
+    public function testRemovedDevPreviewDoesNotCountAsProInstall(): void
     {
+        // The legacy dev_license_preview override was removed from the shipping
+        // product, so it no longer marks a Pro install. With no marker, no
+        // activation and the presence COUNT resolving to 0, this is Free.
         $this->withSettings('{"dev_license_preview":"1"}');
-        $this->assertTrue(PluginRegistry::isProInstall());
+        $this->assertFalse(PluginRegistry::isProInstall());
     }
 
     public function testFalseOnGenuineFree(): void
@@ -60,12 +63,11 @@ final class PluginRegistryIsProInstallTest extends TestCase
         $this->assertFalse(PluginRegistry::isProInstall());
     }
 
-    public function testMarkerKeepsLicensesReachableUnderForceFreeTier(): void
+    public function testMarkerKeepsLicensesReachableEvenWithoutActivation(): void
     {
-        // dev_force_free_tier makes features behave Free (isProActive=false) but
-        // a paying customer's Licenses surface must stay reachable on a Pro
-        // install — mirrors the old presence-based behaviour.
-        $this->withSettings('{"pro_installed":"1","dev_force_free_tier":"1"}');
+        // A paying customer's Licenses surface must stay reachable on a Pro
+        // install (pro_installed marker) even before a key is entered.
+        $this->withSettings('{"pro_installed":"1"}');
         $this->assertTrue(PluginRegistry::isProInstall());
     }
 }

@@ -70,7 +70,7 @@ final class LicenseValidatorVerifyTest extends TestCase
         $this->assertSame(4, $state['activations_remaining']);
         $this->assertSame(777, $state['product_id'], 'meta.product_id is captured for future tier mapping');
         $this->assertCount(1, $calls, 'no stored instance_id -> goes straight to /activate');
-        $this->assertStringContainsString('/licenses/activate', $calls[0]);
+        $this->assertStringContainsString('/api/license/activate', $calls[0]);
     }
 
     public function testStoredInstanceRevalidatesWithoutConsumingAnActivation(): void
@@ -90,7 +90,7 @@ final class LicenseValidatorVerifyTest extends TestCase
         $this->assertSame('active', $state['status']);
         $this->assertSame('inst-123', $state['instance_id']);
         $this->assertCount(1, $calls, 'a known instance is /validate-d, never re-/activate-d');
-        $this->assertStringContainsString('/licenses/validate', $calls[0]);
+        $this->assertStringContainsString('/api/license/validate', $calls[0]);
     }
 
     // ------------------------------------------------------------------

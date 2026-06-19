@@ -236,10 +236,7 @@ class HtmlView extends BaseHtmlView
         try {
             $settings = $this->loadSettings();
             $tier     = strtolower((string) ($settings['license_tier'] ?? 'free'));
-            if (in_array($tier, ['pro', 'developer', 'agency'], true)) {
-                return true;
-            }
-            return (string) ($settings['dev_license_preview'] ?? '0') === '1';
+            return in_array($tier, ['pro', 'developer', 'agency'], true);
         } catch (\Throwable $e) {
             return false;
         }

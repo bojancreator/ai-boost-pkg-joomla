@@ -244,8 +244,8 @@ final class Registry
             // until THAT integration's own licence is active, independent of the
             // core bundle. lock_reason 'integration_pro:<key>' drives a
             // per-integration "Upgrade to <Integration> Pro" upsell, not the
-            // core Pro modal. hasPro('int_<key>') honours the simulator and
-            // dev_license_preview, so QA can unlock without a real key.
+            // core Pro modal. hasPro('int_<key>') resolves from the integration's
+            // own verified license_state.
             if (($field['tier'] ?? 'free') === 'pro' && !PluginRegistry::hasPro($intKey)) {
                 $field['locked']      = true;
                 $field['lock_reason'] = 'integration_pro:' . $field['integration'];

@@ -515,12 +515,12 @@ class Pkg_AiboostInstallerScript
     /**
      * Task #454 — Is this install Pro-licensed?
      *
-     * Pro determination at install-time mirrors Dashboard::checkIsProEnabled():
-     *   - license_tier ∈ {pro, developer, agency} in #__aiboost_settings.settings_json
-     *   - OR dev_license_preview === '1' (developer simulator)
+     * Pro determination at install-time:
+     *   - pro_installed / pro_activated markers in #__aiboost_settings.settings_json
+     *   - OR license_tier ∈ {pro, developer, agency} in #__aiboost_settings.settings_json
      *   - OR a pkg_aiboost_pro package row exists in #__extensions
      *
-     * The third clause matters on a fresh install where the settings row
+     * The last clause matters on a fresh install where the settings row
      * doesn't have a tier yet but Pro is being installed in the same session.
      */
     private function isProInstall(): bool
@@ -552,9 +552,6 @@ class Pkg_AiboostInstallerScript
                     }
                     $tier = strtolower((string) ($data['license_tier'] ?? 'free'));
                     if (in_array($tier, ['pro', 'developer', 'agency'], true)) {
-                        return true;
-                    }
-                    if ((string) ($data['dev_license_preview'] ?? '0') === '1') {
                         return true;
                     }
                 }

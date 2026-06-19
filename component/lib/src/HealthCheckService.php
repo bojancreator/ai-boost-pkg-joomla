@@ -55,7 +55,6 @@ class HealthCheckService
         'warning_third_party_og_conflict'      => 'Conflicts',
         'warning_third_party_schema_conflict'  => 'Conflicts',
         'critical_pro_plugin_disabled'         => 'License',
-        'info_license_simulation_active'       => 'License',
         'warning_license_domain_mismatch'      => 'License',
         'warning_pro_install_no_license'       => 'License',
 
@@ -237,7 +236,6 @@ class HealthCheckService
             $this->warningBridgeSlotCollision(),
             $this->warningThirdPartyOgConflict(),
             $this->warningThirdPartySchemaConflict(),
-            $this->infoLicenseSimulationActive(),
             $this->warningLicenseDomainMismatch(),
             $this->warningProInstallNoLicense(),
             $this->infoErrorLogging(),
@@ -2689,8 +2687,7 @@ class HealthCheckService
             'aiboost_og_type', 'aiboost_og_video', 'aiboost_twitter_card',
         ];
         $tier  = strtolower((string) ($this->settings['license_tier'] ?? 'free'));
-        $isPro = in_array($tier, ['pro', 'developer', 'agency'], true)
-              || (string) ($this->settings['dev_license_preview'] ?? '0') === '1';
+        $isPro = in_array($tier, ['pro', 'developer', 'agency'], true);
 
         $present = 0;
         try {
@@ -2856,111 +2853,25 @@ class HealthCheckService
     }
 
     /**
-    * Info / warning when the legacy dev-only license override map is active.
-    * Defensive — surfaces to users if an override is accidentally left on in
-    * a production environment.
-     */
-    private function infoLicenseSimulationActive(): array
-    {
-        $active = false;
-        $debug  = defined('JDEBUG') && JDEBUG === true;
-        $skus   = [];
-
-        try {
-            if (class_exists('AiBoost\\Lib\\PluginRegistry')) {
-                $active = \AiBoost\Lib\PluginRegistry::isSimulationActive();
-                if ($active) {
-                    $sim = \AiBoost\Lib\PluginRegistry::loadSimulation();
-                    foreach ($sim as $k => $v) {
-                        if (is_string($v) && $k !== '_domain_override') {
-                            $skus[] = $k . '=' . $v;
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable) { /* silent */ }
-
-                // Pass when the override is off, OR when it's on and JDEBUG is on
-        // (developer is expected to know what they're doing in debug mode).
-        $pass = !$active || $debug;
-        $msg  = $pass
-            ? ($active
-                                ? 'License test override is active (JDEBUG on) — overrides: ' . implode(', ', $skus)
-                                : 'License test override is off.')
-                        : 'License test override is replacing real license state OUTSIDE Joomla debug mode. '
-              . 'Active overrides: ' . implode(', ', $skus) . '. '
-                            . 'Clear the stored override map or enable Joomla debug mode.';
-
-        return $this->make(
-            'info_license_simulation_active',
-            $pass ? 'info' : 'warning',
-            'License test override',
-            $pass,
-            $active,
-            $msg,
-            'index.php?option=com_aiboost&view=health'
-        );
-    }
-
-    /**
      * Warns when the resolved site domain differs from the domain the
      * license is registered to. In real licensing this catches accidental
      * use of a single-site license on a second site (multi-site warning).
      *
-    * Today the only producer of a "license-registered domain" is the
-    * legacy test override via PluginRegistry::simulatedDomainOverride().
-     * Once Lemon Squeezy enforcement lands (Task #108), the same check
-     * will compare against the real registered domain too.
+     * FUTURE HOOK: there is currently no producer of a "license-registered
+     * domain" to compare against, so this check is a constant pass. Once the
+     * real licensing backend reports the activated domain (Lemon Squeezy /
+     * self-hosted enforcement), wire it in here. The registry entry is kept
+     * stable so the Health check id never disappears from the list.
      */
     private function warningLicenseDomainMismatch(): array
     {
-        $override = '';
-        try {
-            if (class_exists('AiBoost\\Lib\\PluginRegistry')) {
-                $override = \AiBoost\Lib\PluginRegistry::simulatedDomainOverride();
-            }
-        } catch (\Throwable) { /* silent */ }
-
-        // No override -> nothing to compare yet, pass cleanly.
-        if ($override === '') {
-            return $this->make(
-                'warning_license_domain_mismatch',
-                'warning',
-                'License domain matches site',
-                true,
-                false,
-                'No license-registered domain override is set; site domain check is OK.',
-                'index.php?option=com_aiboost&view=health'
-            );
-        }
-
-        $siteUrl = '';
-        try {
-            $detector = new DomainDetectionService($this->ctx);
-            $siteUrl  = $detector->getBaseUrl($this->settings);
-        } catch (\Throwable) { /* silent */ }
-
-        $normalize = static function (string $url): string {
-            $host = parse_url($url, PHP_URL_HOST);
-            return is_string($host) ? strtolower($host) : strtolower(trim($url));
-        };
-        $simHost  = $normalize($override);
-        $siteHost = $normalize($siteUrl);
-
-        $matches = $simHost !== '' && $siteHost !== '' && $simHost === $siteHost;
-        $pass    = $matches;
-        $msg     = $matches
-            ? 'License-registered domain matches the current site (' . $siteHost . ').'
-            : 'License is registered to "' . $simHost . '" but this site is "' . ($siteHost ?: 'unknown') . '". '
-              . 'Update the license site, move the license, or clear the test override.';
-
         return $this->make(
             'warning_license_domain_mismatch',
             'warning',
-            'License domain mismatch',
-            $pass,
-            !$pass,
-            $msg,
+            'License domain matches site',
+            true,
+            false,
+            'Site domain check is OK.',
             'index.php?option=com_aiboost&view=health'
         );
     }

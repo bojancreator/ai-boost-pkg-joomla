@@ -52,6 +52,7 @@ final class SettingsSaveDefinition
         'pro_activated_at',
         'pro_activated_version',
         'pro_skus',
+        'pro_installed', // edition marker — written only by the package install script, never via form/import
         // Per-site identity + server-side bookkeeping.
         'install_id',
         'last_backup_at',
@@ -209,8 +210,7 @@ final class SettingsSaveDefinition
         'custom_code_body', 'custom_code_body_scope', 'custom_code_body_menu_ids',
         'custom_code_footer', 'custom_code_footer_scope', 'custom_code_footer_menu_ids',
         'custom_code_scope', 'custom_code_menu_ids',
-        'debug_mode', 'hide_comments',
-        'dev_license_preview', 'dev_force_free_tier', 'staging_mode',
+        'debug_mode', 'hide_comments', 'staging_mode',
         'error_log_enabled', 'error_log_min_severity',
     ];
 

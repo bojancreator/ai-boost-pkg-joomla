@@ -598,18 +598,17 @@ class AiBoostSitemap extends CMSPlugin
 
     private function isPro(array $settings): bool
     {
-        // Canonical verified-license gate (matches admin bootstrap + hasPro()).
+        // Canonical perpetual-activation gate (matches admin bootstrap + hasPro()).
         // Previously gated on `license_tier` alone (DRIFT): that emitted Pro
-        // sitemap artifacts in the lapsed-license window and ignored
-        // dev_force_free_tier. isProActive() honours verified license_state,
-        // the heartbeat hard-disable, and both dev_* QA overrides.
+        // sitemap artifacts in the lapsed-license window. isProActive() resolves
+        // purely from the perpetual `pro_activated` flag.
         // libReady() (not a bare class_exists) so a partially removed lib —
         // or JDEBUG's throwing class loader — can never fatal this check.
         if ($this->libReady()) {
             return \AiBoost\Lib\PluginRegistry::isProActive($settings);
         }
         // Fail-closed fallback if the lib is somehow unavailable.
-        return (string) ($settings['dev_license_preview'] ?? '0') === '1';
+        return false;
     }
 
     /**

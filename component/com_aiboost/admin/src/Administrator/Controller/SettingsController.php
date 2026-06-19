@@ -1108,12 +1108,10 @@ class SettingsController extends BaseController
      * Server-side Pro check for the settings save endpoint.
      *
      * Delegates to the canonical PluginRegistry::isProActive() so save
-     * enforcement uses the SAME verified-license signal as the admin
+     * enforcement uses the SAME perpetual-activation signal as the admin
      * bootstrap and runtime gates — a Pro install behaves exactly like Free
-     * until a key is verified, and Pro saving is hard-disabled on license
-     * expiry / failed heartbeat. The previous `license_tier`-only check was
-     * DRIFT: it leaked Pro saving in the lapsed-license window and ignored
-     * `dev_force_free_tier`.
+     * until a key is verified active once. The previous `license_tier`-only
+     * check was DRIFT: it leaked Pro saving in the lapsed-license window.
      *
      * @param array<string,mixed> $settings The existing settings row (pre-merge).
      */
@@ -1123,7 +1121,7 @@ class SettingsController extends BaseController
             return \AiBoost\Lib\PluginRegistry::isProActive($settings);
         }
         // Fail-closed fallback if the lib is somehow unavailable.
-        return (string) ($settings['dev_license_preview'] ?? '0') === '1';
+        return false;
     }
 
     /**
@@ -1725,72 +1723,6 @@ class SettingsController extends BaseController
         return $w;
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // LEGACY LICENSE TEST OVERRIDE API — dev-only, gated on JDEBUG
-    // ─────────────────────────────────────────────────────────────────────
-
-    /**
-    * Return the current license_simulation map + the resolved capabilities
-    * for legacy QA tooling.
-     * URL: index.php?option=com_aiboost&task=settings.simulatorGet&format=json
-     * Method: POST (Session::checkToken() expects the form token in the body).
-     */
-    public function simulatorGet(): void
-    {
-        if (!$this->guardSimulator()) {
-            return;
-        }
-
-        try {
-            $payload = [
-                'success'      => true,
-                'states'       => PluginRegistry::SIM_STATES,
-                'skus'         => PluginRegistry::SIM_SKUS,
-                'simulation'   => PluginRegistry::loadSimulation(),
-                'capabilities' => PluginRegistry::capabilities(),
-            ];
-            $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
-            echo json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            $this->app->close();
-        } catch (\Throwable $e) {
-            $this->sendJsonResponse(false, 'simulatorGet failed: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Persist the license_simulation map. Body params:
-     *   simulation[<sku>] = active|expired|disabled|not_licensed
-     *   simulation[_domain_override] = string
-     * URL: index.php?option=com_aiboost&task=settings.simulatorSave&format=json
-     */
-    public function simulatorSave(): void
-    {
-        if (!$this->guardSimulator()) {
-            return;
-        }
-
-        try {
-            $input = $this->app->getInput();
-            $raw   = $input->get('simulation', [], 'array');
-            $map   = [];
-            foreach ($raw as $k => $v) {
-                $map[(string) $k] = is_string($v) ? trim($v) : '';
-            }
-            PluginRegistry::saveSimulation($map);
-
-            $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
-            echo json_encode([
-                'success'      => true,
-                'message'      => 'Simulator saved.',
-                'simulation'   => PluginRegistry::loadSimulation(),
-                'capabilities' => PluginRegistry::capabilities(),
-            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            $this->app->close();
-        } catch (\Throwable $e) {
-            $this->sendJsonResponse(false, 'simulatorSave failed: ' . $e->getMessage());
-        }
-    }
-
     // ── Task #429 — License Key Verify (per-SKU) ───────────────────────────
 
     /**
@@ -1810,7 +1742,6 @@ class SettingsController extends BaseController
                 'success'      => true,
                 'states'       => (object) $states,
                 'integrations' => $this->installedSellableIntegrations(),
-                'mock'         => true,
             ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             $this->app->close();
         } catch (\Throwable $e) {
@@ -1866,7 +1797,7 @@ class SettingsController extends BaseController
     /**
      * Verify a license key for a single SKU. POST params:
      *   sku         — schema|og|hreflang|code|aeo|bundle|int_yootheme|int_falang
-     *   license_key — raw key (mock prefixes: AB-VALID / AB-EXPIRED / AB-LIMIT / AB-DEACT)
+     *   license_key — raw key, validated against the live Lemon Squeezy API
      * URL: index.php?option=com_aiboost&task=settings.verifyLicense&format=json
      */
     public function verifyLicense(): void
@@ -1889,14 +1820,12 @@ class SettingsController extends BaseController
                 return;
             }
 
-            // Plan 2a — integration SKUs are product-pinned (fail closed). A real
-            // (non-mock) integration key cannot be verified until its Lemon
-            // Squeezy product ID is configured, so a same-store key for another
-            // product can never activate this integration. Mock QA keys (AB-*)
-            // bypass the network and the pin entirely via the simulator path.
+            // Plan 2a — integration SKUs are product-pinned (fail closed). An
+            // integration key cannot be verified until its Lemon Squeezy product
+            // ID is configured, so a same-store key for another product can never
+            // activate this integration.
             if (
                 str_starts_with($sku, 'int_')
-                && !$this->isMockLicenseKey($key)
                 && \AiBoost\Lib\LicenseValidator::expectedProductId($sku) === null
             ) {
                 $this->sendJsonResponse(false, 'Integration licensing is not configured yet (product pinning missing). '
@@ -1906,23 +1835,11 @@ class SettingsController extends BaseController
 
             $state = $this->resolveLicenseState($sku, $key);
 
-            if ($this->isMockLicenseKey($key)) {
-                // Mock results must NEVER reach saveLicenseState(): it calls
-                // markPerpetualActivation(), which would permanently unlock
-                // Pro from a fake QA key — even after debug mode is turned
-                // off. Route them through the license simulator instead: the
-                // simulator is only honoured while JDEBUG is on, so mock Pro
-                // stays ephemeral like dev preview, not a real activation.
-                $sim       = PluginRegistry::loadSimulation();
-                $sim[$sku] = self::mockSimulationState($state);
-                PluginRegistry::saveSimulation($sim);
-            } else {
-                PluginRegistry::saveLicenseState($sku, $state);
-                // Seamless updates: push the key into Joomla's update-site Download
-                // Key so the native updater sends it to our update server (dlid).
-                if (($state['status'] ?? '') === 'active') {
-                    $this->fillUpdateDownloadKey($sku, $key);
-                }
+            PluginRegistry::saveLicenseState($sku, $state);
+            // Seamless updates: push the key into Joomla's update-site Download
+            // Key so the native updater sends it to our update server (dlid).
+            if (($state['status'] ?? '') === 'active') {
+                $this->fillUpdateDownloadKey($sku, $key);
             }
 
             $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -1961,7 +1878,7 @@ class SettingsController extends BaseController
                 'expires_at'  => null,
                 'verified_at' => gmdate('c'),
                 'activations_remaining' => null,
-                'mock'        => true,
+                'mock'        => false,
                 'message'     => 'License released from this site.',
             ];
             PluginRegistry::saveLicenseState($sku, $state);
@@ -2024,20 +1941,14 @@ class SettingsController extends BaseController
     /**
      * Resolve the license state for a verify request.
      *
-     * Production path: a real Lemon Squeezy validate/activate call via
-     * LicenseValidator::verify() — Pro only unlocks on a confirmed live,
-     * active license (fail-closed on any error). Under Joomla debug mode,
-     * AB-prefixed keys fall back to the offline mock so the Licenses UI can
-     * still be exercised in QA without a real purchase.
+     * A real Lemon Squeezy validate/activate call via LicenseValidator::verify()
+     * — Pro only unlocks on a confirmed live, active license (fail-closed on any
+     * error).
      *
      * @return array<string,mixed>
      */
     private function resolveLicenseState(string $sku, string $key): array
     {
-        if ($this->isMockLicenseKey($key)) {
-            return $this->mockValidateLicense($sku, $key);
-        }
-
         $existing     = PluginRegistry::loadLicenseStates()[$sku] ?? [];
         $instanceId   = is_array($existing) ? (string) ($existing['instance_id'] ?? '') : '';
         $instanceName = rtrim(\Joomla\CMS\Uri\Uri::root(), '/');
@@ -2050,87 +1961,6 @@ class SettingsController extends BaseController
             : \AiBoost\Lib\LicenseValidator::expectedCoreProductIds();
 
         return \AiBoost\Lib\LicenseValidator::verify($key, $instanceName, $instanceId, $expectedProductId);
-    }
-
-    /**
-     * True when the key must be handled by the offline mock validator —
-     * AB-prefixed QA keys, honoured only while Joomla debug mode is on.
-     * Shared by resolveLicenseState() and verifyLicense() so the routing
-     * decision (mock → simulator, real → saveLicenseState) can never drift
-     * from the validation decision.
-     */
-    private function isMockLicenseKey(string $key): bool
-    {
-        return defined('JDEBUG') && JDEBUG === true && str_starts_with(strtoupper($key), 'AB-');
-    }
-
-    /**
-     * Map a mock validator status onto the license simulator's vocabulary
-     * (PluginRegistry::SIM_STATES). Public static so the regression test can
-     * assert the mock flow only ever produces simulator states — i.e.
-     * markPerpetualActivation() is unreachable from a mock key.
-     *
-     * @param array<string,mixed> $state Mock state from mockValidateLicense().
-     */
-    public static function mockSimulationState(array $state): string
-    {
-        $map = [
-            'active'        => 'active',
-            'expired'       => 'expired',
-            'limit_reached' => 'expired',
-            'deactivated'   => 'disabled',
-            'invalid'       => 'not_licensed',
-        ];
-        return $map[(string) ($state['status'] ?? '')] ?? 'not_licensed';
-    }
-
-    /**
-     * Mock Lemon Squeezy validator — dev/QA only (JDEBUG). Mirrors the prefix
-     * conventions the offline Licenses UI uses when no live key is available.
-     * Prefix conventions:
-     *   AB-VALID-*    → active (1y expiry, 4 activations remaining)
-     *   AB-EXPIRED-*  → expired (30d ago)
-     *   AB-LIMIT-*    → limit_reached (0 activations remaining)
-     *   AB-DEACT-*    → deactivated
-     *   anything else → invalid
-     *
-     * @return array<string,mixed>
-     */
-    private function mockValidateLicense(string $sku, string $key): array
-    {
-        $upper = strtoupper($key);
-        $base  = [
-            'key'                    => $key,
-            'mock'                   => true,
-            'verified_at'            => gmdate('c'),
-            'expires_at'             => null,
-            'activations_remaining'  => null,
-            'status'                 => 'invalid',
-            'message'                => '',
-        ];
-
-        if (str_starts_with($upper, 'AB-VALID')) {
-            $base['status']                = 'active';
-            $base['expires_at']            = gmdate('c', time() + 365 * 86400);
-            $base['activations_remaining'] = 4;
-            $base['message']               = 'License is active. Updates and support are available for "' . $sku . '".';
-        } elseif (str_starts_with($upper, 'AB-EXPIRED')) {
-            $base['status']     = 'expired';
-            $base['expires_at'] = gmdate('c', time() - 30 * 86400);
-            $base['message']    = 'License expired 30 days ago. Renew at aiboostnow.com/account.';
-        } elseif (str_starts_with($upper, 'AB-LIMIT')) {
-            $base['status']                = 'limit_reached';
-            $base['expires_at']            = gmdate('c', time() + 365 * 86400);
-            $base['activations_remaining'] = 0;
-            $base['message']               = 'Activation limit reached for this license. Release a site at aiboostnow.com/account first.';
-        } elseif (str_starts_with($upper, 'AB-DEACT')) {
-            $base['status']  = 'deactivated';
-            $base['message'] = 'License was deactivated. Re-activate from aiboostnow.com/account.';
-        } else {
-            $base['status']  = 'invalid';
-            $base['message'] = 'License key not recognised. Mock prefixes: AB-VALID, AB-EXPIRED, AB-LIMIT, AB-DEACT.';
-        }
-        return $base;
     }
 
     /**
@@ -2181,37 +2011,14 @@ class SettingsController extends BaseController
     }
 
     /**
-     * Permission + CSRF guard for the License endpoints. Unlike the
-     * simulator, this is available in production (not gated on JDEBUG).
+     * Permission + CSRF guard for the License endpoints (verifyLicense,
+     * deactivateLicense, heartbeatRun, licenseStateGet) — available in production.
      */
     private function guardLicense(): bool
     {
         // Accept token from both GET (used by licenseStateGet on page load)
         // and POST (verifyLicense, deactivateLicense, heartbeatRun).
         if (!Session::checkToken('get') && !Session::checkToken()) {
-            $this->sendJsonResponse(false, 'Invalid security token.');
-            return false;
-        }
-        $identity = $this->app->getIdentity();
-        if (!$identity || !$identity->authorise('core.manage', 'com_aiboost')) {
-            $this->sendJsonResponse(false, 'Access denied.');
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Common guard for simulator endpoints. Returns true when the request
-     * may proceed, false (and emits a JSON error) otherwise.
-     */
-    private function guardSimulator(): bool
-    {
-        // Hard gate: only when Joomla debug mode is on.
-        if (!(defined('JDEBUG') && JDEBUG === true)) {
-            $this->sendJsonResponse(false, 'License test overrides are only available when Joomla debug mode is on.');
-            return false;
-        }
-        if (!Session::checkToken()) {
             $this->sendJsonResponse(false, 'Invalid security token.');
             return false;
         }

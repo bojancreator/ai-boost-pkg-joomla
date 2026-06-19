@@ -3,7 +3,7 @@
  * Minimal stub of \Joomla\CMS\Factory for unit tests.
  *
  * Tests can call Factory::setDbo($fake) to swap in a fake database used by
- * PluginRegistry's loadSimulation() / scan() calls.
+ * PluginRegistry's scan() / settings-loading calls.
  */
 
 namespace Joomla\CMS;

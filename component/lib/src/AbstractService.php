@@ -39,13 +39,6 @@ abstract class AbstractService implements ServiceInterface
 
     protected function isProTier(): bool
     {
-        if ((bool) $this->params->get('dev_force_free_tier', false)) {
-            return false;
-        }
-        if ((bool) $this->params->get('dev_license_preview', false)) {
-            return true;
-        }
-
         $key = trim((string) $this->params->get('license_key', ''));
         if ($key === '') {
             return false;
