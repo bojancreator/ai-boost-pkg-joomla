@@ -21,9 +21,10 @@ Groups (run all, or pick with --group a,b,…):
   multilingual per-language hreflang + sitemap alternates + x-default;
                translated Schema/OG (Pro + Multilang gated).               [read-only*]
 
-Pro state: artifacts behind a Pro SKU can only be toggled over HTTP when the
-target has Joomla Debug ON (settings.simulatorSave). When JDEBUG is off, Pro
-state is DB-only — those checks SKIP with the SQL snippet to run by hand.
+Pro state: artifacts behind the Multilang SKU are toggled over HTTP by activating
+a REAL licence key (settings.verifyLicense) using the int_falang QA key from env
+(AIBOOST_QA_KEY_INT_FALANG). Core Pro is perpetual — assert it on the real
+free/pro test matrix rather than flipping one site. Without a key those checks SKIP.
 
 Run via the creds wrapper:
   python _creds_run.py scripts/verify-frontend-emission.py --target staging
@@ -82,7 +83,7 @@ class Report:
             c[r["status"]] += 1
         return c
 
-    def write(self, base: str, jdebug: bool, pro_note: str) -> str:
+    def write(self, base: str, pro_note: str) -> str:
         os.makedirs(ARTIFACT_DIR, exist_ok=True)
         ts = time.strftime("%Y%m%d-%H%M%S")
         path = os.path.join(ARTIFACT_DIR, f"frontend-emission-{self.target}-{ts}.md")
@@ -92,7 +93,6 @@ class Report:
             "",
             f"- **Site:** {base}",
             f"- **When:** {ts}",
-            f"- **JDEBUG (HTTP Pro-flip):** {'on' if jdebug else 'OFF — Pro checks limited'}",
             f"- **Pro state:** {pro_note}",
             f"- **Totals:** {GLYPH[PASS]} {c[PASS]} pass · {GLYPH[FAIL]} {c[FAIL]} fail · {GLYPH[SKIP]} {c[SKIP]} skip",
             "",
@@ -125,10 +125,9 @@ class Harness:
         self.defaults: dict = {}
         self.langs: list = []
         self.default_lang = ""
-        self.jdebug = False
-        self.sim_snapshot: dict = {}
         self.core_pro = False
         self.multilang_pro = False
+        self.ml_was_active = False   # int_falang seat at connect — for restore
         self.article_url = ""
         self.pro_note = "unknown"
 
@@ -141,21 +140,15 @@ class Harness:
         # One authoritative pre-run baseline on disk for --restore-only.
         qa.write_snapshot(self.target, self.snapshot, suffix="baseline")
         print(f"📤 settings.export: {len(self.snapshot)} params")
-        sim = qa.simulator_get(self.s, self.admin_php)
-        if not sim.get("success") and "debug mode" not in str(sim.get("message", "")).lower():
-            # Distinguish a genuinely JDEBUG-off site (which says 'debug mode')
-            # from a broken simulator endpoint — the latter must be loud, not a SKIP.
-            raise RuntimeError(f"simulatorGet did not respond as JDEBUG-off "
-                               f"(expected a 'debug mode' message): {sim}")
-        self.jdebug = bool(sim.get("jdebug"))
-        self.sim_snapshot = dict(sim.get("simulation") or {}) if self.jdebug else {}
         langs = qa.get_languages(self.s, self.admin_php)
         self.langs = langs.get("languages") or []
         self.default_lang = langs.get("default_lang") or ""
         print(f"🌐 languages: {[l.get('sef') for l in self.langs]} (default {self.default_lang})")
-        print(f"🔧 JDEBUG simulator: {'available' if self.jdebug else 'OFF (Pro state is DB-only)'}")
         self.pro_note = self._detect_pro()
+        self.ml_was_active = self.multilang_pro
         print(f"💎 Pro: {self.pro_note}")
+        _mlk = qa.qa_license_key("int_falang")
+        print(f"🔑 int_falang QA key: {'configured' if _mlk else 'NOT set — ML gate limited (set AIBOOST_QA_KEY_INT_FALANG)'}")
 
     def _manifest_defaults(self) -> dict:
         """Best-effort manifest defaults (for restoring keys absent from a snapshot)."""
@@ -204,16 +197,15 @@ class Harness:
         m = _re.search(r"aiBoostBootstrap\s*=\s*(\{.*?\})\s*;", r.text, _re.DOTALL)
         return _json.loads(m.group(1)) if m else {}
 
-    def restore_sim(self):
-        """Re-apply EXACTLY the simulator overrides captured at connect (JDEBUG only).
-
-        An empty snapshot means 'no overrides' — send {} to CLEAR them, never a
-        synthetic all-'not_licensed' map (which would force-override the site's
-        real per-SKU license state and persist it).
-        """
-        if self.jdebug:
-            qa.simulator_save(self.s, self.admin_php, self.sim_snapshot)
-            time.sleep(qa.DEFAULT_POST_DELAY)
+    def restore_license(self):
+        """Restore the int_falang seat to its state at connect. We only ever touch
+        int_falang here; core pro_activated is perpetual and never flipped by QA."""
+        key = qa.qa_license_key("int_falang")
+        if self.ml_was_active and key:
+            qa.activate_real_license(self.s, self.admin_php, "int_falang", key)
+        else:
+            qa.deactivate_license(self.s, self.admin_php, "int_falang")
+        time.sleep(qa.DEFAULT_POST_DELAY)
 
     @property
     def multilingual(self) -> bool:
@@ -240,11 +232,16 @@ class Harness:
         self.article_url = self.home()
         return self.article_url
 
-    def set_pro(self, sku: str, state: str) -> bool:
-        """Flip a Pro SKU via the JDEBUG simulator. Returns False when unavailable."""
-        if not self.jdebug:
-            return False
-        r = qa.simulator_save(self.s, self.admin_php, {sku: state})
+    def set_pro(self, sku: str, active: bool) -> bool:
+        """Activate (real QA key) or release a licence SKU over HTTP. Returns False
+        when activating but no QA key is configured for the SKU."""
+        if active:
+            key = qa.qa_license_key(sku)
+            if not key:
+                return False
+            r = qa.activate_real_license(self.s, self.admin_php, sku, key)
+        else:
+            r = qa.deactivate_license(self.s, self.admin_php, sku)
         time.sleep(qa.DEFAULT_POST_DELAY)
         return bool(r.get("success"))
 
@@ -573,14 +570,14 @@ class Harness:
         # Authoritative only with the JDEBUG simulator: OFF → no hreflang;
         # ON → hreflang appears. Without JDEBUG we can only assert the current
         # observed state and must SKIP the negative half.
-        if self.jdebug:
+        if qa.qa_license_key("int_falang"):
             self._multilang_gate_test()
         elif self.multilang_pro:
             self._multilang_positive(note="(Multilang Pro detected active)")
         else:
-            self.add("multilingual", "gate", "Multilang Pro gate (sim OFF→none, ON→appears)", SKIP,
-                     "no JDEBUG simulator and Multilang Pro inactive — enable JDEBUG, or set "
-                     "license_state[int_falang]=active in #__aiboost_settings, then re-run")
+            self.add("multilingual", "gate", "Multilang Pro gate (OFF→none, ON→appears)", SKIP,
+                     "no int_falang QA key (AIBOOST_QA_KEY_INT_FALANG) and Multilang Pro inactive — "
+                     "set the key or activate a real Multilang licence, then re-run")
 
     def _multilang_positive(self, note: str = ""):
         for l in self.langs:
@@ -599,7 +596,9 @@ class Harness:
                      PASS if xhtml > 0 else FAIL, f"{xhtml} alternates {note}")
 
     def _multilang_gate_test(self):
-        """sim OFF → no hreflang; sim ON → hreflang + x-default + sitemap alternates."""
+        """Reversible Multilang Pro gate via a REAL int_falang key:
+        OFF (seat released) → no hreflang; ON (real key activated) → hreflang +
+        x-default + sitemap alternates."""
         # Ensure the master toggle is on so only the Pro gate is under test.
         touched = ["integration_falang_enabled", "falang_hreflang_head", "enable_hreflang"]
         try:
@@ -608,25 +607,31 @@ class Harness:
                 qa.import_params(self.s, self.admin_php,
                                  {"integration_falang_enabled": "1", "falang_hreflang_head": "1",
                                   "enable_hreflang": "1"}, quiet=True)
-                # OFF: Multilang Pro disabled → expect ZERO hreflang.
-                self.set_pro("int_falang", "disabled")
+                # OFF: release the Multilang seat → expect ZERO hreflang.
+                self.set_pro("int_falang", False)
                 off = self._any_hreflang()
                 self.add("multilingual", "gate_off", "Multilang OFF → no hreflang emitted",
                          PASS if off == 0 else FAIL, f"{off} alternate(s) with Pro off")
-                # ON: Multilang Pro active → expect hreflang to appear.
-                self.set_pro("int_falang", "active")
-                self._multilang_positive(note="(sim ON)")
+                # ON: activate the real Multilang key → expect hreflang to appear.
+                self.set_pro("int_falang", True)
+                self._multilang_positive(note="(real key ON)")
                 on = self._any_hreflang()
                 self.add("multilingual", "gate_on", "Multilang ON → hreflang appears",
                          PASS if on >= 2 else FAIL, f"{on} alternate(s) with Pro on")
-                # Translated JSON-LD needs core-Pro(schema) AND Multilang together.
-                self.set_pro("schema", "active")
-                objs, _ = qa.fetch_jsonld(self.s, self.pick_article())
-                self.add("multilingual", "translated_schema_gate",
-                         "schema+Multilang active → JSON-LD still emits (translation overlay)",
-                         PASS if objs else FAIL, f"{len(objs)} node(s)")
+                # Translated JSON-LD needs core-Pro(schema) AND Multilang together;
+                # core Pro is perpetual (never flipped here) — assert only when the
+                # target is already core-Pro, else SKIP with the matrix instruction.
+                if self.core_pro:
+                    objs, _ = qa.fetch_jsonld(self.s, self.pick_article())
+                    self.add("multilingual", "translated_schema_gate",
+                             "schema+Multilang active → JSON-LD still emits (translation overlay)",
+                             PASS if objs else FAIL, f"{len(objs)} node(s)")
+                else:
+                    self.add("multilingual", "translated_schema_gate",
+                             "schema+Multilang active → translated JSON-LD", SKIP,
+                             "target is core-Free — run on a core-Pro site (staging/j6pro)")
         finally:
-            self.restore_sim()
+            self.restore_license()
 
     # ── runner ──
     def run(self, groups: list[str]):
@@ -703,7 +708,7 @@ def main() -> int:
     try:
         h.run(groups)
     finally:
-        path = h.report.write(h.base, h.jdebug, h.pro_note)
+        path = h.report.write(h.base, h.pro_note)
         c = h.report.counts()
         print(f"\n📝 report → {path}")
         print(f"OVERALL: {GLYPH[PASS]} {c[PASS]} · {GLYPH[FAIL]} {c[FAIL]} · {GLYPH[SKIP]} {c[SKIP]}")

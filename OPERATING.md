@@ -150,15 +150,16 @@ It drives the Vue `<ProGate>`, server-side `stripLocked()` in
 - **Forbidden:** cosmetic inline `Pro` badges with no registry entry — they leave the
   input editable on Free.
 
-**Gating model (perpetual activation):** `isProActive()` is a flat 4-branch gate —
-`dev_force_free_tier`→false, `pro_activated`→true, `dev_license_preview`→true, else
-false. It never walks `license_state` / `license_tier` / heartbeat.
-`pro_activated='1'` is set **once** by `PluginRegistry::saveLicenseState()` the first
-time any key verifies active and is **never cleared**: Pro then works **forever**. An
-expired licence only pauses updates + support (enforced by the update server), it does
-**not** relock code. Free = `pro_activated` never set. The DB-only `dev_license_preview`
-forces Pro for QA; the DB-only `dev_force_free_tier` forces Free and wins over
-everything.
+**Gating model (perpetual activation):** `isProActive()` is a single-flag gate —
+`pro_activated==='1'` → Pro, else Free. It never walks `license_state` /
+`license_tier` / heartbeat. `pro_activated='1'` is set **once** by
+`PluginRegistry::saveLicenseState()` the first time any key verifies active and is
+**never cleared**: Pro then works **forever**. An expired licence only pauses updates +
+support (enforced by the update server), it does **not** relock code. Free =
+`pro_activated` never set. (The old `dev_license_preview` / `dev_force_free_tier` QA
+overrides were removed in v0.86.5 — they no longer affect the gate; they remain on the
+save/import denylist as a permanent anti-self-promotion guard. To put a QA site into
+Pro: activate a real key, or DB-seed `pro_activated='1'` — see below.)
 
 ---
 
@@ -329,14 +330,15 @@ screen shows one core "AI Boost" key plus a row per installed sellable integrati
 fixes/tweaks; Minor (+0.1.0) for new features/fields/tabs. Never edit `<version>` in XML
 manifests — the build script writes it from `component/Version.php`.
 
-### Developer Pro simulation (QA fallback)
-No UI toggle (removed so customers can't screenshot a license bypass); the keys are
-DB-only. To force Pro on a Free install (or Free on a Pro install with
-`dev_force_free_tier`), edit `#__aiboost_settings` directly and set back to `'0'` when done:
+### Forcing Pro on a QA site
+There is no licence-bypass override (the `dev_license_preview` / `dev_force_free_tier`
+keys were removed in v0.86.5). To put a QA site into Pro, **activate a real key** (the
+Licenses page → `settings.verifyLicense`; issue a key from the api.aiboostnow.com
+backend admin API or `bin/issue-key.php`), or DB-seed the perpetual flag directly:
 
 ```sql
 UPDATE jos_aiboost_settings
-SET settings_json = JSON_SET(settings_json, '$.dev_license_preview', '1')
+SET settings_json = JSON_SET(settings_json, '$.pro_activated', '1')
 WHERE setting_key = 'main';
 ```
 

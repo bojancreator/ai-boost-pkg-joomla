@@ -68,8 +68,8 @@ breaks any of them is a regression.
    `meta.product_id` is not in the allowed set, or that proves no store/product at
    all; it makes no API call while a pin is unconfigured. The transport posts only
    to the hard-coded `api.lemonsqueezy.com` HTTPS endpoints with TLS verification
-   on. Mock (`AB-*`) keys only work under `JDEBUG` and route to the ephemeral
-   simulator, never to perpetual activation.
+   on. There is no mock/`AB-*`/simulator bypass — every key goes through the real
+   fail-closed `LicenseValidator::verify()` (the QA simulator was removed in v0.86.5).
 7. **The Pro runtime gate is one signal.** Every server/runtime/UI Pro gate routes
    through `PluginRegistry::isProActive()` / `hasPro($sku)`, which reads only the
    perpetual `pro_activated` flag (never `license_tier`, never a live

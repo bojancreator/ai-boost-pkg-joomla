@@ -11,10 +11,11 @@ Design rules baked in here (verified against source — see docs/internal):
   * Settings are mutated ONLY through `import.upload` (merge over existing).
     `settings.save` is NEVER used: it rebuilds the whole blob from the posted
     form and silently drops every key not posted.
-  * Pro / licence / dev-override state CANNOT be flipped over HTTP via import:
+  * Pro / licence state CANNOT be flipped over HTTP via import:
     ImportController::IMPORT_DENYLIST (= SYSTEM_PRESERVED_KEYS) strips them.
-    The ONLY HTTP lever is `settings.simulatorSave`, and ONLY when the target
-    site has Joomla Debug (JDEBUG) ON. `simulator_get()` detects that.
+    Pro is driven by activating a REAL licence key (activate_real_license() →
+    settings.verifyLicense, which sets pro_activated). The JDEBUG simulator was
+    removed in v0.86.5; is_pro_active() reads the live gate from the SPA bootstrap.
   * `redirects.clear404` TRUNCATEs the 404 log — this module deliberately does
     NOT wrap it. 404 data is read from `redirects.listJson` (log404 / total404).
   * Every front-end fetch is cache-busted (?ab_qa=<ts> + no-cache headers) to
@@ -48,11 +49,8 @@ DEFAULT_INTER_OP_DELAY = 1   # polite spacing between requests (~1 req/s)
 
 OPTION = "com_aiboost"
 
-# license_simulation states / SKUs accepted by settings.simulatorSave.
-# Mirrors PluginRegistry::SIM_STATES / SIM_SKUS (read live via simulator_get()
-# when available; these are the build-time fallbacks).
-SIM_STATES = ("active", "expired", "disabled", "not_licensed")
-SIM_SKUS = ("schema", "og", "hreflang", "code", "aeo", "bundle", "int_falang", "int_yootheme")
+# Licence SKUs accepted by settings.verifyLicense / settings.deactivateLicense.
+LICENSE_SKUS = ("schema", "og", "hreflang", "code", "aeo", "bundle", "int_falang", "int_yootheme")
 
 
 # ── Console ──────────────────────────────────────────────────────────────────
@@ -355,27 +353,61 @@ def integrations_save_toggle(session: requests.Session, admin_php: str, key: str
     }, csrf=csrf)
 
 
-def simulator_get(session: requests.Session, admin_php: str) -> dict:
-    """POST settings.simulatorGet. JDEBUG detector.
+# ── Real licence activation (replaces the removed JDEBUG simulator, v0.86.5) ──
+# Pro state is driven by activating a REAL key against api.aiboostnow.com via the
+# plugin's admin tasks. There is no dev-override / simulator path anymore.
 
-    MUST be POST: guardSimulator() calls Session::checkToken() with no argument,
-    which only accepts a POST-body token — a GET would fail the token check even
-    on a JDEBUG-on site and be mis-read as JDEBUG-off.
-
-    Returns {jdebug: bool, success, states, skus, simulation, capabilities}.
-    When JDEBUG is OFF the controller hard-fails with success=false and a
-    'only available when Joomla debug mode is on' message → jdebug=False.
-    """
-    data = post_task(session, admin_php, "settings.simulatorGet")
-    msg = str(data.get("message", "")).lower()
-    data["jdebug"] = bool(data.get("success")) and "debug mode" not in msg
-    return data
+def license_state_get(session: requests.Session, admin_php: str) -> dict:
+    """GET settings.licenseStateGet → {success, states:{sku:{status,...}}, integrations}.
+    Read-only: the authoritative current per-SKU licence state on the live site."""
+    return get_task(session, admin_php, "settings.licenseStateGet")
 
 
-def simulator_save(session: requests.Session, admin_php: str, simulation: dict, csrf: str | None = None) -> dict:
-    """POST settings.simulatorSave with simulation[<sku>]=<state>. JDEBUG-only."""
-    data = {f"simulation[{sku}]": state for sku, state in simulation.items()}
-    return post_task(session, admin_php, "settings.simulatorSave", data=data, csrf=csrf)
+def is_pro_active(session: requests.Session, admin_php: str) -> bool:
+    """Authoritative live Pro gate: read window.aiBoostBootstrap.isPro from view=app
+    (exactly what isProActive()/the SPA <ProGate> use). No dev-key inference."""
+    r = session.get(admin_php + f"?option={OPTION}&view=app", timeout=60)
+    m = re.search(r"aiBoostBootstrap\s*=\s*(\{.*?\})\s*;", r.text, re.DOTALL)
+    if not m:
+        return False
+    boot = loads_lenient(m.group(1))
+    if not isinstance(boot, dict):
+        return False
+    return bool(boot.get("isPro") or (boot.get("license") or {}).get("isPro"))
+
+
+def qa_license_key(sku: str) -> str:
+    """The env-provided real QA key for a SKU, or '' if not configured.
+    Never hard-code keys — they live in CREDENTIALS.local.md / wrapper .env and
+    are loaded by _creds_run.py (AIBOOST_QA_KEY_CORE / _INT_FALANG / _INT_YOOTHEME)."""
+    env = {
+        "bundle": "AIBOOST_QA_KEY_CORE",
+        "int_falang": "AIBOOST_QA_KEY_INT_FALANG",
+        "int_yootheme": "AIBOOST_QA_KEY_INT_YOOTHEME",
+    }.get(sku)
+    return os.environ.get(env, "").strip() if env else ""
+
+
+def activate_real_license(session: requests.Session, admin_php: str, sku: str, key: str,
+                          csrf: str | None = None) -> dict:
+    """POST settings.verifyLicense (sku, license_key) — activates a REAL key against
+    the live licensing authority. On success the server sets pro_activated (core
+    SKUs) or the per-SKU license_state (int_* SKUs). Returns {success, state, message}."""
+    if sku not in LICENSE_SKUS:
+        raise ValueError(f"unknown SKU {sku!r}")
+    return post_task(session, admin_php, "settings.verifyLicense",
+                     data={"sku": sku, "license_key": key}, csrf=csrf)
+
+
+def deactivate_license(session: requests.Session, admin_php: str, sku: str, csrf: str | None = None) -> dict:
+    """POST settings.deactivateLicense (sku) — releases the SKU's seat (status=deactivated).
+    Note: core pro_activated is perpetual and NOT cleared by design, so this resets per-SKU
+    state but a once-activated core site stays Pro (use the real free/pro matrix for a clean
+    Free assertion)."""
+    if sku not in LICENSE_SKUS:
+        raise ValueError(f"unknown SKU {sku!r}")
+    return post_task(session, admin_php, "settings.deactivateLicense",
+                     data={"sku": sku}, csrf=csrf)
 
 
 # ── Front-end fetch helpers (all cache-busted) ───────────────────────────────
@@ -539,9 +571,9 @@ def _selfcheck(target: str) -> int:
     langs = get_languages(s, admin_php)
     lang_list = langs.get("languages") or []
     print(f"🌐 languages: {[l.get('sef') for l in lang_list]} (default {langs.get('default_lang')})")
-    sim = simulator_get(s, admin_php)
-    print(f"🔧 JDEBUG simulator available: {sim.get('jdebug')} "
-          f"({'HTTP Pro-flip OK' if sim.get('jdebug') else 'Pro state is DB-only on this target'})")
+    print(f"💎 Pro active (live gate): {is_pro_active(s, admin_php)}")
+    lic = license_state_get(s, admin_php)
+    print(f"🔑 per-SKU licence states: {lic.get('states') or {}}")
     caps = get_capabilities(s, admin_php)
     print(f"🧩 live fields: {len(caps.get('fields') or [])}; capabilities keys: {len(caps.get('capabilities') or {})}")
     return 0

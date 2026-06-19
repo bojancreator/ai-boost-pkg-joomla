@@ -178,7 +178,7 @@ TRANSLATABLE_DYNAMIC = [
 ]
 
 # Keys never worth turning on in a fixture (would change site behaviour oddly).
-SKIP_ENABLE = {"staging_mode", "dev_license_preview", "dev_force_free_tier"}
+SKIP_ENABLE = {"staging_mode"}
 
 
 def value_for(row: dict) -> str:

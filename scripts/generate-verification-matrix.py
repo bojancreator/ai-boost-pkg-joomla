@@ -379,8 +379,8 @@ def render_md(matrix: dict) -> str:
     lines.append("---")
     lines.append("")
     lines.append("**Legend:** Writable `save+import` = settable through the admin save/import path; "
-                 "`DB-only` = system-preserved (licence/dev/identity), never client-writable — flip via "
-                 "DB SQL or the JDEBUG simulator. `⚠️` on a key = absent from the static manifest.")
+                 "`DB-only` = system-preserved (licence/identity), never client-writable — set via a "
+                 "real licence activation or direct DB SQL. `⚠️` on a key = absent from the static manifest.")
     return "\n".join(lines) + "\n"
 
 

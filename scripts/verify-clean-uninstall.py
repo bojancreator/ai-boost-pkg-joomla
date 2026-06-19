@@ -427,23 +427,22 @@ def ensure_pro(session: requests.Session) -> bool:
     to Pro — that is the anti-bypass property working, not a verifier bug.
 
     So instead of seeding, we detect: Pro is available when the existing row
-    already carries pro_activated='1' (a real activation) or
-    dev_license_preview='1' (the documented manual QA override, set directly
-    in #__aiboost_settings). When neither is present the caller downgrades the
-    Pro-only translation assertions to preservation-only checks and says so.
+    already carries pro_activated='1' (a real activation). Since v0.86.5 the gate
+    is pro_activated ONLY — the dev_license_preview override was removed and no
+    longer makes a site Pro. When it is absent the caller downgrades the Pro-only
+    translation assertions to preservation-only checks and says so.
     """
     post = get_settings(session)
     smap = _settings_map(post) if post else {}
-    if smap.get("pro_activated") == "1" or smap.get("dev_license_preview") == "1":
-        print("   ✅ Pro precondition present "
-              f"(pro_activated='{smap.get('pro_activated')}', "
-              f"dev_license_preview='{smap.get('dev_license_preview')}')")
+    if smap.get("pro_activated") == "1":
+        print(f"   ✅ Pro precondition present (pro_activated='{smap.get('pro_activated')}')")
         return True
     print("   ⚠️  Pro not active on this install and CANNOT be seeded over HTTP "
           "(import denylist + settings.save carry-forward block it by design). "
-          "Pro-only translation write assertions are downgraded to "
-          "preservation-only. For full Pro-path coverage set "
-          "dev_license_preview='1' directly in #__aiboost_settings and re-run.")
+          "Pro-only translation write assertions are downgraded to preservation-only. "
+          "For full Pro-path coverage activate a real licence key (Licenses page / "
+          "settings.verifyLicense), or DB-seed pro_activated='1' in #__aiboost_settings, "
+          "then re-run.")
     return False
 
 

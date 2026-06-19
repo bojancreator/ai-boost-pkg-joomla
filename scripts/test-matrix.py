@@ -5,8 +5,6 @@ AI Boost — Joomla 5/6 test matrix: install + verify.
 Usage:
   python3 scripts/test-matrix.py --install-base       # install Free on all 4 sites
   python3 scripts/test-matrix.py --install-pro        # install Pro on the 2 pro sites
-  python3 scripts/test-matrix.py --license-preview    # set dev_license_preview=1 on pro sites
-  python3 scripts/test-matrix.py --license-preview-off # reset dev_license_preview=0 on pro sites
   python3 scripts/test-matrix.py --verify             # verify all 4 sites (front + admin + health)
   python3 scripts/test-matrix.py --all                # run all steps in order
 
@@ -151,7 +149,7 @@ def run_install(admin_url: str, zip_path: str, label: str, user: str, passwd: st
     return r.returncode == 0
 
 # ---------------------------------------------------------------------------
-# Import settings (for license-preview toggle)
+# Settings import helper (admin import endpoint)
 # ---------------------------------------------------------------------------
 
 def import_settings(admin_url: str, payload: dict, label: str, user: str, passwd: str) -> bool:
@@ -392,14 +390,12 @@ def main():
     ap = argparse.ArgumentParser(description="AI Boost Joomla 5/6 test matrix")
     ap.add_argument("--install-base",      action="store_true", help="Install Free base on all 4 sites")
     ap.add_argument("--install-pro",       action="store_true", help="Install Pro on the 2 pro sites")
-    ap.add_argument("--license-preview",   action="store_true", help="Set dev_license_preview=1 on pro sites")
-    ap.add_argument("--license-preview-off", action="store_true", help="Reset dev_license_preview=0 on pro sites")
     ap.add_argument("--verify",            action="store_true", help="Verify all 4 sites")
-    ap.add_argument("--all",               action="store_true", help="Run all steps (base+pro install, preview, verify)")
+    ap.add_argument("--all",               action="store_true", help="Run all steps (base+pro install, verify)")
     args = ap.parse_args()
 
     if args.all:
-        args.install_base = args.install_pro = args.license_preview = args.verify = True
+        args.install_base = args.install_pro = args.verify = True
 
     user, passwd = _require_creds()
 
@@ -417,27 +413,6 @@ def main():
             if cfg["is_pro"]:
                 run_install(cfg["admin_url"], pro_zip, name, user, passwd)
                 time.sleep(2)
-
-    if args.license_preview:
-        print("🔑 Setting dev_license_preview=1 on pro sites …")
-        print("   ℹ️  ImportController strips license keys from HTTP import by design.")
-        print("      Use direct DB SQL if import returns 'only license keys' warning:")
-        print("      UPDATE #__aiboost_settings")
-        print("        SET settings_json = JSON_SET(settings_json,'$.dev_license_preview','1')")
-        print("        WHERE setting_key='main';")
-        for name, cfg in SITES.items():
-            if cfg["is_pro"]:
-                import_settings(cfg["admin_url"], {"dev_license_preview": "1"}, name, user, passwd)
-
-    if args.license_preview_off:
-        print("🔑 Resetting dev_license_preview=0 on pro sites …")
-        print("   ℹ️  ImportController strips license keys — use direct DB SQL if needed:")
-        print("      UPDATE #__aiboost_settings")
-        print("        SET settings_json = JSON_SET(settings_json,'$.dev_license_preview','0')")
-        print("        WHERE setting_key='main';")
-        for name, cfg in SITES.items():
-            if cfg["is_pro"]:
-                import_settings(cfg["admin_url"], {"dev_license_preview": "0"}, name, user, passwd)
 
     if args.verify:
         print("\n🔍 Verifying all 4 sites (front-end + admin + health + Pro/Free gating) …")

@@ -74,10 +74,11 @@ template, Language = All. Lets Bojan click EN/SR while eyeballing.
 - Install `pkg_aiboost_pro-<current>` (≥ 0.76.0).
 - **Integrations** page → ensure **Multilang** master toggle is ON.
 - Activate Multilang Pro for QA via **one** of:
-  - **JDEBUG simulator (preferred, HTTP-flippable):** Global Config → System →
-    **Debug System = Yes**, then the harness flips `int_falang` itself; or
+  - **Real key (preferred, HTTP-flippable):** set `AIBOOST_QA_KEY_INT_FALANG` (env,
+    in `CREDENTIALS.local.md`) and the harness activates/deactivates it via
+    `settings.verifyLicense`; or
   - **DB:** in `#__aiboost_settings` (`setting_key='main'`) JSON blob set
-    `license_state.int_falang.status = "active"` (or `dev_license_preview="1"`).
+    `license_state.int_falang.status = "active"`.
 - Turn ON the hreflang toggles: `falang_hreflang_head`, `enable_hreflang`
   (Settings → AEO / Sitemap), plus `falang_schema_translate` / `falang_og_translate`
   if testing translated Schema/OG.
@@ -112,9 +113,9 @@ python _creds_run.py scripts/verify-frontend-emission.py --target ml --group mul
 python _creds_run.py scripts/verify-frontend-emission.py --target ml   # full sweep
 ```
 
-The multilingual group's authoritative gate test (Multilang sim OFF → no
-hreflang; sim ON → hreflang appears) runs only when **Debug System = Yes**
-(JDEBUG); otherwise it SKIPs with the DB instructions above.
+The multilingual group's authoritative gate test (Multilang OFF → no hreflang;
+ON → hreflang appears) runs only when a real `int_falang` QA key is configured
+(`AIBOOST_QA_KEY_INT_FALANG`); otherwise it SKIPs with the instructions above.
 
 ---
 
