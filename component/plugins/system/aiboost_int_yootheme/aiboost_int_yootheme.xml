@@ -13,6 +13,9 @@
   <joomla_minimum>5.0.0</joomla_minimum>
   <namespace path="src">AiBoost\Plugin\System\AiBoostIntYootheme</namespace>
   <scriptfile>script.php</scriptfile>
+  <updateservers>
+    <server type="extension" priority="1" name="AI Boost for YOOtheme Updates">https://updates.aiboostnow.com/yootheme/pkg_aiboost_yootheme.xml?key={LICENSE_KEY}&amp;domain={SITE_DOMAIN}&amp;v={CURRENT_VERSION}</server>
+  </updateservers>
   <files>
     <filename plugin="aiboost_int_yootheme">aiboost_int_yootheme.php</filename>
     <filename>script.php</filename>

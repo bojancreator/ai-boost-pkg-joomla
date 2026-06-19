@@ -344,10 +344,23 @@ CSS;
         }
         $settings = $this->getAiBoostSettings();
 
+        // Pick the licence key that matches the feed: the integration feeds use the
+        // add-on's OWN key (a core key must not unlock an add-on, nor vice-versa);
+        // the core Free/Pro feed uses the strongest core key.
+        $isMultilang = strpos($url, '/multilang/') !== false;
+        $isYootheme  = strpos($url, '/yootheme/') !== false;
+        if ($isMultilang) {
+            $skuOrder = ['int_falang'];
+        } elseif ($isYootheme) {
+            $skuOrder = ['int_yootheme'];
+        } else {
+            $skuOrder = ['bundle', 'schema', 'aeo', 'og', 'hreflang', 'code'];
+        }
+
         $key = '';
         $state = $settings['license_state'] ?? [];
         if (is_array($state)) {
-            foreach (['bundle', 'schema', 'aeo', 'og', 'hreflang', 'code'] as $sku) {
+            foreach ($skuOrder as $sku) {
                 $candidate = $state[$sku]['key'] ?? '';
                 if (is_string($candidate) && $candidate !== '') {
                     $key = $candidate;
@@ -355,7 +368,9 @@ CSS;
                 }
             }
         }
-        if ($key === '' && isset($settings['license_key']) && is_string($settings['license_key'])) {
+        // The legacy top-level key applies only to the core feed.
+        if ($key === '' && !$isMultilang && !$isYootheme
+            && isset($settings['license_key']) && is_string($settings['license_key'])) {
             $key = $settings['license_key'];
         }
 
