@@ -354,24 +354,20 @@ class Pkg_AiboostInstallerScript
                 return;
             }
 
-            // Pro package physically installed?
-            $proRow = (int) $db->setQuery(
-                $db->getQuery(true)
-                    ->select('COUNT(*)')
-                    ->from($db->quoteName('#__extensions'))
-                    ->where($db->quoteName('type') . ' = ' . $db->quote('package'))
-                    ->where($db->quoteName('element') . ' = ' . $db->quote('pkg_aiboost_pro'))
-            )->loadResult();
-            if ($proRow > 0) {
+            // One-product model: "Pro" is the SAME pkg_aiboost package built with the
+            // Pro code included (IS_PRO_EDITION = true) — there is no separate
+            // pkg_aiboost_pro package any more. So only warn when a Pro licence is
+            // active while this site is running the FREE (Pro-stripped) build; the fix
+            // is to install the Pro build over it (settings + licence are preserved).
+            if (self::IS_PRO_EDITION) {
                 return;
             }
 
             Factory::getApplication()->enqueueMessage(
-                'AI Boost: your settings record a Pro licence but the Pro '
-                . 'package (pkg_aiboost_pro) is not installed on this site. '
-                . 'Pro options are now packaged separately. '
-                . 'Download Pro from https://aiboostnow.com/account and install '
-                . 'the pkg_aiboost_pro ZIP through Joomla → Install Extensions.',
+                'AI Boost: your licence is Pro, but this site is running the Free build, '
+                . 'so Pro features stay locked. Download the Pro package from '
+                . 'https://aiboostnow.com/account and install it over this site through '
+                . 'Joomla → Install Extensions — your settings and licence are kept.',
                 'warning'
             );
         } catch (\Throwable $e) {
