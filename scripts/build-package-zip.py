@@ -502,10 +502,17 @@ def build_package_zip(version: str, dry_run: bool = False, pro_edition: bool = F
                     xml_content,
                 )
             if pro_edition:
-                # (Pro) package display name + drop the JED update server (Pro is
-                # Lemon-Squeezy-delivered; the preflight version-floor is the lock).
+                # (Pro) package display name; point the update server at the
+                # licence-gated Pro feed. The token URL is substituted at fetch
+                # time by AiBoostCore::onInstallerBeforeFetchManifest
+                # ({LICENSE_KEY}/{SITE_DOMAIN}/{CURRENT_VERSION}); the backend
+                # validates the key and serves the Pro ZIP (or empty if not active).
                 xml_content = inject_pro_name(xml_content, PKG_DIR)
-                xml_content = re.sub(r"<updateservers>.*?</updateservers>", "", xml_content, flags=re.DOTALL)
+                xml_content = xml_content.replace(
+                    "https://updates.aiboostnow.com/pkg_aiboost.xml",
+                    "https://updates.aiboostnow.com/pro/pkg_aiboost_pro.xml"
+                    "?key={LICENSE_KEY}&amp;domain={SITE_DOMAIN}&amp;v={CURRENT_VERSION}",
+                )
             zf.writestr("pkg_aiboost.xml", xml_content)
 
             # Package installer script — sync VERSION constant from Version.php

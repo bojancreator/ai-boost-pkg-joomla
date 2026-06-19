@@ -54,18 +54,26 @@ Single drift guard — **Free and Pro must match on the test sites**. Refresh wi
 
 ## What's left to launch (Faza C → 1.0.0)
 
-Lifted from the old ROADMAP "Next Handoff" — the real remaining path to sale:
+Reframed 2026-06-18 around the **website + self-hosted licensing backend** project (plan approved;
+`…/.claude/plans/ovo-se-malo-zagu-valo-valiant-bachman.md`). Payment is externally blocked/undecided
+(LS won't allow test payments, Stripe-from-Serbia uncertain, PayPal/local fallback) → we build a
+**payment-agnostic** licensing authority on the Contabo VPS so a **Manual-issued key unblocks full E2E
+QA now**, with payment plugged in later.
 
-1. **OWNER:** create the 3 Lemon Squeezy products (license keys ON; activation limits 3/10/unlimited;
-   €65/€120/€180) → report the store ID.
-2. Write `EXPECTED_STORE_ID` (+ the 5 product IDs) into `component/lib/src/LicenseValidator.php` — until set,
-   activation **fails closed** (rejects all keys, by design).
-3. **Real-key end-to-end QA (hard release gate):** buy in LS test mode → activate on Pro staging → change a
-   setting + save + reload → Pro still active → translations/IndexNow/llms-full emit.
-4. Publish the Free update XML + Free ZIP on aiboostnow.com (Release runbook in `OPERATING.md`).
+1. **Track A — website redesign:** migrate aiboostnow.com to Astro (SSG, en + 6 langs), correct
+   pricing/content, build `/account` + `/eula`, keep the plugin's URL contract. Visuals via Claude Design.
+2. **Track B — backend on VPS:** `api.aiboostnow.com` (license validate/activate/heartbeat/reconcile +
+   Manual key issuance) + `updates.aiboostnow.com` (token-gated update/download server). PHP + MariaDB.
+3. **Track C — plugin wiring:** point manifests at `updates.`, stop stripping `<updateservers>` from Pro,
+   repoint validation authority to `api.`.
+4. **E2E QA (manual key):** issue key → activate Pro on staging → save/reload (Pro persists) → System →
+   Update shows the Pro feed → one-click update installs.
 5. Bump to **`1.0.0`**, lockstep Free+Pro build, full Definition of Done QA, release.
 
-**Open blockers:** LS products don't exist yet; `EXPECTED_STORE_ID` is `null`.
+**Corrected:** `EXPECTED_STORE_ID` is **not** null — it is `367944` with all 5 product IDs filled
+(`LicenseValidator.php`, configured 2026-06-16). Remaining LS items: re-confirm IDs vs the live dashboard,
+and a real-key **payment** test once a processor is unblocked. **Open blockers:** VPS access for the
+backend; payment-processor decision (does not block A/B/C or manual-key QA).
 
 ---
 

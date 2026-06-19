@@ -58,9 +58,8 @@ Thumbs.db
 # PHPUnit cache (regenerated automatically on each run)
 .phpunit.result.cache
 
-# Smoke test run artifacts (screenshots, results.json — regenerated per run)
-/artifacts/smoke-*/
-/artifacts/*.cjs
+# Run artifacts (smoke screenshots, qa-reports, UI audits — all regenerated per run)
+/artifacts/
 
 # Python bytecode cache
 scripts/__pycache__/

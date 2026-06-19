@@ -31,8 +31,14 @@ if (!class_exists('AiBoost\\Lib\\LicenseValidator', false)) :
 
 final class LicenseValidator
 {
-    private const API_URL      = 'https://api.lemonsqueezy.com/v1/licenses/validate';
-    private const API_ACTIVATE = 'https://api.lemonsqueezy.com/v1/licenses/activate';
+    // Licence authority = our own server (api.aiboostnow.com). It returns the SAME
+    // response envelope Lemon Squeezy does (valid / license_key.* / meta.store_id /
+    // meta.product_id / instance.id), so the store + product pinning below is
+    // unchanged. Behind our server the entitlement may originate from any payment
+    // adapter (manual key, Lemon Squeezy, Stripe, PayPal, …) — the plugin neither
+    // knows nor cares which.
+    private const API_URL      = 'https://api.aiboostnow.com/api/license/validate';
+    private const API_ACTIVATE = 'https://api.aiboostnow.com/api/license/activate';
     private const TIMEOUT      = 8;
 
     /**

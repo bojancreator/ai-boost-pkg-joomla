@@ -53,7 +53,10 @@ if (TARGET === 'free') {
 
 const parsed = new NodeURL(ADMIN_URL)
 const BASE = `${parsed.protocol}//${parsed.host}`
-const APP_URL = `${BASE}/administrator/index.php?option=com_aiboost&view=app`
+// `tmpl=component` renders the Joomla admin component WITHOUT the admin template
+// chrome (no Joomla top bar / left admin menu) — so the shot is the AI Boost app
+// only. The SPA still boots (HtmlView injects the bootstrap regardless of tmpl).
+const APP_URL = `${BASE}/administrator/index.php?option=com_aiboost&view=app&tmpl=component`
 
 const OUT = resolve(REPO, 'deliverables', 'screenshots')
 if (!existsSync(OUT)) mkdirSync(OUT, { recursive: true })
@@ -140,7 +143,14 @@ async function installDemoOverlay(page) {
       process.stdout.write(`   ${p.slug} — ${p.label} … `)
       try {
         await gotoPage(page, p.hash)
-        await page.screenshot({ path: resolve(OUT, `${p.slug}.png`), fullPage: true })
+        // Capture ONLY the AI Boost app element (its own sidebar + content),
+        // not the surrounding page — no Joomla chrome, no body margins.
+        const appEl = await page.$('#ab-app')
+        if (appEl) {
+          await appEl.screenshot({ path: resolve(OUT, `${p.slug}.png`) })
+        } else {
+          await page.screenshot({ path: resolve(OUT, `${p.slug}.png`), fullPage: true })
+        }
         console.log('✅')
       } catch (err) {
         console.log(`❌  ${String(err.message).substring(0, 80)}`)

@@ -16,18 +16,17 @@
     <scriptfile>pkg_script.php</scriptfile>
     <blockChildUninstall>true</blockChildUninstall>
     <!--
-        Static update server: a plain XML file published on aiboostnow.com.
-        The release runbook in OPERATING.md updates this XML on every release
-        (version + download URL of the Free ZIP) — Joomla then shows the
-        native "Update available" notice in System → Update → Extensions.
-        Publish the XML BEFORE the first public release; until it is live,
-        Joomla logs a failed update-site fetch (harmless) and may mark the
-        site as disabled — re-enable it after publishing.
+        Update server on updates.aiboostnow.com (our self-hosted backend). This is
+        the FREE feed (no key). The Pro build swaps this URL for the licence-gated
+        Pro feed with {LICENSE_KEY}/{SITE_DOMAIN}/{CURRENT_VERSION} tokens that
+        AiBoostCore::onInstallerBeforeFetchManifest substitutes at fetch time
+        (see scripts/build-package-zip.py). Joomla then shows the native
+        "Update available" notice in System → Update → Extensions.
     -->
     <updateservers>
         <server type="extension"
                 priority="1"
-                name="AI Boost for Joomla Updates">https://aiboostnow.com/updates/pkg_aiboost.xml</server>
+                name="AI Boost for Joomla Updates">https://updates.aiboostnow.com/pkg_aiboost.xml</server>
     </updateservers>
     <!--
         Core plugins are bundled here.

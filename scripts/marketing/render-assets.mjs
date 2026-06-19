@@ -47,13 +47,14 @@ function logoWithViewBox({ x, y, w, h }) {
     .replace(/<svg /, '<svg width="100%" height="100%" ');
 }
 
-/** The five Lemon Squeezy products → cover copy. */
+/** The five Lemon Squeezy products → cover copy. Prices per OPERATING.md /
+ *  docs/license-plans.md (integrations bumped 2026-06-18: Multilang €35, YOOtheme €25). */
 const PRODUCTS = [
-  { slug: 'pro3',       title: 'AI Boost', sub: 'for Joomla', tier: 'PRO',       note: '3 sites' },
-  { slug: 'pro10',      title: 'AI Boost', sub: 'for Joomla', tier: 'PRO+',      note: '10 sites' },
-  { slug: 'unlimited',  title: 'AI Boost', sub: 'for Joomla', tier: 'UNLIMITED', note: 'Unlimited sites' },
-  { slug: 'multilang',  title: 'AI Boost', sub: 'for Joomla', tier: 'MULTILANG', note: 'Add-on' },
-  { slug: 'yootheme',   title: 'AI Boost', sub: 'for Joomla', tier: 'YOOTHEME',  note: 'Add-on' },
+  { slug: 'pro3',       title: 'AI Boost', sub: 'for Joomla', tier: 'PRO',       note: '3 sites',         price: '€65 / year' },
+  { slug: 'pro10',      title: 'AI Boost', sub: 'for Joomla', tier: 'PRO+',      note: '10 sites',        price: '€120 / year' },
+  { slug: 'unlimited',  title: 'AI Boost', sub: 'for Joomla', tier: 'UNLIMITED', note: 'Unlimited sites', price: '€180 / year' },
+  { slug: 'multilang',  title: 'AI Boost', sub: 'for Joomla', tier: 'MULTILANG', note: 'Add-on',          price: '€35 / year' },
+  { slug: 'yootheme',   title: 'AI Boost', sub: 'for Joomla', tier: 'YOOTHEME',  note: 'Add-on',          price: '€25 / year' },
 ];
 
 function coverHtml(p) {
@@ -76,6 +77,7 @@ function coverHtml(p) {
       background: ${PURPLE}; color: #fff; font-size: 52px; font-weight: 800; letter-spacing: 2px;
     }
     .note { margin-top: 26px; font-size: 38px; color: ${PURPLE}; font-weight: 700; }
+    .price { margin-top: 16px; font-size: 46px; color: #2a1b38; font-weight: 800; letter-spacing: .5px; }
     .foot { position: absolute; bottom: 54px; left: 0; right: 0; text-align: center; font-size: 30px; color: #8a7a99; }
   </style></head><body>
     <div class="card">
@@ -84,6 +86,7 @@ function coverHtml(p) {
       <div class="sub">SEO &amp; AI Search for Joomla</div>
       <div class="badge">${p.tier}</div>
       <div class="note">${p.note}</div>
+      <div class="price">${p.price}</div>
       <div class="foot">aiboostnow.com</div>
     </div>
   </body></html>`;
