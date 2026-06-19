@@ -508,10 +508,11 @@ def build_package_zip(version: str, dry_run: bool = False, pro_edition: bool = F
                 # ({LICENSE_KEY}/{SITE_DOMAIN}/{CURRENT_VERSION}); the backend
                 # validates the key and serves the Pro ZIP (or empty if not active).
                 xml_content = inject_pro_name(xml_content, PKG_DIR)
+                # Pro points at the licence-gated Pro feed; the <dlid> in the manifest
+                # makes Joomla append the Download Key (dlid=<key>) to this URL itself.
                 xml_content = xml_content.replace(
                     "https://updates.aiboostnow.com/pkg_aiboost.xml",
-                    "https://updates.aiboostnow.com/pro/pkg_aiboost_pro.xml"
-                    "?key={LICENSE_KEY}&amp;domain={SITE_DOMAIN}&amp;v={CURRENT_VERSION}",
+                    "https://updates.aiboostnow.com/pro/pkg_aiboost_pro.xml",
                 )
             zf.writestr("pkg_aiboost.xml", xml_content)
 

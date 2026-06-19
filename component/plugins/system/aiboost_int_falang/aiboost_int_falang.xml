@@ -14,8 +14,9 @@
   <namespace path="src">AiBoost\Plugin\System\AiBoostIntFalang</namespace>
   <scriptfile>script.php</scriptfile>
   <updateservers>
-    <server type="extension" priority="1" name="AI Boost for Multilang Updates">https://updates.aiboostnow.com/multilang/pkg_aiboost_falang.xml?key={LICENSE_KEY}&amp;domain={SITE_DOMAIN}&amp;v={CURRENT_VERSION}</server>
+    <server type="extension" priority="1" name="AI Boost for Multilang Updates">https://updates.aiboostnow.com/multilang/pkg_aiboost_falang.xml</server>
   </updateservers>
+  <dlid prefix="dlid=" suffix=""/>
   <files>
     <filename plugin="aiboost_int_falang">aiboost_int_falang.php</filename>
     <filename>script.php</filename>

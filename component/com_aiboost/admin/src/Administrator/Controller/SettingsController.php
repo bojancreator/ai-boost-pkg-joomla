@@ -1918,6 +1918,11 @@ class SettingsController extends BaseController
                 PluginRegistry::saveSimulation($sim);
             } else {
                 PluginRegistry::saveLicenseState($sku, $state);
+                // Seamless updates: push the key into Joomla's update-site Download
+                // Key so the native updater sends it to our update server (dlid).
+                if (($state['status'] ?? '') === 'active') {
+                    $this->fillUpdateDownloadKey($sku, $key);
+                }
             }
 
             $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -1970,6 +1975,49 @@ class SettingsController extends BaseController
             $this->app->close();
         } catch (\Throwable $e) {
             $this->sendJsonResponse(false, 'deactivateLicense failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Write the licence key into Joomla's #__update_sites.extra_query (dlid=<key>)
+     * for the matching update site, so the native one-click updater sends the key
+     * to our update server automatically (the customer never re-types it). Mapped by
+     * feed path: int_falang → /multilang/, int_yootheme → /yootheme/, core → the
+     * pkg_aiboost feed. Best-effort: on failure the Download Key can still be pasted
+     * manually under System → Update Sites.
+     */
+    private function fillUpdateDownloadKey(string $sku, string $key): void
+    {
+        if ($key === '') {
+            return;
+        }
+        try {
+            $db   = Factory::getDbo();
+            $rows = $db->setQuery(
+                $db->getQuery(true)
+                    ->select($db->quoteName(['update_site_id', 'location']))
+                    ->from($db->quoteName('#__update_sites'))
+                    ->where($db->quoteName('location') . ' LIKE ' . $db->quote('%updates.aiboostnow.com%'))
+            )->loadObjectList();
+            foreach ($rows ?: [] as $row) {
+                $loc      = (string) $row->location;
+                $isFalang = strpos($loc, '/multilang/') !== false;
+                $isYoo    = strpos($loc, '/yootheme/') !== false;
+                $match    = ($sku === 'int_falang' && $isFalang)
+                    || ($sku === 'int_yootheme' && $isYoo)
+                    || (!str_starts_with($sku, 'int_') && !$isFalang && !$isYoo);
+                if (!$match) {
+                    continue;
+                }
+                $db->setQuery(
+                    $db->getQuery(true)
+                        ->update($db->quoteName('#__update_sites'))
+                        ->set($db->quoteName('extra_query') . ' = ' . $db->quote('dlid=' . $key))
+                        ->where($db->quoteName('update_site_id') . ' = ' . (int) $row->update_site_id)
+                )->execute();
+            }
+        } catch (\Throwable $e) {
+            // best-effort — the Download Key can be entered manually
         }
     }
 

@@ -319,74 +319,16 @@ CSS;
         }
     }
 
-    /**
-     * Task #439 — License-gated auto-update server.
-     *
-     * Joomla does not substitute placeholders in `<updateservers>` URLs, so
-     * we intercept the manifest fetch and swap `{LICENSE_KEY}`, `{SITE_DOMAIN}`
-     * and `{CURRENT_VERSION}` for the runtime values. Free updates work
-     * without a key; Pro updates only resolve if the bundle/per-SKU license
-     * is verified active for this domain on the AI Boost update server.
-     *
-     * @param   string  $url  The manifest URL Joomla is about to fetch.
-     * @return  string         The URL with tokens replaced.
+    /*
+     * Licence-gated auto-updates use Joomla's STANDARD Download Key mechanism
+     * (manifest <dlid> + #__update_sites.extra_query), NOT a custom event. Joomla
+     * itself appends the extra_query (dlid=<key>) to BOTH the update-XML fetch and
+     * the package download, on every supported version (J5–J6+). The previous
+     * onInstallerBeforeFetchManifest token-substitution hook was removed: that
+     * event does NOT fire during the update-site fetch (verified live 2026-06-19 —
+     * Joomla sent the literal {LICENSE_KEY}). The key is written into extra_query on
+     * licence activation by SettingsController::verifyLicense() → fillUpdateDownloadKey().
      */
-    public function onInstallerBeforeFetchManifest(string $url): string
-    {
-        if (strpos($url, 'updates.aiboostnow.com') === false) {
-            return $url;
-        }
-        // Version::VERSION below needs the com_aiboost autoload chain; in a
-        // partial-lib state leave the manifest URL untouched instead of
-        // fataling the admin update view.
-        if (!$this->libReady()) {
-            return $url;
-        }
-        $settings = $this->getAiBoostSettings();
-
-        // Pick the licence key that matches the feed: the integration feeds use the
-        // add-on's OWN key (a core key must not unlock an add-on, nor vice-versa);
-        // the core Free/Pro feed uses the strongest core key.
-        $isMultilang = strpos($url, '/multilang/') !== false;
-        $isYootheme  = strpos($url, '/yootheme/') !== false;
-        if ($isMultilang) {
-            $skuOrder = ['int_falang'];
-        } elseif ($isYootheme) {
-            $skuOrder = ['int_yootheme'];
-        } else {
-            $skuOrder = ['bundle', 'schema', 'aeo', 'og', 'hreflang', 'code'];
-        }
-
-        $key = '';
-        $state = $settings['license_state'] ?? [];
-        if (is_array($state)) {
-            foreach ($skuOrder as $sku) {
-                $candidate = $state[$sku]['key'] ?? '';
-                if (is_string($candidate) && $candidate !== '') {
-                    $key = $candidate;
-                    break;
-                }
-            }
-        }
-        // The legacy top-level key applies only to the core feed.
-        if ($key === '' && !$isMultilang && !$isYootheme
-            && isset($settings['license_key']) && is_string($settings['license_key'])) {
-            $key = $settings['license_key'];
-        }
-
-        $domain = '';
-        try {
-            $domain = (string) Uri::getInstance()->getHost();
-        } catch (\Throwable) {
-            $domain = '';
-        }
-
-        return str_replace(
-            ['{LICENSE_KEY}', '{SITE_DOMAIN}', '{CURRENT_VERSION}'],
-            [rawurlencode($key), rawurlencode($domain), rawurlencode(Version::VERSION)],
-            $url
-        );
-    }
 
     /**
      * Log 404 errors via Joomla's error event.

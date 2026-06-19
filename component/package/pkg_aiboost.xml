@@ -28,6 +28,10 @@
                 priority="1"
                 name="AI Boost for Joomla Updates">https://updates.aiboostnow.com/pkg_aiboost.xml</server>
     </updateservers>
+    <!-- Download Key: Joomla appends extra_query (dlid=<licence key>) to the update
+         XML fetch AND the package download. Auto-filled on licence activation; the
+         Free feed ignores an empty/absent key. Works J5–J6+ (core Joomla feature). -->
+    <dlid prefix="dlid=" suffix=""/>
     <!--
         Core plugins are bundled here.
 
