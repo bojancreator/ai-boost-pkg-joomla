@@ -25,6 +25,7 @@ import ImportPage       from './ImportPage.vue'
 import SettingsApp      from './App.vue'
 import ProGate          from './components/ProGate.vue'
 import ToastStack       from './components/ToastStack.vue'
+import AbIcon           from './components/AbIcon.vue'
 import { createSpaRouter } from './router.js'
 
 /**
@@ -34,6 +35,7 @@ import { createSpaRouter } from './router.js'
  */
 function installGlobals(app) {
   app.component('ProGate', ProGate)
+  app.component('AbIcon', AbIcon)
   // Task #513 — every Vue app instance gets the global errorHandler so
   // uncaught render/lifecycle exceptions are toasted and forwarded to
   // the server-side error log (source = "frontend:vue").

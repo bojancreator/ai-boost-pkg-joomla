@@ -29,11 +29,13 @@ $healthData = [
     'urls'      => [
         'rerun'      => 'index.php?option=com_aiboost&task=health.rerun&format=json',
         'dismiss'    => 'index.php?option=com_aiboost&task=health.dismiss&format=json',
-        'urlchecker' => Route::_('index.php?option=com_aiboost&view=urlchecker', false),
-        'analyzer'   => Route::_('index.php?option=com_aiboost&view=analyzer',   false),
-        'settings'   => Route::_('index.php?option=com_aiboost&view=settings',   false),
-        'import'     => Route::_('index.php?option=com_aiboost&view=import',      false),
-        'redirects'  => Route::_('index.php?option=com_aiboost&view=redirects',  false),
+        // SPA hash routes — keep navigation inside the Vue shell (the Quick
+        // Actions use router-link; these stay correct for any other consumer).
+        'urlchecker' => Route::_('index.php?option=com_aiboost&view=app', false) . '#/urlchecker',
+        'analyzer'   => Route::_('index.php?option=com_aiboost&view=app', false) . '#/analyzers',
+        'settings'   => Route::_('index.php?option=com_aiboost&view=app', false) . '#/settings',
+        'import'     => Route::_('index.php?option=com_aiboost&view=app', false) . '#/import',
+        'redirects'  => Route::_('index.php?option=com_aiboost&view=app', false) . '#/redirects',
     ],
 ];
 ?>

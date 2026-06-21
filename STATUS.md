@@ -13,10 +13,10 @@ every chat; update it at the end of every chat. It replaces the old `ROADMAP-v0.
 
 | Field | Value |
 |---|---|
-| **Code version** | `0.85.4` (2026-06-17) — source of truth `component/Version.php` |
-| **Branch** | `qa-cycle-and-fixes` (pushed to `origin`); merge → `main` **deferred** by owner |
-| **Milestone** | Pre-sale plugin work **done** (phases 1–4). Remaining pre-sale items → website plan (separate repo). |
-| **Next gate** | Faza C — release infrastructure → bump to `1.0.0` (see "What's left to launch") |
+| **Code version** | `0.87.19` (2026-06-21) — source of truth `component/Version.php` |
+| **Branch** | `design/admin-ui-refresh` (local only, not pushed); base `main` |
+| **Milestone** | Implementing the Instrument mockup (`screens.html`) into the real Vue admin. Phases 1–5 DONE. **Phase 5 correction (v0.87.18–19)** — stripped Joomla outer wrapper padding (`.main-card`, Bootstrap col/row/container) so the component sits flush edge-to-edge; restored 1rem sidebar→content gap; removed sidebar border-radius. JS fallback in AppShell.vue walks the DOM and zeros all Bootstrap wrapper padding (works regardless of Joomla version). Verified both themes on staging v0.87.19. |
+| **Next gate** | Faza 5 complete + outer-padding corrected — awaiting Bojan's review / next task list. |
 
 ---
 
@@ -27,7 +27,7 @@ Single drift guard — **Free and Pro must match on the test sites**. Refresh wi
 
 | Site | Edition | Installed | Verified |
 |---|---|---|---|
-| staging.offroadserbia.com (live) | Pro | `0.85.4` | 2026-06-17 (phase 4) |
+| staging.offroadserbia.com (live) | Pro | `0.87.17` | 2026-06-21 — Phase 5 complete: layout + UI polish verified both themes |
 | offroadbalkans.com (live) | Free | `0.77.2` | release-only — do not routine-touch |
 | joomla6-pro.testmyweb.info | Pro | `0.85.4` ✅ | 2026-06-18 — front-end verified (17/17; 8 JSON-LD nodes) |
 | joomla6-free.testmyweb.info | Free | `0.85.4` ✅ | 2026-06-18 — front-end verified (17/17; 4 JSON-LD nodes) |
@@ -79,10 +79,12 @@ backend; payment-processor decision (does not block A/B/C or manual-key QA).
 
 ## Next step
 
-1. ✅ **Test matrix current** (2026-06-18) — Pro ZIP built at 0.85.4, all four test sites refreshed,
-   j6 front-end verified. The pre-Faza-C catch-up is done.
-2. **Faza C** (release infrastructure → 1.0.0) is **deferred** by the owner — see "What's left to launch".
-3. A larger task list from the owner is queued next.
+1. ✅ **Instrument CSS applied to staging** (2026-06-20, v0.87.4) — petrol-teal palette, IBM Plex fonts,
+   very dark sidebar + dark theme. Visual review ongoing with designer.
+2. **Next (tomorrow):** designer sends revised screenshots (icons + other elements) → review → decide
+   final direction → CSS cleanup (remove Bootstrap utility classes from Vue templates, tačka 6).
+3. **Test matrix** (j5/j6 × free/pro) is behind at `0.85.4` — update after design is settled.
+4. **Faza C** (release infrastructure → 1.0.0) deferred — see "What's left to launch".
 
 ---
 

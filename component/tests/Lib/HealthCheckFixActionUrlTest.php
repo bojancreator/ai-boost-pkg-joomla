@@ -117,7 +117,7 @@ final class HealthCheckFixActionUrlTest extends TestCase
         $passing = $this->runCheck('infoErrorLogging', [], 0);
         $this->assertTrue($passing['pass']);
         $this->assertSame(
-            'index.php?option=com_aiboost&view=settings&tab=debug&field=error_log_enabled',
+            'index.php?option=com_aiboost&view=app#/settings?tab=debug&field=error_log_enabled',
             $passing['fix_actions'][0]['url']
         );
         $this->assertSame('debug', $passing['fix_actions'][0]['target_tab']);

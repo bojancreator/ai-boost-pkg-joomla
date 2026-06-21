@@ -97,7 +97,31 @@ export default {
       }
     }
 
-    onMounted(() => loadGlobalsForRoute(route))
+    onMounted(() => {
+      loadGlobalsForRoute(route)
+      // Strip ALL ancestor padding/margin between #ab-app and <body> so the
+      // SPA fills the Joomla content area edge-to-edge regardless of version.
+      const root = document.getElementById('ab-app')
+      if (root) {
+        let el = root.parentElement
+        while (el && el !== document.body) {
+          el.style.setProperty('padding', '0', 'important')
+          el.style.setProperty('margin', '0', 'important')
+          el.style.setProperty('max-width', 'none', 'important')
+          el.style.setProperty('box-shadow', 'none', 'important')
+          el.style.setProperty('border-radius', '0', 'important')
+          el.style.setProperty('background', 'transparent', 'important')
+          el = el.parentElement
+        }
+        // Hide Joomla subhead/breadcrumb bar that sits above the content area
+        const subhead = document.querySelector(
+          '.subhead-main, .subhead, #toolbar-box, .header-subbar, .sticky-top:not(nav)'
+        )
+        if (subhead && !root.contains(subhead)) {
+          subhead.style.setProperty('display', 'none', 'important')
+        }
+      }
+    })
     watch(() => route.fullPath, () => loadGlobalsForRoute(route))
 
     return { scheme, loading, error, legacyHref, showWizard, wizardConflicts, onWizardClose }
@@ -119,7 +143,7 @@ export default {
 .ab-spa-main {
   flex: 1;
   min-width: 0;
-  padding: 0 1rem 1.5rem 1.5rem;
+  padding: 0 0.75rem 1rem 1rem;
 }
 
 .ab-spa-loader {

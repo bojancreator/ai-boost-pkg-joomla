@@ -1,21 +1,19 @@
 <template>
   <div class="ab-page-import">
-    <h2 class="ab-h2 mb-3">Import / Export Settings</h2>
-    <p class="text-muted">
-      Move your AI Boost configuration between sites. Export a portable JSON
-      snapshot, then import it on another install.
-    </p>
+
+    <div class="ab-page-intro">
+      <h2 class="ab-page-title">Import / Export</h2>
+      <p class="ab-page-desc">Move your AI Boost configuration between sites. Export a portable JSON snapshot, then import it on another install.</p>
+    </div>
 
     <div class="row g-3">
       <div class="col-md-6">
-        <div class="ab-card h-100">
-          <div class="ab-card-body">
-            <h3 class="ab-h3 mb-3">Export current settings</h3>
-            <p class="text-muted small mb-3">
-              Generates a fresh JSON snapshot of every AI Boost option on this site.
-            </p>
+        <div class="ab-section h-100">
+          <div class="ab-section__head">Export settings</div>
+          <div class="ab-section__body">
+            <p class="ab-help mb-3">Generates a fresh JSON snapshot of every AI Boost option on this site.</p>
             <a :href="exportUrl" class="ab-btn ab-btn--primary">
-              <span class="icon-download" aria-hidden="true"></span>
+              <AbIcon name="upload" style="transform:scaleY(-1)" />
               Download settings export (.json)
             </a>
           </div>
@@ -23,31 +21,30 @@
       </div>
 
       <div class="col-md-6">
-        <div class="ab-card h-100">
-          <div class="ab-card-body">
-            <h3 class="ab-h3 mb-3">Import settings from a file</h3>
-            <p class="text-muted small mb-3">
-              Upload a JSON export from AI Boost. Imported values are merged over
-              your current settings.
-            </p>
+        <div class="ab-section h-100">
+          <div class="ab-section__head">Import from a file</div>
+          <div class="ab-section__body">
+            <p class="ab-help mb-3">Upload a JSON export from AI Boost. Imported values are merged over your current settings.</p>
 
-            <label class="ab-label" for="ab-import-file">Export file (.json)</label>
-            <input
-              id="ab-import-file"
-              ref="fileInput"
-              type="file"
-              accept="application/json,.json"
-              class="ab-input mb-3"
-              :disabled="importing"
-              @change="onFileChange"
-            />
+            <div class="ab-field">
+              <label class="ab-label" for="ab-import-file">Export file (.json)</label>
+              <input
+                id="ab-import-file"
+                ref="fileInput"
+                type="file"
+                accept="application/json,.json"
+                class="ab-input"
+                :disabled="importing"
+                @change="onFileChange"
+              />
+            </div>
 
             <button
               class="ab-btn ab-btn--primary"
               :disabled="!selectedFile || importing"
               @click="doImport"
             >
-              <span class="icon-upload" aria-hidden="true"></span>
+              <AbIcon name="upload" />
               {{ importing ? 'Importing…' : 'Import settings' }}
             </button>
 
@@ -55,9 +52,7 @@
               v-if="resultMessage"
               :class="['ab-alert', 'mt-3', resultOk ? 'ab-alert--success' : 'ab-alert--danger']"
               role="status"
-            >
-              {{ resultMessage }}
-            </div>
+            >{{ resultMessage }}</div>
 
             <div class="ab-help mt-3">
               For your safety, license keys and per-site identity values are never
@@ -68,37 +63,26 @@
       </div>
     </div>
 
-    <!-- Danger Zone — Uninstall (moved from the Dashboard in Phase 2, item 12b).
-         Joomla's Extensions → Manage uninstall flow cannot be intercepted with a
-         custom modal, so we explain what uninstall really does here, next to the
-         export/backup tools. Removing the package PRESERVES all database data and
-         the licence — only extension files and generated root files are cleaned up. -->
-    <div class="ab-card mt-4" style="border-left:4px solid var(--ab-danger)">
-      <div class="ab-card-body">
-        <h3 class="ab-h3 mb-3" style="color:var(--ab-danger)">
-          <span class="icon-warning-2 me-2" aria-hidden="true"></span>Danger Zone — Uninstall
-        </h3>
+    <div class="ab-section mt-3" style="border-left:3px solid var(--ab-danger)">
+      <div class="ab-section__head" style="color:var(--ab-danger)">
+        <AbIcon name="warning" />
+        Danger Zone — Uninstall
+      </div>
+      <div class="ab-section__body">
         <p class="mb-2">
           Uninstalling the AI Boost package from
           <strong>System → Manage → Extensions</strong> removes the extension files
           but <strong>keeps your data</strong>. Uninstalling:
         </p>
         <ul class="mb-3 small">
-          <li><strong>Preserves</strong> all settings in
-            <code>#__aiboost_settings</code>, every per-language translation in
-            <code>#__aiboost_translations</code>, your redirect list, and the 404 log</li>
-          <li><strong>Preserves</strong> your licence and Pro activation —
-            Pro features unlock again as soon as you reinstall</li>
-          <li>Removes the extension files and cleans up generated root files: the
-            AI Boost-managed block in <code>robots.txt</code> (hand-edited
-            <code>robots.txt</code> content is left alone), <code>llms.txt</code>,
-            and the sitemap files</li>
+          <li><strong>Preserves</strong> all settings, every per-language translation, your redirect list, and the 404 log</li>
+          <li><strong>Preserves</strong> your licence and Pro activation — Pro features unlock again as soon as you reinstall</li>
+          <li>Removes the extension files and cleans up generated root files (<code>robots.txt</code> managed block, <code>llms.txt</code>, sitemap files)</li>
           <li>Clears developer override keys</li>
         </ul>
-        <p class="mb-3 small text-muted">
+        <p class="ab-help mb-3">
           Reinstalling restores full function with your data intact. Before any major
-          change, download a settings export above anyway — it is a single JSON file
-          containing every option, redirect, and translation.
+          change, download a settings export above — it is a single JSON file containing every option, redirect, and translation.
         </p>
         <a href="https://github.com/bojancreator/aiboost-joomla/blob/main/docs/uninstall-guide.md"
            target="_blank" rel="noopener"
@@ -107,18 +91,19 @@
         </a>
       </div>
     </div>
+
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
 import { postWithCsrf, getCsrfTokenName } from './api.js'
+import AbIcon from './components/AbIcon.vue'
 
 export default {
   name: 'ImportPage',
+  components: { AbIcon },
   setup() {
-    // Token on the export link so the server records the backup timestamp
-    // (the side-effecting last_backup_at write is now token-gated).
     const exportUrl = 'index.php?option=com_aiboost&task=settings.export&' + getCsrfTokenName() + '=1'
     const importUrl = 'index.php?option=com_aiboost&task=import.upload'
 
@@ -136,42 +121,24 @@ export default {
 
     async function doImport() {
       if (!selectedFile.value || importing.value) return
-
       importing.value = true
       resultMessage.value = ''
-
       try {
         const fd = new FormData()
         fd.append('ab_import_file', selectedFile.value)
-
         const res = await postWithCsrf(importUrl, fd)
         resultOk.value = !!(res && res.success)
-        resultMessage.value =
-          (res && res.message) || (resultOk.value ? 'Settings imported.' : 'Import failed.')
-
-        if (resultOk.value) {
-          // Reload so the SPA bootstrap picks up the merged settings.
-          setTimeout(() => { window.location.reload() }, 1800)
-        }
+        resultMessage.value = (res && res.message) || (resultOk.value ? 'Settings imported.' : 'Import failed.')
+        if (resultOk.value) setTimeout(() => { window.location.reload() }, 1800)
       } catch (e) {
         resultOk.value = false
-        resultMessage.value =
-          'Import failed: ' + (e && e.message ? e.message : 'unknown error')
+        resultMessage.value = 'Import failed: ' + (e && e.message ? e.message : 'unknown error')
       } finally {
         importing.value = false
       }
     }
 
-    return {
-      exportUrl,
-      fileInput,
-      selectedFile,
-      importing,
-      resultMessage,
-      resultOk,
-      onFileChange,
-      doImport,
-    }
+    return { exportUrl, fileInput, selectedFile, importing, resultMessage, resultOk, onFileChange, doImport }
   },
 }
 </script>

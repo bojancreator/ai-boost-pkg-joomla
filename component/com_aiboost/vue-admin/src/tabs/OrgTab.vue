@@ -1,198 +1,244 @@
 <template>
-  <div class="ab-org-tab">
+  <div class="ab-settings-tab">
 
-    <!-- Identity -->
-    <div class="ab-card">
-      <div class="ab-card-header">🏢 Identity</div>
-      <div class="ab-card-body">
-        <div class="mb-3">
+    <!-- 01 Identity -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">01</span>
+        Identity
+      </div>
+      <div class="ab-section__body">
+        <div class="ab-field">
           <label class="ab-label">Organization Name</label>
           <input v-model="s.org_name" data-ab-field="org_name" type="text" class="ab-input" placeholder="Acme Inc.">
           <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_name" /></ProGate>
         </div>
-        <div class="mb-3">
+        <div class="ab-field">
           <label class="ab-label">Organization Description</label>
           <textarea v-model="s.org_description" class="ab-input" rows="3"
             placeholder="Brief description used in Schema.org markup…"></textarea>
           <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_description" /></ProGate>
         </div>
-        <div class="mb-3" data-ab-field="org_logo">
+        <div class="ab-field" data-ab-field="org_logo">
           <label class="ab-label">Organization Logo</label>
-          <MediaPicker
-            v-model="s.org_logo"
-            field-key="org_logo"
-            label="Organization logo"
+          <MediaPicker v-model="s.org_logo" field-key="org_logo" label="Organization logo"
             placeholder="https://example.com/images/logo.png"
-            recommended-size="Recommended: square PNG/SVG ≥ 112×112 px."
-          />
+            recommended-size="Recommended: square PNG/SVG ≥ 112×112 px." />
           <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_logo" field-type="media" /></ProGate>
         </div>
-        <div class="mb-3">
+        <div class="ab-field">
           <label class="ab-label">Logo Alt Text</label>
           <input v-model="s.org_logo_alt" data-ab-field="org_logo_alt" type="text" class="ab-input"
             placeholder="Describe the logo for accessibility">
           <div class="ab-help">Used as the logo's alt / caption in Schema.org markup.</div>
           <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_logo_alt" /></ProGate>
         </div>
-        <div class="mb-3" data-ab-field="org_image">
-          <label class="ab-label">Business Photo <span style="opacity:.5;font-weight:400;">(optional)</span></label>
-          <MediaPicker
-            v-model="s.org_image"
-            field-key="org_image"
-            label="Business photo"
+        <div class="ab-field" data-ab-field="org_image">
+          <label class="ab-label">Business Photo <span class="ab-muted">(optional)</span></label>
+          <MediaPicker v-model="s.org_image" field-key="org_image" label="Business photo"
             placeholder="https://example.com/images/storefront.jpg"
-            recommended-size="A real photo of your business (storefront / interior). Emitted as schema image — we only emit the logo otherwise."
-          />
+            recommended-size="A real photo of your business (storefront / interior). Emitted as schema image — we only emit the logo otherwise." />
         </div>
-        <div class="row g-3 mb-0">
+        <div class="row g-3">
           <div class="col-md-6">
-            <label class="ab-label">Registered Legal Name <span style="opacity:.5;font-weight:400;">(optional)</span></label>
-            <input v-model="s.org_legal_name" data-ab-field="org_legal_name" type="text" class="ab-input" placeholder="Acme Inc.">
-            <div class="ab-help">Helps AI engines disambiguate your business entity.</div>
+            <div class="ab-field">
+              <label class="ab-label">Registered Legal Name <span class="ab-muted">(optional)</span></label>
+              <input v-model="s.org_legal_name" data-ab-field="org_legal_name" type="text" class="ab-input" placeholder="Acme Inc.">
+              <div class="ab-help">Helps AI engines disambiguate your business entity.</div>
+            </div>
           </div>
           <div class="col-md-6">
-            <label class="ab-label">Year / Date Established</label>
-            <input v-model="s.org_founding_date" data-ab-field="org_founding_date" type="text" class="ab-input" placeholder="1998 or 1998-03-15">
-            <div class="ab-help">"In business since…" — a trust signal AI engines quote.</div>
+            <div class="ab-field">
+              <label class="ab-label">Year / Date Established</label>
+              <input v-model="s.org_founding_date" data-ab-field="org_founding_date" type="text" class="ab-input" placeholder="1998 or 1998-03-15">
+              <div class="ab-help">"In business since…" — a trust signal AI engines quote.</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Contact -->
-    <div class="ab-card">
-      <div class="ab-card-header">📞 Contact Information</div>
-      <div class="ab-card-body">
-        <div class="mb-3">
+    <!-- 02 Contact Information -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">02</span>
+        Contact Information
+      </div>
+      <div class="ab-section__body">
+        <div class="ab-field">
           <label class="ab-label">Organization URL</label>
-          <input v-model="s.org_url" type="url" class="ab-input"
-            placeholder="https://example.com">
+          <input v-model="s.org_url" type="url" class="ab-input" placeholder="https://example.com">
           <div class="ab-help">Official website URL (auto-detected if empty).</div>
         </div>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="ab-label">Email Address</label>
-            <input v-model="s.org_email" type="email" class="ab-input" placeholder="info@example.com">
+            <div class="ab-field">
+              <label class="ab-label">Email Address</label>
+              <input v-model="s.org_email" type="email" class="ab-input" placeholder="info@example.com">
+            </div>
           </div>
           <div class="col-md-6">
-            <label class="ab-label">Phone Number</label>
-            <input v-model="s.org_phone" type="tel" class="ab-input" placeholder="+1 212 555 0123">
-            <div class="ab-help">E.164 format: <code>+CountryCode Area Number</code></div>
+            <div class="ab-field">
+              <label class="ab-label">Phone Number</label>
+              <input v-model="s.org_phone" type="tel" class="ab-input" placeholder="+1 212 555 0123">
+              <div class="ab-help">E.164 format: <code>+CountryCode Area Number</code></div>
+            </div>
           </div>
         </div>
-        <div class="row g-3 mt-0">
+        <div class="row g-3">
           <div class="col-md-6">
-            <label class="ab-label">VAT / Tax ID <span style="opacity:.5;font-weight:400;">(optional)</span></label>
-            <input v-model="s.org_vat_id" data-ab-field="org_vat_id" type="text" class="ab-input" placeholder="RS123456789">
-            <div class="ab-help">Legitimacy signal (esp. EU).</div>
+            <div class="ab-field">
+              <label class="ab-label">VAT / Tax ID <span class="ab-muted">(optional)</span></label>
+              <input v-model="s.org_vat_id" data-ab-field="org_vat_id" type="text" class="ab-input" placeholder="RS123456789">
+              <div class="ab-help">Legitimacy signal (esp. EU).</div>
+            </div>
           </div>
           <div class="col-md-6">
-            <label class="ab-label">Map / Directions URL</label>
-            <input v-model="s.org_map_url" data-ab-field="org_map_url" type="url" class="ab-input" placeholder="https://maps.google.com/...">
+            <div class="ab-field">
+              <label class="ab-label">Map / Directions URL</label>
+              <input v-model="s.org_map_url" data-ab-field="org_map_url" type="url" class="ab-input" placeholder="https://maps.google.com/...">
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Social Media -->
-    <div class="ab-card">
-      <div class="ab-card-header">🔗 Social Media Links</div>
-      <div class="ab-card-body">
-        <div class="ab-help mb-3">Each URL is included in Schema.org sameAs. Clear to remove.</div>
+    <!-- 03 Social Media Links -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">03</span>
+        Social Media Links
+      </div>
+      <div class="ab-section__body">
+        <div class="ab-help">Each URL is included in Schema.org sameAs. Clear to remove.</div>
         <div class="row g-2">
           <div v-for="(meta, key) in socialPlatforms" :key="key" class="col-md-6">
-            <label class="ab-label" :style="`color:${meta.color}`">
-              <span v-html="meta.icon" style="margin-right:5px;vertical-align:middle"></span>
-              {{ meta.label }}
-            </label>
-            <input v-model="s['social_' + key]" type="url" class="ab-input form-control-sm"
-              :placeholder="key === 'twitter' ? 'https://x.com/yourprofile' : 'https://' + key + '.com/yourprofile'">
+            <div class="ab-field">
+              <label class="ab-label" :style="`color:${meta.color}`">
+                <span v-html="meta.icon" style="margin-right:5px;vertical-align:middle"></span>
+                {{ meta.label }}
+              </label>
+              <input v-model="s['social_' + key]" type="url" class="ab-input form-control-sm"
+                :placeholder="key === 'twitter' ? 'https://x.com/yourprofile' : 'https://' + key + '.com/yourprofile'">
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Address -->
-    <div class="ab-card">
-      <div class="ab-card-header">📍 Address</div>
-      <div class="ab-card-body">
-        <div class="row g-3 mb-3">
-          <div class="col-md-5">
-            <label class="ab-label">Street Address</label>
-            <input v-model="s.org_address_street" type="text" class="ab-input" placeholder="123 Main Street">
-            <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_address_street" /></ProGate>
-          </div>
-          <div class="col-md-4">
-            <label class="ab-label">City / Locality</label>
-            <input v-model="s.org_address_city" type="text" class="ab-input" placeholder="New York">
-            <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_address_city" /></ProGate>
-          </div>
-          <div class="col-md-3">
-            <label class="ab-label">State / Region</label>
-            <input v-model="s.org_address_state" type="text" class="ab-input" placeholder="NY">
-          </div>
-        </div>
-        <div class="row g-3 mb-0">
-          <div class="col-md-3">
-            <label class="ab-label">Postal Code</label>
-            <input v-model="s.org_address_zip" type="text" class="ab-input" placeholder="10001">
-          </div>
-          <div class="col-md-3">
-            <label class="ab-label">Country Code</label>
-            <input v-model="s.org_address_country" type="text" class="ab-input"
-              placeholder="US" maxlength="2">
-            <div class="ab-help">ISO 3166-1 alpha-2</div>
-          </div>
-        </div>
+    <!-- 04 Address -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">04</span>
+        Address
       </div>
-    </div>
-
-    <!-- Geo Coordinates -->
-    <div class="ab-card">
-      <div class="ab-card-header">🗺 Geographic Coordinates</div>
-      <div class="ab-card-body">
+      <div class="ab-section__body">
         <div class="row g-3">
           <div class="col-md-5">
-            <label class="ab-label">Latitude</label>
-            <input v-model="s.org_latitude" type="text" class="ab-input" placeholder="44.8178">
+            <div class="ab-field">
+              <label class="ab-label">Street Address</label>
+              <input v-model="s.org_address_street" type="text" class="ab-input" placeholder="123 Main Street">
+              <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_address_street" /></ProGate>
+            </div>
           </div>
-          <div class="col-md-5">
-            <label class="ab-label">Longitude</label>
-            <input v-model="s.org_longitude" type="text" class="ab-input" placeholder="20.4569">
+          <div class="col-md-4">
+            <div class="ab-field">
+              <label class="ab-label">City / Locality</label>
+              <input v-model="s.org_address_city" type="text" class="ab-input" placeholder="New York">
+              <ProGate mode="field" label="Translate"><TranslationExpander field-key="org_address_city" /></ProGate>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="ab-field">
+              <label class="ab-label">State / Region</label>
+              <input v-model="s.org_address_state" type="text" class="ab-input" placeholder="NY">
+            </div>
           </div>
         </div>
-        <div class="ab-help mt-1">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="ab-field">
+              <label class="ab-label">Postal Code</label>
+              <input v-model="s.org_address_zip" type="text" class="ab-input" placeholder="10001">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="ab-field">
+              <label class="ab-label">Country Code</label>
+              <input v-model="s.org_address_country" type="text" class="ab-input" placeholder="US" maxlength="2">
+              <div class="ab-help">ISO 3166-1 alpha-2</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 Geographic Coordinates -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">05</span>
+        Geographic Coordinates
+      </div>
+      <div class="ab-section__body">
+        <div class="row g-3">
+          <div class="col-md-5">
+            <div class="ab-field">
+              <label class="ab-label">Latitude</label>
+              <input v-model="s.org_latitude" type="text" class="ab-input" placeholder="44.8178">
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="ab-field">
+              <label class="ab-label">Longitude</label>
+              <input v-model="s.org_longitude" type="text" class="ab-input" placeholder="20.4569">
+            </div>
+          </div>
+        </div>
+        <div class="ab-help">
           Find coordinates at
           <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">openstreetmap.org</a>
         </div>
       </div>
     </div>
 
-    <!-- Aggregate Rating -->
-    <div class="ab-card">
-      <div class="ab-card-header">⭐ Guest / Customer Rating (AggregateRating)</div>
-      <div class="ab-card-body">
-        <div class="ab-help mb-3" style="color:var(--ab-text-muted)">Adds AggregateRating to Schema.org output. Leave empty if not applicable.</div>
+    <!-- 06 AggregateRating -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">06</span>
+        Guest / Customer Rating (AggregateRating)
+      </div>
+      <div class="ab-section__body">
+        <div class="ab-help">Adds AggregateRating to Schema.org output. Leave empty if not applicable.</div>
         <div class="row g-3">
           <div class="col-md-2">
-            <label class="ab-label">Rating Value</label>
-            <input v-model="s.rating_value" type="text" class="ab-input" placeholder="4.8">
+            <div class="ab-field">
+              <label class="ab-label">Rating Value</label>
+              <input v-model="s.rating_value" type="text" class="ab-input" placeholder="4.8">
+            </div>
           </div>
           <div class="col-md-2">
-            <label class="ab-label">Review Count</label>
-            <input v-model="s.rating_count" type="number" class="ab-input" placeholder="127" min="0">
+            <div class="ab-field">
+              <label class="ab-label">Review Count</label>
+              <input v-model="s.rating_count" type="number" class="ab-input" placeholder="127" min="0">
+            </div>
           </div>
           <div class="col-md-2">
-            <label class="ab-label">Best Rating</label>
-            <input v-model="s.rating_best" type="number" class="ab-input" placeholder="5" min="1">
+            <div class="ab-field">
+              <label class="ab-label">Best Rating</label>
+              <input v-model="s.rating_best" type="number" class="ab-input" placeholder="5" min="1">
+            </div>
           </div>
           <div class="col-md-2">
-            <label class="ab-label">Worst Rating</label>
-            <input v-model="s.rating_worst" type="number" class="ab-input" placeholder="1" min="1">
+            <div class="ab-field">
+              <label class="ab-label">Worst Rating</label>
+              <input v-model="s.rating_worst" type="number" class="ab-input" placeholder="1" min="1">
+            </div>
           </div>
           <div class="col-md-4">
-            <label class="ab-label">Rating Source</label>
-            <input v-model="s.rating_source" type="text" class="ab-input" placeholder="Google Reviews">
+            <div class="ab-field">
+              <label class="ab-label">Rating Source</label>
+              <input v-model="s.rating_source" type="text" class="ab-input" placeholder="Google Reviews">
+            </div>
           </div>
         </div>
       </div>
@@ -225,7 +271,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-.ab-org-tab { max-width: 860px; }
-</style>

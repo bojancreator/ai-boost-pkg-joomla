@@ -285,7 +285,7 @@ export default {
     /** Build issue list for a result row. Each issue has type/severity/fixable/fix_url. */
     issuesFor(r) {
       const out = []
-      const canonicalSettingsUrl = 'index.php?option=com_aiboost&view=settings&tab=technical&field=enable_canonical'
+      const canonicalSettingsUrl = 'index.php?option=com_aiboost&view=app#/settings?tab=technical&field=enable_canonical'
       if (r.error)                           out.push({ type: 'error',              severity: 2, label: r.error, fixable: false })
       if (r.status === 404)                  out.push({ type: 'not_found',          severity: 2, label: '404 Not Found', fixable: true })
       else if (r.status >= 500)              out.push({ type: 'server_error',       severity: 2, label: 'Server error ' + r.status, fixable: false })

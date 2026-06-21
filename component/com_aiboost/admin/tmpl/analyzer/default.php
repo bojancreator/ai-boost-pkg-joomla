@@ -83,7 +83,7 @@ $tokenName = Session::getFormToken();
         runAiVisibility: '<?php echo Route::_('index.php?option=com_aiboost&task=analyzer.runAiVisibility&format=json', false); ?>',
         applyFix:        '<?php echo Route::_('index.php?option=com_aiboost&task=analyzer.applyFix&format=json', false); ?>',
         getSitemapUrls:  '<?php echo Route::_('index.php?option=com_aiboost&task=urlchecker.getSitemapUrls&format=json', false); ?>',
-        settingsView:    '<?php echo Route::_('index.php?option=com_aiboost&view=settings', false); ?>',
+        settingsView:    '<?php echo Route::_('index.php?option=com_aiboost&view=app', false); ?>#/settings',
       }
     };
   </script>

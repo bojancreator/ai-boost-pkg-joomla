@@ -11,13 +11,13 @@ defined('_JEXEC') or die;
 
 final class Version
 {
-    public const VERSION = '0.86.5';
+    public const VERSION = '0.87.20';
 
     public const MAJOR = 0;
-    public const MINOR = 86;
-    public const PATCH = 5;
+    public const MINOR = 87;
+    public const PATCH = 20;
 
-    public const RELEASE_DATE = '2026-06-19';
+    public const RELEASE_DATE = '2026-06-21';
 
     public const COPYRIGHT = '(C) 2025 AI Boost (aiboostnow.com). All rights reserved.';
 

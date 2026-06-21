@@ -1,47 +1,56 @@
 <template>
   <div class="ab-page-redirects">
-    <h2 class="ab-h2 mb-3">Redirects</h2>
+
+    <div class="ab-page-intro">
+      <h2 class="ab-page-title">Redirects</h2>
+    </div>
 
     <ul class="ab-tabs mb-3" role="tablist">
-      <li class="nav-item">
+      <li>
         <button class="ab-tab" :class="{ 'ab-tab--active': tab === 'rules' }" @click="tab = 'rules'">
           Redirect Rules <span class="ab-badge ms-1">{{ redirects.length }}</span>
         </button>
       </li>
-      <li class="nav-item">
+      <li>
         <button class="ab-tab" :class="{ 'ab-tab--active': tab === 'log404' }" @click="tab = 'log404'">
           404 Log <span class="ab-badge ms-1">{{ total404 }}</span>
         </button>
       </li>
-      <li class="nav-item">
+      <li>
         <button class="ab-tab" :class="{ 'ab-tab--active': tab === 'import' }" @click="tab = 'import'">
           CSV Import
         </button>
       </li>
     </ul>
 
-    <div v-if="loading" class="text-muted small py-3">Loading…</div>
+    <div v-if="loading" class="ab-help py-3">Loading…</div>
     <div v-else-if="loadError" class="ab-alert ab-alert--danger">{{ loadError }}</div>
 
     <!-- ─── Rules tab ─────────────────────────────────────────────── -->
     <div v-else-if="tab === 'rules'">
-      <div class="ab-card mb-3">
-        <div class="ab-card-body">
-          <h3 class="ab-h3 mb-3">Add new rule</h3>
+      <div class="ab-section mb-3">
+        <div class="ab-section__head">Add new rule</div>
+        <div class="ab-section__body">
           <form class="row g-2" @submit.prevent="addRedirect">
             <div class="col-md-4">
-              <label class="ab-label small text-muted">From URL (relative or absolute)</label>
-              <input v-model="form.from_url" type="text" class="ab-input" placeholder="/old-page" required>
+              <div class="ab-field">
+                <label class="ab-label">From URL (relative or absolute)</label>
+                <input v-model="form.from_url" type="text" class="ab-input" placeholder="/old-page" required>
+              </div>
             </div>
             <div class="col-md-4">
-              <label class="ab-label small text-muted">To URL</label>
-              <input v-model="form.to_url" type="text" class="ab-input" placeholder="/new-page" required>
+              <div class="ab-field">
+                <label class="ab-label">To URL</label>
+                <input v-model="form.to_url" type="text" class="ab-input" placeholder="/new-page" required>
+              </div>
             </div>
             <div class="col-md-2">
-              <label class="ab-label small text-muted">Type</label>
-              <select v-model.number="form.redirect_type" class="ab-select">
-                <option v-for="t in [301, 302, 303, 307, 308]" :key="t" :value="t">{{ t }}</option>
-              </select>
+              <div class="ab-field">
+                <label class="ab-label">Type</label>
+                <select v-model.number="form.redirect_type" class="ab-select">
+                  <option v-for="t in [301, 302, 303, 307, 308]" :key="t" :value="t">{{ t }}</option>
+                </select>
+              </div>
             </div>
             <div class="col-md-2 d-flex align-items-end">
               <button type="submit" class="ab-btn ab-btn--primary w-100" :disabled="busy">
@@ -52,17 +61,17 @@
               <input v-model="form.note" type="text" class="ab-input form-control-sm" placeholder="Optional note">
             </div>
           </form>
-          <div v-if="formMsg" class="small mt-2" :class="formMsgOk ? 'text-success' : 'text-danger'">{{ formMsg }}</div>
+          <div v-if="formMsg" class="small mt-2" :style="formMsgOk ? 'color:var(--ab-success)' : 'color:var(--ab-danger)'">{{ formMsg }}</div>
         </div>
       </div>
 
-      <div class="ab-card">
-        <div class="ab-card-body">
-          <h3 class="ab-h3 mb-3">Active rules</h3>
-          <div v-if="!redirects.length" class="text-muted small">No redirect rules yet.</div>
+      <div class="ab-section">
+        <div class="ab-section__head">Active rules</div>
+        <div class="ab-section__body">
+          <div v-if="!redirects.length" class="ab-help">No redirect rules yet.</div>
           <div v-else class="table-responsive">
-            <table class="table table-sm align-middle">
-              <thead>
+            <table class="table table-sm align-middle" style="color:var(--ab-text);background:var(--ab-surface)">
+              <thead style="background:var(--ab-surface-raised)">
                 <tr>
                   <th>From</th>
                   <th>To</th>
@@ -79,11 +88,12 @@
                   <td class="text-center"><span class="ab-badge ab-badge--info">{{ r.redirect_type }}</span></td>
                   <td class="text-end">{{ r.hits }}</td>
                   <td class="text-center">
-                    <div class="ab-check ab-toggle d-inline-block">
-                      <input class="ab-toggle__input" type="checkbox"
+                    <span class="ab-toggle" :class="{'is-on': Number(r.enabled) === 1}" style="cursor:pointer" @click="toggle(r, Number(r.enabled) !== 1)">
+                      <input type="checkbox" class="ab-toggle__input"
                              :checked="Number(r.enabled) === 1"
-                             @change="toggle(r, $event.target.checked)">
-                    </div>
+                             @change.stop>
+                      <span class="ab-toggle__track"></span>
+                    </span>
                   </td>
                   <td class="text-end">
                     <button class="ab-btn ab-btn--ghost ab-btn--sm ab-btn--danger-ghost" @click="remove(r)">Delete</button>
@@ -98,18 +108,18 @@
 
     <!-- ─── 404 log tab ───────────────────────────────────────────── -->
     <div v-else-if="tab === 'log404'">
-      <div class="ab-card">
-        <div class="ab-card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="ab-h3 mb-0">Recent 404 errors</h3>
-            <button class="ab-btn ab-btn--ghost ab-btn--sm ab-btn--danger-ghost" @click="clearLog" :disabled="!log404.length || busy">
-              Clear 404 log
-            </button>
-          </div>
-          <div v-if="!log404.length" class="text-muted small">No 404 errors logged.</div>
+      <div class="ab-section">
+        <div class="ab-section__head">
+          Recent 404 errors
+          <button class="ab-btn ab-btn--ghost ab-btn--sm ab-btn--danger-ghost" style="margin-left:auto" @click="clearLog" :disabled="!log404.length || busy">
+            Clear 404 log
+          </button>
+        </div>
+        <div class="ab-section__body">
+          <div v-if="!log404.length" class="ab-help">No 404 errors logged.</div>
           <div v-else class="table-responsive">
-            <table class="table table-sm align-middle">
-              <thead>
+            <table class="table table-sm align-middle" style="color:var(--ab-text);background:var(--ab-surface)">
+              <thead style="background:var(--ab-surface-raised)">
                 <tr>
                   <th>URL</th>
                   <th>Referrer</th>
@@ -121,9 +131,9 @@
               <tbody>
                 <tr v-for="e in log404" :key="e.id">
                   <td><code class="small">{{ e.request_url }}</code></td>
-                  <td class="text-muted small">{{ e.referrer || '—' }}</td>
+                  <td class="small" style="color:var(--ab-text-muted)">{{ e.referrer || '—' }}</td>
                   <td class="text-end">{{ e.hits }}</td>
-                  <td class="text-muted small">{{ e.last_seen }}</td>
+                  <td class="small" style="color:var(--ab-text-muted)">{{ e.last_seen }}</td>
                   <td class="text-end">
                     <button class="ab-btn ab-btn--ghost ab-btn--sm" @click="prefillFrom(e)">Create rule</button>
                   </td>
@@ -137,25 +147,25 @@
 
     <!-- ─── CSV import tab ────────────────────────────────────────── -->
     <div v-else>
-      <div class="ab-card">
-        <div class="ab-card-body">
-          <h3 class="ab-h3 mb-3">Bulk import from CSV</h3>
-          <p class="text-muted small">
+      <div class="ab-section">
+        <div class="ab-section__head">Bulk import from CSV</div>
+        <div class="ab-section__body">
+          <p class="ab-help mb-3">
             One rule per line in the format <code>from_url,to_url,type</code>. Lines starting with
             <code>#</code> or the header <code>from_url,…</code> are ignored. Default type is 301.
           </p>
           <textarea v-model="csv" rows="10" class="ab-input font-monospace"
-                    placeholder="/old-page,/new-page,301
-/another,/elsewhere,302"></textarea>
+                    placeholder="/old-page,/new-page,301&#10;/another,/elsewhere,302"></textarea>
           <div class="mt-3 d-flex gap-2 align-items-center">
             <button class="ab-btn ab-btn--primary" :disabled="busy || !csv.trim()" @click="importCsv">
               {{ busy ? 'Importing…' : 'Import CSV' }}
             </button>
-            <span v-if="csvMsg" class="small" :class="csvMsgOk ? 'text-success' : 'text-danger'">{{ csvMsg }}</span>
+            <span v-if="csvMsg" class="small" :style="csvMsgOk ? 'color:var(--ab-success)' : 'color:var(--ab-danger)'">{{ csvMsg }}</span>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -276,7 +286,6 @@ export default {
     }
 
     onMounted(() => {
-      // Honour ?from_url=… deep link from the dashboard "+ Redirect" shortcut
       try {
         const qs = new URLSearchParams(window.location.search)
         const fromUrl = qs.get('from_url')

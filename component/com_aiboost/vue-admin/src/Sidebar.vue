@@ -1,7 +1,6 @@
 <template>
   <aside class="ab-sidebar" :class="{ 'ab-sidebar--compact': compact }">
     <div class="ab-sidebar__brand">
-      <span class="ab-sidebar__brand-dot" aria-hidden="true"></span>
       <span class="ab-sidebar__brand-name">AI Boost</span>
       <span v-if="version" class="ab-sidebar__version">{{ version }}</span>
       <button
@@ -16,7 +15,7 @@
     </div>
 
     <div class="ab-sidebar__search">
-      <span class="ab-sidebar__search-icon icon-search" aria-hidden="true"></span>
+      <AbIcon name="search" class="ab-sidebar__search-icon" />
       <input
         v-model="search"
         type="search"
@@ -44,7 +43,7 @@
                 :class="{ active: isItemActive(item) }"
                 :to="item.to"
               >
-                <span class="ab-sidebar__icon" :class="item.icon" aria-hidden="true"></span>
+                <AbIcon class="ab-sidebar__icon" :name="item.icon" />
                 <span class="ab-sidebar__label">{{ item.label }}</span>
                 <span
                   v-if="item.badge === 'errors' && errorsBadge > 0"
@@ -130,14 +129,13 @@ export default {
 
 <style>
 .ab-sidebar {
-  flex: 0 0 230px;
-  width: 230px;
+  flex: 0 0 276px;
+  width: 276px;
   align-self: stretch;
   display: flex;
   flex-direction: column;
   background: var(--ab-sidebar-bg);
   border-right: 1px solid var(--ab-sidebar-border);
-  border-radius: 8px 0 0 8px;
 }
 
 .ab-sidebar__brand {
@@ -147,19 +145,11 @@ export default {
   padding: 14px 16px;
   border-bottom: 1px solid var(--ab-sidebar-border);
 }
-.ab-sidebar__brand-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--ab-primary, #4f46e5);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ab-primary, #4f46e5) 30%, transparent);
-  flex-shrink: 0;
-}
 .ab-sidebar__brand-name {
   font-size: 15px;
   font-weight: 700;
-  color: #fff;
-  letter-spacing: .3px;
+  color: var(--ab-sidebar-text, #fff);
+  letter-spacing: -.01em;
 }
 .ab-sidebar__version {
   margin-left: auto;
@@ -196,7 +186,7 @@ export default {
   left: 19px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 11px;
+  font-size: 14px;
   color: var(--ab-sidebar-label);
   pointer-events: none;
 }
@@ -243,15 +233,17 @@ export default {
 .ab-sidebar__nav {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 10px 16px;
+  padding: 10px 0 16px;
 }
 .ab-sidebar__group { margin-bottom: 14px; }
 .ab-sidebar__group-title {
+  font-family: var(--ab-font-mono);
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .8px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
   color: var(--ab-sidebar-label);
-  padding: 0 10px 6px;
+  padding: 0 16px 6px;
 }
 .ab-sidebar__list {
   list-style: none;
@@ -266,28 +258,28 @@ export default {
   align-items: center;
   gap: 10px;
   width: 100%;
-  border-radius: 7px;
-  padding: 8px 10px;
-  font-size: 13.5px;
+  border-radius: 0;
+  border-left: 2px solid transparent;
+  padding: 8px 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--ab-sidebar-text);
   text-decoration: none;
-  transition: background .12s, color .12s;
+  transition: background .12s, color .12s, border-color .12s;
 }
 .ab-sidebar__item:hover {
-  background: rgba(255, 255, 255, .06);
-  color: #fff;
+  background: var(--ab-sidebar-hover-bg, rgba(255, 255, 255, .05));
+  color: var(--ab-sidebar-active-text, #fff);
   text-decoration: none;
 }
 .ab-sidebar__item.active {
-  background: var(--ab-primary, #4f46e5);
-  color: #fff;
+  background: var(--ab-sidebar-active-bg, rgba(79, 70, 229, .22));
+  color: var(--ab-sidebar-active-text, #fff);
+  border-left-color: var(--ab-primary, #4f46e5);
   font-weight: 600;
 }
 .ab-sidebar__icon {
-  width: 18px;
-  text-align: center;
-  font-size: 13px;
+  font-size: 15px;
   opacity: .85;
   flex-shrink: 0;
 }

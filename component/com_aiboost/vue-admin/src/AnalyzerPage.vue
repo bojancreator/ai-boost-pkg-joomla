@@ -6,30 +6,30 @@
       <li role="presentation">
         <button :class="['ab-tab', activeTab === 'seo' ? 'ab-tab--active' : '']"
                 @click="activeTab = 'seo'" type="button" role="tab">
-          <span class="icon-search" aria-hidden="true"></span> SEO Analyzer
+          <AbIcon name="search" /> SEO Analyzer
         </button>
       </li>
       <li role="presentation">
         <button :class="['ab-tab', activeTab === 'jsonld' ? 'ab-tab--active' : '']"
                 @click="activeTab = 'jsonld'" type="button" role="tab">
-          <span class="icon-code" aria-hidden="true"></span> JSON-LD Validator
+          <AbIcon name="code" /> JSON-LD Validator
         </button>
       </li>
       <li role="presentation">
         <button :class="['ab-tab', activeTab === 'ai' ? 'ab-tab--active' : '']"
                 @click="activeTab = 'ai'" type="button" role="tab">
-          <span class="icon-magic" aria-hidden="true"></span> AI Visibility
+          <AbIcon name="ai" /> AI Visibility
         </button>
       </li>
     </ul>
 
     <!-- ── SEO ANALYZER ─────────────────────────────────────────────────── -->
     <div v-show="activeTab === 'seo'">
-      <div class="ab-card mb-4">
-        <div class="ab-card__header">
+      <div class="ab-section mb-4">
+        <div class="ab-section__head">
           <h2 class="fs-5 mb-0">SEO Analyzer</h2>
         </div>
-        <div class="ab-card__body">
+        <div class="ab-section__body">
           <p class="text-muted small mb-3">
             Get an SEO score and actionable recommendations covering title, meta description, schema, OG tags, canonicals, robots.txt, sitemap, and more. Scan a single page or your whole site.
           </p>
@@ -132,8 +132,8 @@
       <div v-if="seoMode === 'single' && seoResult" class="ab-analyzer-results">
 
         <!-- Score header -->
-        <div class="ab-card mb-4">
-          <div class="ab-card__body d-flex align-items-center gap-4 flex-wrap">
+        <div class="ab-section mb-4">
+          <div class="ab-section__body d-flex align-items-center gap-4 flex-wrap">
             <div :class="['ab-score-circle flex-shrink-0', scoreClass(seoResult.score)]">
               {{ seoResult.score }}
             </div>
@@ -151,8 +151,8 @@
         </div>
 
         <!-- Checks list -->
-        <div class="ab-card">
-          <div class="ab-card__header">SEO Check Details</div>
+        <div class="ab-section">
+          <div class="ab-section__head">SEO Check Details</div>
           <div class="ab-check-list">
             <div v-for="c in seoResult.checks" :key="c.id" class="ab-check-item">
               <div class="ab-check-row" @click="toggleExpand(c.id)" role="button">
@@ -250,8 +250,8 @@
       <div v-if="seoMode === 'batch' && batchAggregate" class="ab-analyzer-results">
 
         <!-- Aggregate score header -->
-        <div class="ab-card mb-4">
-          <div class="ab-card__body d-flex align-items-center gap-4 flex-wrap">
+        <div class="ab-section mb-4">
+          <div class="ab-section__body d-flex align-items-center gap-4 flex-wrap">
             <div :class="['ab-score-circle flex-shrink-0', scoreClass(batchAggregate.avgScore)]">
               {{ batchAggregate.avgScore }}
             </div>
@@ -272,8 +272,8 @@
         </div>
 
         <!-- Aggregated checks list -->
-        <div class="ab-card">
-          <div class="ab-card__header">Site-wide SEO Check Summary</div>
+        <div class="ab-section">
+          <div class="ab-section__head">Site-wide SEO Check Summary</div>
           <div class="ab-check-list">
             <template v-for="(c, idx) in batchAggregate.checks" :key="c.id">
               <div v-if="idx === batchFirstPassIndex" class="ab-check-divider" role="separator" aria-label="All passing below">
@@ -363,11 +363,11 @@
 
     <!-- ── JSON-LD VALIDATOR ─────────────────────────────────────────────── -->
     <div v-show="activeTab === 'jsonld'">
-      <div class="ab-card mb-4">
-        <div class="ab-card__header">
+      <div class="ab-section mb-4">
+        <div class="ab-section__head">
           <h2 class="fs-5 mb-0">JSON-LD Validator</h2>
         </div>
-        <div class="ab-card__body">
+        <div class="ab-section__body">
           <p class="text-muted small mb-3">
             Paste your JSON-LD structured data (the content of a <code>&lt;script type="application/ld+json"&gt;</code> tag) to validate it against Schema.org rules, or fetch it automatically from any URL.
           </p>
@@ -423,8 +423,8 @@
       </div>
 
       <!-- JSON-LD Results -->
-      <div v-if="jsonldResult" class="ab-card">
-        <div class="ab-card__header">
+      <div v-if="jsonldResult" class="ab-section">
+        <div class="ab-section__head">
           <span>Validation Results</span>
           <span class="ms-2 small text-muted" v-if="jsonldResult.type">Type: <strong>{{ jsonldResult.type }}</strong></span>
           <div :class="['ab-score-circle ab-score-circle--sm flex-shrink-0 ms-auto', scoreClass(jsonldResult.score)]">
@@ -446,11 +446,11 @@
 
     <!-- ── AI VISIBILITY ─────────────────────────────────────────────────── -->
     <div v-show="activeTab === 'ai'">
-      <div class="ab-card mb-4">
-        <div class="ab-card__header">
+      <div class="ab-section mb-4">
+        <div class="ab-section__head">
           <h2 class="fs-5 mb-0">AI Visibility Analyzer</h2>
         </div>
-        <div class="ab-card__body">
+        <div class="ab-section__body">
           <p class="text-muted small mb-3">
             Check how visible your site is to AI search engines like ChatGPT, Perplexity, Google AI Overviews, and Bing Copilot. Analyzes llms.txt, robots.txt AI directives, IndexNow, and structured data signals.
           </p>
@@ -478,8 +478,8 @@
       <div v-if="aiResult">
 
         <!-- Score header -->
-        <div class="ab-card mb-4">
-          <div class="ab-card__body d-flex align-items-center gap-4 flex-wrap">
+        <div class="ab-section mb-4">
+          <div class="ab-section__body d-flex align-items-center gap-4 flex-wrap">
             <div :class="['ab-score-circle flex-shrink-0', scoreClass(aiResult.score)]">
               {{ aiResult.score }}
             </div>
@@ -497,9 +497,9 @@
         </div>
 
         <!-- AI crawler summary -->
-        <div class="ab-card mb-4">
-          <div class="ab-card__header">AI Crawler Status</div>
-          <div class="ab-card__body">
+        <div class="ab-section mb-4">
+          <div class="ab-section__head">AI Crawler Status</div>
+          <div class="ab-section__body">
             <div class="row g-2">
               <div v-for="c in crawlerChecks" :key="c.id" class="col-sm-6 col-md-4">
                 <div :class="['ab-crawler-pill d-flex align-items-center gap-2 p-2 rounded small',
@@ -513,8 +513,8 @@
         </div>
 
         <!-- Full checks list -->
-        <div class="ab-card">
-          <div class="ab-card__header">AI Signal Details</div>
+        <div class="ab-section">
+          <div class="ab-section__head">AI Signal Details</div>
           <div class="ab-check-list">
             <div v-for="c in nonCrawlerChecks" :key="c.id" class="ab-check-row">
               <span :class="['flex-shrink-0 mt-1', severityIcon(c.severity)]" aria-hidden="true"></span>
@@ -533,8 +533,11 @@
 </template>
 
 <script>
+import AbIcon from './components/AbIcon.vue'
+
 export default {
   name: 'AnalyzerPage',
+  components: { AbIcon },
 
   data() {
     const cfg = window.aiBoostAnalyzer || {}
@@ -1003,9 +1006,13 @@ export default {
     },
 
     settingsLink(c) {
-      const base = (this.endpoints.settingsView || 'index.php?option=com_aiboost&view=settings')
+      // SPA settings deep-link: tab + field live inside the hash
+      // (…view=app#/settings?tab=X&field=Y). The first hash param needs '?',
+      // not '&' — so look only at the part after '#', not the whole URL.
+      const base = (this.endpoints.settingsView || 'index.php?option=com_aiboost&view=app#/settings')
       const p    = c.fix_payload || {}
-      const sep  = base.includes('?') ? '&' : '?'
+      const hashHasQuery = base.includes('#') && base.split('#')[1].includes('?')
+      const sep  = hashHasQuery ? '&' : '?'
       const qs   = []
       if (p.tab)   qs.push('tab='   + encodeURIComponent(p.tab))
       if (p.field) qs.push('field=' + encodeURIComponent(p.field))
@@ -1088,11 +1095,11 @@ export default {
   display: flex;
   align-items: center;
   padding: .4rem .65rem;
-  background: var(--ab-bg-muted, #f8f9fa);
-  border: 1px solid var(--ab-border-strong, #ced4da);
+  background: var(--ab-surface-raised);
+  border: 1px solid var(--ab-border);
   border-right: none;
-  border-radius: var(--ab-radius, 4px) 0 0 var(--ab-radius, 4px);
-  color: var(--ab-text-muted, #6c757d);
+  border-radius: var(--ab-radius) 0 0 var(--ab-radius);
+  color: var(--ab-text-muted);
   flex-shrink: 0;
 }
 .ab-input-group__field {
@@ -1101,20 +1108,20 @@ export default {
   flex: 1;
 }
 .ab-input-group__btn {
-  border-radius: 0 var(--ab-radius, 4px) var(--ab-radius, 4px) 0 !important;
+  border-radius: 0 var(--ab-radius) var(--ab-radius) 0 !important;
   white-space: nowrap;
 }
 
 /* Check list (replaces Bootstrap list-group) */
 .ab-check-list {
-  border-top: 1px solid var(--ab-border, #dee2e6);
+  border-top: 1px solid var(--ab-border);
 }
 .ab-check-row {
   display: flex;
   align-items: flex-start;
   gap: .75rem;
   padding: .65rem 1rem;
-  border-bottom: 1px solid var(--ab-border, #dee2e6);
+  border-bottom: 1px solid var(--ab-border);
 }
 .ab-check-badge {
   margin-left: auto;
@@ -1122,27 +1129,27 @@ export default {
   align-self: center;
 }
 .ab-check-item {
-  border-bottom: 1px solid var(--ab-border, #dee2e6);
+  border-bottom: 1px solid var(--ab-border);
 }
 .ab-check-divider {
   display: flex;
   align-items: center;
   gap: .75rem;
   padding: .5rem 1rem;
-  background: var(--ab-bg-muted, #f8f9fa);
-  border-bottom: 1px solid var(--ab-border, #dee2e6);
+  background: var(--ab-surface-raised);
+  border-bottom: 1px solid var(--ab-border);
 }
 .ab-check-divider__line {
   flex: 1;
   height: 1px;
-  background: var(--ab-border, #dee2e6);
+  background: var(--ab-border);
 }
 .ab-check-divider__label {
   font-size: .75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .04em;
-  color: var(--ab-success, #198754);
+  color: var(--ab-success);
   white-space: nowrap;
 }
 .ab-check-item .ab-check-row {
@@ -1151,11 +1158,11 @@ export default {
   transition: background .15s;
 }
 .ab-check-item .ab-check-row:hover {
-  background: var(--ab-bg-muted, #f8f9fa);
+  background: var(--ab-surface-raised);
 }
 .ab-expand-chevron {
   align-self: center;
-  color: var(--ab-text-muted, #6c757d);
+  color: var(--ab-text-muted);
   transition: transform .15s ease;
 }
 .ab-expand-chevron--open {
@@ -1163,8 +1170,8 @@ export default {
 }
 .ab-check-detail {
   padding: .75rem 1rem 1rem 2.6rem;
-  background: var(--ab-bg-muted, #f8f9fa);
-  border-top: 1px dashed var(--ab-border, #dee2e6);
+  background: var(--ab-surface-raised);
+  border-top: 1px dashed var(--ab-border);
 }
 .ab-check-detail__block + .ab-check-detail__block {
   margin-top: .6rem;
@@ -1174,12 +1181,12 @@ export default {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .03em;
-  color: var(--ab-text-muted, #6c757d);
+  color: var(--ab-text-muted);
   margin-bottom: .2rem;
 }
 .ab-check-detail__text {
   font-size: .85rem;
-  color: var(--ab-text, #212529);
+  color: var(--ab-text);
   line-height: 1.5;
 }
 .ab-check-detail__actions {
@@ -1196,16 +1203,16 @@ export default {
 
 /* Affected pages list inside expanded check detail */
 .ab-affected-urls {
-  border: 1px solid var(--ab-border, #dee2e6);
-  border-radius: var(--ab-radius, 4px);
-  background: var(--ab-surface, #fff);
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: var(--ab-surface);
   padding: .3rem .6rem;
 }
 .ab-affected-urls__summary {
   font-size: .8rem;
   font-weight: 600;
   cursor: pointer;
-  color: var(--ab-text-muted, #6c757d);
+  color: var(--ab-text-muted);
   user-select: none;
   list-style: none;
 }
@@ -1222,7 +1229,7 @@ export default {
 }
 .ab-edit-link {
   font-size: .78rem;
-  color: var(--ab-text-muted, #6c757d);
+  color: var(--ab-text-muted);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -1231,9 +1238,9 @@ export default {
 /* AI crawler pills */
 .ab-crawler-pill {
   font-size: .8rem;
-  border: 1px solid var(--ab-border, #dee2e6);
-  border-radius: var(--ab-radius, 4px);
-  background: var(--ab-surface, var(--ab-bg-elev, #fff));
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: var(--ab-surface);
 }
 .ab-crawler-pill--ok   { border-color: var(--ab-success, #28a745); }
 .ab-crawler-pill--warn { border-color: var(--ab-warning, #ffc107); }
@@ -1251,8 +1258,8 @@ export default {
   list-style: none;
   padding: .25rem;
   margin: 0 0 .75rem 0;
-  background: var(--ab-bg-muted, #f1f3f5);
-  border-radius: var(--ab-radius, 4px);
+  background: var(--ab-surface-raised);
+  border-radius: var(--ab-radius);
   width: fit-content;
 }
 .ab-mode-tab {
@@ -1261,14 +1268,14 @@ export default {
   padding: .35rem .85rem;
   font-size: .85rem;
   font-weight: 600;
-  color: var(--ab-text-muted, #6c757d);
-  border-radius: calc(var(--ab-radius, 4px) - 2px);
+  color: var(--ab-text-muted);
+  border-radius: calc(var(--ab-radius) - 2px);
   cursor: pointer;
 }
 .ab-mode-tab:disabled { opacity: .5; cursor: not-allowed; }
 .ab-mode-tab--active {
-  background: var(--ab-surface, #fff);
-  color: var(--ab-text, #212529);
+  background: var(--ab-surface);
+  color: var(--ab-text);
   box-shadow: 0 1px 2px rgba(0,0,0,.08);
 }
 
@@ -1288,7 +1295,7 @@ export default {
 /* Progress bar (matches UrlCheckerPage) */
 .ab-progress {
   height: 8px;
-  background: var(--secondary-bg, #e9ecef);
+  background: var(--ab-surface-raised);
   border-radius: 4px;
   overflow: hidden;
 }

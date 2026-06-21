@@ -3,23 +3,23 @@
 
     <!-- Summary bar -->
     <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
-      <div class="d-flex align-items-center gap-2">
-        <span class="ab-badge ab-badge--success" :title="tooltip('support_active')">{{ supportActiveCount }} AI Boost active</span>
-        <span v-if="pausedCount" class="ab-badge ab-badge--warning" :title="tooltip('paused')">{{ pausedCount }} Paused</span>
-        <span class="ab-badge ab-badge--neutral" :title="tooltip('detected')">{{ detectedCount }} Detected in Joomla</span>
-        <span class="ab-badge ab-badge--warning" :title="tooltip('coming_soon')">{{ comingSoonCount }} Add-ons</span>
-        <span class="ab-badge" :title="tooltip('roadmap')">{{ roadmapCount }} Roadmap</span>
-        <span class="ab-badge" :title="tooltip('not_detected')">{{ notDetectedCount }} Not installed</span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="ab-badge ab-badge--success" :title="tooltip('support_active')">{{ supportActiveCount }} active</span>
+        <span v-if="pausedCount" class="ab-badge ab-badge--warning" :title="tooltip('paused')">{{ pausedCount }} paused</span>
+        <span class="ab-badge ab-tag--neutral" :title="tooltip('detected')">{{ detectedCount }} detected</span>
+        <span class="ab-badge ab-badge--warning" :title="tooltip('coming_soon')">{{ comingSoonCount }} add-ons</span>
+        <span class="ab-badge" :title="tooltip('roadmap')">{{ roadmapCount }} roadmap</span>
+        <span class="ab-badge" :title="tooltip('not_detected')">{{ notDetectedCount }} not installed</span>
       </div>
       <div class="ms-auto d-flex gap-2 align-items-center">
         <input
           v-model="search"
           type="text"
-          class="ab-input form-control-sm"
+          class="ab-input"
           placeholder="Filter integrations…"
           style="max-width:200px"
         />
-        <select v-model="categoryFilter" class="ab-select form-select-sm" style="max-width:160px">
+        <select v-model="categoryFilter" class="ab-select" style="max-width:160px">
           <option value="">All categories</option>
           <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
         </select>
@@ -27,125 +27,128 @@
     </div>
 
     <!-- Cards grid -->
-    <div class="row g-3">
+    <div class="ab-int-grid">
       <div
         v-for="item in filtered"
         :key="item.key"
-        class="col-sm-6 col-lg-4"
+        class="ab-section ab-int-card"
+        :class="'ab-int-card--' + item.status"
       >
-        <div class="ab-card h-100 ab-int-card" :class="'ab-int-card--' + item.status">
-
-          <!-- Card header: icon + name + status badge -->
-          <div class="ab-card__header d-flex align-items-center gap-2">
-            <span :class="[item.icon || 'icon-puzzle', 'fs-5 text-primary flex-shrink-0']" aria-hidden="true"></span>
-            <div class="flex-grow-1 min-w-0">
-              <div class="fw-semibold text-truncate">{{ item.name }}</div>
-              <div class="text-muted small">{{ item.vendor }}</div>
-            </div>
-            <span
-              :class="['ab-badge flex-shrink-0', statusBadge(item.status)]"
-              :title="tooltip(item.status)"
-            >
-              {{ statusLabel(item.status) }}
-            </span>
+        <!-- Head: icon + name + status badge -->
+        <div class="ab-section__head ab-int-card__head">
+          <span :class="[item.icon || 'icon-puzzle', 'ab-int-card__icon flex-shrink-0']" aria-hidden="true"></span>
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold text-truncate">{{ item.name }}</div>
+            <div class="ab-help">{{ item.vendor }}</div>
           </div>
-
-          <!-- Card body: description + category -->
-          <div class="ab-card__body">
-            <span class="ab-badge border mb-2 small">{{ item.category }}</span>
-            <p class="text-muted small mb-2">{{ item.description }}</p>
-
-            <!-- Master switch (only integrations that expose one) -->
-            <div v-if="item.has_master_toggle" class="ab-int-switch d-flex align-items-center gap-2 mb-2">
-              <label class="ab-switch mb-0" :title="item.master_enabled === false ? 'Switched off' : 'Switched on'">
-                <input
-                  type="checkbox"
-                  :checked="item.master_enabled !== false"
-                  :disabled="!!saving[item.key]"
-                  @change="toggleIntegration(item)"
-                />
-                <span class="ab-switch__slider" aria-hidden="true"></span>
-              </label>
-              <span class="small fw-semibold">
-                {{ item.master_enabled === false ? 'Off' : 'On' }}
-              </span>
-              <span v-if="saving[item.key]" class="ab-spinner" aria-hidden="true"></span>
-            </div>
-
-            <!-- Expandable: what it does / what turning off changes -->
-            <details v-if="copyFor(item)" class="ab-int-details small">
-              <summary>What this does</summary>
-              <p class="text-muted mb-2 mt-2">{{ copyFor(item).does }}</p>
-              <template v-if="item.has_master_toggle && copyFor(item).off">
-                <strong class="d-block small">What turning it off changes</strong>
-                <p class="text-muted mb-0 mt-1">{{ copyFor(item).off }}</p>
-              </template>
-            </details>
-
-            <!-- Expandable: editable per-integration options -->
-            <details v-if="optionsFor(item) && optsLoaded" class="ab-int-details small">
-              <summary>Options</summary>
-              <div class="ab-int-opts mt-2">
-                <p v-if="!item.installed" class="text-muted small mb-2">
-                  Not detected on this site — these options take effect once the extension is installed and active.
-                </p>
-
-                <!-- Free fields -->
-                <IntegrationOptionField
-                  v-for="f in optionsFor(item).free" :key="f.key"
-                  :field="f" v-model="settings[f.key]" />
-
-                <!-- Pro fields -->
-                <ProGate v-if="optionsFor(item).pro.length" mode="card" :label="item.name + ' (Pro)'">
-                  <IntegrationOptionField
-                    v-for="f in optionsFor(item).pro" :key="f.key"
-                    :field="f" v-model="settings[f.key]" />
-                </ProGate>
-
-                <div class="d-flex align-items-center gap-2 mt-2">
-                  <button
-                    type="button" class="ab-btn ab-btn--sm ab-btn--primary"
-                    :disabled="!!savingOpts[item.key]" @click="saveOptions(item)">
-                    <span v-if="savingOpts[item.key]">⏳ Saving…</span>
-                    <span v-else>Save options</span>
-                  </button>
-                  <span
-                    v-if="optsMsg[item.key]" class="small"
-                    :class="optsOk[item.key] ? 'text-success' : 'text-danger'">{{ optsMsg[item.key] }}</span>
-                </div>
-              </div>
-            </details>
-          </div>
-
-          <!-- Card footer: CTAs -->
-          <div class="ab-card__footer bg-transparent border-top-0 pt-0 pb-3 px-3 d-flex gap-2 flex-wrap align-items-center">
-            <a
-              v-if="hasCardAction(item)"
-              :href="item.learn_url"
-              target="_blank"
-              rel="noopener"
-              class="ab-btn ab-btn--ghost ab-btn--sm"
-            >
-              Learn More
-            </a>
-          </div>
-
+          <span
+            :class="['ab-badge flex-shrink-0', statusBadge(item.status)]"
+            :title="tooltip(item.status)"
+          >
+            {{ statusLabel(item.status) }}
+          </span>
         </div>
+
+        <!-- Body: description + toggle + options -->
+        <div class="ab-section__body ab-int-card__body">
+          <span class="ab-badge ab-tag--neutral mb-2">{{ item.category }}</span>
+          <p class="ab-help mb-2">{{ item.description }}</p>
+
+          <!-- Master toggle -->
+          <div v-if="item.has_master_toggle" class="d-flex align-items-center gap-2 mb-2">
+            <span
+              class="ab-toggle"
+              :class="{ 'is-on': item.master_enabled !== false }"
+              :title="item.master_enabled === false ? 'Switched off' : 'Switched on'"
+              style="cursor:pointer"
+              @click="!saving[item.key] && toggleIntegration(item)"
+            >
+              <input type="checkbox" class="ab-toggle__input" :checked="item.master_enabled !== false" @change.stop />
+              <span class="ab-toggle__track" aria-hidden="true"></span>
+            </span>
+            <span class="ab-help fw-semibold">
+              {{ item.master_enabled === false ? 'Off' : 'On' }}
+            </span>
+            <span v-if="saving[item.key]" class="ab-int-spinner" aria-hidden="true"></span>
+          </div>
+
+          <!-- Expandable: what it does -->
+          <div v-if="copyFor(item)" class="ab-int-acc">
+            <button type="button" class="ab-int-acc__btn" @click="toggleDoes(item.key)">
+              <span>What this does</span>
+              <span class="ab-int-acc__chev" :class="{ 'is-open': openDoes[item.key] }">▾</span>
+            </button>
+            <div v-show="openDoes[item.key]" class="ab-int-acc__body">
+              <p class="ab-help mb-2">{{ copyFor(item).does }}</p>
+              <template v-if="item.has_master_toggle && copyFor(item).off">
+                <strong class="d-block" style="font-size:.82rem">What turning it off changes</strong>
+                <p class="ab-help mb-0 mt-1">{{ copyFor(item).off }}</p>
+              </template>
+            </div>
+          </div>
+
+          <!-- Expandable: per-integration options -->
+          <div v-if="optionsFor(item) && optsLoaded" class="ab-int-acc">
+            <button type="button" class="ab-int-acc__btn" @click="toggleOpts(item.key)">
+              <span>Options</span>
+              <span class="ab-int-acc__chev" :class="{ 'is-open': openOpts[item.key] }">▾</span>
+            </button>
+            <div v-show="openOpts[item.key]" class="ab-int-acc__body">
+              <p v-if="!item.installed" class="ab-help mb-2">
+                Not detected on this site — these options take effect once the extension is installed and active.
+              </p>
+
+              <IntegrationOptionField
+                v-for="f in optionsFor(item).free" :key="f.key"
+                :field="f" v-model="settings[f.key]" />
+
+              <ProGate v-if="optionsFor(item).pro.length" mode="card" :label="item.name + ' (Pro)'">
+                <IntegrationOptionField
+                  v-for="f in optionsFor(item).pro" :key="f.key"
+                  :field="f" v-model="settings[f.key]" />
+              </ProGate>
+
+              <div class="d-flex align-items-center gap-2 mt-2">
+                <button type="button" class="ab-btn ab-btn--sm ab-btn--primary"
+                  :disabled="!!savingOpts[item.key]" @click="saveOptions(item)">
+                  <span v-if="savingOpts[item.key]">Saving…</span>
+                  <span v-else>Save options</span>
+                </button>
+                <span v-if="optsMsg[item.key]" class="ab-help"
+                  :style="{ color: optsOk[item.key] ? 'var(--ab-success)' : 'var(--ab-danger)' }">
+                  {{ optsMsg[item.key] }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer: CTA -->
+        <div v-if="hasCardAction(item)" class="ab-int-card__footer">
+          <a
+            :href="item.learn_url"
+            target="_blank"
+            rel="noopener"
+            class="ab-btn ab-btn--ghost ab-btn--sm"
+          >
+            Learn More
+          </a>
+        </div>
+
       </div>
     </div>
 
     <!-- Empty state -->
-    <div v-if="filtered.length === 0" class="text-center py-5 text-muted">
-      <span class="icon-search fs-2 d-block mb-2" aria-hidden="true"></span>
+    <div v-if="filtered.length === 0" class="text-center py-5 ab-help">
+      <AbIcon name="search" style="width:1.5rem;height:1.5rem;display:block;margin:0 auto .5rem" aria-hidden="true" />
       No integrations match your filter.
     </div>
 
     <!-- Info box -->
-    <div class="ab-alert ab-alert--info mt-4 small" role="note">
-      <span class="icon-info-circle me-1" aria-hidden="true"></span>
+    <div class="ab-alert ab-alert--info mt-4" role="note">
       <strong>Detection</strong> checks the Joomla extensions table for installed &amp; enabled extensions.
       Switching an integration off keeps all your settings — it only pauses AI Boost's extra output for that extension.
-      <a href="https://aiboostnow.com/integrations" target="_blank" rel="noopener">Browse all integrations →</a>
+      <a href="https://aiboostnow.com/integrations" target="_blank" rel="noopener">Browse all integrations</a>
     </div>
 
   </div>
@@ -155,6 +158,7 @@
 import { postWithCsrf } from './api.js'
 import ProGate from './components/ProGate.vue'
 import IntegrationOptionField from './components/IntegrationOptionField.vue'
+import AbIcon from './components/AbIcon.vue'
 
 const TOGGLE_URL       = 'index.php?option=com_aiboost&task=integrations.saveToggle'
 const OPTIONS_URL      = 'index.php?option=com_aiboost&task=integrations.saveOptions'
@@ -192,8 +196,7 @@ const INTEGRATION_OPTIONS = {
   },
 }
 
-// Per-integration plain-English copy for the expandable card section. Keep in
-// sync with docs/integrations.md.
+// Per-integration plain-English copy for the expandable card section.
 const INTEGRATION_COPY = {
   falang: {
     does: 'Multilang Pro — adds hreflang link tags to the page head, translates Schema.org and OpenGraph per language, and lists translated URLs as hreflang alternates in the XML sitemap. Works with native Joomla language associations and Falang.',
@@ -211,7 +214,7 @@ const INTEGRATION_COPY = {
 
 export default {
   name: 'IntegrationsPage',
-  components: { ProGate, IntegrationOptionField },
+  components: { ProGate, IntegrationOptionField, AbIcon },
 
   data() {
     return {
@@ -224,6 +227,8 @@ export default {
       savingOpts:      {},
       optsMsg:         {},
       optsOk:          {},
+      openDoes:        {},
+      openOpts:        {},
     }
   },
 
@@ -284,15 +289,14 @@ export default {
   methods: {
     statusLabel(status) {
       const map = {
-        support_active:  '✅ AI Boost support active',
-        paused:          '⏸ Paused — integration off',
-        detected:        '🔍 Detected in Joomla',
-        coming_soon:     '🚧 Add-on available soon',
+        support_active:  'Active',
+        paused:          'Paused',
+        detected:        'Detected',
+        coming_soon:     'Add-on soon',
         roadmap:         'Roadmap',
-        not_detected:    '⚪ Not installed',
-        // Legacy fallbacks (older server data)
-        installed:       '✅ Installed',
-        addon_available: '🚧 Coming soon',
+        not_detected:    'Not installed',
+        installed:       'Installed',
+        addon_available: 'Coming soon',
       }
       return map[status] || status
     },
@@ -301,7 +305,7 @@ export default {
       const map = {
         support_active:  'ab-badge--success',
         paused:          'ab-badge--warning',
-        detected:        'ab-badge--neutral',
+        detected:        'ab-tag--neutral',
         coming_soon:     'ab-badge--warning',
         roadmap:         '',
         not_detected:    '',
@@ -324,6 +328,9 @@ export default {
       }
       return map[status] || ''
     },
+
+    toggleDoes(key) { this.openDoes = { ...this.openDoes, [key]: !this.openDoes[key] } },
+    toggleOpts(key) { this.openOpts = { ...this.openOpts, [key]: !this.openOpts[key] } },
 
     hasCardAction(item) {
       return item.status !== 'coming_soon' && item.status !== 'roadmap' && !!item.learn_url
@@ -368,7 +375,7 @@ export default {
       try {
         const resp = await postWithCsrf(TOGGLE_URL, { integration: item.key, enabled: next ? '1' : '0' })
         if (!resp || resp.success !== true) {
-          this.applyToggle(item, previous) // rollback (postWithCsrf already toasted)
+          this.applyToggle(item, previous) // rollback
         }
       } catch (_e) {
         this.applyToggle(item, previous)   // rollback on transport error
@@ -398,7 +405,7 @@ export default {
         const resp = await postWithCsrf(OPTIONS_URL, { integration: item.key, options: JSON.stringify(opts) })
         const ok   = !!resp && resp.success === true
         this.optsOk  = { ...this.optsOk, [item.key]: ok }
-        this.optsMsg = { ...this.optsMsg, [item.key]: ok ? '✓ Saved' : ((resp && resp.message) || 'Save failed') }
+        this.optsMsg = { ...this.optsMsg, [item.key]: ok ? 'Saved' : ((resp && resp.message) || 'Save failed') }
       } catch (_e) {
         this.optsOk  = { ...this.optsOk, [item.key]: false }
         this.optsMsg = { ...this.optsMsg, [item.key]: 'Request failed' }
@@ -413,51 +420,50 @@ export default {
 </script>
 
 <style scoped>
-.ab-int-card {
-  transition: box-shadow .15s;
-}
-.ab-int-card:hover {
-  box-shadow: 0 2px 12px rgba(0,0,0,.08);
-}
-.ab-int-card--support_active .ab-card__header { border-left: 3px solid var(--bs-success, #28a745); }
-.ab-int-card--paused         .ab-card__header { border-left: 3px solid var(--bs-warning, #f59e0b); }
-.ab-int-card--detected       .ab-card__header { border-left: 3px solid var(--bs-secondary, #6c757d); }
-.ab-int-card--coming_soon    .ab-card__header { border-left: 3px solid var(--bs-warning, #f59e0b); }
-.ab-int-card--roadmap        .ab-card__header { border-left: 3px solid var(--bs-secondary, #6c757d); opacity: .7; }
-.ab-int-card--not_detected   .ab-card__header { border-left: 3px solid var(--bs-secondary, #6c757d); opacity: .85; }
+.ab-integrations-page { }
 
-.ab-int-card--roadmap .ab-card__body,
-.ab-int-card--roadmap .ab-card__footer { opacity: .7; }
-.ab-int-card--paused .ab-card__body p { opacity: .85; }
-
-.ab-badge--neutral { background: #e5e7eb; color: #374151; }
-.ab-badge--warning { background: #fef3c7; color: #92400e; }
-[data-bs-theme="dark"] .ab-badge--neutral { background: #374151; color: #e5e7eb; }
-[data-bs-theme="dark"] .ab-badge--warning { background: #78350f; color: #fde68a; }
-
-/* Master switch */
-.ab-switch { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; cursor: pointer; }
-.ab-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
-.ab-switch__slider {
-  position: absolute; inset: 0; border-radius: 22px;
-  background: var(--bs-secondary, #adb5bd);
-  transition: background .15s;
+.ab-int-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
 }
-.ab-switch__slider::before {
-  content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px;
-  background: #fff; border-radius: 50%; transition: transform .15s;
-}
-.ab-switch input:checked + .ab-switch__slider { background: var(--bs-success, #28a745); }
-.ab-switch input:checked + .ab-switch__slider::before { transform: translateX(16px); }
-.ab-switch input:disabled + .ab-switch__slider { opacity: .6; cursor: progress; }
+@media (max-width: 1040px) { .ab-int-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px)  { .ab-int-grid { grid-template-columns: 1fr; } }
 
-.ab-int-details > summary { cursor: pointer; color: var(--bs-primary, #2563eb); }
-.ab-int-details[open] > summary { margin-bottom: .25rem; }
+.ab-int-card { display: flex; flex-direction: column; }
 
-.ab-spinner {
-  width: 12px; height: 12px; border: 2px solid var(--bs-secondary, #adb5bd);
-  border-top-color: transparent; border-radius: 50%; display: inline-block;
-  animation: ab-spin .6s linear infinite;
+/* Status left-accent */
+.ab-int-card--support_active { border-left: 3px solid var(--ab-success); }
+.ab-int-card--paused         { border-left: 3px solid var(--ab-warning); }
+.ab-int-card--detected       { border-left: 3px solid var(--ab-border); }
+.ab-int-card--coming_soon    { border-left: 3px solid var(--ab-warning); }
+.ab-int-card--roadmap        { border-left: 3px solid var(--ab-border); opacity: .7; }
+.ab-int-card--not_detected   { border-left: 3px solid var(--ab-border); opacity: .85; }
+
+.ab-int-card__head {
+  display: flex; align-items: flex-start; gap: .6rem; flex-wrap: wrap;
 }
-@keyframes ab-spin { to { transform: rotate(360deg); } }
+.ab-int-card__icon { font-size: 1.1rem; color: var(--ab-primary); margin-top: .1rem; }
+
+.ab-int-card__body { flex: 1 1 auto; }
+.ab-int-card__footer {
+  padding: var(--ab-space-3) var(--ab-space-4);
+  border-top: 1px solid var(--ab-border);
+}
+
+.ab-int-acc { border-top: 1px solid var(--ab-border); margin-top: .5rem; }
+.ab-int-acc__btn { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: .5rem 0; background: none; border: none; cursor: pointer; color: var(--ab-text); font-size: .85rem; font-weight: 500; }
+.ab-int-acc__btn:hover { color: var(--ab-primary); }
+.ab-int-acc__chev { transition: transform .2s; font-size: .75rem; color: var(--ab-text-muted); }
+.ab-int-acc__chev.is-open { transform: rotate(180deg); }
+.ab-int-acc__body { padding: .25rem 0 .75rem; }
+
+.ab-int-spinner {
+  width: 12px; height: 12px;
+  border: 2px solid var(--ab-border); border-top-color: transparent;
+  border-radius: 50%; display: inline-block;
+  animation: ab-int-spin .6s linear infinite;
+}
+@keyframes ab-int-spin { to { transform: rotate(360deg); } }
 </style>

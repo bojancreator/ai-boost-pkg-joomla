@@ -23,14 +23,14 @@
           @click="save"
         >
           <span v-if="saving">Saving…</span>
-          <span v-else>💾 Save All Settings</span>
+          <span v-else>Save All Settings</span>
         </button>
       </div>
     </div>
 
     <!-- ── Staging Mode Banner ──────────────────────────────────── -->
     <div v-if="s.staging_mode == 1 || s.staging_mode === '1' || s.staging_mode === true" class="ab-staging-banner">
-      <span class="ab-staging-banner__icon">⚠️</span>
+      <span class="ab-staging-banner__icon icon-warning" aria-hidden="true"></span>
       <span class="ab-staging-banner__text">
         <strong>Staging Mode is ON.</strong>
         These plugins produce <strong>no HTML output</strong> on the front end:
@@ -482,8 +482,8 @@ export default {
   flex-wrap: wrap;
   padding: 10px 14px;
   margin: -10px -10px 14px;
-  background: var(--body-bg, #fff);
-  border-bottom: 1px solid var(--border-color, #dee2e6);
+  background: var(--ab-surface);
+  border-bottom: 1px solid var(--ab-border);
   box-shadow: 0 2px 6px rgba(0, 0, 0, .04);
 }
 .ab-vue-settings .ab-action-bar__title {
@@ -495,7 +495,7 @@ export default {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  color: var(--body-color, #212529);
+  color: var(--ab-text);
 }
 .ab-vue-settings .ab-action-bar__dot {
   width: 10px;
@@ -523,7 +523,7 @@ export default {
   gap: 2px;
   margin: 0 0 0;
   padding: 0 0 0;
-  border-bottom: 1px solid var(--border-color, #dee2e6);
+  border-bottom: 1px solid var(--ab-border);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
@@ -536,7 +536,7 @@ export default {
   border: none;
   border-bottom: 3px solid transparent;
   background: transparent;
-  color: var(--secondary-color, #6c757d);
+  color: var(--ab-text-muted);
   font-size: .875rem;
   cursor: pointer;
   white-space: nowrap;
@@ -544,7 +544,7 @@ export default {
   margin-bottom: -1px;
 }
 .ab-vue-settings .ab-tab-strip__btn:hover {
-  color: var(--body-color, #212529);
+  color: var(--ab-text);
   background: color-mix(in srgb, var(--tab-color, #6366f1) 6%, transparent);
 }
 .ab-vue-settings .ab-tab-strip__btn.active {
@@ -567,17 +567,17 @@ export default {
 /* ── Form controls: inherit Atum theme colors ────────────────── */
 .ab-vue-settings .form-select,
 .ab-vue-settings .form-control {
-  background-color: var(--body-bg, #fff);
-  color: var(--body-color, #212529);
-  border-color: var(--border-color, #ced4da);
+  background-color: var(--ab-surface);
+  color: var(--ab-text);
+  border-color: var(--ab-border);
 }
 .ab-vue-settings .form-select:focus,
 .ab-vue-settings .form-control:focus {
-  background-color: var(--body-bg, #fff);
-  color: var(--body-color, #212529);
-  border-color: var(--ab-tab-color, #86b7fe);
+  background-color: var(--ab-surface);
+  color: var(--ab-text);
+  border-color: var(--ab-primary-light, var(--ab-primary));
   outline: 0;
-  box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--ab-tab-color, #6366f1) 25%, transparent);
+  box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--ab-primary) 25%, transparent);
 }
 .ab-vue-settings .form-select,
 .ab-vue-settings select.form-select {
@@ -599,10 +599,10 @@ export default {
 
 /* ── Shared card styles (used in all tabs) ───────────────────── */
 .ab-vue-settings .ab-card {
-  border: 1px solid var(--border-color, #dee2e6);
-  border-radius: 6px;
-  background: var(--body-bg, #fff);
-  color: var(--body-color, #212529);
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: var(--ab-surface);
+  color: var(--ab-text);
   overflow: hidden;
   margin-bottom: 12px;
 }
@@ -611,32 +611,32 @@ export default {
   align-items: center;
   gap: .45rem;
   padding: .6rem 1rem .6rem .875rem;
-  background: var(--secondary-bg, #f8f9fa);
-  border-bottom: 1px solid var(--border-color, #dee2e6);
-  border-left: 4px solid var(--ab-tab-color, #6366f1);
+  background: var(--ab-surface-raised);
+  border-bottom: 1px solid var(--ab-border);
+  border-left: 4px solid var(--ab-tab-color, var(--ab-primary));
   font-weight: 600;
   font-size: .9375rem;
-  color: var(--ab-tab-color, #6366f1);
+  color: var(--ab-tab-color, var(--ab-primary));
   transition: border-left-color .2s ease, color .2s ease;
 }
 .ab-vue-settings .ab-card-body {
   padding: 1rem;
-  color: var(--body-color, #212529);
+  color: var(--ab-text);
 }
 .ab-vue-settings .form-label,
-.ab-vue-settings .form-check-label { color: var(--body-color, #212529); }
+.ab-vue-settings .form-check-label { color: var(--ab-text); }
 .ab-vue-settings .form-text,
-.ab-vue-settings small { color: var(--secondary-color, #6c757d); }
+.ab-vue-settings small { color: var(--ab-text-muted); }
 .ab-vue-settings code {
   color: #d63384;
-  background: var(--secondary-bg, #f8f9fa);
+  background: var(--ab-surface-raised);
   padding: .1em .3em;
   border-radius: 3px;
 }
 .ab-vue-settings pre {
-  background: var(--secondary-bg, #f8f9fa);
-  color: var(--body-color, #212529);
-  border: 1px solid var(--border-color, #dee2e6);
+  background: var(--ab-surface-raised);
+  color: var(--ab-text);
+  border: 1px solid var(--ab-border);
   border-radius: 4px;
   padding: .75rem;
   font-size: .8rem;
@@ -763,10 +763,10 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
-  color: var(--ab-tab-color, #6366f1);
+  color: var(--ab-tab-color, var(--ab-primary));
   margin: 18px 0 10px;
   padding: 5px 8px 4px;
-  background: color-mix(in srgb, var(--ab-tab-color, #6366f1) 7%, var(--secondary-bg, #f8f9fa));
+  background: color-mix(in srgb, var(--ab-tab-color, var(--ab-primary)) 7%, var(--ab-surface-raised));
   border-radius: 4px;
   border-bottom: none;
   transition: background .2s ease, color .2s ease;
@@ -780,7 +780,7 @@ export default {
   gap: 16px;
   align-items: start;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color, #dee2e6);
+  border-bottom: 1px solid var(--ab-border);
 }
 .ab-vue-settings .ab-field-row:last-child { border-bottom: none; }
 .ab-vue-settings .ab-field-row > .ab-label {

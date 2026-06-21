@@ -199,7 +199,7 @@ class ConflictDetector
             . 'This produces duplicate og:title and og:description tags alongside AI Boost Social plugin.',
             [
                 ['label' => 'Open Global Configuration', 'url' => 'index.php?option=com_config'],
-                ['label' => 'AI Boost Social Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-social-btn'],
+                ['label' => 'AI Boost Social Settings', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=social'],
             ],
             ['og']
         );

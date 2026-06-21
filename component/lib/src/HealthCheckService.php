@@ -711,7 +711,7 @@ class HealthCheckService
     {
         $staleDays = 30;
         $raw       = trim((string) ($this->settings['last_backup_at'] ?? ''));
-        $fixUrl    = 'index.php?option=com_aiboost&view=dashboard#ab-backup-button';
+        $fixUrl    = $this->appUrl('dashboard');
 
         if ($raw === '') {
             return $this->make(
@@ -2829,7 +2829,7 @@ class HealthCheckService
         return $this->make(
             'warning_third_party_og_conflict', 'warning', 'Third-party OpenGraph conflict',
             $pass, false, $msg,
-            'index.php?option=com_aiboost#tab-social-btn'
+            $this->settingsUrl('social')
         );
     }
 
@@ -2848,7 +2848,7 @@ class HealthCheckService
         return $this->make(
             'warning_third_party_schema_conflict', 'warning', 'Third-party Schema.org conflict',
             $pass, false, $msg,
-            'index.php?option=com_aiboost#tab-schema-btn'
+            $this->settingsUrl('schema')
         );
     }
 
@@ -2872,7 +2872,7 @@ class HealthCheckService
             true,
             false,
             'Site domain check is OK.',
-            'index.php?option=com_aiboost&view=health'
+            $this->appUrl('health')
         );
     }
 
@@ -3571,13 +3571,19 @@ class HealthCheckService
      */
     private function settingsUrl(string $tab = '', string $field = ''): string
     {
-        $base = 'index.php?option=com_aiboost&view=settings';
-
         // Normalise legacy "tab-<id>-btn" hash form → bare tab id.
         if ($tab !== '' && preg_match('/^tab-([a-z0-9_]+)-btn$/i', $tab, $m)) {
             $tab = $m[1];
         }
+        // The old standalone "general" tab was merged into "technical".
+        if ($tab === 'general') {
+            $tab = 'technical';
+        }
 
+        // Stay inside the SPA shell: tab + field live in the hash query
+        // (view=app#/settings?tab=X&field=Y). The old view=settings form
+        // dropped users onto a sidebar-less legacy page.
+        $hash = '/settings';
         $params = [];
         if ($tab !== '') {
             $params[] = 'tab=' . rawurlencode($tab);
@@ -3585,8 +3591,11 @@ class HealthCheckService
         if ($field !== '') {
             $params[] = 'field=' . rawurlencode($field);
         }
+        if ($params) {
+            $hash .= '?' . implode('&', $params);
+        }
 
-        return $params ? $base . '&' . implode('&', $params) : $base;
+        return $this->appUrl($hash);
     }
 
     private function pluginManagerUrl(string $element): string

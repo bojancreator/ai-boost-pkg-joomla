@@ -1,9 +1,10 @@
 <template>
   <div class="ab-autopilot-page">
-    <header class="ab-page-header ab-autopilot-header">
+
+    <header class="ab-autopilot-header">
       <div>
-        <h2>Quick Setup</h2>
-        <p class="text-muted">A guided setup checklist for the core AI Boost configuration.</p>
+        <h2 class="ab-page-title">Quick Setup</h2>
+        <p class="ab-page-desc">A guided setup checklist for the core AI Boost configuration.</p>
       </div>
       <div class="ab-autopilot-score" aria-live="polite">
         <strong>{{ completedCount }}/{{ steps.length }}</strong>
@@ -15,28 +16,28 @@
       <div class="ab-autopilot-progress__bar">
         <div class="ab-autopilot-progress__fill" :style="{ width: progressPercent + '%' }"></div>
       </div>
-      <div class="small text-muted">{{ progressPercent }}% configured</div>
+      <div class="ab-help">{{ progressPercent }}% configured</div>
     </section>
 
     <div class="ab-autopilot-grid">
       <article
         v-for="step in steps"
         :key="step.id"
-        class="ab-card ab-autopilot-card"
+        class="ab-section ab-autopilot-card"
         :class="{ 'ab-autopilot-card--done': step.done }"
       >
-        <div class="ab-card__header ab-autopilot-card__header">
+        <div class="ab-section__head ab-autopilot-card__head">
           <span class="ab-autopilot-card__icon" :class="step.icon" aria-hidden="true"></span>
           <div>
-            <h3>{{ step.title }}</h3>
-            <p class="text-muted small mb-0">{{ step.summary }}</p>
+            <span class="ab-autopilot-card__title">{{ step.title }}</span>
+            <span class="ab-help d-block">{{ step.summary }}</span>
           </div>
           <span class="ab-badge ms-auto" :class="step.done ? 'ab-badge--success' : 'ab-badge--warning'">
             {{ step.done ? 'Configured' : 'Needs setup' }}
           </span>
         </div>
 
-        <div class="ab-card__body">
+        <div class="ab-section__body">
           <ul class="ab-autopilot-checks">
             <li v-for="check in step.checks" :key="check.label" :class="{ done: check.done }">
               <span :class="check.done ? 'icon-check' : 'icon-warning'" aria-hidden="true"></span>
@@ -45,7 +46,7 @@
           </ul>
         </div>
 
-        <div class="ab-card__footer ab-autopilot-card__footer">
+        <div class="ab-autopilot-card__footer">
           <router-link class="ab-btn ab-btn--sm ab-btn--primary" :to="step.to">
             <span class="icon-pencil" aria-hidden="true"></span>{{ step.cta }}
           </router-link>
@@ -56,12 +57,13 @@
     <section class="ab-alert ab-alert--info ab-autopilot-health">
       <div>
         <strong>Health is the feedback center.</strong>
-        <span class="text-muted">Use it after setup to verify output and review the Error Log.</span>
+        <span class="ab-help d-inline"> Use it after setup to verify output and review the Error Log.</span>
       </div>
       <router-link class="ab-btn ab-btn--sm ab-btn--ghost" to="/health">
         <span class="icon-heart" aria-hidden="true"></span>Open Health
       </router-link>
     </section>
+
   </div>
 </template>
 
@@ -160,153 +162,65 @@ export default {
 </script>
 
 <style scoped>
-.ab-autopilot-page {
-  max-width: 1120px;
-}
+.ab-autopilot-page { }
 
 .ab-autopilot-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1rem;
 }
 
 .ab-autopilot-score {
-  min-width: 118px;
-  padding: .75rem .9rem;
-  border: 1px solid var(--border-color, #dfe3ea);
-  border-radius: 8px;
-  text-align: right;
-  background: var(--body-bg, #fff);
+  min-width: 118px; padding: .75rem .9rem;
+  border: 1px solid var(--ab-border); border-radius: var(--ab-radius);
+  text-align: right; background: var(--ab-surface);
 }
-
-.ab-autopilot-score strong {
-  display: block;
-  font-size: 1.35rem;
-  line-height: 1.1;
-}
-
-.ab-autopilot-score span {
-  color: var(--secondary-color, #6c757d);
-  font-size: .82rem;
-}
+.ab-autopilot-score strong { display: block; font-size: 1.35rem; line-height: 1.1; }
+.ab-autopilot-score span   { color: var(--ab-text-muted); font-size: .82rem; }
 
 .ab-autopilot-progress {
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem;
 }
-
 .ab-autopilot-progress__bar {
-  flex: 1;
-  height: 8px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--secondary-color, #6c757d) 16%, transparent);
+  flex: 1; height: 8px; overflow: hidden; border-radius: 999px;
+  background: var(--ab-surface-raised);
 }
-
 .ab-autopilot-progress__fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--ab-primary, #4f46e5);
-  transition: width .18s ease;
+  height: 100%; border-radius: inherit;
+  background: var(--ab-primary); transition: width .18s ease;
 }
 
 .ab-autopilot-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;
 }
+.ab-autopilot-card--done { border-color: color-mix(in srgb, var(--ab-success) 34%, var(--ab-border)); }
 
-.ab-autopilot-card {
-  min-height: 100%;
+.ab-autopilot-card__head {
+  display: flex; align-items: flex-start; gap: .75rem;
 }
-
-.ab-autopilot-card--done {
-  border-color: color-mix(in srgb, var(--success, #198754) 34%, var(--border-color, #dfe3ea));
-}
-
-.ab-autopilot-card__header {
-  display: flex;
-  align-items: flex-start;
-  gap: .75rem;
-}
-
-.ab-autopilot-card__header h3 {
-  margin: 0 0 .2rem;
-  font-size: 1rem;
-}
-
+.ab-autopilot-card__title { font-weight: 600; font-size: .95rem; display: block; margin-bottom: .15rem; }
 .ab-autopilot-card__icon {
-  width: 34px;
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 34px;
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--ab-primary, #4f46e5) 12%, transparent);
-  color: var(--ab-primary, #4f46e5);
+  width: 34px; height: 34px; display: inline-flex; align-items: center;
+  justify-content: center; flex: 0 0 34px; border-radius: var(--ab-radius);
+  background: color-mix(in srgb, var(--ab-primary) 12%, transparent);
+  color: var(--ab-primary);
 }
 
-.ab-autopilot-checks {
-  display: grid;
-  gap: .45rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
+.ab-autopilot-checks { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+.ab-autopilot-checks li { display: flex; align-items: center; gap: .45rem; color: var(--ab-text-muted); font-size: .92rem; }
+.ab-autopilot-checks li.done { color: var(--ab-text); }
+.ab-autopilot-checks .icon-check   { color: var(--ab-success); }
+.ab-autopilot-checks .icon-warning { color: var(--ab-warning); }
 
-.ab-autopilot-checks li {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  color: var(--secondary-color, #6c757d);
-  font-size: .92rem;
-}
-
-.ab-autopilot-checks li.done {
-  color: var(--body-color, #212529);
-}
-
-.ab-autopilot-checks .icon-check {
-  color: var(--success, #198754);
-}
-
-.ab-autopilot-checks .icon-warning {
-  color: var(--warning, #f59e0b);
-}
-
-.ab-autopilot-card__footer {
-  padding-top: 0;
-}
-
+.ab-autopilot-card__footer { padding: var(--ab-space-3) var(--ab-space-4); }
 .ab-autopilot-health {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1rem;
 }
 
-@media (max-width: 900px) {
-  .ab-autopilot-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
+@media (max-width: 900px)  { .ab-autopilot-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px) {
   .ab-autopilot-header,
   .ab-autopilot-health,
-  .ab-autopilot-progress {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .ab-autopilot-score {
-    text-align: left;
-  }
+  .ab-autopilot-progress { align-items: stretch; flex-direction: column; }
+  .ab-autopilot-score { text-align: left; }
 }
 </style>

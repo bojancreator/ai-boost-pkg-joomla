@@ -1,18 +1,17 @@
 <template>
   <div class="ab-page-errors">
-    <header class="ab-page-header mb-3">
-      <h2 class="ab-h2 mb-1">Error Log</h2>
-      <p class="text-muted mb-0">
-        Events written by AI Boost components into <code>#__aiboost_error_log</code>.
+    <div class="ab-page-intro">
+      <h2 class="ab-page-title">Error Log</h2>
+      <p class="ab-page-desc">Events written by AI Boost components into <code>#__aiboost_error_log</code>.
         Retention: 1000 rows or 30 days, whichever comes first.
         Severity floor and on/off switch live in
         <a href="#" @click.prevent="goToErrorLogging">Settings → Debug → Error logging</a>.
       </p>
-    </header>
+    </div>
 
     <!-- Toolbar -->
-    <div class="ab-card mb-3">
-      <div class="ab-card__body" style="padding:.75rem 1rem;">
+    <div class="ab-section mb-3">
+      <div class="ab-section__body">
         <div class="d-flex flex-wrap align-items-end" style="gap:.75rem;">
           <div>
             <label class="ab-label small text-muted d-block mb-1">Severity</label>
@@ -100,8 +99,8 @@
     </div>
 
     <!-- Rows -->
-    <div class="ab-card">
-      <div class="ab-card__body" style="padding:0;">
+    <div class="ab-section">
+      <div class="ab-section__body" style="padding:0;">
         <div v-if="loading && !rows.length" class="text-muted small p-3">Loading…</div>
         <div v-else-if="loadError" class="ab-alert ab-alert--danger m-3">{{ loadError }}</div>
         <div v-else-if="!rows.length" class="text-muted small p-3">
@@ -596,7 +595,7 @@ export default {
   align-items: center;
   gap: .35rem;
   padding: .25rem .55rem;
-  border: 1px solid var(--ab-border, #d0d7e2);
+  border: 1px solid var(--ab-border);
   border-radius: 999px;
   font-size: .8125rem;
   cursor: pointer;
@@ -607,7 +606,7 @@ export default {
 .ab-chip-dot {
   display: inline-block;
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--ab-text-muted, #6c757d);
+  background: var(--ab-text-muted);
 }
 .ab-chip-dot--debug   { background: #6c757d; }
 .ab-chip-dot--info    { background: #2db7e6; }
@@ -626,7 +625,7 @@ export default {
   margin-right: .35rem;
   vertical-align: middle;
 }
-.ab-source-tag--be { background: #e8edf3; color: #4a5566; }
+.ab-source-tag--be { background: var(--ab-surface-raised); color: var(--ab-text-muted); }
 .ab-source-tag--fe { background: #efe1fb; color: #6a3aa6; }
 
 .ab-errors-table .ab-err-row--error   { background: rgba(210, 74, 74, .06); }
@@ -645,13 +644,13 @@ export default {
 }
 .ab-err-msg-text { flex: 1 1 auto; min-width: 0; }
 .ab-err-bug-btn  { flex: 0 0 auto; white-space: nowrap; }
-.ab-err-detail-row > td { background: var(--ab-bg-subtle, #f6f8fb); }
+.ab-err-detail-row > td { background: var(--ab-surface-raised); }
 .ab-err-detail { padding: .5rem .25rem; }
 .ab-err-context {
   margin: 0;
   padding: .5rem .75rem;
-  background: var(--ab-bg, #fff);
-  border: 1px solid var(--ab-border, #d0d7e2);
+  background: var(--ab-surface);
+  border: 1px solid var(--ab-border);
   border-radius: 4px;
   font-size: .8125rem;
   max-height: 320px;

@@ -51,7 +51,7 @@ export default {
 </script>
 
 <style scoped>
-.ab-general-tab { max-width: 860px; }
+.ab-general-tab { }
 .ab-row--invalid    { border-left-color: #f85149; }
 .ab-row--invalid    .ab-row-text { color: #ff7b72; }
 
