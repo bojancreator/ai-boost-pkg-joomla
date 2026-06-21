@@ -91,21 +91,26 @@ body[class*="com_aiboost"] {
 /* ---- badges & tags -------------------------------------------------------- */
 .ab-badge {
   display: inline-flex; align-items: center; gap: .4em;
-  font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-medium); line-height: 1;
+  font-family: var(--ab-font-mono); font-size: .75rem; font-weight: 700; line-height: 1;
   letter-spacing: .04em; text-transform: uppercase;
   padding: .28em .55em; border-radius: var(--ab-radius);
   background: var(--ab-bg-elev); color: var(--ab-text-muted); border: 1px solid var(--ab-border-strong);
 }
-.ab-badge::before { content: ""; width: 5px; height: 5px; border-radius: 1px; background: currentColor; flex: none; }
-.ab-badge--neutral::before { display: none; }
+.ab-badge::before { display: none; }
 .ab-badge--primary { color: var(--ab-primary); border-color: var(--ab-primary); }
 .ab-badge--success { color: var(--ab-success); border-color: var(--ab-success); }
 .ab-badge--warning { color: var(--ab-warning); border-color: var(--ab-warning); }
 .ab-badge--danger  { color: var(--ab-danger);  border-color: var(--ab-danger); }
 .ab-badge--info    { color: var(--ab-info);    border-color: var(--ab-info); }
+/* dark theme: solid-filled status badges; light keeps the outline treatment above */
+[data-bs-theme="dark"] .ab-badge--primary { background: var(--ab-primary); color: #fff; }
+[data-bs-theme="dark"] .ab-badge--success { background: var(--ab-success); color: #fff; }
+[data-bs-theme="dark"] .ab-badge--warning { background: var(--ab-warning); color: #fff; }
+[data-bs-theme="dark"] .ab-badge--danger  { background: var(--ab-danger);  color: #fff; }
+[data-bs-theme="dark"] .ab-badge--info    { background: var(--ab-info);    color: #fff; }
 
 /* edition tags */
-.ab-tag { display: inline-flex; align-items: center; gap: .3em; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .08em; text-transform: uppercase; padding: .22em .5em; border-radius: var(--ab-radius); }
+.ab-tag { display: inline-flex; align-items: center; gap: .3em; font-family: var(--ab-font-mono); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: .22em .5em; border-radius: var(--ab-radius); }
 .ab-tag--pro  { background: var(--ab-primary); color: var(--ab-text-on-primary); }
 .ab-tag--free { background: var(--ab-bg-muted); color: var(--ab-text-muted); border: 1px solid var(--ab-border-strong); }
 .ab-tag--beta { background: var(--ab-warning-soft); color: var(--ab-warning-hover); border: 1px solid transparent; }
@@ -169,6 +174,9 @@ body[class*="com_aiboost"] {
 .ab-toggle.is-locked { cursor: not-allowed; opacity: .55; }
 .ab-toggle__label { font-size: var(--ab-font-size-sm); }
 .ab-toggle:focus-visible .ab-toggle__track { box-shadow: var(--ab-focus-ring); }
+/* ON/OFF labelled switch — state text in mono bold, no surrounding border/chip */
+.ab-toggle--onoff .ab-toggle__label { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ab-text-muted); min-width: 2.3em; }
+.ab-toggle--onoff.is-on .ab-toggle__label { color: var(--ab-primary); }
 
 /* ---- tables --------------------------------------------------------------- */
 .ab-table { width: 100%; border-collapse: collapse; font-size: var(--ab-font-size-sm); }

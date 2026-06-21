@@ -1344,12 +1344,12 @@ export default {
     // type per tab) so this long tab stays scannable.
     visibleSchemaSections() {
       return [
-        { id: 'core', label: '⚙️ Core' },
-        { id: 'business', label: '🏪 Business' },
-        ...(this.hasHours ? [{ id: 'hours', label: '🕐 Hours' }] : []),
-        { id: 'faq', label: '❓ FAQ' },
-        { id: 'howto', label: '🔧 HowTo' },
-        { id: 'events', label: '🎟 Events' },
+        { id: 'core', label: 'Core' },
+        { id: 'business', label: 'Business' },
+        ...(this.hasHours ? [{ id: 'hours', label: 'Hours' }] : []),
+        { id: 'faq', label: 'FAQ' },
+        { id: 'howto', label: 'HowTo' },
+        { id: 'events', label: 'Events' },
       ]
     },
     hasAvailableService() {

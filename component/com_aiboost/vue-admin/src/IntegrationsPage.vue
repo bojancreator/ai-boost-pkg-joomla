@@ -38,41 +38,27 @@
       >
         <!-- Head: icon + name + status badge -->
         <div class="ab-section__head ab-int-card__head">
-          <span :class="[item.icon || 'icon-puzzle', 'ab-int-card__icon flex-shrink-0']" aria-hidden="true"></span>
-          <div class="flex-grow-1 min-w-0">
-            <div class="fw-semibold text-truncate">{{ item.name }}</div>
-            <div class="ab-help">{{ item.vendor }}</div>
+          <div class="ab-int-card__title flex-grow-1 min-w-0">
+            <div class="ab-int-card__name">
+              <span class="ab-int-card__name-text text-truncate">{{ item.name }}</span>
+              <span class="ab-int-card__status" :style="{ color: statusColor(item.status) }" :title="tooltip(item.status)">{{ statusLabel(item.status) }}</span>
+            </div>
+            <div class="ab-int-card__vendor">{{ item.vendor }}</div>
           </div>
-          <span
-            :class="['ab-badge flex-shrink-0', statusBadge(item.status)]"
-            :title="tooltip(item.status)"
-          >
-            {{ statusLabel(item.status) }}
-          </span>
+          <OnOffSwitch
+            v-if="item.has_master_toggle"
+            :model-value="item.master_enabled !== false"
+            :disabled="!!saving[item.key]"
+            class="flex-shrink-0"
+            @change="() => toggleIntegration(item)"
+          />
+          <span v-if="item.has_master_toggle && saving[item.key]" class="ab-int-spinner flex-shrink-0" aria-hidden="true"></span>
         </div>
 
         <!-- Body: description + toggle + options -->
         <div class="ab-section__body ab-int-card__body">
           <span class="ab-badge ab-tag--neutral mb-2">{{ item.category }}</span>
           <p class="ab-help mb-2">{{ item.description }}</p>
-
-          <!-- Master toggle -->
-          <div v-if="item.has_master_toggle" class="d-flex align-items-center gap-2 mb-2">
-            <span
-              class="ab-toggle"
-              :class="{ 'is-on': item.master_enabled !== false }"
-              :title="item.master_enabled === false ? 'Switched off' : 'Switched on'"
-              style="cursor:pointer"
-              @click="!saving[item.key] && toggleIntegration(item)"
-            >
-              <input type="checkbox" class="ab-toggle__input" :checked="item.master_enabled !== false" @change.stop />
-              <span class="ab-toggle__track" aria-hidden="true"></span>
-            </span>
-            <span class="ab-help fw-semibold">
-              {{ item.master_enabled === false ? 'Off' : 'On' }}
-            </span>
-            <span v-if="saving[item.key]" class="ab-int-spinner" aria-hidden="true"></span>
-          </div>
 
           <!-- Expandable: what it does -->
           <div v-if="copyFor(item)" class="ab-int-acc">
@@ -162,6 +148,7 @@ import ProGate from './components/ProGate.vue'
 import IntegrationOptionField from './components/IntegrationOptionField.vue'
 import AbIcon from './components/AbIcon.vue'
 import PageHeader from './components/PageHeader.vue'
+import OnOffSwitch from './components/OnOffSwitch.vue'
 
 const TOGGLE_URL       = 'index.php?option=com_aiboost&task=integrations.saveToggle'
 const OPTIONS_URL      = 'index.php?option=com_aiboost&task=integrations.saveOptions'
@@ -217,7 +204,7 @@ const INTEGRATION_COPY = {
 
 export default {
   name: 'IntegrationsPage',
-  components: { ProGate, IntegrationOptionField, AbIcon, PageHeader },
+  components: { ProGate, IntegrationOptionField, AbIcon, PageHeader, OnOffSwitch },
 
   data() {
     return {
@@ -316,6 +303,20 @@ export default {
         addon_available: 'ab-badge--warning',
       }
       return map[status] || ''
+    },
+
+    statusColor(status) {
+      const map = {
+        support_active:  'var(--ab-success)',
+        paused:          'var(--ab-warning)',
+        detected:        'var(--ab-info)',
+        installed:       'var(--ab-success)',
+        coming_soon:     'var(--ab-text-muted)',
+        addon_available: 'var(--ab-text-muted)',
+        roadmap:         'var(--ab-text-muted)',
+        not_detected:    'var(--ab-text-muted)',
+      }
+      return map[status] || 'var(--ab-text-muted)'
     },
 
     tooltip(status) {
@@ -445,9 +446,13 @@ export default {
 .ab-int-card--not_detected   { border-left: 3px solid var(--ab-border); opacity: .85; }
 
 .ab-int-card__head {
-  display: flex; align-items: flex-start; gap: .6rem; flex-wrap: wrap;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem;
 }
-.ab-int-card__icon { font-size: 1.1rem; color: var(--ab-primary); margin-top: .1rem; }
+.ab-int-card__title { font-family: var(--ab-font-family); text-transform: none; letter-spacing: normal; }
+.ab-int-card__name { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.ab-int-card__name-text { font-weight: 600; font-size: var(--ab-font-size-base); color: var(--ab-text); }
+.ab-int-card__status { font-family: var(--ab-font-mono); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.ab-int-card__vendor { font-family: var(--ab-font-family); text-transform: none; letter-spacing: -.01em; font-size: .75rem; font-weight: 400; color: var(--ab-text-muted); margin-top: .1rem; }
 
 .ab-int-card__body { flex: 1 1 auto; }
 .ab-int-card__footer {

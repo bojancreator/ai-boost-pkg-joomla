@@ -122,43 +122,29 @@
       <!-- Module status grid -->
       <div>
         <div class="ab-eyebrow" style="margin-bottom:.6rem">Module status</div>
-        <div class="ab-grid-cards">
+        <div class="ab-grid-cards ab-grid-cards--modules">
           <div v-for="(plugin, element) in plugins" :key="element" class="ab-modcard">
 
-            <div class="ab-row" style="justify-content:space-between;align-items:flex-start;gap:.5rem">
-              <div class="ab-modcard__title">{{ plugin.label }}</div>
-              <span v-if="!isProEdition && plugin.tier === 'pro'" class="ab-tag ab-tag--pro" title="This feature is Pro">Pro</span>
-              <span v-else-if="!isProEdition && plugin.tier === 'mixed'" class="ab-tag ab-tag--free" title="Free baseline + Pro advanced options">Free / Pro</span>
+            <div class="ab-modcard__head">
+              <div class="ab-modcard__heading">
+                <div class="ab-modcard__title">{{ plugin.label }}</div>
+                <div class="ab-modcard__status">
+                  <span v-if="!plugin.found"       class="ab-badge">Not installed</span>
+                  <span v-else-if="plugin.enabled" class="ab-badge ab-badge--success">Enabled</span>
+                  <span v-else                     class="ab-badge ab-badge--danger">Disabled</span>
+                  <span v-if="!isProEdition && plugin.tier === 'pro'" class="ab-tag ab-tag--pro" title="This feature is Pro">Pro</span>
+                  <span v-else-if="!isProEdition && plugin.tier === 'mixed'" class="ab-tag ab-tag--free" title="Free baseline + Pro advanced options">Free / Pro</span>
+                </div>
+              </div>
+              <OnOffSwitch
+                v-if="plugin.found && plugin.extension_id"
+                :model-value="!!plugin.enabled"
+                :disabled="plugin.busy"
+                @change="(v) => doToggle(element, v ? 1 : 0)"
+              />
             </div>
-
-            <span v-if="!plugin.found"       class="ab-badge" style="align-self:flex-start">Not installed</span>
-            <span v-else-if="plugin.enabled" class="ab-badge ab-badge--success" style="align-self:flex-start">Enabled</span>
-            <span v-else                     class="ab-badge ab-badge--danger" style="align-self:flex-start">Disabled</span>
 
             <p v-if="plugin.desc">{{ plugin.desc }}</p>
-
-            <!-- Toggle buttons -->
-            <div v-if="plugin.found && plugin.extension_id" class="ab-toggle-actions">
-              <button v-if="!plugin.enabled"
-                      type="button"
-                      class="ab-btn ab-btn--success ab-btn--sm"
-                      :disabled="plugin.busy"
-                      @click="doToggle(element, 1)">
-                {{ plugin.busy ? 'Enabling…' : 'Enable' }}
-              </button>
-              <template v-else>
-                <button type="button"
-                        :class="['ab-btn ab-btn--sm', plugin.confirming ? 'ab-btn--danger' : 'ab-btn--ghost']"
-                        :disabled="plugin.busy"
-                        @click="startDisable(element)">
-                  {{ plugin.busy ? 'Disabling…' : plugin.confirming ? 'Confirm Disable' : 'Disable' }}
-                </button>
-                <a v-if="plugin.confirming"
-                   href="#"
-                   class="ab-hint"
-                   @click.prevent="cancelDisable(element)">Cancel</a>
-              </template>
-            </div>
 
             <!-- Flash message -->
             <div v-if="plugin.flash"
@@ -353,8 +339,7 @@
 import { reactive, computed, ref } from 'vue'
 import { isProInstalled } from './api'
 import PageHeader from './components/PageHeader.vue'
-
-const CONFIRM_TIMEOUT = 3000
+import OnOffSwitch from './components/OnOffSwitch.vue'
 
 const PLUGIN_META = {
   aiboost_schema:    {
@@ -412,7 +397,7 @@ const PLUGIN_TIER = {
 export default {
   name: 'DashboardApp',
 
-  components: { PageHeader },
+  components: { PageHeader, OnOffSwitch },
 
   setup() {
     const raw = window.aiBoostDashboard || {}
@@ -459,7 +444,6 @@ export default {
         meta:         PLUGIN_META[element] || DEFAULT_META,
         tier:         PLUGIN_TIER[element] || 'free',
         busy:         false,
-        confirming:   false,
         flash:        '',
         flashOk:      true,
         _timer:       null,
@@ -484,7 +468,6 @@ export default {
 
       if (p._timer) { clearTimeout(p._timer); p._timer = null }
       p.busy       = true
-      p.confirming = false
       p.flash      = ''
 
       const body = new URLSearchParams()
@@ -520,29 +503,6 @@ export default {
         p.busy = false
         setTimeout(() => { p.flash = '' }, 3000)
       }
-    }
-
-    function startDisable(element) {
-      const p = plugins[element]
-      if (!p || p.busy) return
-
-      if (!p.confirming) {
-        p.confirming = true
-        p._timer = setTimeout(() => {
-          p.confirming = false
-          p._timer     = null
-        }, CONFIRM_TIMEOUT)
-      } else {
-        if (p._timer) { clearTimeout(p._timer); p._timer = null }
-        doToggle(element, 0)
-      }
-    }
-
-    function cancelDisable(element) {
-      const p = plugins[element]
-      if (!p) return
-      if (p._timer) { clearTimeout(p._timer); p._timer = null }
-      p.confirming = false
     }
 
     /**
@@ -789,8 +749,6 @@ export default {
       conflictTotal,
       topCriticalConflicts,
       doToggle,
-      startDisable,
-      cancelDisable,
       configureUrl,
       backupBusy,
       backupFlash,
@@ -819,13 +777,13 @@ export default {
   border-radius: var(--ab-radius-sm);
 }
 
-/* Module-card toggle button area + flash + configure link */
-.ab-toggle-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--ab-space-2);
-}
+/* Module-card header (title + ENABLED/DISABLED) + the ON/OFF switch; flash; configure link */
+.ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: 1fr; } }
+.ab-modcard__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ab-space-3); }
+.ab-modcard__heading { display: flex; flex-direction: column; gap: var(--ab-space-2); min-width: 0; }
+.ab-modcard__status { display: flex; align-items: center; gap: var(--ab-space-2); flex-wrap: wrap; }
 .ab-modcard__flash { font-size: var(--ab-font-size-xs); }
 .ab-configure-link {
   display: inline-flex;

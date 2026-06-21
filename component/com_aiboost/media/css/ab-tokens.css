@@ -69,11 +69,11 @@ body[class*="com_aiboost"] {
   --ab-font-mono:       "IBM Plex Mono", ui-monospace, SFMono-Regular,
                         "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
-  --ab-font-size-xs:    .75rem;     /* 12 */
-  --ab-font-size-sm:    .8125rem;   /* 13 */
-  --ab-font-size-base:  .9375rem;   /* 15 */
-  --ab-font-size-lg:    1.0625rem;  /* 17 */
-  --ab-font-size-xl:    1.25rem;    /* 20 */
+  --ab-font-size-xs:    .88rem;     /* ~14 */
+  --ab-font-size-sm:    .94rem;     /* ~15 */
+  --ab-font-size-base:  1.06rem;    /* ~17 */
+  --ab-font-size-lg:    1.19rem;    /* ~19 */
+  --ab-font-size-xl:    1.44rem;    /* ~23 */
 
   --ab-font-weight-normal:   400;
   --ab-font-weight-medium:   500;
@@ -111,14 +111,14 @@ body[class*="com_aiboost"] {
   /* ── Transitions ────────────────────────────────────────────────── */
   --ab-transition: .12s ease;
 
-  /* ── Sidebar ────────────────────────────────────────────────────── */
-  --ab-sidebar-bg:          #16170f;
-  --ab-sidebar-border:      #2a2c20;
-  --ab-sidebar-text:        #c4c5b6;
-  --ab-sidebar-label:       #74766a;
-  --ab-sidebar-active-bg:   rgba(14, 111, 100, .22);
-  --ab-sidebar-active-text: #ffffff;
-  --ab-sidebar-hover-bg:    rgba(255, 255, 255, .05);
+  /* ── Sidebar (LIGHT theme: light sidebar — white, hairline, teal active) ── */
+  --ab-sidebar-bg:          var(--ab-bg-elev);
+  --ab-sidebar-border:      var(--ab-border);
+  --ab-sidebar-text:        var(--ab-text);
+  --ab-sidebar-label:       var(--ab-text-muted);
+  --ab-sidebar-active-bg:   var(--ab-primary-soft);
+  --ab-sidebar-active-text: var(--ab-primary);
+  --ab-sidebar-hover-bg:    var(--ab-bg-muted);
 }
 
 /* ── Dark variant ─────────────────────────────────────────────────── */
