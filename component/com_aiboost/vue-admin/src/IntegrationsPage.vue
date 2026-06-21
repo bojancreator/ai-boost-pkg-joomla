@@ -1,6 +1,8 @@
 <template>
   <div class="ab-integrations-page">
 
+    <PageHeader title="Integrations" />
+
     <!-- Summary bar -->
     <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
       <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -159,6 +161,7 @@ import { postWithCsrf } from './api.js'
 import ProGate from './components/ProGate.vue'
 import IntegrationOptionField from './components/IntegrationOptionField.vue'
 import AbIcon from './components/AbIcon.vue'
+import PageHeader from './components/PageHeader.vue'
 
 const TOGGLE_URL       = 'index.php?option=com_aiboost&task=integrations.saveToggle'
 const OPTIONS_URL      = 'index.php?option=com_aiboost&task=integrations.saveOptions'
@@ -214,7 +217,7 @@ const INTEGRATION_COPY = {
 
 export default {
   name: 'IntegrationsPage',
-  components: { ProGate, IntegrationOptionField, AbIcon },
+  components: { ProGate, IntegrationOptionField, AbIcon, PageHeader },
 
   data() {
     return {

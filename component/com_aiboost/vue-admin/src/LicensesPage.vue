@@ -1,15 +1,10 @@
 <template>
   <div class="ab-licenses-page">
 
-    <div class="ab-page-intro">
-      <h2 class="ab-page-title">License &amp; Updates</h2>
-      <p class="ab-page-desc">
-        Enter your AI Boost license key to verify your purchase. A license includes
-        updates and support for one year. Activation is perpetual: if the license later
-        expires, every installed feature keeps working — expiry only pauses updates and support
-        until you renew. Integration plugins are licensed separately and appear below once installed.
-      </p>
-    </div>
+    <PageHeader
+      title="License &amp; Updates"
+      subtitle="Enter your AI Boost license key to verify your purchase. A license includes updates and support for one year. Activation is perpetual: if the license later expires, every installed feature keeps working — expiry only pauses updates and support until you renew. Integration plugins are licensed separately and appear below once installed."
+    />
 
     <div v-if="loadError" class="ab-alert ab-alert--danger">
       <strong>Failed to load:</strong> {{ loadError }}
@@ -150,6 +145,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import PageHeader from './components/PageHeader.vue'
 
 const CORE_SKU = 'bundle'
 const CORE_LABEL = 'AI Boost'
@@ -165,6 +161,8 @@ function emptyCore() {
 
 export default {
   name: 'LicensesPage',
+
+  components: { PageHeader },
 
   setup() {
     const core = ref(emptyCore())

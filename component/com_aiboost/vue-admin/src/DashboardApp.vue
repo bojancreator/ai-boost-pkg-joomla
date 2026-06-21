@@ -1,15 +1,10 @@
 <template>
   <div class="ab-vue-dashboard">
 
-    <div class="ab-topbar">
-      <h2 class="ab-topbar__title">Dashboard</h2>
-      <div class="ab-topbar__actions">
-        <span class="ab-topbar__sub">
-          <template v-if="data.lastSaved">Settings last saved {{ data.lastSaved }}</template>
-          <template v-else>Not configured yet</template>
-        </span>
-      </div>
-    </div>
+    <PageHeader
+      title="Dashboard"
+      :subtitle="data.lastSaved ? ('Settings last saved ' + data.lastSaved) : 'Not configured yet'"
+    />
 
     <div class="ab-page">
 
@@ -357,6 +352,7 @@
 <script>
 import { reactive, computed, ref } from 'vue'
 import { isProInstalled } from './api'
+import PageHeader from './components/PageHeader.vue'
 
 const CONFIRM_TIMEOUT = 3000
 
@@ -415,6 +411,8 @@ const PLUGIN_TIER = {
 
 export default {
   name: 'DashboardApp',
+
+  components: { PageHeader },
 
   setup() {
     const raw = window.aiBoostDashboard || {}

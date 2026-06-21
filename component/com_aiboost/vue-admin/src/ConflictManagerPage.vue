@@ -1,19 +1,17 @@
 <template>
   <div class="ab-conflicts-page">
 
-    <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
-      <div>
-        <h2 class="ab-page-title">Conflict Manager</h2>
-        <p class="ab-page-desc">
-          Decide what AI Boost outputs when another extension already does the same job.
-          AI Boost never disables another plugin — it only links you to Joomla so you can.
-        </p>
-      </div>
-      <button class="ab-btn ab-btn--ghost ab-btn--sm ms-auto" :disabled="scanning" @click="rescan">
+    <PageHeader title="Conflict Manager">
+      <button class="ab-btn ab-btn--ghost ab-btn--sm" :disabled="scanning" @click="rescan">
         <span v-if="scanning" class="ab-spinner me-1" aria-hidden="true"></span>
         {{ scanning ? 'Scanning…' : 'Re-scan' }}
       </button>
-    </div>
+    </PageHeader>
+
+    <p class="ab-page-desc mb-3">
+      Decide what AI Boost outputs when another extension already does the same job.
+      AI Boost never disables another plugin — it only links you to Joomla so you can.
+    </p>
 
     <!-- Detected conflicts -->
     <div class="ab-section mb-3">
@@ -113,6 +111,7 @@
 <script>
 import { postWithCsrf } from './api.js'
 import AbIcon from './components/AbIcon.vue'
+import PageHeader from './components/PageHeader.vue'
 
 const SCAN_URL = 'index.php?option=com_aiboost&task=conflicts.scan&format=json'
 const SAVE_URL = 'index.php?option=com_aiboost&task=conflicts.savePolicy&format=json'
@@ -137,7 +136,7 @@ function effectiveFor(feature, policy) {
 
 export default {
   name: 'ConflictManagerPage',
-  components: { AbIcon },
+  components: { AbIcon, PageHeader },
 
   data() {
     const boot = (window.aiBoostBootstrap && window.aiBoostBootstrap.conflicts) || {}

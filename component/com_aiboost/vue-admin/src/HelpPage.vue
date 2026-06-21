@@ -1,24 +1,18 @@
 <template>
   <div class="ab-help-page">
-    <section class="ab-help-intro ab-panel mb-4">
-      <div>
-        <span class="ab-kicker">Help</span>
-        <h2>Help &amp; Troubleshooting</h2>
-        <p>
-          Start with the symptom you see, open the matching AI Boost screen, then validate the exact public URL.
-        </p>
-      </div>
-      <div class="ab-help-actions" aria-label="Primary help actions">
-        <a class="ab-help-action" :href="route('/health')">
-          <span class="icon-heart" aria-hidden="true"></span>
-          Health
-        </a>
-        <a class="ab-help-action" :href="route('/analyzers')">
-          <span class="icon-search" aria-hidden="true"></span>
-          Analyzer
-        </a>
-      </div>
-    </section>
+    <PageHeader
+      title="Help &amp; Troubleshooting"
+      subtitle="Start with the symptom you see, open the matching AI Boost screen, then validate the exact public URL."
+    >
+      <a class="ab-help-action" :href="route('/health')">
+        <span class="icon-heart" aria-hidden="true"></span>
+        Health
+      </a>
+      <a class="ab-help-action" :href="route('/analyzers')">
+        <span class="icon-search" aria-hidden="true"></span>
+        Analyzer
+      </a>
+    </PageHeader>
 
     <section class="ab-panel mb-4">
       <div class="ab-section-head">
@@ -136,10 +130,14 @@
 </template>
 
 <script>
+import PageHeader from './components/PageHeader.vue'
+
 const APP_BASE = 'index.php?option=com_aiboost&view=app#'
 
 export default {
   name: 'HelpPage',
+
+  components: { PageHeader },
 
   data() {
     return {

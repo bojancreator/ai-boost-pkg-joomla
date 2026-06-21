@@ -1,7 +1,7 @@
 <template>
   <div class="ab-page-errors">
+    <PageHeader title="Error Log" />
     <div class="ab-page-intro">
-      <h2 class="ab-page-title">Error Log</h2>
       <p class="ab-page-desc">Events written by AI Boost components into <code>#__aiboost_error_log</code>.
         Retention: 1000 rows or 30 days, whichever comes first.
         Severity floor and on/off switch live in
@@ -202,12 +202,15 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { postWithCsrf, makeAdminUrl } from './api.js'
+import PageHeader from './components/PageHeader.vue'
 
 const AUTO_REFRESH_SEC = 30
 const ALL_SEVERITIES = ['debug', 'info', 'warning', 'error']
 
 export default {
   name: 'ErrorsPage',
+
+  components: { PageHeader },
 
   setup () {
     const boot = window.aiBoostBootstrap || {}

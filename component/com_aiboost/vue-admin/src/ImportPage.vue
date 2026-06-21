@@ -1,10 +1,7 @@
 <template>
   <div class="ab-page-import">
 
-    <div class="ab-page-intro">
-      <h2 class="ab-page-title">Import / Export</h2>
-      <p class="ab-page-desc">Move your AI Boost configuration between sites. Export a portable JSON snapshot, then import it on another install.</p>
-    </div>
+    <PageHeader title="Import / Export Settings" subtitle="Move your AI Boost configuration between sites. Export a portable JSON snapshot, then import it on another install." />
 
     <div class="row g-3">
       <div class="col-md-6">
@@ -99,10 +96,11 @@
 import { ref } from 'vue'
 import { postWithCsrf, getCsrfTokenName } from './api.js'
 import AbIcon from './components/AbIcon.vue'
+import PageHeader from './components/PageHeader.vue'
 
 export default {
   name: 'ImportPage',
-  components: { AbIcon },
+  components: { AbIcon, PageHeader },
   setup() {
     const exportUrl = 'index.php?option=com_aiboost&task=settings.export&' + getCsrfTokenName() + '=1'
     const importUrl = 'index.php?option=com_aiboost&task=import.upload'

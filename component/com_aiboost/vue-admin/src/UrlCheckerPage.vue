@@ -1,10 +1,7 @@
 <template>
   <div class="ab-page-urlchecker">
 
-    <div class="ab-page-intro">
-      <h2 class="ab-page-title">URL Checker</h2>
-      <p class="ab-page-desc">Scan a list of URLs and check HTTP status, redirect chains, canonical tags and thin content.</p>
-    </div>
+    <PageHeader title="URL Checker" subtitle="Scan a list of URLs and check HTTP status, redirect chains, canonical tags and thin content." />
 
     <div class="ab-section mb-3">
       <div class="ab-section__body">
@@ -137,9 +134,11 @@
 <script>
 import { ref, computed } from 'vue'
 import { postWithCsrf, makeAdminUrl } from './api.js'
+import PageHeader from './components/PageHeader.vue'
 
 export default {
   name: 'UrlCheckerPage',
+  components: { PageHeader },
   setup() {
     const urls           = ref('')
     const results        = ref([])

@@ -13,10 +13,10 @@ every chat; update it at the end of every chat. It replaces the old `ROADMAP-v0.
 
 | Field | Value |
 |---|---|
-| **Code version** | `0.87.19` (2026-06-21) — source of truth `component/Version.php` |
+| **Code version** | `0.87.22` (2026-06-21) — source of truth `component/Version.php` |
 | **Branch** | `design/admin-ui-refresh` (local only, not pushed); base `main` |
-| **Milestone** | Implementing the Instrument mockup (`screens.html`) into the real Vue admin. Phases 1–5 DONE. **Phase 5 correction (v0.87.18–19)** — stripped Joomla outer wrapper padding (`.main-card`, Bootstrap col/row/container) so the component sits flush edge-to-edge; restored 1rem sidebar→content gap; removed sidebar border-radius. JS fallback in AppShell.vue walks the DOM and zeros all Bootstrap wrapper padding (works regardless of Joomla version). Verified both themes on staging v0.87.19. |
-| **Next gate** | Faza 5 complete + outer-padding corrected — awaiting Bojan's review / next task list. |
+| **Milestone** | Implementing the Instrument mockup (`screens.html`) into the real Vue admin. Phases 1–5 DONE. **Phase 5 correction (v0.87.18–19)** — stripped Joomla outer wrapper padding (`.main-card`, Bootstrap col/row/container) so the component sits flush edge-to-edge; restored 1rem sidebar→content gap; removed sidebar border-radius. JS fallback in AppShell.vue walks the DOM and zeros all Bootstrap wrapper padding (works regardless of Joomla version). Verified both themes on staging v0.87.19. **Header pass (v0.87.20–22)** — imported the authoritative `screens.html` from the claude.ai design project (id `953d98be-…`, "UI mockup collection"); fixed Redirects/Analyzers pill sub-tabs → flat `.ab-tab` strip; moved the "no settings backup" reminder off every page to Dashboard-only (per design); Settings title now shows the active tab name (not generic "Settings"); added a shared `PageHeader` (Instrument `.ab-topbar`) to ALL pages — bold title + right-aligned actions slot + optional subtitle. NB: uppercase section/card/tab labels are INTENTIONAL (Instrument signature in `ab-components.css`), not a bug. Verified both themes on staging v0.87.22. |
+| **Next gate** | Header pass complete + verified — awaiting Bojan's review. Optional follow-up: light-theme topbar contrast is subtle (content bg ≈ topbar bg); could set SPA content bg to `--ab-bg` so the white topbar/cards pop (broader theming change — confirm first). |
 
 ---
 
@@ -27,7 +27,7 @@ Single drift guard — **Free and Pro must match on the test sites**. Refresh wi
 
 | Site | Edition | Installed | Verified |
 |---|---|---|---|
-| staging.offroadserbia.com (live) | Pro | `0.87.17` | 2026-06-21 — Phase 5 complete: layout + UI polish verified both themes |
+| staging.offroadserbia.com (live) | Pro | `0.87.22` | 2026-06-21 — Header pass (PageHeader on all pages, flat tabs, backup banner Dashboard-only) verified both themes; NOT yet committed |
 | offroadbalkans.com (live) | Free | `0.77.2` | release-only — do not routine-touch |
 | joomla6-pro.testmyweb.info | Pro | `0.85.4` ✅ | 2026-06-18 — front-end verified (17/17; 8 JSON-LD nodes) |
 | joomla6-free.testmyweb.info | Free | `0.85.4` ✅ | 2026-06-18 — front-end verified (17/17; 4 JSON-LD nodes) |

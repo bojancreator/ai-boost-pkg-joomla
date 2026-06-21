@@ -1,9 +1,7 @@
 <template>
   <div class="ab-page-redirects">
 
-    <div class="ab-page-intro">
-      <h2 class="ab-page-title">Redirects</h2>
-    </div>
+    <PageHeader title="Redirects" />
 
     <ul class="ab-tabs mb-3" role="tablist">
       <li>
@@ -172,9 +170,11 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { postWithCsrf, makeAdminUrl } from './api.js'
+import PageHeader from './components/PageHeader.vue'
 
 export default {
   name: 'RedirectsPage',
+  components: { PageHeader },
   setup() {
     const tab        = ref('rules')
     const loading    = ref(true)

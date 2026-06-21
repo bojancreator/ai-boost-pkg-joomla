@@ -5,7 +5,7 @@
     <div class="ab-action-bar">
       <div class="ab-action-bar__title">
         <span class="ab-action-bar__dot" :style="{ background: activeTabColor }"></span>
-        <h2>Settings</h2>
+        <h2>{{ activeTabLabel }}</h2>
         <span v-if="hasChanges" class="ab-action-bar__dirty">• Unsaved changes</span>
       </div>
       <div class="ab-action-bar__actions">
@@ -319,6 +319,9 @@ export default {
     activeTabColor() {
       return this.tabs.find(t => t.id === this.activeTab)?.color || '#6366f1'
     },
+    activeTabLabel() {
+      return this.tabs.find(t => t.id === this.activeTab)?.label || 'Settings'
+    },
     hasChanges() {
       return this.dirty
     },
@@ -493,8 +496,9 @@ export default {
 }
 .ab-vue-settings .ab-action-bar__title h2 {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
+  font-size: var(--ab-font-size-xl, 1.25rem);
+  font-weight: 700;
+  letter-spacing: -.01em;
   color: var(--ab-text);
 }
 .ab-vue-settings .ab-action-bar__dot {

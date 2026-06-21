@@ -1,6 +1,8 @@
 <template>
   <div class="ab-analyzer-page">
 
+    <PageHeader title="Analyzers" />
+
     <!-- Tab navigation -->
     <ul class="ab-tabs" role="tablist">
       <li role="presentation">
@@ -534,10 +536,11 @@
 
 <script>
 import AbIcon from './components/AbIcon.vue'
+import PageHeader from './components/PageHeader.vue'
 
 export default {
   name: 'AnalyzerPage',
-  components: { AbIcon },
+  components: { AbIcon, PageHeader },
 
   data() {
     const cfg = window.aiBoostAnalyzer || {}

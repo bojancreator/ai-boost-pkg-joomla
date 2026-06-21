@@ -113,11 +113,12 @@ body[class*="com_aiboost"] {
 .ab-tag--neutral { background: var(--ab-surface-raised); color: var(--ab-text-muted); border: 1px solid var(--ab-border); }
 
 /* ---- tabs ----------------------------------------------------------------- */
-.ab-tabs { list-style: none; margin: 0; padding: 0 0 0.75rem; display: flex; gap: var(--ab-space-2); flex-wrap: wrap; }
-.ab-tab { appearance: none; background: var(--ab-surface-raised); border: 1px solid var(--ab-border); border-radius: 999px; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .08em; text-transform: uppercase; color: var(--ab-text-muted); cursor: pointer; padding: .4rem .85rem; display: inline-flex; align-items: center; gap: .35em; transition: background var(--ab-transition), color var(--ab-transition), border-color var(--ab-transition); }
-.ab-tab:hover { color: var(--ab-text); border-color: var(--ab-primary); }
-.ab-tab.is-active, .ab-tab--active { background: var(--ab-primary); color: #fff; border-color: var(--ab-primary); }
-.ab-tab:focus-visible { outline: none; box-shadow: var(--ab-focus-ring); }
+.ab-tabs { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--ab-space-1); flex-wrap: wrap; border-bottom: 1px solid var(--ab-border); }
+.ab-tabs > li { display: flex; }
+.ab-tab { appearance: none; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .08em; text-transform: uppercase; color: var(--ab-text-muted); cursor: pointer; padding: .65rem .9rem; display: inline-flex; align-items: center; gap: .35em; transition: color var(--ab-transition), border-color var(--ab-transition); }
+.ab-tab:hover { color: var(--ab-text); }
+.ab-tab.is-active, .ab-tab--active { background: none; color: var(--ab-text); border-bottom-color: var(--ab-primary); font-weight: var(--ab-font-weight-semibold); }
+.ab-tab:focus-visible { outline: none; box-shadow: var(--ab-focus-ring); border-radius: var(--ab-radius-sm); }
 
 /* pill tabs (schema sub-tabs) */
 .ab-pills { display: flex; flex-wrap: wrap; gap: var(--ab-space-2); }
@@ -224,10 +225,14 @@ body[class*="com_aiboost"] {
 .ab-page-title { font-size: 1.15rem; font-weight: var(--ab-font-weight-semibold); color: var(--ab-text); margin: 0 0 .3rem; }
 .ab-page-desc  { color: var(--ab-text-muted); font-size: var(--ab-font-size-sm); margin: 0; }
 .ab-topbar {
-  display: flex; align-items: center; gap: var(--ab-space-4);
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: var(--ab-space-4); flex-wrap: wrap;
+  margin: 0 0 var(--ab-space-4);
   padding: var(--ab-space-3) var(--ab-space-5);
   border-bottom: 1px solid var(--ab-border); background: var(--ab-bg-elev);
 }
+/* Sit below Joomla's own sticky admin toolbar (~48px) on desktop. */
+@media (min-width: 768px) { .ab-topbar { top: 48px; } }
 .ab-topbar__title { margin: 0; font-size: var(--ab-font-size-xl); font-weight: var(--ab-font-weight-bold); letter-spacing: -.01em; color: var(--ab-text); }
 .ab-topbar__sub { font-size: var(--ab-font-size-sm); color: var(--ab-text-muted); }
 .ab-topbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--ab-space-2); }

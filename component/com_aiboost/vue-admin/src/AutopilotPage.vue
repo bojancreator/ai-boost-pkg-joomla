@@ -1,16 +1,12 @@
 <template>
   <div class="ab-autopilot-page">
 
-    <header class="ab-autopilot-header">
-      <div>
-        <h2 class="ab-page-title">Quick Setup</h2>
-        <p class="ab-page-desc">A guided setup checklist for the core AI Boost configuration.</p>
-      </div>
+    <PageHeader title="Quick Setup" subtitle="A guided setup checklist for the core AI Boost configuration.">
       <div class="ab-autopilot-score" aria-live="polite">
         <strong>{{ completedCount }}/{{ steps.length }}</strong>
         <span>complete</span>
       </div>
-    </header>
+    </PageHeader>
 
     <section class="ab-autopilot-progress" aria-label="Quick Setup progress">
       <div class="ab-autopilot-progress__bar">
@@ -69,6 +65,7 @@
 
 <script>
 import { computed } from 'vue'
+import PageHeader from './components/PageHeader.vue'
 
 function configured(value) {
   if (value === true || value === 1) return true
@@ -82,6 +79,8 @@ function settingsTo(tab, field) {
 
 export default {
   name: 'AutopilotPage',
+
+  components: { PageHeader },
 
   setup() {
     const settings = window.aiBoostSettings || {}

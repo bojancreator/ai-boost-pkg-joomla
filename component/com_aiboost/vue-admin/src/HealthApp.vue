@@ -1,24 +1,21 @@
 <template>
   <div class="ab-vue-health">
 
+    <PageHeader title="Health">
+      <span v-if="actionMsg"
+            :class="['ab-hint', actionMsgType === 'error' ? 'ab-text-danger'
+                              : actionMsgType === 'success' ? 'ab-text-success' : '']">
+        {{ actionMsg }}
+      </span>
+      <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" :disabled="rerunning" @click="rerun">
+        {{ rerunning ? 'Running…' : 'Re-run checks' }}
+      </button>
+      <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="copyReport">Copy report</button>
+    </PageHeader>
+
     <!-- Progress bar — animates during Re-run -->
     <div v-if="rerunning" class="ab-hc-progress-wrap">
       <div class="ab-hc-progress-bar" :style="{ width: progress + '%' }"></div>
-    </div>
-
-    <div class="ab-topbar">
-      <h2 class="ab-topbar__title">Health</h2>
-      <div class="ab-topbar__actions">
-        <span v-if="actionMsg"
-              :class="['ab-hint', actionMsgType === 'error' ? 'ab-text-danger'
-                                : actionMsgType === 'success' ? 'ab-text-success' : '']">
-          {{ actionMsg }}
-        </span>
-        <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" :disabled="rerunning" @click="rerun">
-          {{ rerunning ? 'Running…' : 'Re-run checks' }}
-        </button>
-        <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="copyReport">Copy report</button>
-      </div>
     </div>
 
     <div class="ab-page ab-ha-main">
@@ -275,6 +272,7 @@
 import { reactive, computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ErrorsPage from './ErrorsPage.vue'
+import PageHeader from './components/PageHeader.vue'
 
 const CATEGORY_ORDER = ['General', 'Conflicts', 'Schema', 'Sitemap', 'Social', 'Analytics', 'AEO', 'Crawlers & Robots', 'Integrations', 'License']
 
@@ -307,7 +305,7 @@ const CATEGORY_ICONS = {
 
 export default {
   name: 'HealthApp',
-  components: { ErrorsPage },
+  components: { ErrorsPage, PageHeader },
 
   setup () {
     const raw   = window.aiBoostHealth || {}
