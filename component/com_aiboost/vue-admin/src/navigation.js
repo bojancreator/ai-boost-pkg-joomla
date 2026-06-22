@@ -31,11 +31,11 @@ export const pageRouteAliases = [
 ]
 
 const sidebarGroupFactories = [
-  () => ({ title: 'OVERVIEW', items: [
+  () => ({ title: 'Overview', items: [
     { id: 'dashboard', to: '/dashboard', icon: 'dash', label: 'Dashboard' },
     { id: 'health', to: '/health', icon: 'heart', label: 'Health', badge: 'errors' },
   ] }),
-  () => ({ title: 'SETUP', items: [
+  () => ({ title: 'Setup', items: [
     { id: 'autopilot', to: '/autopilot', icon: 'bolt', label: 'Quick Setup' },
     { id: 'org', to: settingsTo('org'), tab: 'org', icon: 'id', label: 'Site Identity' },
     { id: 'licenses', to: '/licenses', icon: 'key', label: 'License & Updates' },
@@ -50,17 +50,17 @@ const sidebarGroupFactories = [
     { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'share', label: 'Social Meta / OG' },
     { id: 'analytics', to: settingsTo('analytics'), tab: 'analytics', icon: 'chart', label: 'Analytics & Tracking' },
   ] }),
-  () => ({ title: 'AI VISIBILITY', items: [
+  () => ({ title: 'AI Visibility', items: [
     { id: 'aeo', to: settingsTo('aeo'), tab: 'aeo', icon: 'ai', label: 'AEO' },
     { id: 'crawlers', to: settingsTo('crawlers'), tab: 'crawlers', icon: 'robot', label: 'Crawlers & Robots' },
   ] }),
-  () => ({ title: 'TOOLS', items: [
+  () => ({ title: 'Tools', items: [
     { id: 'redirects', to: '/redirects', icon: 'arrow', label: 'Redirects' },
     { id: 'analyzers', to: '/analyzers', icon: 'search', label: 'Analyzers' },
     { id: 'urlchecker', to: '/urlchecker', icon: 'link', label: 'URL Checker' },
     { id: 'import', to: '/import', icon: 'upload', label: 'Import' },
   ] }),
-  () => ({ title: 'ADVANCED', items: [
+  () => ({ title: 'Advanced', items: [
     { id: 'code', to: settingsTo('code'), tab: 'code', icon: 'code', label: 'Custom Code' },
     { id: 'debug', to: settingsTo('debug'), tab: 'debug', icon: 'bug', label: 'Debug' },
     { id: 'help', to: '/help', icon: 'help', label: 'Help' },

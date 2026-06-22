@@ -2,7 +2,7 @@
   <aside class="ab-sidebar" :class="{ 'ab-sidebar--compact': compact }">
     <div class="ab-sidebar__brand">
       <span class="ab-sidebar__brand-name">AI Boost</span>
-      <span v-if="version" class="ab-sidebar__version">{{ version }}</span>
+      <span class="ab-sidebar__edition ab-tag" :class="isPro ? 'ab-tag--pro' : 'ab-tag--free'">{{ isPro ? 'Pro' : 'Free' }}</span>
       <button
         type="button"
         class="ab-sidebar__density-btn"
@@ -103,9 +103,9 @@ export default {
 
     const errorsBadge = (boot.errorsSummary && Number(boot.errorsSummary.errors_24h)) || 0
     const conflictsBadge = (boot.conflicts && Array.isArray(boot.conflicts.detected) && boot.conflicts.detected.length) || 0
-    const version = boot.version ? ('v' + String(boot.version).replace(/^v/, '')) : ''
+    const isPro = boot.isPro === true
 
-    return { groups, isItemActive, errorsBadge, conflictsBadge, version }
+    return { groups, isItemActive, errorsBadge, conflictsBadge, isPro }
   },
 
   data() {
@@ -187,15 +187,7 @@ export default {
   color: var(--ab-sidebar-text);
   letter-spacing: -.01em;
 }
-.ab-sidebar__version {
-  margin-left: auto;
-  font-size: .68rem;
-  font-weight: 700;
-  color: #fff;
-  background: var(--ab-primary);
-  border-radius: var(--ab-radius);
-  padding: 2px 6px;
-}
+.ab-sidebar__edition { margin-left: auto; }
 .ab-sidebar__density-btn {
   flex-shrink: 0;
   background: transparent;
