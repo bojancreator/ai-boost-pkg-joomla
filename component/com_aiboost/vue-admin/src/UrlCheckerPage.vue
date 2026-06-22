@@ -3,33 +3,36 @@
 
     <PageHeader title="URL Checker" subtitle="Scan a list of URLs and check HTTP status, redirect chains, canonical tags and thin content." />
 
-    <div class="ab-section mb-3">
-      <div class="ab-section__body">
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <button class="ab-btn ab-btn--primary" @click="loadSitemap" :disabled="busy">
+    <div class="ab-card mb-3">
+      <div class="ab-card__header" style="justify-content:space-between">
+        <span>Scan URLs</span>
+        <span class="ab-help">{{ urlCount }} URL{{ urlCount === 1 ? '' : 's' }} ready</span>
+      </div>
+      <div class="ab-card__body">
+        <div class="ab-row" style="flex-wrap:wrap;margin-bottom:.7rem">
+          <button class="ab-btn ab-btn--primary ab-btn--sm" @click="loadSitemap" :disabled="busy">
             <span v-if="loadingSitemap" class="ab-spinner ab-spinner--sm me-1"></span>
             Load URLs from sitemap
           </button>
-          <button class="ab-btn ab-btn--ghost" @click="urls = ''" :disabled="busy">Clear</button>
-          <span class="ab-help align-self-center ms-auto">
-            {{ urlCount }} URL{{ urlCount === 1 ? '' : 's' }} ready
-          </span>
+          <button class="ab-btn ab-btn--ghost ab-btn--sm" @click="urls = ''" :disabled="busy">Clear</button>
         </div>
 
         <div class="ab-field">
           <label class="ab-label">URLs (one per line, max 50 per scan)</label>
-          <textarea v-model="urls" rows="8" class="ab-input font-monospace" placeholder="https://example.com/page-1"></textarea>
+          <textarea v-model="urls" rows="8" class="ab-textarea codearea" placeholder="https://example.com/page-1"></textarea>
         </div>
 
         <div v-if="sitemapMsg" class="small mt-2" :style="sitemapMsgOk ? 'color:var(--ab-success)' : 'color:var(--ab-danger)'">{{ sitemapMsg }}</div>
 
-        <div class="mt-3 d-flex flex-wrap gap-2">
-          <button class="ab-btn ab-btn--primary" @click="scan" :disabled="busy || !urlCount">
-            <span v-if="scanning" class="ab-spinner ab-spinner--sm me-1"></span>
-            {{ scanning ? `Scanning ${progress.done}/${progress.total}…` : 'Start scan' }}
-          </button>
-          <button v-if="scanning" class="ab-btn ab-btn--ghost ab-btn--danger-ghost" @click="cancel">Cancel</button>
-          <button class="ab-btn ab-btn--ghost ms-auto" @click="checkGsc" :disabled="busy || !urlCount">
+        <div class="ab-row" style="flex-wrap:wrap;justify-content:space-between;margin-top:.8rem">
+          <div class="ab-row">
+            <button class="ab-btn ab-btn--success ab-btn--sm" @click="scan" :disabled="busy || !urlCount">
+              <span v-if="scanning" class="ab-spinner ab-spinner--sm me-1"></span>
+              {{ scanning ? `Scanning ${progress.done}/${progress.total}…` : 'Start scan' }}
+            </button>
+            <button v-if="scanning" class="ab-btn ab-btn--ghost ab-btn--sm ab-btn--danger-ghost" @click="cancel">Cancel</button>
+          </div>
+          <button class="ab-btn ab-btn--ghost ab-btn--sm" @click="checkGsc" :disabled="busy || !urlCount">
             <span v-if="gscBusy" class="ab-spinner ab-spinner--sm me-1"></span>
             Compare against Google Search Console
           </button>
@@ -66,12 +69,12 @@
       </div>
     </div>
 
-    <div v-if="results.length || scanning" class="ab-section">
-      <div class="ab-section__head">
-        Results
-        <span class="ab-help" style="font-family:inherit;font-size:.85em;margin-left:.5rem">({{ results.length }} URLs)</span>
+    <div v-if="results.length || scanning" class="ab-card">
+      <div class="ab-card__header" style="justify-content:space-between">
+        <span>Results</span>
+        <span class="ab-help">{{ results.length }} URLs</span>
       </div>
-      <div class="ab-section__body">
+      <div class="ab-card__body">
         <div class="d-flex flex-wrap gap-2 mb-3 small">
           <span class="ab-badge ab-badge--success">200 OK: {{ counts.ok }}</span>
           <span class="ab-badge ab-badge--info">3xx redirect: {{ counts.redirect }}</span>
@@ -112,7 +115,7 @@
                   <span class="ab-badge" :class="canonicalBadge(r.canonical_status)">{{ r.canonical_status }}</span>
                   <a
                     v-if="r.canonical_status === 'missing' || r.canonical_status === 'mismatch'"
-                    href="index.php?option=com_aiboost&view=app#/settings?tab=technical&field=enable_canonical"
+                    href="index.php?option=com_aiboost&view=app#/settings?tab=titles&field=enable_canonical"
                     class="ab-fix-link d-block mt-1"
                     title="Open Settings → Technical SEO → Enable Canonical URLs"
                   >Fix it →</a>
@@ -268,6 +271,7 @@ export default {
 </script>
 
 <style scoped>
+.codearea { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-sm); }
 .ab-progress { height: 8px; background: var(--ab-surface-raised); border-radius: 4px; overflow: hidden; }
 .ab-progress__bar { height: 100%; background: linear-gradient(90deg, var(--ab-success) 0%, var(--ab-primary) 100%); transition: width .3s ease-out; }
 

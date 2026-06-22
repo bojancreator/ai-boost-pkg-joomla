@@ -45,9 +45,10 @@
           </div>
 
           <div class="ab-alert ab-alert--info">
-            <strong>FAQ</strong> is managed in one place —
-            <strong>Schema.org → FAQ / QAPage</strong>. Whatever you add there is automatically included
-            in <code>/llms.txt</code> too, so you only enter your Q&amp;A once.
+            <div class="ab-alert__body" style="display:flex; flex-direction:column; gap:var(--ab-space-2); font-size:var(--ab-font-size-xs)">
+              <p class="m-0"><strong>FAQ</strong> is managed in one place — <strong>Schema.org → FAQ / QAPage</strong>.</p>
+              <p class="m-0">Whatever you add there is automatically included in <code>/llms.txt</code> too, so you only enter your Q&amp;A once.</p>
+            </div>
           </div>
         </template>
       </div>

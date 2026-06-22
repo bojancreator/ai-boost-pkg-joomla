@@ -23,7 +23,7 @@
         <div class="ab-field">
           <div class="ab-eyebrow">Head Code</div>
           <label class="ab-label">Inject before <code>&lt;/head&gt;</code></label>
-          <textarea v-model="s.custom_code_head" class="ab-input font-monospace" rows="7"
+          <textarea v-model="s.custom_code_head" class="ab-textarea ab-code-area" rows="7"
             placeholder="&lt;!-- paste scripts, meta tags, stylesheets here --&gt;"></textarea>
           <div class="ab-code-meta">
             <span class="ab-char-count">{{ formatCount(s.custom_code_head) }}</span>
@@ -37,7 +37,7 @@
         <div class="ab-field">
           <div class="ab-eyebrow">Body Code</div>
           <label class="ab-label">Inject after opening <code>&lt;body&gt;</code></label>
-          <textarea v-model="s.custom_code_body" data-ab-field="custom_code_body" class="ab-input font-monospace" rows="7"
+          <textarea v-model="s.custom_code_body" data-ab-field="custom_code_body" class="ab-textarea ab-code-area" rows="7"
             placeholder="&lt;!-- paste chat widgets, noscript tags, etc. --&gt;"></textarea>
           <div class="ab-code-meta">
             <span class="ab-char-count">{{ formatCount(s.custom_code_body) }}</span>
@@ -51,7 +51,7 @@
         <div class="ab-field">
           <div class="ab-eyebrow">Footer Code</div>
           <label class="ab-label">Inject before <code>&lt;/body&gt;</code></label>
-          <textarea v-model="s.custom_code_footer" data-ab-field="custom_code_footer" class="ab-input font-monospace" rows="7"
+          <textarea v-model="s.custom_code_footer" data-ab-field="custom_code_footer" class="ab-textarea ab-code-area" rows="7"
             placeholder="&lt;!-- paste deferred scripts, chat widgets, tracking pixels here --&gt;"></textarea>
           <div class="ab-code-meta">
             <span class="ab-char-count">{{ formatCount(s.custom_code_footer) }}</span>
@@ -208,4 +208,5 @@ export default {
   padding: .1rem .45rem;
   line-height: 1.4;
 }
+.ab-code-area { font-family: var(--ab-font-mono); }
 </style>

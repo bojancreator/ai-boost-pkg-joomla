@@ -1,15 +1,16 @@
 export function settingsTo(tab) {
-  // 'technical' is the default (no-query) tab — the merged General + Technical SEO page.
-  return { path: '/settings', query: tab === 'technical' ? {} : { tab } }
+  // 'org' (Site Identity) is the default (no-query) settings tab.
+  return { path: '/settings', query: tab === 'org' ? {} : { tab } }
 }
 
 export const settingsRouteAliases = [
-  // The old General tab was merged into Technical SEO.
-  { path: '/general', tab: 'technical' },
+  // Legacy General + Technical SEO tabs were dissolved; their fields now live on
+  // Site Identity / Titles & Meta / Redirects, so old paths land on Site Identity.
+  { path: '/general', tab: 'org' },
   { path: '/site-identity', tab: 'org' },
   { path: '/organization', tab: 'org' },
   { path: '/schema', tab: 'schema' },
-  { path: '/technical-seo', tab: 'technical' },
+  { path: '/technical-seo', tab: 'org' },
   { path: '/titles', tab: 'titles' },
   { path: '/titles-meta', tab: 'titles' },
   { path: '/sitemap', tab: 'sitemap' },
@@ -43,11 +44,10 @@ const sidebarGroupFactories = [
     { id: 'conflicts', to: '/conflicts', icon: 'shield', label: 'Conflict Manager', badge: 'conflicts' },
   ] }),
   () => ({ title: 'SEO', items: [
-    { id: 'technical', to: settingsTo('technical'), tab: 'technical', icon: 'cog', label: 'Technical SEO' },
     { id: 'titles', to: settingsTo('titles'), tab: 'titles', icon: 'tag', label: 'Titles & Meta' },
     { id: 'schema', to: settingsTo('schema'), tab: 'schema', icon: 'schema', label: 'Schema.org' },
     { id: 'sitemap', to: settingsTo('sitemap'), tab: 'sitemap', icon: 'map', label: 'Sitemap' },
-    { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'share', label: 'Social Meta / OG' },
+    { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'share', label: 'Social Meta / OpenGraph' },
     { id: 'analytics', to: settingsTo('analytics'), tab: 'analytics', icon: 'chart', label: 'Analytics & Tracking' },
   ] }),
   () => ({ title: 'AI Visibility', items: [

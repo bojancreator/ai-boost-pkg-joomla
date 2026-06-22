@@ -18,12 +18,15 @@
       <div class="row g-2 mb-3">
         <div v-for="bot in SEO_SCRAPERS" :key="bot.key" class="col-6 col-sm-4">
           <label :for="'scraper-' + bot.key" class="ab-scraper-box d-flex align-items-center gap-2 p-2 border rounded small mb-0"
-                 :class="{ 'ab-scraper-blocked': s[bot.key] === '1' }">
+                 :class="s[bot.key] === '1' ? 'ab-scraper-blocked' : 'ab-scraper-allowed'">
             <input type="checkbox" class="ab-toggle__input" :id="'scraper-' + bot.key" :data-ab-field="bot.key"
               v-model="s[bot.key]" true-value="1" false-value="0" />
-            <span class="lh-sm">
+            <span class="lh-sm flex-grow-1">
               <span class="fw-semibold d-block">{{ bot.label }}</span>
               <span class="text-muted" style="font-size:.7rem">{{ bot.agent }}</span>
+            </span>
+            <span class="ab-scraper-state" :class="s[bot.key] === '1' ? 'ab-scraper-state--block' : 'ab-scraper-state--allow'">
+              {{ s[bot.key] === '1' ? 'Block' : 'Allow' }}
             </span>
           </label>
         </div>
@@ -77,4 +80,9 @@ export default {
 .ab-scraper-box { transition: border-color .15s, background .15s; cursor: pointer; }
 .ab-scraper-blocked { background: rgba(220,53,69,.06); border-color: rgba(220,53,69,.3) !important; }
 [data-bs-theme=dark] .ab-scraper-blocked { background: rgba(220,53,69,.12); border-color: rgba(220,53,69,.4) !important; }
+.ab-scraper-allowed { background: rgba(25,135,84,.05); border-color: rgba(25,135,84,.28) !important; }
+[data-bs-theme=dark] .ab-scraper-allowed { background: rgba(25,135,84,.10); border-color: rgba(25,135,84,.35) !important; }
+.ab-scraper-state { font-size: .66rem; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; border: 1px solid currentColor; border-radius: var(--ab-radius); padding: .05em .3em; flex-shrink: 0; }
+.ab-scraper-state--allow { color: var(--ab-success); }
+.ab-scraper-state--block { color: var(--ab-danger); }
 </style>

@@ -662,6 +662,11 @@
         </div>
         <div class="ab-section__body">
           <div class="ab-eyebrow">Weekly Schedule</div>
+          <div class="ab-bh-quickset">
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="setAllDays(true)">All on</button>
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="setAllDays(false)">All off</button>
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="setWeekdays">Weekdays (Mon–Fri)</button>
+          </div>
           <div class="ab-bh-table">
             <div v-for="(dayLabel, dk) in days" :key="dk" class="ab-bh-row">
               <div class="ab-bh-day">{{ dayLabel }}</div>
@@ -741,10 +746,10 @@
             <span class="ab-tag ab-tag--pro" style="margin-left:.4rem">Pro</span>
           </div>
           <div class="ab-section__body">
-            <div class="ab-alert ab-alert--info">
-              <strong>Google update (May 2026):</strong> FAQPage is no longer a Google rich result.
-              It remains a primary schema type actively used by <strong>ChatGPT, Perplexity, and Google AI Overview</strong> for citations —
-              so it is still highly valuable for AI search visibility.
+            <div class="ab-alert ab-alert--info ab-faq-note">
+              <p><strong>Google update (May 2026):</strong> FAQPage is no longer a Google rich result.</p>
+              <p>It remains a primary schema type actively used by <strong>ChatGPT, Perplexity, and Google AI Overview</strong> for citations.</p>
+              <p>So it is still highly valuable for AI search visibility.</p>
             </div>
 
             <label class="ab-toggle-row">
@@ -783,16 +788,22 @@
             </div>
 
             <div class="ab-field">
-              <label class="ab-label">Schema Output Type</label>
-              <select v-model="s.schema_faq_output_type" class="ab-select" style="max-width:380px">
-                <option value="faqpage">FAQPage only (recommended — used by ChatGPT, Perplexity, AI Overview)</option>
-                <option value="qapage">QAPage only (forum / user-generated Q&amp;A)</option>
-                <option value="both">Both FAQPage and QAPage</option>
-              </select>
-              <div class="ab-help">
-                <strong>FAQPage</strong> — classic format, preferred by most AI engines for citations.
-                <strong>QAPage</strong> — <code>Question → suggestedAnswer → Answer</code> structure; best for forum-style pages.
-                <strong>Both</strong> — outputs two separate JSON-LD blocks simultaneously.
+              <label class="ab-label" data-ab-field="schema_faq_output_type">Schema Output Type</label>
+              <div class="row g-3 ab-faq-output-cards">
+                <div v-for="opt in faqOutputOptions" :key="opt.value" class="col-md-4">
+                  <button
+                    type="button"
+                    class="ab-mode-card w-100 text-start"
+                    :class="{ 'ab-mode-card--active': s.schema_faq_output_type === opt.value }"
+                    @click="s.schema_faq_output_type = opt.value"
+                  >
+                    <span class="ab-mode-card__head">
+                      <span class="ab-mode-card__title">{{ opt.title }}</span>
+                      <span v-if="s.schema_faq_output_type === opt.value" class="ab-badge ab-badge--success">Active</span>
+                    </span>
+                    <span class="ab-mode-card__desc">{{ opt.desc }}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1324,6 +1335,13 @@ export default {
         return []
       }
     },
+    faqOutputOptions() {
+      return [
+        { value: 'faqpage', title: 'FAQPage only', desc: 'Recommended — classic format, preferred by ChatGPT, Perplexity & AI Overview for citations.' },
+        { value: 'qapage',  title: 'QAPage only',  desc: 'Question → suggestedAnswer → Answer structure; best for forum / user-generated Q&A pages.' },
+        { value: 'both',    title: 'Both',         desc: 'Outputs two separate JSON-LD blocks (FAQPage and QAPage) simultaneously.' },
+      ]
+    },
     // Named services only, in the SAME filtered order the builder emits makesOffer.
     // The translation key service_{idx}_name uses this index so PHP + admin align.
     namedServices() {
@@ -1344,7 +1362,7 @@ export default {
     // type per tab) so this long tab stays scannable.
     visibleSchemaSections() {
       return [
-        { id: 'core', label: 'Core' },
+        { id: 'core', label: 'Basics' },
         { id: 'business', label: 'Business' },
         ...(this.hasHours ? [{ id: 'hours', label: 'Hours' }] : []),
         { id: 'faq', label: 'FAQ' },
@@ -1529,6 +1547,14 @@ export default {
       if (open && !this.s['hours_' + dk + '_closes']) this.s['hours_' + dk + '_closes'] = '17:00'
     },
 
+    setAllDays(open) {
+      Object.keys(this.days).forEach(dk => this.toggleDay(dk, open))
+    },
+    setWeekdays() {
+      const week = ['mon', 'tue', 'wed', 'thu', 'fri']
+      Object.keys(this.days).forEach(dk => this.toggleDay(dk, week.includes(dk)))
+    },
+
     addStep() {
       if (!Array.isArray(this.howto.steps)) this.howto.steps = []
       this.howto.steps.push({ name: '', text: '' })
@@ -1577,23 +1603,26 @@ export default {
 }
 .ab-schema-nav__btn {
   padding: 6px 14px;
-  font-size: .85rem;
+  font-family: var(--ab-font-mono);
+  font-size: var(--ab-font-size-xs);
   font-weight: 600;
+  letter-spacing: .025em;
+  text-transform: uppercase;
   color: var(--ab-text-muted);
-  background: var(--ab-surface-raised);
-  border: 1px solid transparent;
-  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
   cursor: pointer;
   white-space: nowrap;
   transition: background .12s, color .12s, border-color .12s;
 }
 .ab-schema-nav__btn:hover {
   color: var(--ab-text);
-  background: var(--ab-border);
+  border-color: var(--ab-primary);
 }
 .ab-schema-nav__btn.is-active {
-  color: #fff;
-  background: var(--ab-primary);
+  color: var(--ab-primary);
+  background: var(--ab-primary-soft);
   border-color: var(--ab-primary);
 }
 .ab-faq-trans-group {
@@ -1687,6 +1716,16 @@ export default {
   font-size: .76rem;
   line-height: 1.35;
 }
+.ab-bh-quickset { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.ab-faq-note { font-size: var(--ab-font-size-xs); }
+.ab-faq-note p { margin: 0 0 .4rem; }
+.ab-faq-note p:last-child { margin-bottom: 0; }
+.ab-mode-card { display: flex; flex-direction: column; gap: .25rem; padding: 1rem; height: 100%; background: var(--ab-surface-raised); border: 2px solid var(--ab-border); border-radius: var(--ab-radius); cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.ab-mode-card:hover { border-color: var(--ab-primary); }
+.ab-mode-card--active { border-color: var(--ab-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ab-primary) 15%, transparent); }
+.ab-mode-card__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .25rem; }
+.ab-mode-card__title { font-weight: 600; }
+.ab-mode-card__desc { font-size: .9rem; color: var(--ab-text-muted); }
 .ab-bh-table { display: flex; flex-direction: column; gap: 4px; }
 .ab-bh-row {
   display: flex; align-items: center; gap: 12px;

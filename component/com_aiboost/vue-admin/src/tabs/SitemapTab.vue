@@ -18,47 +18,35 @@
         </label>
 
         <div class="ab-eyebrow">Content to Include</div>
-        <div class="row g-2">
-          <div class="col-md-3">
-            <label class="ab-toggle-row">
-              <div><div class="ab-label">Articles</div></div>
-              <span class="ab-toggle" :class="{'is-on': s.include_articles === '1'}">
-                <input v-model="s.include_articles" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-articles">
-                <span class="ab-toggle__track"></span>
-              </span>
-            </label>
-          </div>
-          <div class="col-md-3">
-            <label class="ab-toggle-row">
-              <div><div class="ab-label">Categories</div></div>
-              <span class="ab-toggle" :class="{'is-on': s.include_categories === '1'}">
-                <input v-model="s.include_categories" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-cats">
-                <span class="ab-toggle__track"></span>
-              </span>
-            </label>
-          </div>
-          <div class="col-md-3">
-            <label class="ab-toggle-row">
-              <div><div class="ab-label">Menu Items</div></div>
-              <span class="ab-toggle" :class="{'is-on': s.include_menu_items === '1'}">
-                <input v-model="s.include_menu_items" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-menus">
-                <span class="ab-toggle__track"></span>
-              </span>
-            </label>
-          </div>
-          <div class="col-md-3">
-            <label class="ab-toggle-row">
-              <div><div class="ab-label">Tags</div></div>
-              <span class="ab-toggle" :class="{'is-on': s.include_tags === '1'}">
-                <input v-model="s.include_tags" data-ab-field="include_tags" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-tags">
-                <span class="ab-toggle__track"></span>
-              </span>
-            </label>
-          </div>
+        <div class="ab-toggle-cluster">
+          <label class="ab-toggle-pair">
+            <span class="ab-label">Articles</span>
+            <span class="ab-toggle" :class="{'is-on': s.include_articles === '1'}">
+              <input v-model="s.include_articles" true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="sm-articles">
+              <span class="ab-toggle__track"></span>
+            </span>
+          </label>
+          <label class="ab-toggle-pair">
+            <span class="ab-label">Categories</span>
+            <span class="ab-toggle" :class="{'is-on': s.include_categories === '1'}">
+              <input v-model="s.include_categories" true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="sm-cats">
+              <span class="ab-toggle__track"></span>
+            </span>
+          </label>
+          <label class="ab-toggle-pair">
+            <span class="ab-label">Menu Items</span>
+            <span class="ab-toggle" :class="{'is-on': s.include_menu_items === '1'}">
+              <input v-model="s.include_menu_items" true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="sm-menus">
+              <span class="ab-toggle__track"></span>
+            </span>
+          </label>
+          <label class="ab-toggle-pair">
+            <span class="ab-label">Tags</span>
+            <span class="ab-toggle" :class="{'is-on': s.include_tags === '1'}">
+              <input v-model="s.include_tags" data-ab-field="include_tags" true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="sm-tags">
+              <span class="ab-toggle__track"></span>
+            </span>
+          </label>
         </div>
 
         <div class="row g-3">
@@ -87,8 +75,8 @@
             <div class="ab-field">
               <label class="ab-label">Default Priority</label>
               <div class="d-flex align-items-center gap-2">
-                <input v-model="s.default_priority" type="range" class="form-range" min="0" max="1" step="0.1" style="flex:1">
-                <span class="ab-muted" style="min-width:28px;font-size:.85rem">{{ (parseFloat(s.default_priority || 0.8)).toFixed(1) }}</span>
+                <input v-model="s.default_priority" type="range" class="ab-range" min="0" max="1" step="0.1">
+                <span class="ab-muted ab-range-val">{{ (parseFloat(s.default_priority || 0.8)).toFixed(1) }}</span>
               </div>
             </div>
           </div>
@@ -100,8 +88,8 @@
             <div class="ab-field">
               <label class="ab-label">{{ label }}</label>
               <div class="d-flex align-items-center gap-2">
-                <input v-model="s[key]" type="range" class="form-range" min="0" max="1" step="0.1" style="flex:1">
-                <span class="ab-muted" style="min-width:28px;font-size:.85rem">{{ (parseFloat(s[key] || 0)).toFixed(1) }}</span>
+                <input v-model="s[key]" type="range" class="ab-range" min="0" max="1" step="0.1">
+                <span class="ab-muted ab-range-val">{{ (parseFloat(s[key] || 0)).toFixed(1) }}</span>
               </div>
             </div>
           </div>
@@ -206,7 +194,7 @@
       <div class="ab-section__head">
         <span class="ab-section__num">03</span>
         Search Engine Ping
-        <span class="ab-tag ab-tag--neutral" style="margin-left:.4rem">Legacy</span>
+        <span class="ab-tag ab-tag--neutral" style="margin-left:.4rem" title="Retired by Google (June 2023) and Bing — kept only for niche engines and legacy deployments">Legacy</span>
       </div>
       <div class="ab-section__body">
         <div class="ab-help">
@@ -214,37 +202,28 @@
           retained for niche engines and legacy deployments only — leave them off unless you have a
           specific reason.
         </div>
-        <div class="row g-2">
-          <div class="col-md-4">
-            <label class="ab-toggle-row">
-              <div><div class="ab-label">Ping Google on sitemap request</div></div>
-              <span class="ab-toggle" :class="{'is-on': s.ping_google === '1'}">
-                <input v-model="s.ping_google" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-ping-google">
-                <span class="ab-toggle__track"></span>
-              </span>
-            </label>
-          </div>
-          <div class="col-md-4">
-            <label class="ab-toggle-row">
-              <div><div class="ab-label">Ping Bing on sitemap request</div></div>
-              <span class="ab-toggle" :class="{'is-on': s.ping_bing === '1'}">
-                <input v-model="s.ping_bing" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-ping-bing">
-                <span class="ab-toggle__track"></span>
-              </span>
-            </label>
-          </div>
-          <div class="col-md-4">
-            <label class="ab-toggle-row">
-              <div><div class="ab-label">Ping on article publish</div></div>
-              <span class="ab-toggle" :class="{'is-on': s.ping_on_publish === '1'}">
-                <input v-model="s.ping_on_publish" true-value="1" false-value="0"
-                  type="checkbox" class="ab-toggle__input" id="sm-ping-publish">
-                <span class="ab-toggle__track"></span>
-              </span>
-            </label>
-          </div>
+        <div class="ab-toggle-cluster">
+          <label class="ab-toggle-pair">
+            <span class="ab-label">Ping Google on sitemap request</span>
+            <span class="ab-toggle" :class="{'is-on': s.ping_google === '1'}">
+              <input v-model="s.ping_google" true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="sm-ping-google">
+              <span class="ab-toggle__track"></span>
+            </span>
+          </label>
+          <label class="ab-toggle-pair">
+            <span class="ab-label">Ping Bing on sitemap request</span>
+            <span class="ab-toggle" :class="{'is-on': s.ping_bing === '1'}">
+              <input v-model="s.ping_bing" true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="sm-ping-bing">
+              <span class="ab-toggle__track"></span>
+            </span>
+          </label>
+          <label class="ab-toggle-pair">
+            <span class="ab-label">Ping on article publish</span>
+            <span class="ab-toggle" :class="{'is-on': s.ping_on_publish === '1'}">
+              <input v-model="s.ping_on_publish" true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="sm-ping-publish">
+              <span class="ab-toggle__track"></span>
+            </span>
+          </label>
         </div>
       </div>
     </div>
@@ -355,10 +334,9 @@
         Submitting to Search Engines in 2026
       </div>
       <div class="ab-section__body">
-        <div class="ab-alert ab-alert--info">
-          <strong>Google retired the sitemap ping endpoint in June 2023.</strong> The old
-          <code>google.com/ping?sitemap=…</code> URL no longer does anything — Google ignores it
-          and Bing followed suit.
+        <div class="ab-alert ab-alert--info ab-alert--compact">
+          <p class="ab-alert__lead"><strong>Google retired the sitemap ping endpoint in June 2023.</strong></p>
+          <p>The old <code>google.com/ping?sitemap=…</code> URL no longer does anything — Google ignores it and Bing followed suit.</p>
         </div>
 
         <div class="ab-eyebrow">What actually works today</div>
@@ -558,4 +536,14 @@ export default {
 .ab-list code { background: var(--ab-surface-raised); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
 
 .ab-action-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.ab-toggle-cluster { display: flex; flex-wrap: wrap; column-gap: 2rem; row-gap: 1rem; align-items: center; }
+.ab-toggle-pair { display: inline-flex; align-items: center; gap: 1rem; margin: 0; cursor: pointer; }
+.ab-toggle-pair .ab-label { margin: 0; }
+.ab-range { flex: 1; accent-color: var(--ab-primary); height: 4px; }
+.ab-range-val { min-width: 28px; font-size: var(--ab-font-size-xs); font-family: var(--ab-font-mono); color: var(--ab-text-muted); }
+.ab-alert--compact { font-size: var(--ab-font-size-xs); }
+.ab-alert--compact p { margin: 0; }
+.ab-alert--compact p + p { margin-top: 6px; }
+.ab-alert__lead { font-weight: 600; }
 </style>

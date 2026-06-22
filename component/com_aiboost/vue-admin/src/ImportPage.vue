@@ -1,91 +1,72 @@
 <template>
   <div class="ab-page-import">
 
-    <PageHeader title="Import / Export Settings" subtitle="Move your AI Boost configuration between sites. Export a portable JSON snapshot, then import it on another install." />
+    <PageHeader title="Import / Export Settings" />
 
-    <div class="row g-3">
-      <div class="col-md-6">
-        <div class="ab-section h-100">
-          <div class="ab-section__head">Export settings</div>
-          <div class="ab-section__body">
-            <p class="ab-help mb-3">Generates a fresh JSON snapshot of every AI Boost option on this site.</p>
-            <a :href="exportUrl" class="ab-btn ab-btn--primary">
-              <AbIcon name="upload" style="transform:scaleY(-1)" />
-              Download settings export (.json)
-            </a>
-          </div>
+    <div class="ab-two">
+      <div class="ab-card">
+        <div class="ab-card__header">Export current settings</div>
+        <div class="ab-card__body">
+          <p class="ab-help" style="margin:0 0 .9rem">Generates a fresh JSON snapshot of every AI Boost option on this site.</p>
+          <a :href="exportUrl" class="ab-btn ab-btn--primary ab-btn--sm">Download settings export (.json)</a>
         </div>
       </div>
 
-      <div class="col-md-6">
-        <div class="ab-section h-100">
-          <div class="ab-section__head">Import from a file</div>
-          <div class="ab-section__body">
-            <p class="ab-help mb-3">Upload a JSON export from AI Boost. Imported values are merged over your current settings.</p>
-
-            <div class="ab-field">
-              <label class="ab-label" for="ab-import-file">Export file (.json)</label>
-              <input
-                id="ab-import-file"
-                ref="fileInput"
-                type="file"
-                accept="application/json,.json"
-                class="ab-input"
-                :disabled="importing"
-                @change="onFileChange"
-              />
-            </div>
-
+      <div class="ab-card">
+        <div class="ab-card__header">Import settings from a file</div>
+        <div class="ab-card__body">
+          <p class="ab-help" style="margin:0 0 .9rem">Upload a JSON export from AI Boost. Imported values are merged over your current settings.</p>
+          <input
+            ref="fileInput"
+            type="file"
+            accept="application/json,.json"
+            class="ab-visually-hidden"
+            :disabled="importing"
+            @change="onFileChange"
+          />
+          <div class="ab-row">
+            <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" :disabled="importing" @click="fileInput && fileInput.click()">Choose file</button>
+            <span class="ab-help">{{ selectedFile ? selectedFile.name : 'No file chosen' }}</span>
+          </div>
+          <div style="margin-top:.8rem">
             <button
-              class="ab-btn ab-btn--primary"
+              type="button"
+              class="ab-btn ab-btn--secondary ab-btn--sm"
               :disabled="!selectedFile || importing"
               @click="doImport"
-            >
-              <AbIcon name="upload" />
-              {{ importing ? 'Importing…' : 'Import settings' }}
-            </button>
-
-            <div
-              v-if="resultMessage"
-              :class="['ab-alert', 'mt-3', resultOk ? 'ab-alert--success' : 'ab-alert--danger']"
-              role="status"
-            >{{ resultMessage }}</div>
-
-            <div class="ab-help mt-3">
-              For your safety, license keys and per-site identity values are never
-              imported — they always come from this site's own verified license.
-            </div>
+            >{{ importing ? 'Importing…' : 'Import settings' }}</button>
+          </div>
+          <div
+            v-if="resultMessage"
+            :class="['ab-alert', resultOk ? 'ab-alert--success' : 'ab-alert--danger']"
+            role="status"
+            style="margin-top:.8rem"
+          >{{ resultMessage }}</div>
+          <div class="ab-help" style="margin-top:.8rem">
+            For your safety, license keys and per-site identity values are never
+            imported — they always come from this site's own verified license.
           </div>
         </div>
       </div>
     </div>
 
-    <div class="ab-section mt-3" style="border-left:3px solid var(--ab-danger)">
-      <div class="ab-section__head" style="color:var(--ab-danger)">
+    <div class="ab-section ab-section--danger mt-3">
+      <div class="ab-section__head">
         <AbIcon name="warning" />
         Danger Zone — Uninstall
       </div>
       <div class="ab-section__body">
-        <p class="mb-2">
-          Uninstalling the AI Boost package from
-          <strong>System → Manage → Extensions</strong> removes the extension files
-          but <strong>keeps your data</strong>. Uninstalling:
+        <p class="ab-help" style="margin:0 0 .7rem">
+          Uninstalling removes the extension files but <strong>keeps your data</strong> — settings, every
+          translation, your redirect list and the 404 log are preserved, and your licence &amp; Pro activation
+          unlock again as soon as you reinstall. Generated root files (the <code>robots.txt</code> managed block,
+          <code>llms.txt</code>, sitemap) are cleaned up. Export your settings above before any major change.
         </p>
-        <ul class="mb-3 small">
-          <li><strong>Preserves</strong> all settings, every per-language translation, your redirect list, and the 404 log</li>
-          <li><strong>Preserves</strong> your licence and Pro activation — Pro features unlock again as soon as you reinstall</li>
-          <li>Removes the extension files and cleans up generated root files (<code>robots.txt</code> managed block, <code>llms.txt</code>, sitemap files)</li>
-          <li>Clears developer override keys</li>
-        </ul>
-        <p class="ab-help mb-3">
-          Reinstalling restores full function with your data intact. Before any major
-          change, download a settings export above — it is a single JSON file containing every option, redirect, and translation.
-        </p>
-        <a href="https://github.com/bojancreator/aiboost-joomla/blob/main/docs/uninstall-guide.md"
-           target="_blank" rel="noopener"
-           class="ab-btn ab-btn--ghost ab-btn--sm">
-          Read the uninstall guide →
-        </a>
+        <div class="ab-row">
+          <a href="https://github.com/bojancreator/aiboost-joomla/blob/main/docs/uninstall-guide.md"
+             target="_blank" rel="noopener"
+             class="ab-btn ab-btn--ghost ab-btn--sm">Read the uninstall guide →</a>
+        </div>
       </div>
     </div>
 
@@ -140,3 +121,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.ab-two { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 680px) { .ab-two { grid-template-columns: 1fr; } }
+.ab-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+</style>

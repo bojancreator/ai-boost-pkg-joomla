@@ -32,6 +32,12 @@ body[class*="com_aiboost"] {
   --ab-bg-elev:         #ffffff;
   --ab-bg-elev-2:       #fafaf8;
   --ab-bg-muted:        #ebeae6;
+  /* Compatibility aliases — older components reference --ab-surface(-raised);
+     map them to the real elevation tokens so they resolve per-theme (the dark
+     block overrides --ab-bg-elev*). Without these, background:var(--ab-surface)
+     was invalid → transparent (e.g. the sticky settings header showed through). */
+  --ab-surface:         var(--ab-bg-elev);
+  --ab-surface-raised:  var(--ab-bg-elev-2);
 
   /* ── Palette: text ──────────────────────────────────────────────── */
   --ab-text:            #16170f;

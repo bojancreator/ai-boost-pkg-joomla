@@ -1,11 +1,11 @@
 <template>
   <div class="ab-topbar">
     <h2 class="ab-topbar__title">{{ title }}</h2>
-    <span v-if="subtitle" class="ab-topbar__sub">{{ subtitle }}</span>
     <div v-if="$slots.default" class="ab-topbar__actions">
       <slot />
     </div>
   </div>
+  <p v-if="subtitle" class="ab-page-desc" style="margin:-.4rem 0 var(--ab-space-4)">{{ subtitle }}</p>
 </template>
 
 <script>

@@ -1,10 +1,7 @@
 <template>
   <div class="ab-vue-dashboard">
 
-    <PageHeader
-      title="Dashboard"
-      :subtitle="data.lastSaved ? ('Settings last saved ' + data.lastSaved) : 'Not configured yet'"
-    />
+    <PageHeader title="Dashboard" />
 
     <div class="ab-page">
 
@@ -153,8 +150,8 @@
               {{ plugin.flash }}
             </div>
 
-            <!-- Configure link — deep-links to the plugin's settings tab + field -->
-            <a :href="configureUrl(plugin.meta)" class="ab-configure-link">Configure →</a>
+            <!-- Configure — deep-links to the plugin's settings tab + field -->
+            <a :href="configureUrl(plugin.meta)" class="ab-btn ab-btn--ghost ab-btn--sm ab-modcard__configure">Configure</a>
 
           </div>
         </div>
@@ -164,7 +161,6 @@
       <div class="ab-section">
         <div class="ab-section__head">Quick actions</div>
         <div class="ab-section__body ab-row" style="flex-wrap:wrap">
-          <a :href="data.urls.settings" class="ab-btn ab-btn--primary ab-btn--sm">Open settings</a>
           <a :href="data.urls.redirects" class="ab-btn ab-btn--ghost ab-btn--sm">
             Redirect manager
             <span v-if="data.redirectCount > 0" class="ab-badge ms-1">{{ data.redirectCount }}</span>
@@ -322,14 +318,6 @@
           </p>
         </div>
       </div>
-
-      <!-- Footer -->
-      <p class="ab-hint">
-        &copy; 2025 <a href="https://aiboostnow.com" target="_blank" rel="noopener">AI Boost</a>
-        (aiboostnow.com)&nbsp;&middot;&nbsp;
-        <a href="https://aiboostnow.com/docs" target="_blank" rel="noopener">Documentation</a>&nbsp;&middot;&nbsp;
-        <a href="https://aiboostnow.com/pricing" target="_blank" rel="noopener">Upgrade license</a>
-      </p>
 
     </div>
   </div>
@@ -782,22 +770,10 @@ export default {
 @media (max-width: 900px) { .ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: 1fr; } }
 .ab-modcard__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ab-space-3); }
-.ab-modcard__heading { display: flex; flex-direction: column; gap: var(--ab-space-2); min-width: 0; }
+.ab-modcard__heading { display: flex; flex-direction: row; align-items: center; gap: var(--ab-space-2); flex-wrap: wrap; min-width: 0; }
 .ab-modcard__status { display: flex; align-items: center; gap: var(--ab-space-2); flex-wrap: wrap; }
 .ab-modcard__flash { font-size: var(--ab-font-size-xs); }
-.ab-configure-link {
-  display: inline-flex;
-  align-items: center;
-  font-size: var(--ab-font-size-xs);
-  font-weight: var(--ab-font-weight-medium);
-  color: var(--ab-text-muted);
-  text-decoration: none;
-  margin-top: auto;
-  padding-top: var(--ab-space-2);
-  border-top: 1px solid var(--ab-border);
-  width: 100%;
-}
-.ab-configure-link:hover { color: var(--ab-primary); text-decoration: none; }
+.ab-modcard__configure { margin-top: auto; align-self: flex-start; }
 
 /* Notifications panel (item 12a) — collapsible non-critical notifications. */
 .ab-notif-panel {

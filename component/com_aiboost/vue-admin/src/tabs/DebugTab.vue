@@ -1,10 +1,16 @@
 <template>
   <div class="ab-settings-tab">
 
-    <div class="ab-alert ab-alert--info">
-      <strong>About this tab</strong> — Debug options below are designed to stay
-      enabled on a live site. They control verbose logging, HTML comment output,
-      and staging-mode suppression of analytics / IndexNow / redirects.
+    <div class="ab-alert ab-alert--info" role="note">
+      <AbIcon name="info" class="ab-alert__icon" style="font-size:1.15rem" />
+      <div style="max-width:62ch">
+        <div class="ab-alert__title">About this tab</div>
+        <div class="ab-alert__body">
+          Debug options below are designed to stay enabled on a live site. They control
+          verbose logging, HTML comment output, and staging-mode suppression of
+          analytics / IndexNow / redirects.
+        </div>
+      </div>
     </div>
 
     <!-- 01 Production-safe options -->

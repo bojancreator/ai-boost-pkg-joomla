@@ -171,8 +171,8 @@
                   <td class="fw-semibold" style="white-space:nowrap;vertical-align:middle;padding:4px 8px">{{ ev }}</td>
                   <td style="vertical-align:middle;padding:4px 8px;font-size:.83em;color:var(--ab-text-muted)">{{ desc }}</td>
                   <td style="text-align:center;vertical-align:middle;padding:4px 8px">
-                    <label class="ab-toggle d-inline-flex justify-content-center mb-0">
-                      <input type="checkbox"
+                    <label class="ab-toggle d-inline-flex justify-content-center mb-0" :class="{ 'is-on': pixelEventsMap[ev] }">
+                      <input type="checkbox" class="ab-toggle__input"
                         :checked="pixelEventsMap[ev]"
                         @change="togglePixelEvent(ev, $event.target.checked)">
                       <span class="ab-toggle__track"></span>
@@ -200,7 +200,7 @@
               <input v-model="ev.url" type="text" class="ab-input form-control-sm" placeholder="URL pattern (e.g. /checkout)">
             </div>
             <div class="col-3">
-              <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost ab-btn--danger-ghost w-100" @click="removeEvent(i)">Remove</button>
+              <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost ab-btn--danger-ghost" @click="removeEvent(i)">Remove</button>
             </div>
           </div>
           <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost" @click="addEvent">+ Add Custom Event</button>

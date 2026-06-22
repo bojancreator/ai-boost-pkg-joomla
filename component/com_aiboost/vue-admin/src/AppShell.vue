@@ -22,6 +22,8 @@
       <router-view v-else v-slot="{ Component }">
         <component :is="Component" />
       </router-view>
+
+      <AppFooter />
     </div>
 
     <ConflictWizard v-if="showWizard" :conflicts="wizardConflicts" @close="onWizardClose" />
@@ -35,12 +37,13 @@ import Sidebar from './Sidebar.vue'
 import ToastStack from './components/ToastStack.vue'
 import ConflictWizard from './ConflictWizard.vue'
 import CriticalBar from './components/CriticalBar.vue'
+import AppFooter from './components/AppFooter.vue'
 import { useColorScheme } from './composables/useColorScheme.js'
 import { ensureLegacyGlobals, isLegacyGlobalsReady } from './composables/useLegacyGlobals.js'
 
 export default {
   name: 'AppShell',
-  components: { Sidebar, ToastStack, ConflictWizard, CriticalBar },
+  components: { Sidebar, ToastStack, ConflictWizard, CriticalBar, AppFooter },
 
   setup() {
     const { scheme } = useColorScheme()
@@ -103,6 +106,9 @@ export default {
       // SPA fills the Joomla content area edge-to-edge regardless of version.
       const root = document.getElementById('ab-app')
       if (root) {
+        // Licensed (Pro) → mark the root so per-feature "Pro" upsell tags hide
+        // (the sidebar edition badge is excepted in CSS). Free keeps showing them.
+        if (boot.isPro) root.classList.add('ab-is-pro')
         let el = root.parentElement
         while (el && el !== document.body) {
           el.style.setProperty('padding', '0', 'important')

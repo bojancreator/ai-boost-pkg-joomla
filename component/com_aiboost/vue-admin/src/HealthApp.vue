@@ -46,6 +46,7 @@
                 </svg>
                 <div class="ab-hc-score-num-overlay">
                   <span :class="['ab-hc-score-num', scoreClass]">{{ displayScore }}</span>
+                  <span class="ab-hc-score-label">{{ scoreLabel }}</span>
                 </div>
               </div>
 
@@ -788,16 +789,16 @@ export default {
 /* Score circle SVG layout (v0.12.10 — wrap MUST be a sized positioning context) */
 .ab-hc-score-wrap {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: 116px;
+  height: 116px;
   flex-shrink: 0;
   line-height: 1;
 }
 .ab-hc-score-svg {
   position: absolute;
   top: 0; left: 0;
-  width: 96px;
-  height: 96px;
+  width: 116px;
+  height: 116px;
 }
 .ab-hc-score-num {
   font-size: 1.75rem;
@@ -821,9 +822,18 @@ export default {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+}
+.ab-hc-score-label {
+  font-family: var(--ab-font-mono);
+  font-size: var(--ab-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--ab-text-muted);
+  margin-top: .15rem;
 }
 /* Arc + number colour by class — driven by restrained --ab-* tokens (theme-aware) */
 .ab-hc-score--green  { stroke: var(--ab-success); }

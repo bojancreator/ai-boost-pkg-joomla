@@ -75,52 +75,10 @@
             </div>
           </div>
 
-          <!-- Expandable: per-integration options -->
-          <div v-if="optionsFor(item) && optsLoaded" class="ab-int-acc">
-            <button type="button" class="ab-int-acc__btn" @click="toggleOpts(item.key)">
-              <span>Options</span>
-              <span class="ab-int-acc__chev" :class="{ 'is-open': openOpts[item.key] }">▾</span>
-            </button>
-            <div v-show="openOpts[item.key]" class="ab-int-acc__body">
-              <p v-if="!item.installed" class="ab-help mb-2">
-                Not detected on this site — these options take effect once the extension is installed and active.
-              </p>
-
-              <IntegrationOptionField
-                v-for="f in optionsFor(item).free" :key="f.key"
-                :field="f" v-model="settings[f.key]" />
-
-              <ProGate v-if="optionsFor(item).pro.length" mode="card" :label="item.name + ' (Pro)'">
-                <IntegrationOptionField
-                  v-for="f in optionsFor(item).pro" :key="f.key"
-                  :field="f" v-model="settings[f.key]" />
-              </ProGate>
-
-              <div class="d-flex align-items-center gap-2 mt-2">
-                <button type="button" class="ab-btn ab-btn--sm ab-btn--primary"
-                  :disabled="!!savingOpts[item.key]" @click="saveOptions(item)">
-                  <span v-if="savingOpts[item.key]">Saving…</span>
-                  <span v-else>Save options</span>
-                </button>
-                <span v-if="optsMsg[item.key]" class="ab-help"
-                  :style="{ color: optsOk[item.key] ? 'var(--ab-success)' : 'var(--ab-danger)' }">
-                  {{ optsMsg[item.key] }}
-                </span>
-              </div>
-            </div>
+          <!-- Options open in a modal -->
+          <div v-if="optionsFor(item) && optsLoaded" class="mt-2">
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--secondary" @click="openOptions(item)">Options</button>
           </div>
-        </div>
-
-        <!-- Footer: CTA -->
-        <div v-if="hasCardAction(item)" class="ab-int-card__footer">
-          <a
-            :href="item.learn_url"
-            target="_blank"
-            rel="noopener"
-            class="ab-btn ab-btn--ghost ab-btn--sm"
-          >
-            Learn More
-          </a>
         </div>
 
       </div>
@@ -137,6 +95,46 @@
       <strong>Detection</strong> checks the Joomla extensions table for installed &amp; enabled extensions.
       Switching an integration off keeps all your settings — it only pauses AI Boost's extra output for that extension.
       <a href="https://aiboostnow.com/integrations" target="_blank" rel="noopener">Browse all integrations</a>
+    </div>
+
+    <!-- Per-integration Options modal -->
+    <div v-if="optionsModalItem" class="ab-int-modal" @click.self="closeOptions">
+      <div class="ab-int-modal__panel" role="dialog" aria-modal="true">
+        <div class="ab-int-modal__head">
+          <div class="min-w-0">
+            <div class="ab-int-modal__title">{{ optionsModalItem.name }} — Options</div>
+            <div class="ab-help">{{ optionsModalItem.vendor }}</div>
+          </div>
+          <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="closeOptions" aria-label="Close">✕</button>
+        </div>
+        <div class="ab-int-modal__body">
+          <p v-if="!optionsModalItem.installed" class="ab-help mb-2">
+            Not detected on this site — these options take effect once the extension is installed and active.
+          </p>
+          <IntegrationOptionField
+            v-for="f in optionsFor(optionsModalItem).free" :key="f.key"
+            :field="f" v-model="settings[f.key]" />
+          <ProGate v-if="optionsFor(optionsModalItem).pro.length" mode="card" :label="optionsModalItem.name + ' (Pro)'">
+            <IntegrationOptionField
+              v-for="f in optionsFor(optionsModalItem).pro" :key="f.key"
+              :field="f" v-model="settings[f.key]" />
+          </ProGate>
+        </div>
+        <div class="ab-int-modal__foot">
+          <span v-if="optsMsg[optionsModalItem.key]" class="ab-help"
+            :style="{ color: optsOk[optionsModalItem.key] ? 'var(--ab-success)' : 'var(--ab-danger)' }">
+            {{ optsMsg[optionsModalItem.key] }}
+          </span>
+          <div class="ab-int-modal__foot-actions">
+            <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="closeOptions">Close</button>
+            <button type="button" class="ab-btn ab-btn--primary ab-btn--sm"
+              :disabled="!!savingOpts[optionsModalItem.key]" @click="saveOptions(optionsModalItem)">
+              <span v-if="savingOpts[optionsModalItem.key]">Saving…</span>
+              <span v-else>Save options</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -208,7 +206,7 @@ export default {
 
   data() {
     return {
-      integrations: window.aiBoostIntegrations || [],
+      integrations: (window.aiBoostIntegrations || []).filter(i => !/4\s*seo/i.test(i.name || '') && !/4\s*seo/i.test(i.key || '')),
       search:          '',
       categoryFilter:  '',
       saving:          {},
@@ -219,6 +217,7 @@ export default {
       optsOk:          {},
       openDoes:        {},
       openOpts:        {},
+      optionsModalItem: null,
     }
   },
 
@@ -336,6 +335,9 @@ export default {
     toggleDoes(key) { this.openDoes = { ...this.openDoes, [key]: !this.openDoes[key] } },
     toggleOpts(key) { this.openOpts = { ...this.openOpts, [key]: !this.openOpts[key] } },
 
+    openOptions(item) { this.optionsModalItem = item },
+    closeOptions() { this.optionsModalItem = null },
+
     hasCardAction(item) {
       return item.status !== 'coming_soon' && item.status !== 'roadmap' && !!item.learn_url
     },
@@ -438,12 +440,18 @@ export default {
 .ab-int-card { display: flex; flex-direction: column; }
 
 /* Status left-accent */
-.ab-int-card--support_active { border-left: 3px solid var(--ab-success); }
-.ab-int-card--paused         { border-left: 3px solid var(--ab-warning); }
-.ab-int-card--detected       { border-left: 3px solid var(--ab-border); }
-.ab-int-card--coming_soon    { border-left: 3px solid var(--ab-warning); }
-.ab-int-card--roadmap        { border-left: 3px solid var(--ab-border); opacity: .7; }
-.ab-int-card--not_detected   { border-left: 3px solid var(--ab-border); opacity: .85; }
+/* No coloured left rail on integration cards or their heads (Bojan I1). */
+.ab-int-card__head { border-left: none; }
+
+.ab-int-modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+.ab-int-modal__panel { background: var(--ab-bg-elev); border: 1px solid var(--ab-border); border-radius: var(--ab-radius); width: 100%; max-width: 560px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+.ab-int-modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--ab-border); }
+.ab-int-modal__title { font-weight: 700; font-size: 1.05rem; color: var(--ab-text); }
+.ab-int-modal__body { padding: 1rem 1.25rem; overflow-y: auto; }
+.ab-int-modal__foot { display: flex; align-items: center; gap: .75rem; padding: .85rem 1.25rem; border-top: 1px solid var(--ab-border); }
+.ab-int-modal__foot-actions { display: flex; gap: .5rem; margin-left: auto; }
+.ab-int-card--roadmap        { opacity: .7; }
+.ab-int-card--not_detected   { opacity: .85; }
 
 .ab-int-card__head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem;
@@ -451,7 +459,7 @@ export default {
 .ab-int-card__title { font-family: var(--ab-font-family); text-transform: none; letter-spacing: normal; }
 .ab-int-card__name { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
 .ab-int-card__name-text { font-weight: 600; font-size: var(--ab-font-size-base); color: var(--ab-text); }
-.ab-int-card__status { font-family: var(--ab-font-mono); font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+.ab-int-card__status { font-family: var(--ab-font-mono); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; border: 1px solid currentColor; border-radius: var(--ab-radius); padding: .08em .4em; }
 .ab-int-card__vendor { font-family: var(--ab-font-family); text-transform: none; letter-spacing: -.01em; font-size: .75rem; font-weight: 400; color: var(--ab-text-muted); margin-top: .1rem; }
 
 .ab-int-card__body { flex: 1 1 auto; }

@@ -70,6 +70,9 @@
           No image selected — click here or <strong>Select</strong> to open the media manager
         </span>
       </div>
+      <div v-if="modelValue && previewError" class="ab-media-picker__placeholder" style="opacity:.6">
+        <span class="ab-media-picker__placeholder-text" style="color:var(--ab-text-muted)">Image not found — check the path</span>
+      </div>
       <slot name="overlay"></slot>
     </div>
 

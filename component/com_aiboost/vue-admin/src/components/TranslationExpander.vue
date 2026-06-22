@@ -96,20 +96,23 @@ export default {
 .ab-trans-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border: 1px solid var(--ab-border-strong);
-  border-radius: 5px;
-  background: var(--ab-bg-muted);
-  color: var(--ab-text);
-  font-size: .78rem;
+  gap: 6px;
+  padding: .3rem .6rem;
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: transparent;
+  color: var(--ab-text-muted);
+  font-family: var(--ab-font-mono);
+  font-size: var(--ab-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: .02em;
   cursor: pointer;
-  transition: background .15s, border-color .15s;
+  transition: color .12s, border-color .12s;
   user-select: none;
 }
 .ab-trans-toggle:hover {
-  background: var(--ab-bg-elev-2);
-  border-color: var(--ab-border-strong);
+  color: var(--ab-text);
+  border-color: var(--ab-primary);
 }
 
 .ab-trans-arrow {

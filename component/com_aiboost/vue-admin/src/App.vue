@@ -4,7 +4,6 @@
     <!-- ── Sticky top action bar (Settings A) ───────────────────── -->
     <div class="ab-action-bar">
       <div class="ab-action-bar__title">
-        <span class="ab-action-bar__dot" :style="{ background: activeTabColor }"></span>
         <h2>{{ activeTabLabel }}</h2>
         <span v-if="hasChanges" class="ab-action-bar__dirty">• Unsaved changes</span>
       </div>
@@ -70,7 +69,6 @@
     <div class="ab-tab-content">
       <OrgTab       v-show="activeTab === 'org'"        :s="s" />
       <SchemaTab    v-show="activeTab === 'schema'"     :s="s" />
-      <TechnicalSeoTab v-show="activeTab === 'technical'" :s="s" />
       <TitlesMetaTab v-show="activeTab === 'titles'"    :s="s" />
       <SitemapTab   v-show="activeTab === 'sitemap'"    :s="s" />
       <SocialTab    v-show="activeTab === 'social'"     :s="s" />
@@ -99,7 +97,6 @@ import { saveSettings } from './api.js'
 import { loadTranslationData, getAllTranslations } from './composables/useTranslations.js'
 import OrgTab       from './tabs/OrgTab.vue'
 import SchemaTab    from './tabs/SchemaTab.vue'
-import TechnicalSeoTab from './tabs/TechnicalSeoTab.vue'
 import TitlesMetaTab from './tabs/TitlesMetaTab.vue'
 import SitemapTab   from './tabs/SitemapTab.vue'
 import SocialTab    from './tabs/SocialTab.vue'
@@ -125,11 +122,12 @@ const ICONS = {
 }
 
 const FIELD_TAB_ALIASES = {
-  // The old "General" tab was merged into "Technical SEO" — its fields now
-  // resolve there so existing deep-links / Health "Fix It" targets still land.
-  auto_domain_detection: 'technical',
-  manual_domain: 'technical',
-  conflict_mode: 'technical',
+  // The Technical SEO tab was dissolved: Domain → Site Identity (org),
+  // Canonical → Titles & Meta, 404 logging → Redirects page, conflict mode →
+  // Conflict Manager. These aliases keep existing deep-links / Health "Fix It"
+  // targets landing on the right tab.
+  auto_domain_detection: 'org',
+  manual_domain: 'org',
   // Page title + meta-description templates moved to their own "Titles & Meta" tab.
   title_separator: 'titles',
   title_template: 'titles',
@@ -145,9 +143,8 @@ const FIELD_TAB_ALIASES = {
   meta_desc_template_article: 'titles',
   meta_desc_template_category: 'titles',
   meta_desc_template_default: 'titles',
-  enable_canonical: 'technical',
-  canonical_url_map: 'technical',
-  redirect_404_log_enabled: 'technical',
+  enable_canonical: 'titles',
+  canonical_url_map: 'titles',
   enable_robots: 'crawlers',
   robots_auto_sync: 'crawlers',
   robots_custom_scrapers: 'crawlers',
@@ -188,7 +185,7 @@ const DEFAULTS = {
 
 export default {
   name: 'AiBoostSettings',
-  components: { OrgTab, SchemaTab, TechnicalSeoTab, TitlesMetaTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab, ConfirmDialog },
+  components: { OrgTab, SchemaTab, TitlesMetaTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab, ConfirmDialog },
 
   mounted() {
     // Ctrl/Cmd + S → save (power-user shortcut)
@@ -284,7 +281,7 @@ export default {
 
   data() {
     return {
-      activeTab:   'technical',
+      activeTab:   'org',
       saving: false,
       message: '',
       msgCls: '',
@@ -293,10 +290,9 @@ export default {
       tabs: [
         { id: 'org',       label: 'Site Identity', icon: ICONS.org,       color: '#3b82f6' },
         { id: 'schema',    label: 'Schema.org',    icon: ICONS.schema,    color: '#8b5cf6' },
-        { id: 'technical', label: 'Technical SEO', icon: ICONS.general,   color: '#0ea5e9' },
         { id: 'titles',    label: 'Titles & Meta', icon: ICONS.general,   color: '#0ea5e9' },
         { id: 'sitemap',   label: 'Sitemap',       icon: ICONS.sitemap,   color: '#14b8a6' },
-        { id: 'social',    label: 'Social Meta / OG', icon: ICONS.social,  color: '#ec4899' },
+        { id: 'social',    label: 'Social Meta / OpenGraph', icon: ICONS.social,  color: '#ec4899' },
         { id: 'analytics', label: 'Analytics & Tracking', icon: ICONS.analytics, color: '#f97316' },
         { id: 'aeo',       label: 'AEO',           icon: ICONS.aeo,       color: '#06b6d4' },
         { id: 'crawlers',  label: 'Crawlers & Robots', icon: ICONS.urlchecker, color: '#22c55e' },
@@ -340,7 +336,7 @@ export default {
     // without remounting this component.
     '$route.query.tab'(tab) {
       if (!this.$route || this.$route.name !== 'settings') return
-      const id = resolveSettingsTab(tab || 'technical', this.$route.query.field)
+      const id = resolveSettingsTab(tab || 'org', this.$route.query.field)
       if (this.tabs.some(t => t.id === id)) this.activeTab = id
     },
   },
@@ -363,9 +359,9 @@ export default {
       // running inside the SPA. In legacy standalone mode there is no
       // router, so we simply set activeTab above.
       if (this.$router && this.$route && this.$route.name === 'settings'
-          && (this.$route.query.tab || 'technical') !== id) {
+          && (this.$route.query.tab || 'org') !== id) {
         this.$router
-          .replace({ path: '/settings', query: id === 'technical' ? {} : { tab: id } })
+          .replace({ path: '/settings', query: id === 'org' ? {} : { tab: id } })
           .catch(() => {})
       }
     },
@@ -617,11 +613,9 @@ export default {
   padding: .6rem 1rem .6rem .875rem;
   background: var(--ab-surface-raised);
   border-bottom: 1px solid var(--ab-border);
-  border-left: 4px solid var(--ab-tab-color, var(--ab-primary));
   font-weight: 600;
   font-size: .9375rem;
-  color: var(--ab-tab-color, var(--ab-primary));
-  transition: border-left-color .2s ease, color .2s ease;
+  color: var(--ab-text);
 }
 .ab-vue-settings .ab-card-body {
   padding: 1rem;

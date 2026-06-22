@@ -442,7 +442,7 @@ class HealthCheckService
             $fixUrl = $this->pluginManagerUrl('aiboost_core');
         } elseif (!$settingOn) {
             $msg    = 'Canonical URL management is disabled in settings — duplicate content issues may occur.';
-            $fixUrl = $this->settingsUrl('technical', 'enable_canonical');
+            $fixUrl = $this->settingsUrl('titles', 'enable_canonical');
         } else {
             $msg    = 'Canonical URL management is active.';
             $fixUrl = '';
@@ -3575,9 +3575,9 @@ class HealthCheckService
         if ($tab !== '' && preg_match('/^tab-([a-z0-9_]+)-btn$/i', $tab, $m)) {
             $tab = $m[1];
         }
-        // The old standalone "general" tab was merged into "technical".
-        if ($tab === 'general') {
-            $tab = 'technical';
+        // Legacy tab ids → current homes (the Technical SEO tab was dissolved).
+        if ($tab === 'general' || $tab === 'technical') {
+            $tab = 'org';
         }
 
         // Stay inside the SPA shell: tab + field live in the hash query

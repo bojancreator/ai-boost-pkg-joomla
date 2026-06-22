@@ -51,7 +51,7 @@
               </div>
             </div>
             <div class="col-md-2 d-flex align-items-end">
-              <button type="submit" class="ab-btn ab-btn--primary w-100" :disabled="busy">
+              <button type="submit" class="ab-btn ab-btn--primary" :disabled="busy">
                 {{ busy ? 'Adding…' : 'Add Rule' }}
               </button>
             </div>
@@ -106,6 +106,16 @@
 
     <!-- ─── 404 log tab ───────────────────────────────────────────── -->
     <div v-else-if="tab === 'log404'">
+      <label class="ab-toggle-row mb-3" style="max-width:560px">
+        <div>
+          <div class="ab-label">Log 404 Errors</div>
+          <div class="ab-help">AI Boost records front-end 404 hits below, so you can turn recurring dead URLs into permanent redirects.</div>
+        </div>
+        <span class="ab-toggle" :class="{'is-on': log404Enabled}">
+          <input type="checkbox" class="ab-toggle__input" :checked="log404Enabled" @change="toggle404Log($event.target.checked)">
+          <span class="ab-toggle__track"></span>
+        </span>
+      </label>
       <div class="ab-section">
         <div class="ab-section__head">
           Recent 404 errors
@@ -169,7 +179,7 @@
 
 <script>
 import { ref, onMounted } from 'vue'
-import { postWithCsrf, makeAdminUrl } from './api.js'
+import { postWithCsrf, makeAdminUrl, saveSettings } from './api.js'
 import PageHeader from './components/PageHeader.vue'
 
 export default {
@@ -183,6 +193,13 @@ export default {
     const redirects  = ref([])
     const log404     = ref([])
     const total404   = ref(0)
+    const log404Enabled = ref(((window.aiBoostSettings && window.aiBoostSettings.redirect_404_log_enabled) ?? '1') === '1')
+    async function toggle404Log(on) {
+      log404Enabled.value = !!on
+      const v = on ? '1' : '0'
+      if (window.aiBoostSettings) window.aiBoostSettings.redirect_404_log_enabled = v
+      try { await saveSettings({ redirect_404_log_enabled: v }) } catch (_e) { /* fire-and-forget */ }
+    }
     const form       = ref({ from_url: '', to_url: '', redirect_type: 301, note: '' })
     const formMsg    = ref('')
     const formMsgOk  = ref(false)
@@ -296,7 +313,8 @@ export default {
 
     return { tab, loading, loadError, busy, redirects, log404, total404, form, formMsg, formMsgOk,
              csv, csvMsg, csvMsgOk,
-             addRedirect, toggle, remove, clearLog, prefillFrom, importCsv }
+             addRedirect, toggle, remove, clearLog, prefillFrom, importCsv,
+             log404Enabled, toggle404Log }
   },
 }
 </script>

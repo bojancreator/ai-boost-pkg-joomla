@@ -10,10 +10,8 @@
       <strong>Failed to load:</strong> {{ loadError }}
     </div>
 
-    <div v-if="proActivated" class="ab-alert ab-alert--success">
-      <strong>License activated</strong>
-      <span v-if="proActivatedAt"> on {{ formatDate(proActivatedAt) }}</span>.
-      If your license later expires, installed features keep working; renewal restores updates &amp; support.
+    <div v-if="proActivated" class="ab-license-active">
+      <strong>License is active.</strong> Updates and support are available.<span v-if="proActivatedAt"> Activated {{ formatDate(proActivatedAt) }}.</span>
     </div>
 
     <!-- Core license -->

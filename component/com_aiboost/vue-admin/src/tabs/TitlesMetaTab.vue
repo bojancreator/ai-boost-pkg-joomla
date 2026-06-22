@@ -13,18 +13,14 @@
           <code>{page_title}</code> <code>{site_name}</code> <code>{separator}</code>
           <code>{category}</code> <code>{year}</code>. Leave a field empty to keep Joomla's default.
         </div>
-        <div class="row g-3">
-          <div class="col-md-8">
-            <div class="ab-field">
-              <label class="ab-label">Title Separator</label>
-              <input v-model="s.title_separator" data-ab-field="title_separator" type="text" class="ab-input" style="max-width:120px" placeholder=" | ">
-            </div>
+        <div class="ab-row" style="gap:1.5rem;flex-wrap:wrap;align-items:flex-start">
+          <div class="ab-field">
+            <label class="ab-label">Title Separator</label>
+            <input v-model="s.title_separator" data-ab-field="title_separator" type="text" class="ab-input" style="max-width:120px" placeholder=" | ">
           </div>
-          <div class="col-md-4">
-            <div class="ab-field">
-              <label class="ab-label">Max Length <span class="ab-muted">(0 = no limit)</span></label>
-              <input v-model="s.title_template_maxlen" data-ab-field="title_template_maxlen" type="number" min="0" max="120" class="ab-input" style="max-width:110px" placeholder="0">
-            </div>
+          <div class="ab-field">
+            <label class="ab-label">Max Length <span class="ab-muted">(0 = no limit)</span></label>
+            <input v-model="s.title_template_maxlen" data-ab-field="title_template_maxlen" type="number" min="0" max="120" class="ab-input" style="max-width:110px" placeholder="0">
           </div>
         </div>
         <div class="ab-field">
@@ -101,6 +97,32 @@
         <div class="ab-field">
           <label class="ab-label">Global Fallback <span class="ab-muted">(legacy)</span></label>
           <textarea v-model="s.meta_desc_template" data-ab-field="meta_desc_template" class="ab-input" rows="2" placeholder="Used when a per-type template is empty"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 Canonical URLs -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">03</span>
+        Canonical URLs
+      </div>
+      <div class="ab-section__body">
+        <label class="ab-toggle-row">
+          <div>
+            <div class="ab-label">Enable canonical URL management</div>
+          </div>
+          <span class="ab-toggle" :class="{'is-on': s.enable_canonical === '1'}">
+            <input v-model="s.enable_canonical" data-ab-field="enable_canonical" true-value="1" false-value="0"
+              type="checkbox" class="ab-toggle__input">
+            <span class="ab-toggle__track"></span>
+          </span>
+        </label>
+        <div class="ab-field">
+          <label class="ab-label">Canonical URL Map <span class="ab-muted">(one override per line)</span></label>
+          <textarea v-model="s.canonical_url_map" data-ab-field="canonical_url_map" class="ab-input font-monospace" rows="5"
+            placeholder="/old-path -> /new-path&#10;/shop -> /products"></textarea>
+          <div class="ab-help">Format: <code>/source-path -> /canonical-path</code> or full URLs.</div>
         </div>
       </div>
     </div>

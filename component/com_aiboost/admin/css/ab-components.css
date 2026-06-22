@@ -17,9 +17,9 @@ body[class*="com_aiboost"] {
 }
 
 /* ---- typography helpers --------------------------------------------------- */
-.ab-h { font-size: var(--ab-font-size-xl); font-weight: var(--ab-font-weight-bold); letter-spacing: -.01em; margin: 0; color: var(--ab-text); }
+.ab-h { font-size: var(--ab-font-size-xl); font-weight: var(--ab-font-weight-bold); letter-spacing: -.005em; margin: 0; color: var(--ab-text); }
 .ab-sub { font-size: var(--ab-font-size-sm); color: var(--ab-text-muted); margin: 0; }
-.ab-eyebrow { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-medium); letter-spacing: .12em; text-transform: uppercase; color: var(--ab-text-muted); }
+.ab-eyebrow { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-medium); letter-spacing: .06em; text-transform: uppercase; color: var(--ab-text-muted); }
 .ab-mono { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-sm); background: var(--ab-bg-muted); border: 1px solid var(--ab-border); border-radius: var(--ab-radius-sm); padding: .05em .4em; color: var(--ab-text); }
 .ab-muted { color: var(--ab-text-muted); }
 
@@ -45,6 +45,8 @@ body[class*="com_aiboost"] {
 .ab-btn--ghost:hover { background: var(--ab-bg-muted); }
 .ab-btn--subtle { background: var(--ab-primary-soft); color: var(--ab-primary); border-color: transparent; }
 .ab-btn--subtle:hover { background: var(--ab-primary-soft); filter: brightness(.97); }
+.ab-btn--secondary { background: var(--ab-bg-elev); color: var(--ab-text); border-color: var(--ab-border-strong); }
+.ab-btn--secondary:hover { background: var(--ab-bg-muted); }
 .ab-btn--sm { padding: .4rem .65rem; font-size: var(--ab-font-size-xs); }
 .ab-btn--lg { padding: .8rem 1.25rem; font-size: var(--ab-font-size-base); }
 .ab-btn:disabled, .ab-btn.is-disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
@@ -59,7 +61,7 @@ body[class*="com_aiboost"] {
   padding: var(--ab-space-3) var(--ab-space-4);
   border-bottom: 1px solid var(--ab-border);
   font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold);
-  letter-spacing: .10em; text-transform: uppercase; color: var(--ab-text-muted);
+  letter-spacing: .05em; text-transform: uppercase; color: var(--ab-text-muted);
   background: var(--ab-bg-elev-2);
 }
 .ab-card__body { padding: var(--ab-space-4); }
@@ -67,7 +69,7 @@ body[class*="com_aiboost"] {
 
 /* section card with left accent rail (used on settings screens) */
 .ab-section { background: var(--ab-bg-elev); border: 1px solid var(--ab-border); border-radius: var(--ab-radius-md); box-shadow: var(--ab-shadow-sm); overflow: hidden; }
-.ab-section__head { display: flex; align-items: center; gap: var(--ab-space-2); padding: var(--ab-space-3) var(--ab-space-4); border-bottom: 1px solid var(--ab-border); border-left: 2px solid var(--ab-primary); font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .10em; text-transform: uppercase; color: var(--ab-text); }
+.ab-section__head { display: flex; align-items: center; gap: var(--ab-space-2); padding: var(--ab-space-3) var(--ab-space-4); border-bottom: 1px solid var(--ab-border); border-left: 2px solid var(--ab-primary); font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .05em; text-transform: uppercase; color: var(--ab-text); }
 .ab-section__body { padding: var(--ab-space-4); display: grid; gap: var(--ab-space-4); }
 
 /* ---- form fields ---------------------------------------------------------- */
@@ -92,7 +94,7 @@ body[class*="com_aiboost"] {
 .ab-badge {
   display: inline-flex; align-items: center; gap: .4em;
   font-family: var(--ab-font-mono); font-size: .75rem; font-weight: 700; line-height: 1;
-  letter-spacing: .04em; text-transform: uppercase;
+  letter-spacing: .02em; text-transform: uppercase;
   padding: .28em .55em; border-radius: var(--ab-radius);
   background: var(--ab-bg-elev); color: var(--ab-text-muted); border: 1px solid var(--ab-border-strong);
 }
@@ -110,24 +112,26 @@ body[class*="com_aiboost"] {
 [data-bs-theme="dark"] .ab-badge--info    { background: var(--ab-info);    color: #fff; }
 
 /* edition tags */
-.ab-tag { display: inline-flex; align-items: center; gap: .3em; font-family: var(--ab-font-mono); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: .22em .5em; border-radius: var(--ab-radius); }
+.ab-tag { display: inline-flex; align-items: center; gap: .3em; font-family: var(--ab-font-mono); font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: .22em .5em; border-radius: var(--ab-radius); }
 .ab-tag--pro  { background: var(--ab-primary); color: var(--ab-text-on-primary); }
 .ab-tag--free { background: var(--ab-bg-muted); color: var(--ab-text-muted); border: 1px solid var(--ab-border-strong); }
 .ab-tag--beta { background: var(--ab-warning-soft); color: var(--ab-warning-hover); border: 1px solid transparent; }
 [data-bs-theme="dark"] .ab-tag--beta { color: var(--ab-warning); }
 .ab-tag--neutral { background: var(--ab-surface-raised); color: var(--ab-text-muted); border: 1px solid var(--ab-border); }
+/* Per-feature "Pro" tags are a Free-edition upsell hint — hide them once licensed (Bojan G7); keep the sidebar edition badge. */
+.ab-is-pro .ab-tag--pro:not(.ab-sidebar__edition) { display: none; }
 
 /* ---- tabs ----------------------------------------------------------------- */
 .ab-tabs { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--ab-space-1); flex-wrap: wrap; border-bottom: 1px solid var(--ab-border); }
 .ab-tabs > li { display: flex; }
-.ab-tab { appearance: none; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .08em; text-transform: uppercase; color: var(--ab-text-muted); cursor: pointer; padding: .65rem .9rem; display: inline-flex; align-items: center; gap: .35em; transition: color var(--ab-transition), border-color var(--ab-transition); }
+.ab-tab { appearance: none; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--ab-text-muted); cursor: pointer; padding: .65rem .9rem; display: inline-flex; align-items: center; gap: .35em; transition: color var(--ab-transition), border-color var(--ab-transition); }
 .ab-tab:hover { color: var(--ab-text); }
 .ab-tab.is-active, .ab-tab--active { background: none; color: var(--ab-text); border-bottom-color: var(--ab-primary); font-weight: var(--ab-font-weight-semibold); }
 .ab-tab:focus-visible { outline: none; box-shadow: var(--ab-focus-ring); border-radius: var(--ab-radius-sm); }
 
 /* pill tabs (schema sub-tabs) */
 .ab-pills { display: flex; flex-wrap: wrap; gap: var(--ab-space-2); }
-.ab-pill { display: inline-flex; align-items: center; gap: .4em; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-medium); letter-spacing: .05em; text-transform: uppercase; color: var(--ab-text-muted); background: var(--ab-bg-elev); border: 1px solid var(--ab-border); border-radius: var(--ab-radius); padding: .45rem .8rem; cursor: pointer; }
+.ab-pill { display: inline-flex; align-items: center; gap: .4em; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-medium); letter-spacing: .025em; text-transform: uppercase; color: var(--ab-text-muted); background: var(--ab-bg-elev); border: 1px solid var(--ab-border); border-radius: var(--ab-radius); padding: .45rem .8rem; cursor: pointer; }
 .ab-pill.is-active { background: var(--ab-primary-soft); color: var(--ab-primary); border-color: var(--ab-primary); font-weight: var(--ab-font-weight-semibold); }
 
 /* ---- alerts --------------------------------------------------------------- */
@@ -159,7 +163,7 @@ body[class*="com_aiboost"] {
 /* ---- stepper -------------------------------------------------------------- */
 .wiz-steps { display: flex; gap: var(--ab-space-2); flex-wrap: wrap; }
 .wiz-step { display: flex; align-items: center; gap: .5rem; font-size: var(--ab-font-size-sm); color: var(--ab-text-muted); }
-.wiz-step { font-family: var(--ab-font-mono); letter-spacing: .04em; text-transform: uppercase; font-size: var(--ab-font-size-xs); }
+.wiz-step { font-family: var(--ab-font-mono); letter-spacing: .02em; text-transform: uppercase; font-size: var(--ab-font-size-xs); }
 .wiz-step .n { width: 1.4rem; height: 1.4rem; border-radius: var(--ab-radius); display: grid; place-items: center; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); background: var(--ab-bg-elev); color: var(--ab-text-muted); border: 1px solid var(--ab-border-strong); }
 .wiz-step.done .n { background: var(--ab-success); color: #fff; border-color: transparent; }
 .wiz-step.active .n { background: var(--ab-primary); color: #fff; border-color: transparent; }
@@ -175,12 +179,12 @@ body[class*="com_aiboost"] {
 .ab-toggle__label { font-size: var(--ab-font-size-sm); }
 .ab-toggle:focus-visible .ab-toggle__track { box-shadow: var(--ab-focus-ring); }
 /* ON/OFF labelled switch — state text in mono bold, no surrounding border/chip */
-.ab-toggle--onoff .ab-toggle__label { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ab-text-muted); min-width: 2.3em; }
+.ab-toggle--onoff .ab-toggle__label { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--ab-text-muted); min-width: 2.3em; }
 .ab-toggle--onoff.is-on .ab-toggle__label { color: var(--ab-primary); }
 
 /* ---- tables --------------------------------------------------------------- */
 .ab-table { width: 100%; border-collapse: collapse; font-size: var(--ab-font-size-sm); }
-.ab-table thead th { text-align: left; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .08em; text-transform: uppercase; color: var(--ab-text-muted); background: var(--ab-bg-muted); padding: .6rem .8rem; border-bottom: 1px solid var(--ab-border); }
+.ab-table thead th { text-align: left; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); font-weight: var(--ab-font-weight-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--ab-text-muted); background: var(--ab-bg-muted); padding: .6rem .8rem; border-bottom: 1px solid var(--ab-border); }
 .ab-table tbody td { padding: .65rem .8rem; border-bottom: 1px solid var(--ab-border); color: var(--ab-text); }
 .ab-table tbody tr:hover td { background: var(--ab-bg-elev-2); }
 .ab-table tbody tr:last-child td { border-bottom: none; }
@@ -204,13 +208,13 @@ body[class*="com_aiboost"] {
 .ab-score svg { transform: rotate(-90deg); display: block; }
 .ab-score__track { stroke: var(--ab-bg-muted); }
 .ab-score__value { position: absolute; display: grid; place-items: center; text-align: center; }
-.ab-score__num { font-family: var(--ab-font-mono); font-size: 2rem; font-weight: var(--ab-font-weight-semibold); line-height: 1; color: var(--ab-text); letter-spacing: -.02em; }
-.ab-score__label { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); color: var(--ab-text-muted); text-transform: uppercase; letter-spacing: .12em; }
+.ab-score__num { font-family: var(--ab-font-mono); font-size: 2rem; font-weight: var(--ab-font-weight-semibold); line-height: 1; color: var(--ab-text); letter-spacing: -.01em; }
+.ab-score__label { font-family: var(--ab-font-mono); font-size: var(--ab-font-size-xs); color: var(--ab-text-muted); text-transform: uppercase; letter-spacing: .06em; }
 
 /* ---- locked / Pro treatment ----------------------------------------------- */
 .ab-locked { position: relative; }
 .ab-locked__overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: var(--ab-space-2); background: color-mix(in srgb, var(--ab-bg-elev) 70%, transparent); backdrop-filter: blur(1px); border-radius: var(--ab-radius-md); }
-.ab-lockchip { display: inline-flex; align-items: center; gap: .4em; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-sm); font-weight: var(--ab-font-weight-semibold); letter-spacing: .04em; color: var(--ab-primary); background: var(--ab-bg-elev); border: 1px solid var(--ab-primary); border-radius: var(--ab-radius); padding: .4rem .75rem; box-shadow: var(--ab-shadow-sm); }
+.ab-lockchip { display: inline-flex; align-items: center; gap: .4em; font-family: var(--ab-font-mono); font-size: var(--ab-font-size-sm); font-weight: var(--ab-font-weight-semibold); letter-spacing: .02em; color: var(--ab-primary); background: var(--ab-bg-elev); border: 1px solid var(--ab-primary); border-radius: var(--ab-radius); padding: .4rem .75rem; box-shadow: var(--ab-shadow-sm); }
 
 /* ---- misc layout ---------------------------------------------------------- */
 .ab-row { display: flex; align-items: center; gap: var(--ab-space-3); }
@@ -239,9 +243,8 @@ body[class*="com_aiboost"] {
   padding: var(--ab-space-3) var(--ab-space-5);
   border-bottom: 1px solid var(--ab-border); background: var(--ab-bg-elev);
 }
-/* Sit below Joomla's own sticky admin toolbar (~48px) on desktop. */
-@media (min-width: 768px) { .ab-topbar { top: 48px; } }
-.ab-topbar__title { margin: 0; font-size: var(--ab-font-size-xl); font-weight: var(--ab-font-weight-bold); letter-spacing: -.01em; color: var(--ab-text); }
+/* Header sits flush at the top of the content area (Bojan: top:0, not floating). */
+.ab-topbar__title { margin: 0; font-size: var(--ab-font-size-xl); font-weight: var(--ab-font-weight-bold); letter-spacing: -.005em; color: var(--ab-text); }
 .ab-topbar__sub { font-size: var(--ab-font-size-sm); color: var(--ab-text-muted); }
 .ab-topbar__actions { margin-left: auto; display: flex; align-items: center; gap: var(--ab-space-2); }
 .ab-unsaved { display: inline-flex; align-items: center; gap: .4rem; font-size: var(--ab-font-size-xs); color: var(--ab-warning); }

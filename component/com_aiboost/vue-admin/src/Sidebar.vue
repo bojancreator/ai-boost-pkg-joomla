@@ -96,7 +96,7 @@ export default {
 
     const isItemActive = (item) => {
       if (item.tab) {
-        return route.name === 'settings' && (route.query.tab || 'technical') === item.tab
+        return route.name === 'settings' && (route.query.tab || 'org') === item.tab
       }
       return route.name === item.id
     }
@@ -167,7 +167,10 @@ export default {
 .ab-sidebar {
   flex: 0 0 286px;
   width: 286px;
-  align-self: stretch;
+  align-self: flex-start;
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--ab-sidebar-bg);
@@ -274,8 +277,8 @@ export default {
 }
 .ab-sidebar__group-title {
   font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: .01em;
+  font-weight: 400;
+  letter-spacing: .005em;
 }
 .ab-sidebar__caret {
   flex: none;

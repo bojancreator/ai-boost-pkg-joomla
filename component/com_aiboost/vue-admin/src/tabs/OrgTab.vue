@@ -114,8 +114,8 @@
         <div class="row g-2">
           <div v-for="(meta, key) in socialPlatforms" :key="key" class="col-md-6">
             <div class="ab-field">
-              <label class="ab-label" :style="`color:${meta.color}`">
-                <span v-html="meta.icon" style="margin-right:5px;vertical-align:middle"></span>
+              <label class="ab-label">
+                <span v-html="meta.icon" style="margin-right:5px;vertical-align:middle;color:var(--ab-text-muted)"></span>
                 {{ meta.label }}
               </label>
               <input v-model="s['social_' + key]" type="url" class="ab-input form-control-sm"
@@ -195,8 +195,11 @@
           </div>
         </div>
         <div class="ab-help">
-          Find coordinates at
-          <a href="https://www.openstreetmap.org" target="_blank" rel="noopener">openstreetmap.org</a>
+          Find or verify on
+          <a :href="osmUrl" target="_blank" rel="noopener">OpenStreetMap</a>
+          or
+          <a :href="gmapsUrl" target="_blank" rel="noopener">Google Maps</a>
+          — opens at the coordinates you enter above.
         </div>
       </div>
     </div>
@@ -244,6 +247,31 @@
       </div>
     </div>
 
+    <!-- 07 Domain & Environment -->
+    <div class="ab-section">
+      <div class="ab-section__head">
+        <span class="ab-section__num">07</span>
+        Domain &amp; Environment
+      </div>
+      <div class="ab-section__body">
+        <label class="ab-toggle-row">
+          <div>
+            <div class="ab-label">Auto-detect domain <span class="ab-muted">(recommended)</span></div>
+          </div>
+          <span class="ab-toggle" :class="{'is-on': s.auto_domain_detection === '1'}">
+            <input v-model="s.auto_domain_detection" data-ab-field="auto_domain_detection" true-value="1" false-value="0"
+              type="checkbox" class="ab-toggle__input">
+            <span class="ab-toggle__track"></span>
+          </span>
+        </label>
+        <div class="ab-field">
+          <label class="ab-label">Manual Domain <span class="ab-muted">(if auto-detect is off)</span></label>
+          <input v-model="s.manual_domain" data-ab-field="manual_domain" type="url" class="ab-input"
+            placeholder="https://example.com" style="max-width:340px">
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -268,6 +296,19 @@ export default {
         tiktok:    { label: 'TikTok',      color: '#010101', icon: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.29 6.29 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V9.05a8.19 8.19 0 0 0 4.78 1.52V7.12a4.85 4.85 0 0 1-1.01-.43z"/></svg>' },
       },
     }
+  },
+
+  computed: {
+    osmUrl() {
+      const lat = this.s.org_latitude || '0'
+      const lng = this.s.org_longitude || '0'
+      return 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lng + '#map=16/' + lat + '/' + lng
+    },
+    gmapsUrl() {
+      const lat = this.s.org_latitude || ''
+      const lng = this.s.org_longitude || ''
+      return 'https://www.google.com/maps?q=' + lat + ',' + lng
+    },
   },
 }
 </script>

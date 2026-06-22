@@ -66,7 +66,7 @@ class SeoAnalyzerService
             'why'        => 'Canonical URLs prevent duplicate-content penalties when the same page is reachable via multiple URLs.',
             'suggestion' => 'Enable “Canonical URL management” in AI Boost so every page emits a self-canonical link.',
             'fix_action' => 'apply_setting',
-            'fix_payload'=> ['setting' => 'enable_canonical', 'value' => '1', 'tab' => 'technical', 'field' => 'enable_canonical'],
+            'fix_payload'=> ['setting' => 'enable_canonical', 'value' => '1', 'tab' => 'titles', 'field' => 'enable_canonical'],
         ],
         'og_title' => [
             'why'        => 'Without og:title, Facebook, LinkedIn and Slack fall back to a generic share preview.',

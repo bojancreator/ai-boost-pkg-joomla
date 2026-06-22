@@ -2,7 +2,7 @@
   <div class="ab-autopilot-page">
 
     <PageHeader title="Quick Setup" subtitle="A guided setup checklist for the core AI Boost configuration.">
-      <div class="ab-autopilot-score" aria-live="polite">
+      <div class="ab-autopilot-score" aria-live="polite" style="white-space:nowrap">
         <strong>{{ completedCount }}/{{ steps.length }}</strong>
         <span>complete</span>
       </div>
@@ -23,7 +23,6 @@
         :class="{ 'ab-autopilot-card--done': step.done }"
       >
         <div class="ab-section__head ab-autopilot-card__head">
-          <span class="ab-autopilot-card__icon" :class="step.icon" aria-hidden="true"></span>
           <div>
             <span class="ab-autopilot-card__title">{{ step.title }}</span>
             <span class="ab-help d-block">{{ step.summary }}</span>
@@ -43,9 +42,7 @@
         </div>
 
         <div class="ab-autopilot-card__footer">
-          <router-link class="ab-btn ab-btn--sm ab-btn--primary" :to="step.to">
-            <span class="icon-pencil" aria-hidden="true"></span>{{ step.cta }}
-          </router-link>
+          <router-link class="ab-btn ab-btn--sm ab-btn--primary" :to="step.to">{{ step.cta }}</router-link>
         </div>
       </article>
     </div>
@@ -55,9 +52,7 @@
         <strong>Health is the feedback center.</strong>
         <span class="ab-help d-inline"> Use it after setup to verify output and review the Error Log.</span>
       </div>
-      <router-link class="ab-btn ab-btn--sm ab-btn--ghost" to="/health">
-        <span class="icon-heart" aria-hidden="true"></span>Open Health
-      </router-link>
+      <router-link class="ab-btn ab-btn--sm ab-btn--ghost" to="/health">Open Health</router-link>
     </section>
 
   </div>
@@ -173,7 +168,7 @@ export default {
   border: 1px solid var(--ab-border); border-radius: var(--ab-radius);
   text-align: right; background: var(--ab-surface);
 }
-.ab-autopilot-score strong { display: block; font-size: 1.35rem; line-height: 1.1; }
+.ab-autopilot-score strong { font-size: 1.05rem; margin-right: .3rem; }
 .ab-autopilot-score span   { color: var(--ab-text-muted); font-size: .82rem; }
 
 .ab-autopilot-progress {
@@ -196,7 +191,7 @@ export default {
 .ab-autopilot-card__head {
   display: flex; align-items: flex-start; gap: .75rem;
 }
-.ab-autopilot-card__title { font-weight: 600; font-size: .95rem; display: block; margin-bottom: .15rem; }
+.ab-autopilot-card__title { font-weight: 600; font-size: .9rem; display: block; margin-bottom: .15rem; }
 .ab-autopilot-card__icon {
   width: 34px; height: 34px; display: inline-flex; align-items: center;
   justify-content: center; flex: 0 0 34px; border-radius: var(--ab-radius);

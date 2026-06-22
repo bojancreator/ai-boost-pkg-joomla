@@ -27,10 +27,12 @@
         </p>
         <ul v-else class="list-unstyled mb-0">
           <li v-for="c in conflicts" :key="c.id" class="ab-conflict-item">
-            <div class="d-flex align-items-start gap-2">
-              <span class="ab-badge flex-shrink-0" :class="severityBadge(c.status)">{{ severityLabel(c.status) }}</span>
-              <div class="flex-grow-1 min-w-0">
-                <div class="fw-semibold">{{ c.label }}</div>
+            <div class="min-w-0">
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fw-semibold">{{ c.label }}</span>
+                <span class="ab-badge" :class="severityBadge(c.status)">{{ severityLabel(c.status) }}</span>
+              </div>
+              <div>
                 <p class="ab-help mb-1">{{ c.message }}</p>
                 <div v-if="(c.affects || []).length" class="ab-help mb-1">
                   Overlaps:
@@ -66,8 +68,10 @@
               :disabled="saving"
               @click="chooseMode(opt.value)"
             >
-              <AbIcon :name="opt.icon" class="ab-mode-card__icon" style="width:22px;height:22px" aria-hidden="true" />
-              <span class="ab-mode-card__title">{{ opt.title }}</span>
+              <span class="ab-mode-card__head">
+                <span class="ab-mode-card__title">{{ opt.title }}</span>
+                <span v-if="mode === opt.value" class="ab-badge ab-badge--success">Active</span>
+              </span>
               <span class="ab-mode-card__desc">{{ opt.desc }}</span>
             </button>
           </div>
@@ -263,7 +267,8 @@ export default {
 .ab-mode-card:disabled { opacity: .7; cursor: progress; }
 .ab-mode-card__icon { font-size: 1.4rem; }
 .ab-mode-card__title { font-weight: 600; }
-.ab-mode-card__desc { font-size: .82rem; color: var(--ab-text-muted); }
+.ab-mode-card__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .25rem; }
+.ab-mode-card__desc { font-size: .9rem; color: var(--ab-text-muted); }
 
 .ab-feature-row { display: flex; align-items: center; gap: 1rem; padding: .75rem 0; border-top: 1px solid var(--ab-border); }
 .ab-feature-row:first-of-type { border-top: 0; }

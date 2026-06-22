@@ -390,7 +390,7 @@ const HEALTH_CHECKS = [
     settingsKey: 'enable_canonical',
     expected: { type: 'selector', selector: 'link[rel="canonical"]' },
     expectedLabel: 'link[rel="canonical"]',
-    target: { tab: 'technical', field: 'enable_canonical' },
+    target: { tab: 'titles', field: 'enable_canonical' },
   },
 
   /* ── Title / Meta description ─────────────────────────────── */
