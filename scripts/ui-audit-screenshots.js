@@ -87,6 +87,8 @@ const PAGES = [
   { slug: '21-settings-debug',     hash: '#/settings?tab=debug',  label: 'Settings – Debug' },
   // Styleguide
   { slug: '22-styleguide',   hash: '#/_styleguide',          label: '/_styleguide' },
+  // What's New (changelog) — captured last; opening it marks the version seen.
+  { slug: '23-changelog',    hash: '#/changelog',            label: "What's New" },
 ]
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

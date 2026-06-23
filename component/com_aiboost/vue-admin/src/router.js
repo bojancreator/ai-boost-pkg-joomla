@@ -25,6 +25,7 @@ import RedirectsPage    from './RedirectsPage.vue'
 import UrlCheckerPage   from './UrlCheckerPage.vue'
 import ImportPage       from './ImportPage.vue'
 import ConflictManagerPage from './ConflictManagerPage.vue'
+import ChangelogPage     from './ChangelogPage.vue'
 import StyleguidePage   from './StyleguidePage.vue'
 import { pageRouteAliases, settingsRouteAliases } from './navigation.js'
 
@@ -104,6 +105,12 @@ export function createSpaRouter() {
       name: 'help',
       component: HelpPage,
       meta: { legacyUrl: '' },
+    },
+    {
+      path: '/changelog',
+      name: 'changelog',
+      component: ChangelogPage,
+      meta: { legacyUrl: '', title: "What's New" },
     },
     { path: '/errors', redirect: '/health/errors' },
 

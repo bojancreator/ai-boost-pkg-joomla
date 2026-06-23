@@ -64,6 +64,7 @@ const sidebarGroupFactories = [
     { id: 'code', to: settingsTo('code'), tab: 'code', icon: 'code', label: 'Custom Code' },
     { id: 'debug', to: settingsTo('debug'), tab: 'debug', icon: 'bug', label: 'Debug' },
     { id: 'help', to: '/help', icon: 'help', label: 'Help' },
+    { id: 'changelog', to: '/changelog', icon: 'info', label: "What's New" },
   ] }),
 ]
 

@@ -5,6 +5,19 @@
 
     <div class="ab-page">
 
+      <!-- Post-update highlight — shown once after the installed version changes. -->
+      <div v-if="showWhatsNew" class="ab-alert ab-alert--info" role="status">
+        <AbIcon name="bolt" class="ab-alert__icon" />
+        <div style="flex:1">
+          <div class="ab-alert__title">AI Boost was updated to v{{ data.version }}</div>
+          <div class="ab-alert__body">See what's new and what changed in this version.</div>
+        </div>
+        <div class="ab-row ab-notif__actions">
+          <a :href="changelogHref" class="ab-btn ab-btn--primary ab-btn--sm" @click="markWhatsNewSeen">What's new</a>
+          <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" title="Hide" @click="markWhatsNewSeen">Dismiss</button>
+        </div>
+      </div>
+
       <!-- Settings status. First-run install (no settings row yet) funnels the
            admin to Autopilot instead of a warning or a backup alarm. -->
       <a v-if="!data.hasSettings"
@@ -324,6 +337,8 @@ export default {
       redirectCount:        raw.redirectCount        ?? 0,
       conflicts:            raw.conflicts            ?? [],
       notifications:        raw.notifications        ?? [],
+      version:              raw.version              ?? '',
+      lastSeenVersion:      raw.lastSeenVersion      ?? '',
       tokenName:            raw.tokenName            ?? '',
       multilingualActive:    raw.multilingualActive    ?? false,
       multilingualLangCount: raw.multilingualLangCount ?? 0,
@@ -397,6 +412,29 @@ export default {
       if (sev === 'critical') return 'err'
       return sev === 'warning' ? 'warn' : 'info'
     }
+    // ── Post-update "What's New" highlight ───────────────────────────────────
+    // Shown once after the installed version differs from the last version the
+    // admin acknowledged. Clearing it persists last_seen_version server-side.
+    const showWhatsNew = computed(() =>
+      data.hasSettings && !!data.version && data.lastSeenVersion !== data.version)
+    const changelogHref = computed(() => {
+      const appBase = data.urls.appBase || data.urls.settings.split('#')[0]
+      return appBase + '#/changelog'
+    })
+    function markWhatsNewSeen() {
+      data.lastSeenVersion = data.version   // hide immediately
+      try {
+        const tn = (window.aiBoostBootstrap && window.aiBoostBootstrap.tokenName) || window.aiBoostToken || data.tokenName || ''
+        const body = new URLSearchParams()
+        if (tn) body.append(tn, '1')
+        fetch('index.php?option=com_aiboost&task=dashboard.markVersionSeen&format=json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body.toString(),
+        }).catch(() => { /* non-critical */ })
+      } catch { /* non-critical */ }
+    }
+
     async function dismissNotif(id) {
       // Optimistic remove, then persist via the shared health.dismiss endpoint
       // (writes settings['dismissed_checks']). Fire-and-forget on the network.
@@ -708,6 +746,9 @@ export default {
       severityClass,
       severityIcon,
       dismissNotif,
+      showWhatsNew,
+      changelogHref,
+      markWhatsNewSeen,
       doToggle,
       configureUrl,
       backupBusy,

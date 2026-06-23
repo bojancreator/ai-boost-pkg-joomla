@@ -32,6 +32,8 @@ class HtmlView extends BaseHtmlView
     public array   $conflicts          = [];
     /** Curated "headline" notifications for the Dashboard panel. */
     public array   $notifications      = [];
+    /** Last version the admin has seen the "What's New" highlight for. */
+    public string  $lastSeenVersion    = '';
     /** True when Joomla Multilanguage is active and >1 published language. */
     public bool    $multilingualActive = false;
     /** Number of published content languages (0 when multilingual not active). */
@@ -64,6 +66,7 @@ class HtmlView extends BaseHtmlView
         }
         $this->multilingualCount = $this->countTranslations();
         $this->notifications     = $this->getNotifications();
+        $this->lastSeenVersion   = (string) ($this->loadSettings()['last_seen_version'] ?? '');
         $this->addToolbar();
 
         parent::display($tpl);
