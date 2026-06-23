@@ -18,7 +18,7 @@ export default {
     return {
       version,
       docsUrl: 'https://aiboostnow.com/docs',
-      supportUrl: 'https://aiboostnow.com/account',
+      supportUrl: 'https://aiboostnow.com/support',
     }
   },
 }
