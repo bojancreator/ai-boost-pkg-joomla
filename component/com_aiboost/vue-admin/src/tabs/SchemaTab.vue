@@ -1148,6 +1148,191 @@ const TYPE_META = {
       { label: 'Author entity', text: 'Use author profiles for E-E-A-T signals.' },
     ],
   },
+
+  // ── Food & Drink (siblings of FoodEstablishment / Restaurant) ──
+  CafeOrCoffeeShop: {
+    title: 'Cafe / coffee shop profile',
+    description: 'Use for cafes, coffee shops, and casual venues serving drinks, snacks, and light meals.',
+    fields: [
+      { label: 'Cuisine', text: 'Coffee, pastries, brunch, and light bites.' },
+      { label: 'Hours', text: 'Opening hours and busy periods.' },
+      { label: 'Price range', text: 'Casual dining price signal.' },
+    ],
+  },
+  Bakery: {
+    title: 'Bakery profile',
+    description: 'Use for bakeries, patisseries, and shops selling bread, pastries, and baked goods.',
+    fields: [
+      { label: 'Products', text: 'Bread, pastries, cakes, and custom orders.' },
+      { label: 'Hours', text: 'Opening hours and fresh-batch times.' },
+      { label: 'Price range', text: 'Optional price signal.' },
+    ],
+  },
+  BarOrPub: {
+    title: 'Bar / pub profile',
+    description: 'Use for bars, pubs, taprooms, and venues focused on drinks and social atmosphere.',
+    fields: [
+      { label: 'Cuisine', text: 'Drinks, bar food, and specialities.' },
+      { label: 'Hours', text: 'Opening hours and late nights.' },
+      { label: 'Price range', text: 'Optional price signal.' },
+    ],
+  },
+
+  // ── Health & Medical (siblings of MedicalClinic / Dentist) ──
+  Physician: {
+    title: 'Physician profile',
+    description: 'Use for individual doctors, GPs, and specialist physicians offering consultations and care.',
+    fields: [
+      { label: 'Specialty', text: 'Primary medical specialty or focus.' },
+      { label: 'Hours', text: 'Consultation and clinic hours.' },
+      { label: 'Contact', text: 'Phone, address, and booking details.' },
+    ],
+  },
+  Pharmacy: {
+    title: 'Pharmacy profile',
+    description: 'Use for pharmacies and chemists that dispense medicine and offer health products or advice.',
+    fields: [
+      { label: 'Services', text: 'Prescriptions, vaccinations, and health checks.' },
+      { label: 'Hours', text: 'Opening hours and duty / on-call availability.' },
+      { label: 'Access', text: 'Address, contact, and drive-through where relevant.' },
+    ],
+  },
+  Hospital: {
+    title: 'Hospital profile',
+    description: 'Use for hospitals, medical centres, and inpatient or emergency facilities.',
+    fields: [
+      { label: 'Departments', text: 'Specialties and emergency services.' },
+      { label: 'Hours', text: 'Visiting and emergency availability.' },
+      { label: 'Contact', text: 'Address, phone, and department details.' },
+    ],
+  },
+  VeterinaryCare: {
+    title: 'Veterinary care profile',
+    description: 'Use for veterinary clinics, animal hospitals, and pet care practices.',
+    fields: [
+      { label: 'Services', text: 'Treatments, surgery, and emergency care.' },
+      { label: 'Hours', text: 'Opening hours and out-of-hours cover.' },
+      { label: 'Contact', text: 'Address, phone, and booking details.' },
+    ],
+  },
+
+  // ── Lodging & Travel (siblings of LodgingBusiness) ──
+  BedAndBreakfast: {
+    title: 'Bed & breakfast profile',
+    description: 'Use for B&Bs, guesthouses, and small owner-run accommodation with breakfast included.',
+    fields: [
+      { label: 'Rating', text: 'Star rating when officially applicable.' },
+      { label: 'Times', text: 'Check-in and check-out times.' },
+      { label: 'Amenities', text: 'Breakfast, pets policy, and facilities.' },
+    ],
+  },
+  Resort: {
+    title: 'Resort profile',
+    description: 'Use for resorts and holiday complexes combining lodging with on-site dining, spa, or leisure.',
+    fields: [
+      { label: 'Rating', text: 'Star rating when officially applicable.' },
+      { label: 'Times', text: 'Check-in and check-out times.' },
+      { label: 'Amenities', text: 'Pets policy, on-site dining, and facilities.' },
+    ],
+  },
+
+  // ── Beauty & Fitness (siblings of SportsActivityLocation) ──
+  BeautySalon: {
+    title: 'Beauty salon profile',
+    description: 'Use for beauty salons and studios offering skincare, makeup, and cosmetic treatments.',
+    fields: [
+      { label: 'Services', text: 'Treatments and beauty services offered.' },
+      { label: 'Hours', text: 'Opening hours and appointment availability.' },
+      { label: 'Price range', text: 'Optional price signal.' },
+    ],
+  },
+  HairSalon: {
+    title: 'Hair salon profile',
+    description: 'Use for hairdressers, barbers, and hair studios offering cuts, colour, and styling.',
+    fields: [
+      { label: 'Services', text: 'Cuts, colour, styling, and treatments.' },
+      { label: 'Hours', text: 'Opening hours and appointment availability.' },
+      { label: 'Price range', text: 'Optional price signal.' },
+    ],
+  },
+  NailSalon: {
+    title: 'Nail salon profile',
+    description: 'Use for nail salons and studios offering manicures, pedicures, and nail art.',
+    fields: [
+      { label: 'Services', text: 'Manicure, pedicure, and nail treatments.' },
+      { label: 'Hours', text: 'Opening hours and appointment availability.' },
+      { label: 'Price range', text: 'Optional price signal.' },
+    ],
+  },
+  DaySpa: {
+    title: 'Day spa profile',
+    description: 'Use for day spas and wellness centres offering massage, treatments, and relaxation.',
+    fields: [
+      { label: 'Services', text: 'Massage, treatments, and wellness packages.' },
+      { label: 'Hours', text: 'Opening hours and booking availability.' },
+      { label: 'Amenities', text: 'Sauna, pool, and facilities where relevant.' },
+    ],
+  },
+  HealthClub: {
+    title: 'Gym / health club profile',
+    description: 'Use for gyms, fitness clubs, and health centres with memberships and facilities.',
+    fields: [
+      { label: 'Activity', text: 'Training focus and on-site facilities.' },
+      { label: 'Hours', text: 'Opening hours and class availability.' },
+      { label: 'Price range', text: 'Membership or visit price signal.' },
+    ],
+  },
+
+  // ── Professional Services (sibling of ProfessionalService) ──
+  AccountingService: {
+    title: 'Accounting service profile',
+    description: 'Use for accountants, bookkeepers, tax advisers, and financial-accounting practices.',
+    fields: [
+      { label: 'Primary service', text: 'Accounting, tax, payroll, advisory.' },
+      { label: 'Area served', text: 'Local, national, or remote market.' },
+      { label: 'Contact', text: 'Phone, email, URL, and office data.' },
+    ],
+  },
+
+  // ── Education & Childcare (sibling of EducationalOrganization) ──
+  ChildCare: {
+    title: 'Childcare profile',
+    description: 'Use for nurseries, preschools, daycare, and early-years childcare providers.',
+    fields: [
+      { label: 'Programme', text: 'Age groups and care programmes.' },
+      { label: 'Identity', text: 'Setting name and official URL.' },
+      { label: 'Hours', text: 'Opening and drop-off / pick-up hours.' },
+    ],
+  },
+
+  // ── Finance ──
+  BankOrCreditUnion: {
+    title: 'Bank / credit union profile',
+    description: 'Use for banks, credit unions, and branches offering accounts, loans, and financial services.',
+    fields: [
+      { label: 'Services', text: 'Accounts, loans, and banking services.' },
+      { label: 'Area served', text: 'Branch area or service region.' },
+      { label: 'Contact', text: 'Branch address, phone, and hours.' },
+    ],
+  },
+  FinancialService: {
+    title: 'Financial service profile',
+    description: 'Use for financial advisers, brokers, lenders, and investment or finance providers.',
+    fields: [
+      { label: 'Services', text: 'Advisory, lending, investment, or planning.' },
+      { label: 'Area served', text: 'Local, national, or remote clients.' },
+      { label: 'Contact', text: 'Phone, email, URL, and office data.' },
+    ],
+  },
+  InsuranceAgency: {
+    title: 'Insurance agency profile',
+    description: 'Use for insurance agencies, brokers, and providers offering policies and cover.',
+    fields: [
+      { label: 'Services', text: 'Insurance lines and cover offered.' },
+      { label: 'Area served', text: 'Local, national, or remote clients.' },
+      { label: 'Contact', text: 'Phone, email, URL, and office data.' },
+    ],
+  },
 }
 
 function parseHowto(raw) {
@@ -1211,19 +1396,19 @@ import { getCsrfTokenName } from '../api.js'
 // convenience derived from the saved type on load. Every @type below is wired
 // in SchemaBuilder::SCHEMA_TYPE_ALIASES + LOCAL_BUSINESS_TYPES.
 const SCHEMA_CATEGORIES = [
-  { label: 'Organization / Generic', types: [
+  { label: 'Organization / Generic', anchor: 'Organization', types: [
     { value: 'Organization',          label: 'Organization (generic)' },
     { value: 'LocalBusiness',         label: 'Local Business (generic)' },
     { value: 'NewsMediaOrganization', label: 'News / Media' },
   ]},
-  { label: 'Food & Drink', types: [
+  { label: 'Food & Drink', anchor: 'FoodEstablishment', types: [
     { value: 'Restaurant',            label: 'Restaurant' },
     { value: 'CafeOrCoffeeShop',      label: 'Cafe / Coffee Shop' },
     { value: 'Bakery',                label: 'Bakery' },
     { value: 'BarOrPub',              label: 'Bar / Pub' },
     { value: 'FoodEstablishment',     label: 'Food Establishment (generic)' },
   ]},
-  { label: 'Health & Medical', types: [
+  { label: 'Health & Medical', anchor: 'MedicalClinic', types: [
     { value: 'MedicalClinic',         label: 'Medical Clinic' },
     { value: 'Dentist',               label: 'Dentist' },
     { value: 'Physician',             label: 'Physician / Doctor' },
@@ -1231,13 +1416,13 @@ const SCHEMA_CATEGORIES = [
     { value: 'Hospital',              label: 'Hospital' },
     { value: 'VeterinaryCare',        label: 'Veterinary Care' },
   ]},
-  { label: 'Lodging & Travel', types: [
+  { label: 'Lodging & Travel', anchor: 'LodgingBusiness', types: [
     { value: 'LodgingBusiness',       label: 'Hotel / Accommodation' },
     { value: 'BedAndBreakfast',       label: 'Bed & Breakfast' },
     { value: 'Resort',                label: 'Resort' },
     { value: 'TouristAttraction',     label: 'Tourist Attraction' },
   ]},
-  { label: 'Beauty & Fitness', types: [
+  { label: 'Beauty & Fitness', anchor: 'BeautySalon', types: [
     { value: 'BeautySalon',           label: 'Beauty Salon' },
     { value: 'HairSalon',             label: 'Hair Salon' },
     { value: 'NailSalon',             label: 'Nail Salon' },
@@ -1245,26 +1430,26 @@ const SCHEMA_CATEGORIES = [
     { value: 'HealthClub',            label: 'Gym / Health Club' },
     { value: 'SportsActivityLocation', label: 'Sports / Activity Location' },
   ]},
-  { label: 'Professional Services', types: [
+  { label: 'Professional Services', anchor: 'ProfessionalService', types: [
     { value: 'ProfessionalService',   label: 'Professional Service (generic)' },
     { value: 'LegalService',          label: 'Lawyer / Law Firm' },
     { value: 'AccountingService',     label: 'Accounting Service' },
     { value: 'RealEstateAgent',       label: 'Real Estate Agency' },
   ]},
-  { label: 'Retail & Automotive', types: [
+  { label: 'Retail & Automotive', anchor: 'Store', types: [
     { value: 'Store',                 label: 'Store / Shop' },
     { value: 'AutomotiveBusiness',    label: 'Automotive Business' },
   ]},
-  { label: 'Education & Childcare', types: [
+  { label: 'Education & Childcare', anchor: 'EducationalOrganization', types: [
     { value: 'EducationalOrganization', label: 'School / University' },
     { value: 'ChildCare',             label: 'Childcare / Preschool' },
   ]},
-  { label: 'Finance', types: [
+  { label: 'Finance', anchor: 'BankOrCreditUnion', types: [
     { value: 'BankOrCreditUnion',     label: 'Bank / Credit Union' },
     { value: 'FinancialService',      label: 'Financial Service' },
     { value: 'InsuranceAgency',       label: 'Insurance Agency' },
   ]},
-  { label: 'Person', types: [
+  { label: 'Person', anchor: 'Person', types: [
     { value: 'Person',                label: 'Person / Portfolio' },
   ]},
 ]
@@ -1445,7 +1630,11 @@ export default {
       return RESTAURANT_BOOKING_TYPES.includes(this.s.schema_type)
     },
     selectedTypeMeta() {
-      return TYPE_META[this.s.schema_type] || null
+      const t = this.s.schema_type
+      if (TYPE_META[t]) return TYPE_META[t]
+      // Never blank: fall back to the type's category anchor, then to Organization.
+      const cat = SCHEMA_CATEGORIES.find(c => c.types.some(x => x.value === t))
+      return (cat && TYPE_META[cat.anchor]) || TYPE_META.Organization
     },
     serviceLabel()      { return (SERVICE_META[this.s.schema_type] || {}).header || '' },
     serviceFieldLabel() { return (SERVICE_META[this.s.schema_type] || {}).label  || 'Available Service' },
