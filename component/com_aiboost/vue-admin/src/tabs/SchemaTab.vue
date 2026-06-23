@@ -764,27 +764,31 @@
               </span>
             </label>
 
-            <div class="ab-field">
+            <div class="ab-field" data-ab-field="faq_items">
               <label class="ab-label">Manual FAQ Items</label>
-              <textarea v-model="s.faq_items" data-ab-field="faq_items" class="ab-input font-monospace" rows="6"
-                placeholder='[{"question":"Q1","answer":"A1"},{"question":"Q2","answer":"A2"}]'></textarea>
-              <div class="ab-help">JSON array of <code>{"question":"…","answer":"…"}</code> objects.</div>
-            </div>
+              <div class="ab-help" style="margin-bottom:.5rem">
+                Add each question and its answer. On multilingual sites, expand
+                <strong>Translations</strong> under a row to translate that question/answer.
+              </div>
 
-            <div>
-              <template v-if="parsedFaqItems.length > 0">
-                <div v-for="(item, idx) in parsedFaqItems" :key="idx" class="ab-faq-trans-group">
-                  <div class="ab-faq-trans-label">
-                    FAQ #{{ idx + 1 }}: {{ item.question ? item.question.slice(0, 48) + (item.question.length > 48 ? '…' : '') : 'Question' }}
-                  </div>
-                  <TranslationExpander :field-key="'faq_' + idx + '_q'" />
-                  <TranslationExpander :field-key="'faq_' + idx + '_a'" />
+              <div v-for="(row, idx) in faqRows" :key="idx" class="ab-faq-item">
+                <div class="ab-faq-item__head">
+                  <span class="ab-faq-item__num">FAQ #{{ idx + 1 }}</span>
+                  <button type="button" class="ab-svc-del" title="Remove FAQ" aria-label="Remove FAQ"
+                    @click="removeFaqItem(idx)">×</button>
                 </div>
-              </template>
-              <template v-else>
-                <TranslationExpander field-key="faq_0_q" />
-                <TranslationExpander field-key="faq_0_a" />
-              </template>
+                <input v-model="row.question" type="text" class="ab-input ab-faq-item__q"
+                  placeholder="Question — e.g. Do you offer free delivery?">
+                <TranslationExpander :field-key="'faq_' + idx + '_q'" />
+                <textarea v-model="row.answer" class="ab-textarea ab-faq-item__a" rows="3"
+                  placeholder="Answer…"></textarea>
+                <TranslationExpander :field-key="'faq_' + idx + '_a'" field-type="textarea" />
+              </div>
+
+              <div v-if="!faqRows.length" class="ab-help" style="margin:.2rem 0 .6rem">
+                No FAQ items yet — click <strong>+ Add FAQ</strong> to add your first question.
+              </div>
+              <button type="button" class="ab-btn ab-btn--secondary ab-faq-add" @click="addFaqItem">+ Add FAQ</button>
             </div>
 
             <div class="ab-field">
@@ -1364,6 +1368,27 @@ function parseServices(raw) {
   return []
 }
 
+// Parse the stored FAQ JSON into editable rows for the manual-FAQ repeater.
+// Each row is { question, answer }; malformed input degrades to an empty list.
+// The deep watcher serialises rows back to s.faq_items as the SAME
+// [{"question":"…","answer":"…"}] shape SchemaProBuilder reads, and per-item
+// translations stay keyed by row index (faq_{idx}_q / faq_{idx}_a) — so the
+// repeater is purely a friendlier editor over the existing storage.
+function parseFaqItems(raw) {
+  try {
+    const rows = JSON.parse(raw || '[]')
+    if (Array.isArray(rows)) {
+      return rows
+        .filter(r => r && typeof r === 'object')
+        .map(r => ({
+          question: String(r.question || ''),
+          answer:   String(r.answer || ''),
+        }))
+    }
+  } catch { /**/ }
+  return []
+}
+
 // Parse the stored special-hours JSON into editable rows. Each row is
 // { label, from, to, closed (bool), opens, closes }; emitted server-side as
 // specialOpeningHoursSpecification by SchemaBuilder::buildSpecialOpeningHours().
@@ -1466,6 +1491,7 @@ export default {
       days:  { mon:'Monday', tue:'Tuesday', wed:'Wednesday', thu:'Thursday', fri:'Friday', sat:'Saturday', sun:'Sunday' },
       howto: parseHowto(this.s.schema_howto),
       serviceRows: parseServices(this.s.schema_services),
+      faqRows: parseFaqItems(this.s.faq_items),
       specialHours: parseSpecialHours(this.s.schema_special_hours),
       schemaCategory: '',
       schemaSection: 'core',
@@ -1494,6 +1520,10 @@ export default {
       handler(v) { this.s.schema_services = JSON.stringify(v) },
       deep: true,
     },
+    faqRows: {
+      handler(v) { this.s.faq_items = JSON.stringify(v) },
+      deep: true,
+    },
     // If the active sub-tab disappears for the new type (only Hours is
     // conditional), fall back to Core so the tab is never blank.
     hasHours(v) {
@@ -1511,14 +1541,6 @@ export default {
     categoryTypes() {
       const cat = SCHEMA_CATEGORIES.find(c => c.label === this.schemaCategory)
       return cat ? cat.types : SCHEMA_TYPE_OPTIONS
-    },
-    parsedFaqItems() {
-      try {
-        const items = JSON.parse(this.s.faq_items || '[]')
-        return Array.isArray(items) ? items : []
-      } catch {
-        return []
-      }
     },
     faqOutputOptions() {
       return [
@@ -1717,6 +1739,16 @@ export default {
       this.serviceRows.splice(idx, 1)
     },
 
+    // Manual FAQ repeater — the deep watcher on faqRows serialises back to
+    // s.faq_items, so these just mutate the local array. Per-item translations
+    // (faq_{idx}_q / faq_{idx}_a) key off the row index, mirroring services.
+    addFaqItem() {
+      this.faqRows.push({ question: '', answer: '' })
+    },
+    removeFaqItem(idx) {
+      this.faqRows.splice(idx, 1)
+    },
+
     // Holiday / special-hours repeater — the deep watcher serialises specialHours
     // back to s.schema_special_hours, so these just mutate the local array.
     addSpecialHour() {
@@ -1827,6 +1859,28 @@ export default {
   color: var(--ab-text-muted);
   margin-bottom: 4px;
 }
+/* Manual FAQ repeater — one card per question/answer pair */
+.ab-faq-item {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--ab-surface-raised);
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ab-faq-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ab-faq-item__num {
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ab-text-muted);
+}
+.ab-faq-add { margin-top: 10px; }
 /* makesOffer services repeater */
 .ab-svc-head,
 .ab-svc-row {
