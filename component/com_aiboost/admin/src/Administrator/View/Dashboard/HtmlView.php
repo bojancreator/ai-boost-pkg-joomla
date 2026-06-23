@@ -12,6 +12,7 @@ defined('_JEXEC') or die;
 use AiBoost\Lib\ConflictDetector;
 use AiBoost\Lib\JoomlaAppContext;
 use AiBoost\Lib\LanguageService;
+use AiBoost\Lib\NotificationService;
 use AiBoost\Version;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
@@ -29,6 +30,8 @@ class HtmlView extends BaseHtmlView
     public int     $total404           = 0;
     public int     $redirectCount      = 0;
     public array   $conflicts          = [];
+    /** Curated "headline" notifications for the Dashboard panel. */
+    public array   $notifications      = [];
     /** True when Joomla Multilanguage is active and >1 published language. */
     public bool    $multilingualActive = false;
     /** Number of published content languages (0 when multilingual not active). */
@@ -60,6 +63,7 @@ class HtmlView extends BaseHtmlView
             $this->multilingualLangCount = 0;
         }
         $this->multilingualCount = $this->countTranslations();
+        $this->notifications     = $this->getNotifications();
         $this->addToolbar();
 
         parent::display($tpl);
@@ -101,6 +105,29 @@ class HtmlView extends BaseHtmlView
             }
             $decoded = json_decode($json, true);
             return is_array($decoded) ? $decoded : [];
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // NOTIFICATIONS — curated "headline" subset of the Health/Conflict signals,
+    // assembled from cheap data already loaded above (see NotificationService).
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function getNotifications(): array
+    {
+        try {
+            $settings  = $this->loadSettings();
+            $dismissed = json_decode((string) ($settings['dismissed_checks'] ?? '[]'), true);
+            $dismissed = is_array($dismissed) ? $dismissed : [];
+
+            return (new NotificationService($settings, $dismissed))->build([
+                'conflicts'             => $this->conflicts,
+                'plugins'               => $this->pluginStatus,
+                'multilingualLangCount' => $this->multilingualLangCount,
+                'hasSettings'           => $this->hasSettings,
+            ]);
         } catch (\Throwable $e) {
             return [];
         }

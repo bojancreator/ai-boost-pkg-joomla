@@ -5,26 +5,6 @@
 
     <div class="ab-page">
 
-      <!-- CRITICAL notification (item 12a) — "no settings backup yet" stays
-           always-visible above the collapsible notifications panel. -->
-      <div v-if="showBackupReminder && backupSignalKind === 'never'"
-           class="ab-alert ab-alert--warning"
-           role="status"
-           aria-live="polite">
-        <AbIcon name="warn" class="ab-alert__icon" />
-        <div style="flex:1">
-          <div class="ab-alert__title">No settings backup yet.</div>
-          <div class="ab-alert__body">
-            Download one now so you can restore your configuration after a
-            migration, a major update, or anything unexpected.
-          </div>
-        </div>
-        <div class="ab-row">
-          <button type="button" class="ab-btn ab-btn--primary ab-btn--sm" @click="scrollToBackup">Back up now →</button>
-          <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" title="Hide for 7 days" @click="dismissBackupReminder">Dismiss</button>
-        </div>
-      </div>
-
       <!-- Settings status. First-run install (no settings row yet) funnels the
            admin to Autopilot instead of a warning or a backup alarm. -->
       <a v-if="!data.hasSettings"
@@ -43,78 +23,74 @@
         <span class="ab-link-card__cta">Set up now →</span>
       </a>
 
-      <!-- Non-critical notifications (item 12a) — collapse to a single bar; the
-           open/closed choice is remembered in localStorage. -->
-      <div v-if="data.hasSettings && nonCriticalNotifCount > 0" class="ab-notif-panel">
-        <button type="button" class="ab-notif-panel__bar"
-                :aria-expanded="notifOpen ? 'true' : 'false'"
-                @click="toggleNotif">
-          <span class="ab-notif-panel__title">
-            <AbIcon name="info" style="font-size:14px;margin-right:.2rem" />
-            Notifications
-            <span class="ab-badge ms-1">{{ nonCriticalNotifCount }}</span>
-          </span>
-          <span class="ab-notif-panel__right">
-            <span v-if="!notifOpen" class="ab-hint me-2">Open to see notifications</span>
-            <span class="ab-notif-panel__chev" :class="{ 'is-open': notifOpen }" aria-hidden="true">▾</span>
-          </span>
-        </button>
-        <div v-show="notifOpen" class="ab-notif-panel__body">
-          <!-- Settings active -->
-          <div class="ab-alert ab-alert--success">
-            <AbIcon name="check" class="ab-alert__icon" />
-            <div style="flex:1">
-              Settings active — all plugins reading from <code class="ab-mono">#__aiboost_settings</code>.
+      <!-- Unified notifications — server-curated from Health / Conflict /
+           licence / backup signals. Critical items stay pinned at the top;
+           warnings + info collapse into a counter panel (open state remembered). -->
+      <template v-if="data.hasSettings">
+
+        <!-- Critical — always visible -->
+        <div v-for="n in criticalNotifs" :key="n.id"
+             class="ab-alert ab-alert--danger" role="alert">
+          <AbIcon name="err" class="ab-alert__icon" />
+          <div style="flex:1">
+            <div class="ab-alert__title">{{ n.title }}</div>
+            <div class="ab-alert__body">{{ n.message }}</div>
+          </div>
+          <div class="ab-row ab-notif__actions">
+            <a v-for="a in n.actions" :key="a.label" :href="resolveActionHref(a.url)"
+               class="ab-btn ab-btn--danger ab-btn--sm">{{ a.label }}</a>
+            <button v-if="n.dismissible" type="button"
+                    class="ab-btn ab-btn--ghost ab-btn--sm"
+                    title="Hide this notification" @click="dismissNotif(n.id)">Dismiss</button>
+          </div>
+        </div>
+
+        <!-- Warnings + info — collapsible counter panel -->
+        <div v-if="minorNotifs.length > 0" class="ab-notif-panel">
+          <button type="button" class="ab-notif-panel__bar"
+                  :aria-expanded="notifOpen ? 'true' : 'false'"
+                  @click="toggleNotif">
+            <span class="ab-notif-panel__title">
+              <AbIcon name="info" style="font-size:14px;margin-right:.2rem" />
+              Notifications
+              <span class="ab-badge ms-1">{{ minorNotifs.length }}</span>
+            </span>
+            <span class="ab-notif-panel__right">
+              <span v-if="!notifOpen" class="ab-hint me-2">Open to see notifications</span>
+              <span class="ab-notif-panel__chev" :class="{ 'is-open': notifOpen }" aria-hidden="true">▾</span>
+            </span>
+          </button>
+          <div v-show="notifOpen" class="ab-notif-panel__body">
+            <div v-for="n in minorNotifs" :key="n.id"
+                 class="ab-alert" :class="severityClass(n.severity)">
+              <AbIcon :name="severityIcon(n.severity)" class="ab-alert__icon" />
+              <div style="flex:1">
+                <div class="ab-alert__title">{{ n.title }}</div>
+                <div class="ab-alert__body">{{ n.message }}</div>
+              </div>
+              <div class="ab-row ab-notif__actions">
+                <a v-for="a in n.actions" :key="a.label" :href="resolveActionHref(a.url)"
+                   class="ab-btn ab-btn--subtle ab-btn--sm">{{ a.label }}</a>
+                <button v-if="n.dismissible" type="button"
+                        class="ab-btn ab-btn--ghost ab-btn--sm"
+                        title="Hide" @click="dismissNotif(n.id)">✕</button>
+              </div>
             </div>
-            <span class="ab-hint" style="white-space:nowrap">
-              <template v-if="data.lastSaved">Settings last saved: <strong>{{ data.lastSaved }}</strong></template>
-              <template v-else>Never saved</template>
+          </div>
+        </div>
+
+        <!-- All clear -->
+        <div v-if="criticalNotifs.length === 0 && minorNotifs.length === 0" class="ab-section">
+          <div class="ab-section__body ab-row">
+            <AbIcon name="ok" style="font-size:16px;color:var(--ab-success)" />
+            <span class="ab-hint">
+              Everything looks good — no notifications.
+              <a :href="data.urls.health" class="ms-1">Open the full Health report</a> for a deeper check.
             </span>
           </div>
-
-          <!-- Stale / changed-since backup nag (non-critical) -->
-          <div v-if="showBackupReminder && backupSignalKind !== 'never'"
-               class="ab-alert ab-alert--warning"
-               role="status" aria-live="polite">
-            <AbIcon name="warn" class="ab-alert__icon" />
-            <div style="flex:1">
-              <template v-if="backupSignalKind === 'changes'">
-                <strong>You've changed {{ changesSinceBackup }} settings since your last backup.</strong>
-                Download a fresh backup so you don't lose recent configuration changes if something goes wrong.
-              </template>
-              <template v-else>
-                <strong>Backup is {{ lastBackupAgeDays }} days old.</strong>
-                Download a fresh settings backup so you don't lose recent changes if something goes wrong.
-              </template>
-            </div>
-            <div class="ab-row">
-              <button type="button" class="ab-btn ab-btn--primary ab-btn--sm" @click="scrollToBackup">Back up now →</button>
-              <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" title="Hide for 7 days" @click="dismissBackupReminder">Dismiss</button>
-            </div>
-          </div>
-
-          <!-- Multilingual detected (Pro discovery) -->
-          <a v-if="data.multilingualLangCount >= 2"
-             :href="multilingualBannerHref"
-             :target="multilingualBannerTarget"
-             :rel="multilingualBannerTarget === '_blank' ? 'noopener' : null"
-             class="ab-alert ab-alert--info ab-link-card"
-             title="Open Settings → Sitemap → hreflang">
-            <AbIcon name="map" class="ab-alert__icon" />
-            <div style="flex:1">
-              <div class="ab-row" style="gap:.5rem">
-                <span class="ab-alert__title">Multilingual — detected</span>
-                <span class="ab-badge ab-badge--success">{{ data.multilingualLangCount }} languages</span>
-              </div>
-              <div class="ab-alert__body">
-                AI Boost can emit hreflang alternates and store per-language
-                translations for every field. Click to configure.
-              </div>
-            </div>
-            <span class="ab-link-card__cta">Configure →</span>
-          </a>
         </div>
-      </div>
+
+      </template>
 
       <!-- Module status grid -->
       <div>
@@ -166,62 +142,6 @@
             <span v-if="data.redirectCount > 0" class="ab-badge ms-1">{{ data.redirectCount }}</span>
           </a>
           <a :href="data.urls.pluginManager" class="ab-btn ab-btn--ghost ab-btn--sm">Manage plugins</a>
-        </div>
-      </div>
-
-      <!-- Plugin conflicts card — visible when critical conflicts detected -->
-      <div v-if="conflictCritical > 0" class="ab-section ab-section--danger">
-        <div class="ab-section__head" style="justify-content:space-between">
-          <span>
-            Plugin conflicts detected
-            <span class="ab-badge ab-badge--danger ms-2">{{ conflictCritical }} critical</span>
-            <span v-if="conflictWarnings > 0" class="ab-badge ab-badge--warning ms-1">
-              {{ conflictWarnings }} warning{{ conflictWarnings > 1 ? 's' : '' }}
-            </span>
-          </span>
-          <a :href="data.urls.health" class="ab-btn ab-btn--danger ab-btn--sm">View all</a>
-        </div>
-        <div class="ab-section__body" style="padding:0 1rem">
-          <!-- Show top 3 unresolved critical conflicts only -->
-          <div v-for="c in topCriticalConflicts" :key="c.id" class="ab-healthrow">
-            <AbIcon name="err" class="ab-healthrow__icon" style="color:var(--ab-danger)" />
-            <div class="ab-healthrow__body">
-              <div class="ab-healthrow__title">{{ c.label }}</div>
-              <p>{{ c.message }}</p>
-            </div>
-            <div class="ab-healthrow__act">
-              <a :href="(c.fix_actions && c.fix_actions[0]) ? c.fix_actions[0].url : (c.fix_url || data.urls.health)"
-                 class="ab-btn ab-btn--subtle ab-btn--sm">Fix →</a>
-            </div>
-          </div>
-          <!-- "...and N more" row when >3 critical conflicts -->
-          <div v-if="conflictCritical > 3" class="ab-healthrow">
-            <span class="ab-hint">
-              + {{ conflictCritical - 3 }} more critical issue{{ conflictCritical - 3 > 1 ? 's' : '' }} —
-              <a :href="data.urls.health">view all in Health report</a>
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Warnings-only card (no criticals) -->
-      <div v-else-if="conflictWarnings > 0" class="ab-section ab-section--warning">
-        <div class="ab-section__body ab-row" style="justify-content:space-between">
-          <span class="ab-hint">
-            <strong>{{ conflictWarnings }} compatibility warning{{ conflictWarnings > 1 ? 's' : '' }}</strong> detected.
-          </span>
-          <a :href="data.urls.health" class="ab-btn ab-btn--ghost ab-btn--sm">Review</a>
-        </div>
-      </div>
-
-      <!-- No conflicts — compact status bar -->
-      <div v-else-if="Array.isArray(data.conflicts)" class="ab-section">
-        <div class="ab-section__body ab-row">
-          <AbIcon name="ok" style="font-size:16px;color:var(--ab-success)" />
-          <span class="ab-hint">
-            No plugin conflicts detected.
-            <a :href="data.urls.health" class="ms-1">View full Health report</a> for more details.
-          </span>
         </div>
       </div>
 
@@ -403,6 +323,7 @@ export default {
       total404:             raw.total404             ?? 0,
       redirectCount:        raw.redirectCount        ?? 0,
       conflicts:            raw.conflicts            ?? [],
+      notifications:        raw.notifications        ?? [],
       tokenName:            raw.tokenName            ?? '',
       multilingualActive:    raw.multilingualActive    ?? false,
       multilingualLangCount: raw.multilingualLangCount ?? 0,
@@ -449,6 +370,51 @@ export default {
     const topCriticalConflicts = computed(() =>
       data.conflicts.filter(c => c.status === 'critical' && !c.dismissed).slice(0, 3)
     )
+
+    // ── Notifications (server-curated headline list) ─────────────────────────
+    // The Dashboard view (NotificationService) seeds data.notifications with a
+    // deduplicated, severity-sorted list. Critical → pinned at top; warning/info
+    // → counter panel. Dismiss persists via the shared health.dismiss endpoint.
+    const criticalNotifs = computed(() =>
+      (data.notifications || []).filter(n => n && n.severity === 'critical'))
+    const minorNotifs = computed(() =>
+      (data.notifications || []).filter(n => n && (n.severity === 'warning' || n.severity === 'info')))
+
+    function resolveActionHref(url) {
+      if (typeof url !== 'string' || url === '') return data.urls.health
+      // SPA hash targets (#/route) are resolved against the app shell base;
+      // anything else (e.g. a com_plugins admin URL from a conflict) is used as-is.
+      if (url.charAt(0) === '#') {
+        const appBase = data.urls.appBase || data.urls.settings.split('#')[0]
+        return appBase + url
+      }
+      return url
+    }
+    function severityClass(sev) {
+      return sev === 'warning' ? 'ab-alert--warning' : 'ab-alert--info'
+    }
+    function severityIcon(sev) {
+      if (sev === 'critical') return 'err'
+      return sev === 'warning' ? 'warn' : 'info'
+    }
+    async function dismissNotif(id) {
+      // Optimistic remove, then persist via the shared health.dismiss endpoint
+      // (writes settings['dismissed_checks']). Fire-and-forget on the network.
+      const idx = (data.notifications || []).findIndex(n => n && n.id === id)
+      if (idx === -1) return
+      data.notifications.splice(idx, 1)
+      try {
+        const body = new URLSearchParams()
+        body.append('check_id', id)
+        body.append('action', 'dismiss')
+        body.append(data.tokenName, '1')
+        await fetch('index.php?option=com_aiboost&task=health.dismiss&format=json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body.toString(),
+        })
+      } catch { /* UI already updated; dismissal will re-evaluate on next load */ }
+    }
 
     async function doToggle(element, state) {
       const p = plugins[element]
@@ -736,6 +702,12 @@ export default {
       conflictWarnings,
       conflictTotal,
       topCriticalConflicts,
+      criticalNotifs,
+      minorNotifs,
+      resolveActionHref,
+      severityClass,
+      severityIcon,
+      dismissNotif,
       doToggle,
       configureUrl,
       backupBusy,
@@ -812,4 +784,7 @@ export default {
   padding: 12px 14px;
 }
 .ab-notif-panel__body > * { margin-bottom: 0 !important; }
+
+/* Action buttons inside a notification row — wrap, never shrink the text column. */
+.ab-vue-dashboard .ab-notif__actions { flex: 0 0 auto; flex-wrap: wrap; align-items: center; }
 </style>

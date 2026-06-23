@@ -30,6 +30,7 @@ $dashData = [
     'total404'           => $this->total404,
     'redirectCount'      => $this->redirectCount,
     'conflicts'          => $this->conflicts,
+    'notifications'      => $this->notifications,
     'tokenName'          => Session::getFormToken(),
     'urls'          => [
         // SPA shell base — all internal navigation stays inside view=app (no PHP nav bar).
