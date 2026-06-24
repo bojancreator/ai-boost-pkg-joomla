@@ -291,7 +291,7 @@ final class NotificationService
                 'info',
                 'Multilingual site detected',
                 'AI Boost can emit hreflang alternates and store per-language translations. ' . $multilingualLangCount . ' languages found.',
-                [['label' => 'Configure hreflang', 'url' => '#/settings?tab=sitemap&field=enable_hreflang']]
+                [['label' => 'Open Multilingual options', 'url' => '#/integrations?open=falang']]
             );
         }
         // llms.txt off — niche, so info tier only.

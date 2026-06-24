@@ -699,14 +699,6 @@ export default {
       }
     }
 
-    const multilingualBannerHref = computed(() => {
-      const appBase = (data.urls && data.urls.appBase)
-        ? data.urls.appBase
-        : 'index.php?option=com_aiboost&view=app'
-      return appBase + '#/settings?tab=sitemap&field=enable_hreflang'
-    })
-    const multilingualBannerTarget = computed(() => '_self')
-
     // First-run setup banner — deep-link to the Autopilot page inside the
     // SPA shell, built the same way configureUrl() builds its hrefs.
     const firstRunSetupHref = computed(() => {
@@ -742,8 +734,6 @@ export default {
       toggleNotif,
       nonCriticalNotifCount,
       isProEdition,
-      multilingualBannerHref,
-      multilingualBannerTarget,
       firstRunSetupHref,
       conflictCritical,
       conflictWarnings,

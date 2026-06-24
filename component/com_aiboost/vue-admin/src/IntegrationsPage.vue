@@ -33,6 +33,7 @@
       <div
         v-for="item in filtered"
         :key="item.key"
+        :data-int-key="item.key"
         class="ab-section ab-int-card"
         :class="'ab-int-card--' + item.status"
       >
@@ -75,9 +76,36 @@
             </div>
           </div>
 
-          <!-- Options open in a modal -->
-          <div v-if="optionsFor(item) && optsLoaded" class="mt-2">
-            <button type="button" class="ab-btn ab-btn--sm ab-btn--secondary" @click="openOptions(item)">Options</button>
+          <!-- Expandable: options (inline — no modal) -->
+          <div v-if="optionsFor(item) && optsLoaded" class="ab-int-acc">
+            <button type="button" class="ab-int-acc__btn" @click="toggleOpts(item.key)">
+              <span>Options</span>
+              <span class="ab-int-acc__chev" :class="{ 'is-open': openOpts[item.key] }">▾</span>
+            </button>
+            <div v-show="openOpts[item.key]" class="ab-int-acc__body ab-int-opts">
+              <p v-if="!item.installed" class="ab-help mb-2">
+                Not detected on this site — these options take effect once the extension is installed and active.
+              </p>
+              <IntegrationOptionField
+                v-for="f in optionsFor(item).free" :key="f.key"
+                :field="f" v-model="settings[f.key]" />
+              <ProGate v-if="optionsFor(item).pro.length" mode="card" :label="item.name + ' (Pro)'">
+                <IntegrationOptionField
+                  v-for="f in optionsFor(item).pro" :key="f.key"
+                  :field="f" v-model="settings[f.key]" />
+              </ProGate>
+              <div class="ab-int-opts__foot">
+                <span v-if="optsMsg[item.key]" class="ab-help"
+                  :style="{ color: optsOk[item.key] ? 'var(--ab-success)' : 'var(--ab-danger)' }">
+                  {{ optsMsg[item.key] }}
+                </span>
+                <button type="button" class="ab-btn ab-btn--primary ab-btn--sm ms-auto"
+                  :disabled="!!savingOpts[item.key]" @click="saveOptions(item)">
+                  <span v-if="savingOpts[item.key]">Saving…</span>
+                  <span v-else>Save options</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -95,46 +123,6 @@
       <strong>Detection</strong> checks the Joomla extensions table for installed &amp; enabled extensions.
       Switching an integration off keeps all your settings — it only pauses AI Boost's extra output for that extension.
       <a href="https://aiboostnow.com/integrations" target="_blank" rel="noopener">Browse all integrations</a>
-    </div>
-
-    <!-- Per-integration Options modal -->
-    <div v-if="optionsModalItem" class="ab-int-modal" @click.self="closeOptions">
-      <div class="ab-int-modal__panel" role="dialog" aria-modal="true">
-        <div class="ab-int-modal__head">
-          <div class="min-w-0">
-            <div class="ab-int-modal__title">{{ optionsModalItem.name }} — Options</div>
-            <div class="ab-help">{{ optionsModalItem.vendor }}</div>
-          </div>
-          <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="closeOptions" aria-label="Close">✕</button>
-        </div>
-        <div class="ab-int-modal__body">
-          <p v-if="!optionsModalItem.installed" class="ab-help mb-2">
-            Not detected on this site — these options take effect once the extension is installed and active.
-          </p>
-          <IntegrationOptionField
-            v-for="f in optionsFor(optionsModalItem).free" :key="f.key"
-            :field="f" v-model="settings[f.key]" />
-          <ProGate v-if="optionsFor(optionsModalItem).pro.length" mode="card" :label="optionsModalItem.name + ' (Pro)'">
-            <IntegrationOptionField
-              v-for="f in optionsFor(optionsModalItem).pro" :key="f.key"
-              :field="f" v-model="settings[f.key]" />
-          </ProGate>
-        </div>
-        <div class="ab-int-modal__foot">
-          <span v-if="optsMsg[optionsModalItem.key]" class="ab-help"
-            :style="{ color: optsOk[optionsModalItem.key] ? 'var(--ab-success)' : 'var(--ab-danger)' }">
-            {{ optsMsg[optionsModalItem.key] }}
-          </span>
-          <div class="ab-int-modal__foot-actions">
-            <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="closeOptions">Close</button>
-            <button type="button" class="ab-btn ab-btn--primary ab-btn--sm"
-              :disabled="!!savingOpts[optionsModalItem.key]" @click="saveOptions(optionsModalItem)">
-              <span v-if="savingOpts[optionsModalItem.key]">Saving…</span>
-              <span v-else>Save options</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
 
   </div>
@@ -219,7 +207,6 @@ export default {
       optsOk:          {},
       openDoes:        {},
       openOpts:        {},
-      optionsModalItem: null,
     }
   },
 
@@ -248,6 +235,18 @@ export default {
       this.settings = s
     } finally {
       this.optsLoaded = true
+    }
+
+    // Deep-link: #/integrations?open=<key> (e.g. the Dashboard "Multilingual
+    // site detected" notification → ?open=falang) auto-expands that card's
+    // options and scrolls it into view.
+    const openKey = this.$route && this.$route.query && this.$route.query.open
+    if (openKey && INTEGRATION_OPTIONS[openKey]) {
+      this.openOpts = { ...this.openOpts, [openKey]: true }
+      this.$nextTick(() => {
+        const el = document.querySelector('[data-int-key="' + openKey + '"]')
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
     }
   },
 
@@ -336,9 +335,6 @@ export default {
 
     toggleDoes(key) { this.openDoes = { ...this.openDoes, [key]: !this.openDoes[key] } },
     toggleOpts(key) { this.openOpts = { ...this.openOpts, [key]: !this.openOpts[key] } },
-
-    openOptions(item) { this.optionsModalItem = item },
-    closeOptions() { this.optionsModalItem = null },
 
     hasCardAction(item) {
       return item.status !== 'coming_soon' && item.status !== 'roadmap' && !!item.learn_url
@@ -466,13 +462,6 @@ export default {
 /* No coloured left rail on integration cards or their heads (Bojan I1). */
 .ab-int-card__head { border-left: none; }
 
-.ab-int-modal { position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; padding: 1rem; }
-.ab-int-modal__panel { background: var(--ab-bg-elev); border: 1px solid var(--ab-border); border-radius: var(--ab-radius); width: 100%; max-width: 560px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.35); }
-.ab-int-modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1rem 1.25rem; border-bottom: 1px solid var(--ab-border); }
-.ab-int-modal__title { font-weight: 700; font-size: 1.05rem; color: var(--ab-text); }
-.ab-int-modal__body { padding: 1rem 1.25rem; overflow-y: auto; }
-.ab-int-modal__foot { display: flex; align-items: center; gap: .75rem; padding: .85rem 1.25rem; border-top: 1px solid var(--ab-border); }
-.ab-int-modal__foot-actions { display: flex; gap: .5rem; margin-left: auto; }
 .ab-int-card--roadmap        { opacity: .7; }
 .ab-int-card--not_detected   { opacity: .85; }
 
@@ -497,6 +486,8 @@ export default {
 .ab-int-acc__chev { transition: transform .2s; font-size: .75rem; color: var(--ab-text-muted); }
 .ab-int-acc__chev.is-open { transform: rotate(180deg); }
 .ab-int-acc__body { padding: .25rem 0 .75rem; }
+
+.ab-int-opts__foot { display: flex; align-items: center; gap: .75rem; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--ab-border); }
 
 .ab-int-spinner {
   width: 12px; height: 12px;
