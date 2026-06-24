@@ -63,10 +63,10 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         return new IntegrationDescriptor(
             key:            'falang',
             pluginElement:  'aiboost_int_falang',
-            label:          'Multilang',
-            vendor:         'Falang',
+            label:          'Multilingual',
+            vendor:         'Native Joomla & Falang',
             category:       'Multilingual',
-            description:    'Per-language hreflang, Schema.org and OpenGraph for multilingual Joomla sites — native Joomla language associations and Falang. Multilang Pro: no multilingual output without an active licence.',
+            description:    'Per-language hreflang, Schema.org and OpenGraph for multilingual Joomla sites — works with native Joomla language associations and, when present, Falang. Pro: no multilingual output without an active licence.',
             hostType:       'component',
             hostElement:    'com_falang',
             sdkVersion:     Sdk::SDK_VERSION,

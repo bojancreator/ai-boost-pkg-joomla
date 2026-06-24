@@ -953,8 +953,22 @@ class SettingsController extends BaseController
             ], $rawLangs);
             $defaultLang = (string) $this->app->get('language', 'en-GB');
 
+            // Whether multilingual output is actually active (bridge plugin published
+            // + master switch on + 2+ languages). Drives the per-field Translation UI.
+            $multilangActive = false;
+            try {
+                $multilangActive = (new \AiBoost\Lib\IntegrationDetectorService(Factory::getDbo()))->isMultilangActive();
+            } catch (\Throwable $e) {
+                // Non-fatal — default to inactive (translation hints shown).
+            }
+
             $this->app->setHeader('Content-Type', 'application/json; charset=utf-8');
-            echo json_encode(['success' => true, 'languages' => $languages, 'default_lang' => $defaultLang]);
+            echo json_encode([
+                'success'          => true,
+                'languages'        => $languages,
+                'default_lang'     => $defaultLang,
+                'multilang_active' => $multilangActive,
+            ]);
             $this->app->close();
         } catch (\Throwable $e) {
             $this->sendJsonResponse(false, 'Error loading languages: ' . $e->getMessage());

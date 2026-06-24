@@ -75,7 +75,7 @@ final class FalangBridgeParityTest extends TestCase
         // Internal slug / host identity is FROZEN; only the display label moved.
         self::assertSame('falang', $desc->key);
         self::assertSame('aiboost_int_falang', $desc->pluginElement);
-        self::assertSame('Multilang', $desc->label, 'Display name re-tiered to "Multilang".');
+        self::assertSame('Multilingual', $desc->label, 'Display name is the single meaningful word "Multilingual" (was "Multilang").');
         self::assertSame('component', $desc->hostType);
         self::assertSame('com_falang', $desc->hostElement);
         self::assertSame(Sdk::SDK_VERSION, $desc->sdkVersion);

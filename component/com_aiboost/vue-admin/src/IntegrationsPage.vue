@@ -187,7 +187,7 @@ const INTEGRATION_OPTIONS = {
 // Per-integration plain-English copy for the expandable card section.
 const INTEGRATION_COPY = {
   falang: {
-    does: 'Multilang Pro — adds hreflang link tags to the page head, translates Schema.org and OpenGraph per language, and lists translated URLs as hreflang alternates in the XML sitemap. Works with native Joomla language associations and Falang.',
+    does: 'Multilingual (Pro) — adds hreflang link tags to the page head, translates Schema.org and OpenGraph per language, and lists translated URLs as hreflang alternates in the XML sitemap. Works with native Joomla language associations and, when present, Falang.',
     off:  'AI Boost stops adding hreflang, translated Schema.org and translated OpenGraph. Your translations and every AI Boost setting are kept — only this extra output pauses, and a normal Settings save will not erase them.',
   },
   yootheme: {

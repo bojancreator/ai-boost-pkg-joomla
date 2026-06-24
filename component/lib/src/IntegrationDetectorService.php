@@ -37,10 +37,10 @@ class IntegrationDetectorService
      */
     private const INTEGRATIONS = [
         'falang' => [
-            'name'        => 'Falang Pro',
-            'vendor'      => 'Falang',
+            'name'        => 'Multilingual',
+            'vendor'      => 'Native Joomla & Falang',
             'category'    => 'Multilingual',
-            'description' => 'Multilingual content management for Joomla. AI Boost detects Falang Pro and keeps multilingual Schema.org, OG meta, and sitemap hreflang behaviour compatible.',
+            'description' => 'Per-language hreflang, Schema.org and OpenGraph for multilingual Joomla sites — works with native Joomla language associations and, when present, Falang.',
             'type'        => 'component',
             'element'     => 'com_falang',
             'folder'      => '',
@@ -253,7 +253,12 @@ class IntegrationDetectorService
             return $tile;
         }
 
-        $enabled = (string) ($settings['integration_' . $key . '_enabled'] ?? '1') !== '0';
+        // The integration is only truly enabled when BOTH the master setting is on
+        // AND our bridge plugin is actually published in Joomla. This keeps the card
+        // honest when the plugin is unpublished directly via Joomla → Plugins (the
+        // setting alone would otherwise still read as enabled).
+        $settingOn = (string) ($settings['integration_' . $key . '_enabled'] ?? '1') !== '0';
+        $enabled   = $settingOn && $this->isBridgePluginEnabled($key);
         $tile['has_master_toggle'] = true;
         $tile['master_enabled']    = $enabled;
 
@@ -262,6 +267,28 @@ class IntegrationDetectorService
         }
 
         return $tile;
+    }
+
+    /** True when our own bridge plugin plg_system_aiboost_int_<key> is published. */
+    private function isBridgePluginEnabled(string $key): bool
+    {
+        return $this->isExtensionEnabled('plugin', 'aiboost_int_' . $key, 'system');
+    }
+
+    /**
+     * True when multilingual output is actually active: the Multilingual bridge
+     * plugin is published, its master switch is on, and the site has 2+ published
+     * languages. Drives the SPA's per-field Translation UI gate so the dropdowns
+     * mirror the Integrations card exactly.
+     */
+    public function isMultilangActive(): bool
+    {
+        $settings  = $this->loadSettings();
+        $settingOn = (string) ($settings['integration_falang_enabled'] ?? '1') !== '0';
+
+        return $settingOn
+            && $this->isBridgePluginEnabled('falang')
+            && $this->isSiteMultilingual();
     }
 
     /**
