@@ -142,6 +142,7 @@
 
 <script>
 import { postWithCsrf } from './api.js'
+import { multilangActive } from './composables/useTranslations.js'
 import ProGate from './components/ProGate.vue'
 import IntegrationOptionField from './components/IntegrationOptionField.vue'
 import AbIcon from './components/AbIcon.vue'
@@ -356,6 +357,13 @@ export default {
       item.master_enabled = enabled
       if (item.installed) {
         item.status = enabled ? this.enabledStatus(item) : 'paused'
+      }
+      // Multilingual drives the per-field Translation UI across the whole
+      // component. Update the shared capability flag immediately so the
+      // dropdowns appear/disappear without a manual page reload. (Called on the
+      // optimistic flip AND on rollback, so it always tracks the real state.)
+      if (item.key === 'falang') {
+        try { multilangActive.value = enabled } catch (_e) { /* ignore */ }
       }
       // Mirror into the legacy global so a cached SPA re-visit (no re-fetch)
       // reflects the new state instead of snapping back to the old value.

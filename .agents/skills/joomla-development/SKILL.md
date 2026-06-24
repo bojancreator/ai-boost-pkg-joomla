@@ -1,3 +1,8 @@
+---
+name: joomla-development
+description: Use when working anywhere under component/ or plugins/, on build scripts (scripts/build-*.py, install-to-staging.py), staging installs, or version bumps for AI Boost for Joomla. Covers plugin and component anatomy, manifest XML rules, Pro-gating, the numbered gotchas, and branding rules.
+---
+
 # Joomla Development Skill — AI Boost for Joomla
 
 ## When to load this skill
