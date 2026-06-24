@@ -390,6 +390,29 @@ Staging details:
 
 ---
 
+## Visual verification (subagent)
+
+Run UI verification in a Task subagent so screenshots never enter the main context.
+The main task receives only the subagent's text verdict.
+
+- One screen, one theme (preferred — targeted):
+  `python _creds_run.py scripts/_visual_admin_walk.py --target free --outdir artifacts/single-screen --only <screen>`
+  (use `--target pro` for the Pro edition)
+
+- One screen, BOTH themes (no targeted tool yet — fallback):
+  subagent runs the full `scripts/ui-audit-screenshots.js`, then inspects and judges ONLY the
+  two relevant PNGs in `artifacts/ui-audit/{light,dark}/`. Context cost stays low (only the
+  verdict returns); disk/time cost is not yet optimised — see BACKLOG note.
+
+- Theme coverage follows the CLAUDE.md rule: both light+dark only when the change touches shared
+  CSS/tokens, layout, or adds/changes a component; one theme for isolated text/content edits.
+
+- Subagent brief (form): general-purpose Task — "run <command>, open the PNG(s), return 2–4
+  sentences on layout / overflow / contrast. Do NOT return the image. If anything is off or
+  uncertain, say so explicitly."
+
+---
+
 ## Version Management
 
 **Single source of truth: `component/Version.php`**
@@ -729,3 +752,25 @@ See also: `OPERATING.md` (global plan: codegen recipe, Pro-gating rule, Health r
 **L022 — Plugin rename requires pkg_script `postflight` cleanup (Task #438)** — When you change a Joomla plugin's slug (e.g. `aiboost_perf` → `aiboost_core`), Joomla's package installer does NOT automatically uninstall the old plugin. It happily ships both. You must add a `postflight()` step that: (1) `SELECT extension_id FROM #__extensions WHERE element='<old_slug>' AND type='plugin' AND folder='system'`; (2) read its `enabled` column and transfer it to the new plugin row; (3) call `(new \Joomla\CMS\Installer\Installer())->uninstall('plugin', $oldId)`. Wrap in try/catch and enqueueMessage on failure so users can clean up manually. Idempotent — no-op if the old row is absent. Settings stored in `#__aiboost_settings` (not plugin params) are unaffected by the slug change and need no migration.
 
 **L023 — Styling a checkbox as an ON/OFF switch (Task #559)** — To turn a boolean `<input type="checkbox">` into a sliding green-ON / red-OFF switch purely in CSS, set `appearance:none` on the input and draw the knob with `::before` and the "ON"/"OFF" text with `::after`; `:checked` flips colour (`--ab-success` / `--ab-danger`) and slides the knob via `left:calc(100% - knob - gap)`. Scope the rule to `[type="checkbox"]` only — `CodeTab.vue` reuses the same `.ab-toggle__input` class on radios that MUST keep their native look. Pseudo-elements DO render on `appearance:none` checkboxes in all modern browsers, but only when the input is NOT also hidden by a sibling `:has()` rule — the existing `.ab-toggle__track` hide rule targets a different markup shape, so verify your switch input is followed by a `<label>`, not a `.ab-toggle__track`. Pure-CSS approach means manifest-generated Vue partials (`tabs/generated/*.vue`) and hand-written tabs are covered without touching markup, except Bootstrap `form-check-input` toggles which must be reclassed to `ab-toggle__input`.
+
+---
+
+## UI styling discipline (Vue admin)
+
+A colour/spacing change should be ONE edit, not many. The shared system
+(`ab-tokens.css` + `ab-components.css` + the 14 components in `vue-admin/src/components/`)
+already carries most of this. Keep new work inside it; do not start new bespoke styling.
+
+- **Colours through tokens.** Any status/theme/brand colour (success, danger, warning,
+  accent, surface, text) must use `var(--ab-*)`. If the token does not exist, add it to
+  `ab-tokens.css` and use that — do NOT hard-code a new hex for these.
+  NOT in scope — leave as-is, do not churn: hex used as a `var(--x, #hex)` fallback, fills
+  inside inline SVG icons, and `color:#fff` on a coloured button. These are fine; do not rip
+  them out.
+- **Reuse classes and components — don't hand-write new markup.** For a button/card/field use
+  the existing `.ab-btn` / `.ab-card` / `.ab-field` classes and the `AbField` / `OnOffSwitch` /
+  `PageHeader` components. Do not invent a new one-off button or card in a page's scoped `<style>`.
+- **Spacing/size:** use existing tokens/classes for values that REPEAT. A genuinely one-off
+  layout width is fine inline — do NOT manufacture a token for something used once.
+- When adding a screen/tab, build from the shared parts first; add bespoke style only for what
+  has no shared equivalent, and flag it so it can be folded in later.

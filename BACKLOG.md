@@ -56,6 +56,17 @@ Product strategy and release sequence: `docs/v0.5-product-direction.md`.
 - **Thin Joomla plugin classes into platform entrypoints** — keep plugin classes as event/bootstrap
   layers; move business logic into shared services, starting with `AiBoostCore.php`. Architecture gate +
   XHigh required. (Biggest long-term risk is future Joomla/WordPress duplication, not the current product.)
+- **UI colour tokens — extract the genuine colour bypasses** so a status-colour change is one place.
+  Spots: `App.vue` staging/upgrade banner (~25 amber hex), `HealthApp` pass/fail (`#198754` / `#dc3545`
+  + dark variants), per-tab accent palette (`App.vue`/`DashboardApp`). Add `--ab-warning` / `--ab-success`
+  / `--ab-danger` (+ accent) and point those spots at them. Small, CSS-only, visually verifiable.
+  *(post-1.0 — not before launch.)*
+- **Cards: consolidate the two overlapping families** (`.ab-card` vs `.ab-section`) into one card family.
+  Do this around the WordPress port, where shared components get unified anyway. *(post-1.0)*
+- **AbButton + AbCard wrapper components** to remove repeated markup; sweep the ~180 one-off inline layout
+  styles into utility/scoped rules. Nice-to-have only — these are mostly one-off LAYOUT, not shared theme,
+  so they do NOT block the "one CSS fix = all pages" goal. *(optional, low value — only if there's appetite
+  after 1.0.)*
 
 ## Bugs & fixes
 
@@ -63,7 +74,7 @@ Product strategy and release sequence: `docs/v0.5-product-direction.md`.
 
 ## Testing & infrastructure
 
-(none open)
+- **Targeted screenshot: `--only`+`--theme` on `scripts/ui-audit-screenshots.js`** so one screen can be shot in both themes without the full 46-shot set. Until then the subagent fallback runs the full set and judges only the two relevant PNGs. **Raise priority if the fallback fires often in practice** (decide from real measurement, not assumption).
 
 ## Health scan polish
 
