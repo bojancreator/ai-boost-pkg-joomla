@@ -181,6 +181,37 @@ const DEFAULTS = {
   hide_comments:           '0',
   error_log_enabled:       '1',
   error_log_min_severity:  'warning',
+
+  // #14 — manifest default-ON parity. The backend reads an absent toggle key as
+  // ON (`?? 1`), but a Vue checkbox reads an absent key as OFF — so every
+  // manifest toggle with default='1' MUST be mirrored here as '1', or a plain
+  // Save silently flips that feature OFF. Source of truth: the *.php manifests;
+  // enforced by ManifestDefaultsParityTest. The two integration MASTER toggles
+  // (integration_falang_enabled / integration_yootheme_enabled) are deliberately
+  // NOT mirrored — they wait for the "locked upsell" backlog item, so the test
+  // excludes them by name.
+  enable_schema:             '1',
+  page_type_auto_detect:     '1',
+  article_schema_enabled:    '1',
+  website_schema_enabled:    '1',
+  enable_search_action:      '1',
+  faq_auto_detect:           '1',
+  enable_sitemap:            '1',
+  include_articles:          '1',
+  include_categories:        '1',
+  include_menu_items:        '1',
+  ping_google:               '1',
+  ping_bing:                 '1',
+  enable_opengraph:          '1',
+  enable_twitter_cards:      '1',
+  enable_article_og_type:    '1',
+  enable_per_article_fields: '1',
+  llmstxt_enabled:           '1',
+  aeo_ai_meta_enabled:       '1',
+  auto_domain_detection:     '1',
+  enable_canonical:          '1',
+  enable_robots:             '1',
+  redirect_404_log_enabled:  '1',
 }
 
 export default {

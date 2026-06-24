@@ -67,6 +67,13 @@ Product strategy and release sequence: `docs/v0.5-product-direction.md`.
   styles into utility/scoped rules. Nice-to-have only — these are mostly one-off LAYOUT, not shared theme,
   so they do NOT block the "one CSS fix = all pages" goal. *(optional, low value — only if there's appetite
   after 1.0.)*
+- **Integration master toggles shown locked (upsell)** — render `integration_falang_enabled` /
+  `integration_yootheme_enabled` as a ProGate-locked control with an "available as a paid add-on" message
+  whenever `hasPro('int_falang')` / `hasPro('int_yootheme')` is inactive — the same mechanism as the
+  existing Pro Options fields. Why: upsell. Today a Free user sees the switch ON and assumes the integration
+  works (or is broken), instead of seeing what they get by paying. Billing is already protected (two walls:
+  `@pro:start` build-stripping + the `hasPro` licence gate), so this is NOT a security fix — it is a sales
+  one. *(post-1.0 — not before launch.)*
 
 ## Bugs & fixes
 
