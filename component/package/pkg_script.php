@@ -2711,14 +2711,18 @@ class Pkg_AiboostInstallerScript
 
             // System plugins: every aiboost_*_pro decorator plus the Falang
             // integration bridge (its Extension class extends a lib class).
-            // The LIKE underscores are escaped so only literal matches count.
+            // The LIKE underscores are escaped with an explicit ESCAPE '\' clause
+            // (matching PluginRegistry / mod_aiboost_health) so they stay LITERAL
+            // even under sql_mode NO_BACKSLASH_ESCAPES — where a bare LIKE has NO
+            // escape character at all, so the hard-coded backslashes would become
+            // literals to match and this query would silently disable nothing.
             $db->setQuery(
                 $db->getQuery(true)
                     ->update($db->quoteName('#__extensions'))
                     ->set($db->quoteName('enabled') . ' = 0')
                     ->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
                     ->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
-                    ->where('(' . $db->quoteName('element') . ' LIKE ' . $db->quote('aiboost\_%\_pro')
+                    ->where('(' . $db->quoteName('element') . ' LIKE ' . $db->quote('aiboost\_%\_pro') . ' ESCAPE ' . $db->quote('\\')
                         . ' OR ' . $db->quoteName('element') . ' = ' . $db->quote('aiboost_int_falang') . ')')
                     ->where($db->quoteName('enabled') . ' = 1')
             )->execute();

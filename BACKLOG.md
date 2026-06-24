@@ -63,6 +63,15 @@ Product strategy and release sequence: `docs/v0.5-product-direction.md`.
   perpetual-Pro customer reads "Free" in the admin/health PANEL after the licence expires — display
   only, NOT visitor-facing emission, so no Pro leak at the customer. Fix: switch the three live ones to
   `isProActive()`; delete the two dead helpers. Low priority — cosmetic admin bug. *(post-1.0)*
+- **Converge LIKE prefix scans onto the sql_mode-independent form (#8 follow-up)** — three sites match
+  `aiboost_*_pro` via escaped-underscore `LIKE … ESCAPE '\'`: `PluginRegistry.php:415`,
+  `mod_aiboost_health.php:47`, and `pkg_script.php` (the last was a live NBE bug, fixed in this commit by
+  adding the ESCAPE clause). The explicit ESCAPE clause is correct under all sql_modes, but the lesson's
+  canonical, fully sql_mode-independent form is a coarse escape-free WHERE (`type='plugin' AND
+  folder='system'`) + `str_starts_with($element,'aiboost_') && str_ends_with($element,'_pro')` in PHP.
+  Converge all three onto that. Also fold in the user-search LIKE in `ErrorsController.php:98` (manual
+  `\_`/`\%` escaping with no ESCAPE clause — NBE-fragile too; low impact, admin error-log search). Gated
+  change with a real install-path test (`pkg_script` is install lifecycle). *(post-1.0)*
 - **Harden settings save to merge-on-existing (#16)** — `SettingsController::save()` rebuilds the
   `#__aiboost_settings` blob from the posted form, so it is safe ONLY because the Vue SPA posts the full
   snapshot. Make it merge the posted keys onto the loaded existing blob so even a partial save can never
