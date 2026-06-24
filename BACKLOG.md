@@ -56,6 +56,13 @@ Product strategy and release sequence: `docs/v0.5-product-direction.md`.
 - **Thin Joomla plugin classes into platform entrypoints** — keep plugin classes as event/bootstrap
   layers; move business logic into shared services, starting with `AiBoostCore.php`. Architecture gate +
   XHigh required. (Biggest long-term risk is future Joomla/WordPress duplication, not the current product.)
+- **Harden settings save to merge-on-existing (#16)** — `SettingsController::save()` rebuilds the
+  `#__aiboost_settings` blob from the posted form, so it is safe ONLY because the Vue SPA posts the full
+  snapshot. Make it merge the posted keys onto the loaded existing blob so even a partial save can never
+  wipe siblings, then delete the dead `SettingsPersistenceService::saveSettings()` (a subset-replace
+  writer with no production caller — the only physical instance of the anti-pattern) so the dormant mine
+  disappears. Gated refactor with full licence/Pro save tests (it touches the code that guards billing).
+  Behaviour is locked-as-is by `SettingsWriterRmwContractTest`. *(post-1.0 — not before launch.)*
 - **UI colour tokens — extract the genuine colour bypasses** so a status-colour change is one place.
   Spots: `App.vue` staging/upgrade banner (~25 amber hex), `HealthApp` pass/fail (`#198754` / `#dc3545`
   + dark variants), per-tab accent palette (`App.vue`/`DashboardApp`). Add `--ab-warning` / `--ab-success`
