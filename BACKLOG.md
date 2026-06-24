@@ -56,6 +56,13 @@ Product strategy and release sequence: `docs/v0.5-product-direction.md`.
 - **Thin Joomla plugin classes into platform entrypoints** — keep plugin classes as event/bootstrap
   layers; move business logic into shared services, starting with `AiBoostCore.php`. Architecture gate +
   XHigh required. (Biggest long-term risk is future Joomla/WordPress duplication, not the current product.)
+- **Pro gate drift in admin/health DISPLAY (#2 follow-up)** — three live places derive isPro from the
+  raw `license_tier` instead of `PluginRegistry::isProActive()`: `mod_aiboost_health.php:78`,
+  `HealthCheckService.php:2690`, `Dashboard/HtmlView.php:269` (`checkIsProEnabled`). Plus two dead
+  helpers: `ProGate` trait `isProEnabled():46`, `AbstractService::isProTier():56`. Effect: a
+  perpetual-Pro customer reads "Free" in the admin/health PANEL after the licence expires — display
+  only, NOT visitor-facing emission, so no Pro leak at the customer. Fix: switch the three live ones to
+  `isProActive()`; delete the two dead helpers. Low priority — cosmetic admin bug. *(post-1.0)*
 - **Harden settings save to merge-on-existing (#16)** — `SettingsController::save()` rebuilds the
   `#__aiboost_settings` blob from the posted form, so it is safe ONLY because the Vue SPA posts the full
   snapshot. Make it merge the posted keys onto the loaded existing blob so even a partial save can never

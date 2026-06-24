@@ -75,6 +75,23 @@ updates/support via the update server. **How to apply:** any new server/runtime
 Pro gate must call `isProActive()`/`hasPro($sku)`; never re-derive from
 `license_tier` or scan `license_state` directly.
 
+**This rule is CURRENTLY VIOLATED in admin/health DISPLAY (BACKLOG, not a leak):** three live spots
+still derive isPro from the raw `license_tier` via `in_array($tier, ['pro','developer','agency'])`
+instead of `isProActive()` — `mod_aiboost_health.php:78`, `HealthCheckService.php:2690`,
+`Dashboard/HtmlView.php:269` (`checkIsProEnabled`) — plus two DEAD helpers with no production caller
+(`ProGate` trait `isProEnabled():46`, `AbstractService::isProTier():56`). They are admin/health
+DISPLAY only: a perpetual-Pro customer reads "Free" in the panel after the licence expires
+(`license_tier`→`free` while `pro_activated` stays `1`), never visitor-facing emission, so NOT a
+Pro leak. Fix is BACKLOG (switch the 3 live to `isProActive()`, delete the 2 dead).
+
+**Enforced where it would actually leak:** `component/tests/Lib/EmissionProGateSourceContractTest.php`
+guards the EMISSION branch — `plugins/system/**` + `SettingsController.php` (the settings.save gate) —
+asserting ZERO raw `license_tier`/`license_state` reads there (array access or `->get`), with comments
+stripped via the tokenizer so prose mentions don't trip it. The licence authority (PluginRegistry,
+LicenseValidator/Heartbeat/Reconcile, pkg_script edition detection) is a documented, dated
+scope-exclusion. Red-green: a raw `license_tier` read in any emission plugin fails the test. So the
+historical sitemap/`isProSetting` after-expiry leak cannot return where a visitor would see it.
+
 ## Pro plugins gate per-hook on hasPro() — aiboost_social_pro leak FIXED (v0.85.2 re-review)
 
 The `_pro` plugin entry points are thin skeletons (require_once + class_alias);
