@@ -259,6 +259,7 @@
 <script>
 import { reactive, computed, ref } from 'vue'
 import { isProInstalled } from './api'
+import { invalidateLegacyGlobals } from './composables/useLegacyGlobals.js'
 import PageHeader from './components/PageHeader.vue'
 import OnOffSwitch from './components/OnOffSwitch.vue'
 
@@ -484,6 +485,14 @@ export default {
           p.enabled = json.newState === 1
           p.flash   = p.enabled ? 'Enabled ✓' : 'Disabled'
           p.flashOk = true
+          // Drop cached Dashboard + Integrations data so their derived state
+          // (notifications, integration cards) re-derives on next visit without a
+          // full page reload. The card above already updated optimistically.
+          try {
+            const lu = (window.aiBoostBootstrap && window.aiBoostBootstrap.legacyUrls) || {}
+            invalidateLegacyGlobals(lu.dashboard)
+            invalidateLegacyGlobals(lu.integrations)
+          } catch (_e) { /* ignore */ }
         } else {
           p.flash   = json.message || 'Error'
           p.flashOk = false

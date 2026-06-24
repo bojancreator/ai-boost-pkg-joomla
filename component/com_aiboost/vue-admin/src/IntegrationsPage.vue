@@ -143,6 +143,7 @@
 <script>
 import { postWithCsrf } from './api.js'
 import { multilangActive } from './composables/useTranslations.js'
+import { invalidateLegacyGlobals } from './composables/useLegacyGlobals.js'
 import ProGate from './components/ProGate.vue'
 import IntegrationOptionField from './components/IntegrationOptionField.vue'
 import AbIcon from './components/AbIcon.vue'
@@ -376,6 +377,16 @@ export default {
       } catch (_e) { /* ignore */ }
     },
 
+    /** Refresh the screens whose at-a-glance state depends on plugin/integration
+     *  toggles (Dashboard notifications, the Integrations cards) without a full
+     *  page reload. Settings is intentionally NOT invalidated — remounting it
+     *  would discard unsaved edits; its Translation UI reacts via multilangActive. */
+    invalidateDependentScreens() {
+      const lu = (window.aiBoostBootstrap && window.aiBoostBootstrap.legacyUrls) || {}
+      invalidateLegacyGlobals(lu.dashboard)
+      invalidateLegacyGlobals(lu.integrations)
+    },
+
     async toggleIntegration(item) {
       if (!item.has_master_toggle || this.saving[item.key]) return
 
@@ -390,6 +401,10 @@ export default {
         const resp = await postWithCsrf(TOGGLE_URL, { integration: item.key, enabled: next ? '1' : '0' })
         if (!resp || resp.success !== true) {
           this.applyToggle(item, previous) // rollback
+        } else {
+          // Success: drop cached Dashboard + Integrations data so those screens
+          // re-derive (notifications, card states) on next visit — no full reload.
+          this.invalidateDependentScreens()
         }
       } catch (_e) {
         this.applyToggle(item, previous)   // rollback on transport error
