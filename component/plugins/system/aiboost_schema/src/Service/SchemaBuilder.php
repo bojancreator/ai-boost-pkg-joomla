@@ -295,7 +295,7 @@ class SchemaBuilder
         }
 
         $sameAs = [];
-        foreach (['facebook', 'instagram', 'youtube', 'twitter', 'linkedin'] as $net) {
+        foreach (['facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'tiktok'] as $net) {
             $url = trim((string)($this->settings["social_{$net}"] ?? ''));
             if ($url !== '') {
                 $sameAs[] = $url;

@@ -1923,7 +1923,7 @@ class HealthCheckService
 
         // sameAs social links (5 pts — at least 2 configured)
         $socialCount = 0;
-        foreach (['facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'tiktok', 'pinterest'] as $net) {
+        foreach (['facebook', 'instagram', 'youtube', 'twitter', 'linkedin', 'tiktok'] as $net) {
             if (trim((string) ($this->settings["schema_social_{$net}"] ?? '')) !== '') {
                 $socialCount++;
             }
