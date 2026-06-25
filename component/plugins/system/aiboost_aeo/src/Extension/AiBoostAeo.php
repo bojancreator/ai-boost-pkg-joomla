@@ -420,7 +420,9 @@ class AiBoostAeo extends CMSPlugin
             try {
                 $ref  = new \ReflectionClass(Uri::class);
                 $prop = $ref->getProperty('instances');
-                $prop->setAccessible(true);
+                // Note: ReflectionProperty::setAccessible() is a no-op since PHP 8.1
+                // (reflection grants access automatically) and is *deprecated* in PHP
+                // 8.5 — calling it would emit an E_DEPRECATED notice. Omitted on purpose.
                 $prop->setValue(null, []);
             } catch (\Throwable $e) {}
         }
