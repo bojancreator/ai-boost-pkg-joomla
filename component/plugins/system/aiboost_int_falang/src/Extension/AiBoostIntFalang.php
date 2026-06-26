@@ -46,6 +46,7 @@ use AiBoost\Lib\Integration\Sdk;
 use AiBoost\Lib\BridgeDetector;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\PluginRegistry;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
@@ -253,9 +254,11 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
      * whose manifest default is 'en' — so on a site whose default language was
      * e.g. sr-YU, x-default pointed at the (wrong) /en/ URL, which in the head
      * also collided with and overwrote the en-gb self-alternate. Now x-default
-     * follows Joomla's configured default language (`config 'language'`) mapped
-     * to its published SEF, falling back to the legacy setting then 'en' only
-     * when the default cannot be resolved.
+     * follows the native Joomla SITE DEFAULT CONTENT language (Language Manager →
+     * Installed → Site → Default = com_languages params['site']) mapped to its
+     * published SEF — NOT the global config default and NOT the per-request
+     * active language — falling back to the legacy setting then 'en' only when it
+     * cannot be resolved. See [[joomla-site-default-vs-global-language]].
      */
     private function primaryLanguageSef(): string
     {
@@ -264,18 +267,20 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             $this->params->get('falang_primary_language', 'en')
         ));
 
-        // The SITE default language must be read Falang-INDEPENDENTLY. Falang
-        // overrides Factory::getApplication()->get('language') to the CURRENT
-        // request language on every page (so on /en/ it reads 'en-GB', on /sr/
-        // 'sr-YU') — that is the active language, NOT the site default. Re-read
-        // the raw configuration.php value (\JConfig::$language), which is the
-        // configured default and is never touched by Falang's per-request swap.
+        // The frontend / SEO default = the SITE DEFAULT CONTENT language
+        // (Language Manager → Installed Languages → Site → "Default" flag). In
+        // Joomla this is a DISTINCT setting from the global Default Language
+        // (Global Configuration / configuration.php $language): it is stored in
+        // the com_languages component params under the per-client key 'site'.
+        // (See administrator/components/com_languages InstalledModel: the Default
+        // flag reads/writes ComponentHelper::getParams('com_languages')->get(
+        // ApplicationHelper::getClientInfo($clientId)->name).) This is native
+        // Joomla — correct for ANY multilingual site, Falang or not — and is NOT
+        // the per-request active language (which Falang swaps) nor the global
+        // config default. For frontend/hreflang/SEO the SITE default always wins.
         $defaultLangCode = '';
         try {
-            if (class_exists('\JConfig')) {
-                $cfg            = new \JConfig();
-                $defaultLangCode = trim((string) ($cfg->language ?? ''));
-            }
+            $defaultLangCode = trim((string) ComponentHelper::getParams('com_languages')->get('site', ''));
         } catch (\Throwable) {
             $defaultLangCode = '';
         }
