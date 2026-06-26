@@ -227,7 +227,7 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             BridgeDetector::registerSitemapLanguages($langs);
         }
 
-        $primary = trim((string) $this->aiBoostSetting('falang_primary_language', $this->params->get('falang_primary_language', 'en')));
+        $primary = $this->primaryLanguageSef();
         if ($primary !== '') {
             BridgeDetector::registerPrimaryLanguageSef($primary);
         }
@@ -242,6 +242,45 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     {
         $mode = (string) $this->aiBoostSetting('falang_hreflang_mode', $this->params->get('falang_hreflang_mode', 'auto'));
         return in_array($mode, ['auto', 'joomla_native', 'falang'], true) ? $mode : 'auto';
+    }
+
+    /**
+     * SEF of the language that x-default must point at — the SITE'S DEFAULT
+     * language, resolved DYNAMICALLY so it is correct on ANY site whatever its
+     * default (the default can change over time and is NOT necessarily English).
+     *
+     * B7 (order 0006): the old code used the `falang_primary_language` setting,
+     * whose manifest default is 'en' — so on a site whose default language was
+     * e.g. sr-YU, x-default pointed at the (wrong) /en/ URL, which in the head
+     * also collided with and overwrote the en-gb self-alternate. Now x-default
+     * follows Joomla's configured default language (`config 'language'`) mapped
+     * to its published SEF, falling back to the legacy setting then 'en' only
+     * when the default cannot be resolved.
+     */
+    private function primaryLanguageSef(): string
+    {
+        $fallback = trim((string) $this->aiBoostSetting(
+            'falang_primary_language',
+            $this->params->get('falang_primary_language', 'en')
+        ));
+
+        // The SITE default language must be read Falang-INDEPENDENTLY. Falang
+        // overrides Factory::getApplication()->get('language') to the CURRENT
+        // request language on every page (so on /en/ it reads 'en-GB', on /sr/
+        // 'sr-YU') — that is the active language, NOT the site default. Re-read
+        // the raw configuration.php value (\JConfig::$language), which is the
+        // configured default and is never touched by Falang's per-request swap.
+        $defaultLangCode = '';
+        try {
+            if (class_exists('\JConfig')) {
+                $cfg            = new \JConfig();
+                $defaultLangCode = trim((string) ($cfg->language ?? ''));
+            }
+        } catch (\Throwable) {
+            $defaultLangCode = '';
+        }
+
+        return BridgeDetector::resolvePrimaryLanguageSef($defaultLangCode, $this->getLanguages(), $fallback);
     }
 
     private function aiBoostSetting(string $key, mixed $default = null): mixed
@@ -403,13 +442,12 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             $menu       = $app->getMenu()->getActive();
             $currentUri = Uri::getInstance();
             $baseUrl    = $currentUri->getScheme() . '://' . $currentUri->getHost();
-            // Canonical source = the manifest-backed setting (same as the sitemap
-            // path), falling back to the legacy plugin param. Keeps x-default in
-            // the head and the sitemap pointing at the same primary language.
-            $primarySef = trim((string) $this->aiBoostSetting(
-                'falang_primary_language',
-                $this->params->get('falang_primary_language', 'en')
-            ));
+            // x-default follows the SITE'S DEFAULT language, resolved dynamically
+            // (see primaryLanguageSef) — identical source as the sitemap path so
+            // head and sitemap x-default stay consistent. Pointing it at the real
+            // default (e.g. /sr/ on a Serbian-default site) also stops it from
+            // colliding with — and overwriting — the en-gb self-alternate.
+            $primarySef = $this->primaryLanguageSef();
             $aliasMap   = $this->loadFalangAliasMap();
             [$defaultUrl] = $this->addLanguageHeadLinks(
                 $document,
