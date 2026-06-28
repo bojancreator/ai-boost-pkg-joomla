@@ -21,6 +21,7 @@ namespace AiBoost\Plugin\System\AiBoostSchema\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\PageContext;
 use Joomla\Database\DatabaseInterface;
 
 class SchemaBuilder
@@ -155,18 +156,26 @@ class SchemaBuilder
     private array               $settings;
     private AppContextInterface $ctx;
     private DatabaseInterface   $db;
+    private ?PageContext        $pageContext;
 
     /**
-     * @param array<string,mixed> $settings  Shared AI Boost settings array.
+     * @param array<string,mixed> $settings     Shared AI Boost settings array.
+     * @param ?PageContext        $pageContext  T1·S2: the resolved per-request page
+     *        context. When provided (production, via AdapterRegistry::pageResolver()),
+     *        the homepage gate reads its injected isHomepage truth; when null (unit
+     *        tests) it falls back to $ctx->isHomepage(). BEHAVIOUR-IDENTICAL:
+     *        PageContext::isHomepage IS $ctx->isHomepage() (the menu-home truth).
      */
     public function __construct(
         array $settings,
         AppContextInterface $ctx,
-        DatabaseInterface $db
+        DatabaseInterface $db,
+        ?PageContext $pageContext = null
     ) {
-        $this->settings = $settings;
-        $this->ctx      = $ctx;
-        $this->db       = $db;
+        $this->settings    = $settings;
+        $this->ctx         = $ctx;
+        $this->db          = $db;
+        $this->pageContext = $pageContext;
     }
 
     /**
@@ -766,7 +775,12 @@ class SchemaBuilder
      */
     private function buildWebSite(): ?array
     {
-        if (!$this->ctx->isHomepage()) {
+        // T1·S2: homepage gate reads the resolver's injected truth when present;
+        // identical value to $ctx->isHomepage() (the active menu-home flag).
+        $isHomepage = $this->pageContext !== null
+            ? $this->pageContext->isHomepage
+            : $this->ctx->isHomepage();
+        if (!$isHomepage) {
             return null;
         }
 

@@ -56,8 +56,13 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
     article gate is homepage-agnostic but the resolver classifies homepage-first → they diverge on a
     **single-article homepage** (today Article schema emits there; `PageContext::isArticle()` is false) —
     S2 must preserve today's behaviour or take an explicit decision.
-  - **S2** — migrate the Schema layer's article gates (P3–P10) onto `PageContext` (output-identical).
-  - **S3** — migrate Social (OgTagBuilder/OgTagProDecorator).
+  - **S2 ✅ DONE (order 0022, v0.87.63):** Schema layer reads `AdapterRegistry::pageResolver()` `PageContext`
+    — `SchemaProBuilder` article gates (P3–P8) from RAW `option/view/rawId`, Free `SchemaBuilder::buildWebSite`
+    (P10) from injected `isHomepage`. Used raw primitives (NOT homepage-first `isArticle()`) so the
+    single-article-home case is preserved byte-for-byte (the S1 divergence finding → that semantics change is
+    S7). Golden diff byte-identical: Pro staging before↔after (clean v0.87.62 baseline) + Free same-version
+    isolation diff. Suite 494 green (single-article-home test still green); installed Pro+Free; Health 94/100.
+  - **S3** — migrate Social (OgTagBuilder/OgTagProDecorator). **(NEXT)**
   - **S4** — bulk `IndexabilityPolicy` for the 4 enumerators (sitemap/news/llms/llms-full), SQL-parity-diff-guarded.
   - **S5** — canonical onto the resolver.
   - **S6** — expose language facts (active + site-default) via the resolver.

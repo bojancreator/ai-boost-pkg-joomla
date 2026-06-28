@@ -30,6 +30,7 @@ namespace AiBoost\Plugin\System\AiBoostSchema\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\TranslationService;
 use Joomla\Database\DatabaseInterface;
 
@@ -46,20 +47,29 @@ class SchemaProBuilder
 
     /**
      * @param array<string,mixed> $settings
+     * @param ?PageContext        $pageContext  T1·S2: the resolved per-request page
+     *        context. When provided (production, via AdapterRegistry::pageResolver()),
+     *        the page-type primitives are read from it; when null (unit tests) they
+     *        fall back to the raw $ctx primitives. BEHAVIOUR-IDENTICAL: PageContext's
+     *        raw option/view/rawId ARE getCurrentOption/View/Id — the article gate
+     *        therefore fires on exactly the same pages as before, including a
+     *        single-article homepage (the homepage-first isArticle() semantics are
+     *        deliberately NOT used here; that change is S7).
      */
     public function __construct(
         array $settings,
         AppContextInterface $ctx,
         DatabaseInterface $db,
-        ?TranslationService $translations = null
+        ?TranslationService $translations = null,
+        ?PageContext $pageContext = null
     ) {
         $this->settings     = $settings;
         $this->ctx          = $ctx;
         $this->db           = $db;
         $this->translations = $translations;
-        $this->option       = $ctx->getCurrentOption();
-        $this->view         = $ctx->getCurrentView();
-        $this->id           = $ctx->getCurrentId();
+        $this->option       = $pageContext !== null ? $pageContext->option : $ctx->getCurrentOption();
+        $this->view         = $pageContext !== null ? $pageContext->view   : $ctx->getCurrentView();
+        $this->id           = $pageContext !== null ? $pageContext->rawId  : $ctx->getCurrentId();
     }
 
     /**
