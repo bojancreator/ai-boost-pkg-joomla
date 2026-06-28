@@ -95,7 +95,6 @@ class HealthCheckService
         'info_og_description_override_active' => 'Social',
         'info_social_og_pro_active'           => 'Social',
         'info_fb_domain_verification_active'  => 'Analytics',
-        'info_aeo_ai_meta_tags_active'        => 'AEO',
         'info_aeo_markdown_discovery_active'  => 'AEO',
         'info_aeo_faq_auto_detect_active'     => 'AEO',
         'info_position_gtm_noscript_body'         => 'Analytics',
@@ -204,7 +203,6 @@ class HealthCheckService
             $this->infoOgDescriptionOverride(),
             $this->infoSocialOgPro(),
             $this->infoFbDomainVerification(),
-            $this->infoAeoAiMetaTags(),
             $this->infoAeoMarkdownDiscovery(),
             $this->infoAeoFaqAutoDetect(),
             $this->infoPositionGtmNoscriptBody(),
@@ -1440,103 +1438,6 @@ class HealthCheckService
     }
 
     /**
-     * Confirm that the AEO "AI Signals" toggle (aeo_ai_meta_enabled) is actually
-     * emitting the three <meta> tags on the front-end:
-     *   <meta name="ai-content-verified"  content="true">
-     *   <meta name="ai-content-optimized" content="true">
-     *   <meta name="llms-txt"             content="{root}/llms.txt">
-     *
-     * The emitter (aiboost_aeo/onBeforeCompileHead) is gated on isPro() + the
-     * setting + Cooperative-mode DocumentInspector skip. Reports:
-     *   - info (skip)   : toggle is OFF
-     *   - warning       : toggle ON but plugin disabled / not Pro
-     *   - info (active) : toggle ON, live HTML check passes
-     *   - warning       : toggle ON but tags NOT found in live HTML
-     *
-     * Audit #377 (C1): replaces the previously empty wrapper-comment artifact
-     * with the actual meta tags as the verifiable signal.
-     */
-    private function infoAeoAiMetaTags(): array
-    {
-        $enabled = (string) ($this->settings['aeo_ai_meta_enabled'] ?? '0') === '1';
-
-        $fixActions = [[
-            'label' => 'Toggle AI meta tags (AEO tab)',
-            'url'   => $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-            'tab'   => 'tab-aeo-btn',
-            'field' => 'aeo_ai_meta_enabled',
-        ]];
-
-        if (!$enabled) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'info', 'AI Meta Tags',
-                true, false,
-                'AI meta tags are disabled — <meta name="ai-content-verified">, <meta name="ai-content-optimized"> and <meta name="llms-txt"> will not be emitted.',
-                $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-                $fixActions
-            );
-        }
-
-        if (!$this->isPluginEnabled('aiboost_aeo')) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
-                false, false,
-                'AI meta tags toggle is ON but the AEO plugin is disabled — no <meta> tags are being injected.',
-                $this->pluginManagerUrl('aiboost_aeo'),
-                $fixActions
-            );
-        }
-
-        if ($this->skipHttpScan) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'info', 'AI Meta Tags',
-                true, true,
-                'AI meta tags are enabled (live HTML check skipped in lightweight mode). Expected on every page: <meta name="ai-content-verified">, <meta name="ai-content-optimized">, <meta name="llms-txt">.',
-                '',
-                $fixActions
-            );
-        }
-
-        $html = $this->getHomepageHtml();
-        if ($html === null) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
-                false, false,
-                'AI meta tags are enabled but the homepage could not be fetched to verify <meta> emission — check site availability, network access, or HTTP block rules. The check cannot confirm the three signals (ai-content-verified, ai-content-optimized, llms-txt) are reaching visitors.',
-                $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-                $fixActions
-            );
-        }
-
-        $hasVerified  = stripos($html, 'name="ai-content-verified"')  !== false;
-        $hasOptimized = stripos($html, 'name="ai-content-optimized"') !== false;
-        $hasLlmsTxt   = stripos($html, 'name="llms-txt"')             !== false;
-
-        if ($hasVerified && $hasOptimized && $hasLlmsTxt) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'info', 'AI Meta Tags',
-                true, true,
-                'AI meta tags are active — all three signals detected in the homepage <head>: ai-content-verified, ai-content-optimized, llms-txt.',
-                '',
-                $fixActions
-            );
-        }
-
-        $missing = [];
-        if (!$hasVerified)  { $missing[] = 'ai-content-verified'; }
-        if (!$hasOptimized) { $missing[] = 'ai-content-optimized'; }
-        if (!$hasLlmsTxt)   { $missing[] = 'llms-txt'; }
-
-        return $this->make(
-            'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
-            false, false,
-            'AI meta tags toggle is ON but the following <meta> tag(s) were NOT found in the live homepage HTML: ' . htmlspecialchars(implode(', ', $missing), ENT_QUOTES) . '. Caching, Cooperative-mode skip (another SEO extension is emitting them), or a template override may be intercepting the output.',
-            $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-            $fixActions
-        );
-    }
-
-    /**
     * Info: Markdown discovery <link> tag in <head>.
      *
      * The aiboost_aeo plugin emits, when markdown_pages_enabled=1 and tier=Pro:
@@ -2686,8 +2587,9 @@ class HealthCheckService
             'aiboost_og_title', 'aiboost_og_description', 'aiboost_og_image',
             'aiboost_og_type', 'aiboost_og_video', 'aiboost_twitter_card',
         ];
-        $tier  = strtolower((string) ($this->settings['license_tier'] ?? 'free'));
-        $isPro = in_array($tier, ['pro', 'developer', 'agency'], true);
+        // Canonical gate — perpetual pro_activated flag, never the drift-prone
+        // license_tier (which is diagnostic-only). See licensing-and-pro-gating.md.
+        $isPro = PluginRegistry::isProActive($this->settings);
 
         $present = 0;
         try {

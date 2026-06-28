@@ -288,40 +288,13 @@ const HEALTH_CHECKS = [
 
   /* ── AI Visibility ────────────────────────────────────────── */
   {
-    id: 'aeo_meta_verified',
-    plugin: 'AI Visibility',
-    title: 'ai-content-verified meta tag',
-    settingsKey: 'aeo_ai_meta_enabled',
-    expected: { type: 'selector', selector: 'meta[name="ai-content-verified"]' },
-    expectedLabel: 'meta[name="ai-content-verified"]',
-    target: { tab: 'aeo', field: 'aeo_ai_meta_enabled' },
-  },
-  {
-    id: 'aeo_meta_optimized',
-    plugin: 'AI Visibility',
-    title: 'ai-content-optimized meta tag',
-    settingsKey: 'aeo_ai_meta_enabled',
-    expected: { type: 'selector', selector: 'meta[name="ai-content-optimized"]' },
-    expectedLabel: 'meta[name="ai-content-optimized"]',
-    target: { tab: 'aeo', field: 'aeo_ai_meta_enabled' },
-  },
-  {
-    id: 'aeo_llms_meta',
-    plugin: 'AI Visibility',
-    title: 'llms-txt discovery meta tag',
-    settingsKey: 'aeo_ai_meta_enabled',
-    expected: { type: 'selector', selector: 'meta[name="llms-txt"]' },
-    expectedLabel: 'meta[name="llms-txt"]',
-    target: { tab: 'aeo', field: 'aeo_ai_meta_enabled' },
-  },
-  {
     id: 'aeo_xrobots',
     plugin: 'AI Visibility',
     title: 'X-Robots-Tag HTTP header',
-    settingsKey: 'aeo_ai_meta_enabled',
+    settingsKey: 'enable_x_robots_header',
     expected: { type: 'header', name: 'x-robots-tag', regex: /index/i },
     expectedLabel: 'X-Robots-Tag: index, follow',
-    target: { tab: 'aeo', field: 'aeo_ai_meta_enabled' },
+    target: { tab: 'aeo', field: 'enable_x_robots_header' },
     optional: true,
   },
   {

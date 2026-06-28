@@ -29,17 +29,6 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
 
 ## ROOT — confirm/harden what the whole product stands on (mostly done; small fixes)
 
-- ✅ **DO (Bojan) — Refresh the gating docs to the real model.** State in `CLAUDE.md` + the
-  joomla-development skill that the live Free/Pro gate is the single perpetual `pro_activated` flag via
-  `PluginRegistry::isProActive()`, **not** `ProFeatureRegistry`/`stripLocked()` (which is a no-op) — the
-  real save-side fence is `SYSTEM_PRESERVED_KEYS`. Doc-only, zero-risk; stops future work chasing dead
-  code. *(→ arch §10 R1; licensing P2/P8)*
-- ✅ **DO (Bojan) — Delete the dead Pro-gate code.** Remove the `ProGate` trait (`isProEnabled`,
-  `validateAndStoreLicense`, `storeLicenseTier`) + `AbstractService::isProTier()`, and the dead
-  `license_tier` read path; switch the 3 live DISPLAY readers to `isProActive()`
-  (`mod_aiboost_health.php:78`, `HealthCheckService.php:2690`, `Dashboard/HtmlView.php:269`). Effect today
-  is cosmetic (a perpetual-Pro customer can read "Free" in the admin panel after expiry) — display only,
-  no visitor-facing leak. *(→ arch §10 R2; licensing P1+P3; old-backlog "#2 follow-up")*
 - ✅ **DO — Document/guard the static `finalize()` per-request dependency.** All builder state is
   `private static` and `reset()` is never called front-end, so order-independence relies on per-request
   PHP process death (fine on PHP-FPM/mod_php, breaks on Swoole/RoadRunner/FrankenPHP). Document it (or add
@@ -95,12 +84,6 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
   (sitelinks search box retired Nov 2024); reposition llms.txt/Markdown/AI-Visibility as
   **AI-agent/documentation accessibility, not AI ranking**; move custom-code out of the headline.
   *(→ arch §10 B1, §5; memory 4seo-competitor-multilingual)*
-- ❌ **REMOVE (Bojan) — Cut the `ai-content-verified` / `ai-content-optimized` AI meta tags entirely.**
-  Nobody reads them and they are an unbackable claim (a liability, not just clutter). *(→ arch §10 B1, §9)*
-- ✅ **DO — Reclassify the 4 tier-mismatched keys Free→Pro (Bojan):** `enable_per_article_fields`,
-  `enable_article_og_type`, `fb_app_id`, `twitter_site_handle` — manifest says Free but they are consumed
-  only inside the Pro OG decorator, so on Free they are dead toggles. One line each + codegen + a
-  parity-test allowlist entry. *(→ licensing P6; fields D6; option-map; part of TRUNK config-cleanup)*
 - ❓ **OPEN — Google Search Console integration.** The #1 competitive gap vs 4SEO (without measurement the
   tool is "set and hope"). Recommended; decide when reached. Pair with making Markdown/llms **noindex +
   out-of-sitemap** (part of the TRUNK indexability authority). *(→ arch §10 B2, §5)*
@@ -125,9 +108,6 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
   block") vs the runtime `RobotsTxtManager` ("# [AI Boost AEO — managed section]") use different markers;
   converge onto the authoritative `RobotsTxtBuilder` (this is also where `robots_custom_rules` becomes
   live). *(→ arch §10 W2, §2 R2; option-map `robots_custom_rules`)*
-- ✅ **DO — Fix stale docblocks (Bojan).** `CustomFieldReader.php` / `OgTagProDecorator.php` still claim to
-  live in `aiboost_social_pro`; they were relocated into the free `aiboost_social`. One-line comment fix.
-  *(→ fields G8)*
 - ⏸ **POST-LAUNCH — Before a WIDE public launch: harden custom-code ACL.** Gate the custom-code save path
   on `core.admin` / a dedicated `aiboost.editcode` ACL (today any `core.manage` on `com_aiboost` can
   inject raw HTML), and add a Health warning when `custom_code_*` is non-empty while >1 group holds
@@ -257,9 +237,6 @@ Precise keys so nothing is lost (status from `_handoff/docs/option-map.json`, or
 - `manual_faq_scope` → **FINISH** (Bojan-decided; see TRUNK) — not just delete.
 - `hreflang_sitemap`, `sitemap_hreflang`, `hreflang_enabled`, `hreflang_primary_language` →
   **collapse to one** (the live consumer is `enable_hreflang`; head hreflang goes through the Falang bridge).
-
-**⚠️ Tier-mismatch (4) — Free label, Pro-only runtime → reclassify to Pro:**
-- `enable_per_article_fields`, `enable_article_og_type`, `fb_app_id`, `twitter_site_handle`.
 
 **🟡 Half-done — wire a UI or remove (decide each):**
 - `enable_x_robots_header` (phantom — no UI), `robots_custom_rules` (only the legacy `RobotsTxtManager`

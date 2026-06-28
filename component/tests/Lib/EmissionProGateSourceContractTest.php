@@ -36,13 +36,14 @@ use FilesystemIterator;
  * verification authority; pkg_script does install-time edition detection. These
  * are the sanctioned owners of the raw values, not emission/save gates.
  *
- * KNOWN, OUT-OF-SCOPE VIOLATIONS (BACKLOG, post-1.0 — admin/health DISPLAY only,
- * never visitor-facing emission, so NOT a leak): mod_aiboost_health.php:78,
- * HealthCheckService.php:2690, Dashboard/HtmlView.php:269 (checkIsProEnabled),
- * plus the dead ProGate::isProEnabled() / AbstractService::isProTier(). They
- * derive isPro from license_tier, so a perpetual-Pro customer reads "Free" in the
- * admin panel after expiry. Tracked in BACKLOG; this test guards the emission
- * branch so the leak cannot return where it matters.
+ * RESOLVED in order 0017: the former admin/health DISPLAY readers that derived
+ * isPro from the drift-prone license_tier (mod_aiboost_health.php,
+ * HealthCheckService::infoArticleCustomFieldsPro(), Dashboard/HtmlView::checkIsProEnabled())
+ * now route through PluginRegistry::isProActive(); the dead ProGate trait and
+ * AbstractService::isProTier()/getLicenseTier() were deleted. license_tier remains
+ * only as a Health DIAGNOSTIC surface (info_license_tier + the legacy-detection
+ * warning), never a gate. This test still guards the emission branch so the leak
+ * cannot return where it matters.
  *
  * Red-green: add `$settings['license_tier'] === 'pro'` to a plugin emission
  * method and testNoRawLicenseTierOrStateReadInEmissionBranch() goes red naming it.

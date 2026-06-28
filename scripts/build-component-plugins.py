@@ -128,7 +128,7 @@ def build_plugin(slug: str, bump: str | None = None, dry_run: bool = False) -> P
         lib_src = REPO_ROOT / "component" / "lib" / "src"
         lib_dst = plugin_tmp / "lib" / "src"
         lib_dst.mkdir(parents=True, exist_ok=True)
-        for cls in ["ProGate", "ConflictManager", "LicenseValidator"]:
+        for cls in ["ConflictManager", "LicenseValidator"]:
             src_file = lib_src / f"{cls}.php"
             if src_file.exists():
                 shutil.copy2(src_file, lib_dst / f"{cls}.php")

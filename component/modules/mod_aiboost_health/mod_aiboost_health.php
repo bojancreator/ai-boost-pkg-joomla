@@ -27,6 +27,7 @@ require_once $autoload;
 
 use AiBoost\Lib\HealthCheckService;
 use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Lib\PluginRegistry;
 use AiBoost\Version;
 
 // ── Free hide (Task #478) ────────────────────────────────────────────────────
@@ -74,8 +75,8 @@ try {
 
 // ── Package version and licence tier ─────────────────────────────────────────
 $abVersion = Version::VERSION;
-$abTier    = strtolower((string) ($abSettings['license_tier'] ?? 'free'));
-$abIsPro   = in_array($abTier, ['pro', 'developer', 'agency'], true);
+// Canonical gate — perpetual pro_activated flag, never the drift-prone license_tier.
+$abIsPro   = PluginRegistry::isProActive($abSettings);
 
 // ── Plugin enabled status from #__extensions ─────────────────────────────────
 // Keys: element slug => display label

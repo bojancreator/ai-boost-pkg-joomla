@@ -26,7 +26,6 @@ namespace AiBoost\Plugin\System\AiBoostAeo\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BodyBlockBuilder;
-use AiBoost\Lib\DocumentInspector;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
@@ -218,27 +217,6 @@ class AiBoostAeo extends CMSPlugin
         // is the single source of truth (emits only a header, no relocated class).
         if (PluginRegistry::isProActive($settings) && (int) ($settings['enable_x_robots_header'] ?? 0)) {
             header('X-Robots-Tag: index, follow');
-        }
-
-        // AI Signals (Free) — lightweight hints that tell AI engines the page
-        // is AI-optimised and point them at /llms.txt.
-        if ((int) ($settings['aeo_ai_meta_enabled'] ?? 0)) {
-            $doc = $app->getDocument();
-            if (DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_AI_META_VERIFIED, $settings)) {
-                HeadBlockBuilder::noteSkip(
-                    HeadBlockBuilder::SECTION_AEO,
-                    'AI meta tags already emitted by another extension'
-                );
-            } else {
-                $baseUrl = rtrim(Uri::root(), '/');
-                $llmsUrl = htmlspecialchars($baseUrl . '/llms.txt', ENT_QUOTES);
-                HeadBlockBuilder::pushSection(
-                    HeadBlockBuilder::SECTION_AEO,
-                    '<meta name="ai-content-verified" content="true">' . "\n"
-                    . '<meta name="ai-content-optimized" content="true">' . "\n"
-                    . '<meta name="llms-txt" content="' . $llmsUrl . '">'
-                );
-            }
         }
 
         // Markdown discovery <link> (Free) — lets AI agents auto-discover the

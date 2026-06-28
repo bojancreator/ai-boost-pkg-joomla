@@ -193,8 +193,8 @@ Critical rules:
 Used in XML `<field>` and `<fieldset>` to conditionally show/hide:
 
 ```xml
-<!-- Show only when license_tier = pro -->
-<fieldset name="rating" showon="license_tier:pro">
+<!-- NOTE: showon="license_tier:pro" is RETIRED — Pro gating is the Vue <ProGate>
+     + the perpetual pro_activated flag (see "Pro Gating" below), not XML showon. -->
 
 <!-- Show for multiple schema_type values -->
 <field name="specific_price_range"
@@ -212,37 +212,54 @@ Rules:
 
 ---
 
-## Pro Gating
+## Pro Gating (CURRENT model — perpetual activation; updated order 0017)
 
-Every Pro feature is gated via the `ProGate` trait:
+> The old `ProGate` trait / `isProEnabled()` / `license_tier` / `showon="license_tier:pro"` model is
+> **RETIRED**. The `ProGate` trait and `AbstractService::isProTier()` were **deleted**;
+> `ProFeatureRegistry::stripLocked()` is a **no-op**. Do not reintroduce any of them.
+
+**One gate, one flag.** `PluginRegistry::isProActive(array $settings): bool` is the single source of
+truth — it returns true iff `pro_activated === '1'`. That flag is set **once** by
+`PluginRegistry::markPerpetualActivation()` the first time a real key verifies active against our licence
+server, and is **never cleared** (licence expiry only pauses updates/support, never relocks features).
+**Never gate on `license_tier`, `license_state`, or the heartbeat** — they drift on expiry and caused the
+historical relock bugs. `license_tier` is written only as a Health *diagnostic*, never read as a gate.
+
+**Runtime emission** — every Pro front-end feature lives **inside the corresponding FREE plugin**, behind:
 
 ```php
-class AiBoostSchema extends CMSPlugin
-{
-    use \AiBoost\Lib\ProGate;
+use AiBoost\Lib\PluginRegistry;
 
-    public function onBeforeCompileHead(): void
-    {
-        if (!$this->isProEnabled()) {
-            return; // Free tier — skip Pro logic
-        }
-        // ... Pro-only code ...
+public function onBeforeCompileHead(): void
+{
+    $settings = /* the request-cached settings blob */;
+    if (class_exists(SchemaProBuilder::class) && PluginRegistry::isProActive($settings)) {
+        // Pro-only code. The Pro class is FREE_EXCLUDE-stripped from the Free
+        // build, so class_exists() is already false there (belt + braces).
     }
 }
 ```
 
-In XML manifest, every plugin MUST have these fields in a `license` fieldset:
-```xml
-<fieldset name="license" label="PLG_SYSTEM_AIBOOST_{SLUG}_FIELDSET_LICENSE">
-  <field name="license_key"    type="text"   ... />
-  <field name="license_tier"   type="hidden" default="free" />
-  <field name="license_status" type="text"   readonly="true" default="Free" ... />
-</fieldset>
-```
+Per-language overlays additionally require the integration SKU, e.g.
+`PluginRegistry::isProActive($settings) && PluginRegistry::hasPro('int_falang')`.
 
-The `license_tier` hidden field is what `isProEnabled()` reads. It is written by `ProGate::validateAndStoreLicense()` which fires automatically from `onExtensionAfterSave` (already in the trait — nothing extra needed).
+**Three things keep Pro out of the Free edition** (defence in depth):
+1. **Physical build** — `scripts/build-package-zip.py` strips every Pro Service/Feature class
+   (`FREE_EXCLUDE`) and every `// @pro:start … // @pro:end` block; `verify-no-pro-leakage.py` runs STRICT
+   and fails the build on any leaked token (`ProGate::`, `isProEnabled(`, `@pro`, …).
+2. **Save fence** — `SettingsSaveDefinition::SYSTEM_PRESERVED_KEYS` + `mergeSystemPreservedKeys()` (fail-closed
+   both ways) means a client cannot POST/import `pro_activated=1` to self-promote.
+3. **Server** — `LicenseValidator::verify()` fails closed on store/product-pin mismatch or any transport error.
 
-Pro-only fieldsets use `showon="license_tier:pro"` to hide them visually on Free tier.
+**Admin UI** — the Vue bootstrap `isPro` flag (from `HtmlView::buildBootstrap`, itself `isProActive()`)
+drives every `<ProGate>`. Wrap a Pro card/field with `<ProGate mode="card">` / `<ProGate mode="field">`
+— but **never** with a `gate-key="…"` feature/route lock (the `ProFeatureRegistryParityTest` fails the
+build if one reappears). There is no per-plugin `license` fieldset / `showon="license_tier:pro"` anymore;
+the SPA owns Pro presentation.
+
+**Manifest tier** — a Pro setting declares `'tier' => 'pro'` in `component/lib/src/Manifest/*.php`; codegen
+derives its `.ini`/partial/Health stubs. Functional gating still comes from the runtime guard + physical
+build above, not from the tier metadata. Authoritative deep-dive: `docs/analysis/licensing-and-pro-gating.md`.
 
 ---
 

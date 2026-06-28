@@ -256,16 +256,4 @@ return [
         'tier'        => 'free',
         'sku'         => 'aeo',
     ],
-
-    // ── AI signals (free) ──────────────────────────────────────────
-    [
-        'key'         => 'aeo_ai_meta_enabled',
-        'tab'         => 'aeo',
-        'section'     => 'ai_signals',
-        'label'       => 'Enable AI meta tags',
-        'type'        => 'toggle',
-        'default'     => '1',
-        'tier'        => 'free',
-        'sku'         => 'aeo',
-    ],
 ];

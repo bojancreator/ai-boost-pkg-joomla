@@ -186,7 +186,6 @@ final class SettingsSaveDefinition
         'scraper_screamingfrog', 'scraper_sitebulb', 'scraper_siteauditor',
         'scraper_serpstatbot', 'scraper_bytespider', 'scraper_petalbot',
         'crawler_bot_rules',
-        'aeo_ai_meta_enabled',
         'enable_x_robots_header',
         'markdown_pages_enabled',
         'article_schema_enabled', 'article_schema_type_auto',

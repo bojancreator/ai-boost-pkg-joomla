@@ -45,7 +45,6 @@ final class DocumentInspector
     public const SIG_GA4             = 'googletagmanager.com/gtag/js';
     public const SIG_GTM             = 'googletagmanager.com/gtm.js';
     public const SIG_META_PIXEL      = 'connect.facebook.net';
-    public const SIG_AI_META_VERIFIED = 'ai-content-verified';
 
     /**
      * Returns true when the plugin should SKIP its injection because
@@ -89,15 +88,6 @@ final class DocumentInspector
                 }
             } catch (\Throwable $e) {}
         }
-        if ($signature === self::SIG_AI_META_VERIFIED) {
-            try {
-                $existing = method_exists($doc, 'getMetaData') ? (string) $doc->getMetaData('ai-content-verified', 'name') : '';
-                if ($existing !== '') {
-                    return true;
-                }
-            } catch (\Throwable $e) {}
-        }
-
         // 2. Custom-tag / link / script scan via getHeadData().
         $blob = '';
         try {
@@ -145,8 +135,6 @@ final class DocumentInspector
                 return str_contains($blob, 'googletagmanager.com/gtm.js');
             case self::SIG_META_PIXEL:
                 return str_contains($blob, 'connect.facebook.net') || (bool) preg_match("/fbq\s*\(\s*['\"]init['\"]/", $blob);
-            case self::SIG_AI_META_VERIFIED:
-                return (bool) preg_match('/name\s*=\s*["\']ai-content-verified["\']/i', $blob);
         }
 
         return false;
@@ -154,9 +142,8 @@ final class DocumentInspector
 
     /**
      * Map a SIG_* signature to its ConflictPolicy output feature. OG + Twitter
-     * share the 'og' feature; GA4/GTM/Pixel share 'analytics'; the AEO
-     * ai-content-verified meta folds under 'schema' (it has no dedicated
-     * competitor and rides with structured-data takeover/defer).
+     * share the 'og' feature; GA4/GTM/Pixel share 'analytics'; schema rides with
+     * structured-data takeover/defer.
      */
     private static function featureForSignature(string $signature): string
     {
@@ -173,7 +160,6 @@ final class DocumentInspector
             case self::SIG_CANONICAL:
                 return ConflictPolicy::FEATURE_CANONICAL;
             case self::SIG_SCHEMA_ORG:
-            case self::SIG_AI_META_VERIFIED:
             default:
                 return ConflictPolicy::FEATURE_SCHEMA;
         }

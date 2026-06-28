@@ -44,12 +44,12 @@ return [
     [
         'key' => 'enable_per_article_fields', 'tab' => 'social', 'section' => 'og',
         'label' => 'Use per-article OG image and description', 'type' => 'toggle', 'default' => '1',
-        'tier' => 'free', 'sku' => 'og',
+        'tier' => 'pro', 'sku' => 'og',
     ],
     [
         'key' => 'enable_article_og_type', 'tab' => 'social', 'section' => 'og',
         'label' => 'Set og:type = article on article pages', 'type' => 'toggle', 'default' => '1',
-        'tier' => 'free', 'sku' => 'og',
+        'tier' => 'pro', 'sku' => 'og',
     ],
     [
         'key' => 'enable_og_locale', 'tab' => 'social', 'section' => 'og_locale',
@@ -59,7 +59,7 @@ return [
     [
         'key' => 'fb_app_id', 'tab' => 'social', 'section' => 'facebook',
         'label' => 'Facebook App ID', 'type' => 'text', 'default' => '',
-        'tier' => 'free', 'sku' => 'og',
+        'tier' => 'pro', 'sku' => 'og',
     ],
     [
         'key' => 'enable_twitter_cards', 'tab' => 'social', 'section' => 'twitter',
@@ -69,7 +69,7 @@ return [
     [
         'key' => 'twitter_site_handle', 'tab' => 'social', 'section' => 'twitter',
         'label' => 'Twitter / X Site Handle', 'type' => 'text', 'default' => '',
-        'tier' => 'free', 'sku' => 'og',
+        'tier' => 'pro', 'sku' => 'og',
     ],
     [
         'key' => 'enable_meta_pixel', 'tab' => 'analytics', 'section' => 'pixel',

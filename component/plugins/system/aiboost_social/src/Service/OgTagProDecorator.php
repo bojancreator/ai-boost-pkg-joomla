@@ -4,10 +4,12 @@
  *
  * Pro-only decorator that listens on `EVENT_FILTER_SOCIAL_PROPS` and
  * enriches the structured OG/Twitter props built by the Free
- * `OgTagBuilder`. This file is the physical home for every Pro OpenGraph
- * feature; removing the aiboost_social_pro plugin removes the entire
- * code path, so a Free install cannot deliver any of these features
- * regardless of settings or license-tier patches.
+ * `OgTagBuilder`. Lives in the FREE `aiboost_social` plugin but is the
+ * physical home for every Pro OpenGraph feature; the build strips this file
+ * from the Free package (FREE_EXCLUDE) and the host only instantiates it when
+ * PluginRegistry::isProActive(), so a Free install cannot deliver any of these
+ * features regardless of settings. (Relocated here during the "Pro replaces
+ * Free" collapse; the old aiboost_social_pro home is retired.)
  *
  * Decoration scope:
  *   - Per-language site_name / og_description_override / default_og_image

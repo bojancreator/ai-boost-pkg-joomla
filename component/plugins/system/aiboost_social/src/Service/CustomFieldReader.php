@@ -1,12 +1,14 @@
 <?php
 /**
- * AI Boost — CustomFieldReader (Pro)
+ * AI Boost — CustomFieldReader (Pro-gated)
  *
  * Reads AI Boost–specific Joomla custom field values for a given article.
- * This class lives in the closed-source Pro plugin (aiboost_social_pro)
- * because per-article OG field overrides — including Falang translation
- * overlay — are a Pro-only feature. The Free Social plugin does not ship
- * this class.
+ * Lives in the FREE `aiboost_social` plugin but is a Pro-only feature: the
+ * build strips this class from the Free package (FREE_EXCLUDE), and the
+ * decorator only instantiates it when PluginRegistry::isProActive() — so the
+ * per-article OG overrides (incl. the Falang translation overlay) are unlocked
+ * by Pro activation, never present on a Free install. (Relocated here during
+ * the "Pro replaces Free" collapse; the old aiboost_social_pro home is retired.)
  *
  * Looks for custom fields named exactly:
  *   aiboost_og_title        → overrides og:title for this article

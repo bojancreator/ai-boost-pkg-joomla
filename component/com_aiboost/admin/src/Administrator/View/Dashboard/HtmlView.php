@@ -13,6 +13,7 @@ use AiBoost\Lib\ConflictDetector;
 use AiBoost\Lib\JoomlaAppContext;
 use AiBoost\Lib\LanguageService;
 use AiBoost\Lib\NotificationService;
+use AiBoost\Lib\PluginRegistry;
 use AiBoost\Version;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
@@ -256,17 +257,18 @@ class HtmlView extends BaseHtmlView
     }
 
     /**
-     * Check if the saved settings have a Pro/Developer/Agency license tier.
-     * Used to inject raw.isPro into window.aiBoostDashboard so the Vue
-     * DashboardApp can show/hide Pro-conditioned UI without depending on
-     * window.aiBoostSettings (which is only available on the Settings page).
+     * Whether Pro is functionally active, for raw.isPro in window.aiBoostDashboard
+     * (so the Vue DashboardApp can show/hide Pro-conditioned UI without depending
+     * on window.aiBoostSettings, only available on the Settings page).
+     *
+     * Uses the single canonical gate — the perpetual `pro_activated` flag via
+     * PluginRegistry::isProActive() — NOT the drift-prone `license_tier`, so a
+     * perpetual-Pro install keeps reading "Pro" after the licence expires.
      */
     private function checkIsProEnabled(): bool
     {
         try {
-            $settings = $this->loadSettings();
-            $tier     = strtolower((string) ($settings['license_tier'] ?? 'free'));
-            return in_array($tier, ['pro', 'developer', 'agency'], true);
+            return PluginRegistry::isProActive($this->loadSettings());
         } catch (\Throwable $e) {
             return false;
         }

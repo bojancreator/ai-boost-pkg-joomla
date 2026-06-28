@@ -266,10 +266,13 @@ final class SettingsSaveDefinitionTest extends TestCase
     {
         $this->assertSocialManifestField('og_image_width', 'og', 'number', '1200', 'free');
         $this->assertSocialManifestField('og_image_height', 'og', 'number', '630', 'free');
-        $this->assertSocialManifestField('enable_per_article_fields', 'og', 'toggle', '1', 'free');
-        $this->assertSocialManifestField('enable_article_og_type', 'og', 'toggle', '1', 'free');
-        $this->assertSocialManifestField('fb_app_id', 'facebook', 'text', '', 'free');
-        $this->assertSocialManifestField('twitter_site_handle', 'twitter', 'text', '', 'free');
+        // Reclassified Free→Pro (order 0017): these four are consumed only by the
+        // Pro-only OgTagProDecorator (FREE_EXCLUDE-stripped + isProActive-gated), so
+        // they were dead-on-Free as 'free'. Now correctly tier='pro'.
+        $this->assertSocialManifestField('enable_per_article_fields', 'og', 'toggle', '1', 'pro');
+        $this->assertSocialManifestField('enable_article_og_type', 'og', 'toggle', '1', 'pro');
+        $this->assertSocialManifestField('fb_app_id', 'facebook', 'text', '', 'pro');
+        $this->assertSocialManifestField('twitter_site_handle', 'twitter', 'text', '', 'pro');
 
         foreach (['og_site_name', 'og_default_image'] as $key) {
             $this->assertSame('compatibility', SettingsSaveDefinition::field($key)['source'] ?? null);

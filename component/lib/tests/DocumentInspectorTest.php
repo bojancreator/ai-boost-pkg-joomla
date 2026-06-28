@@ -120,15 +120,6 @@ final class DocumentInspectorTest extends TestCase
         $this->assertTrue(DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_CANONICAL, ['conflict_canonical' => 'defer']));
     }
 
-    /** The AEO ai-content-verified meta folds under the schema feature. */
-    public function testAiMetaFoldsUnderSchema(): void
-    {
-        $doc = $this->doc(['name|ai-content-verified' => '1']);
-
-        $this->assertTrue(DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_AI_META_VERIFIED, ['conflict_schema' => 'defer']));
-        $this->assertFalse(DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_AI_META_VERIFIED, ['conflict_schema' => 'takeover']));
-    }
-
     /** No document → nothing to inspect → never skip (even when deferring). */
     public function testNoDocNeverSkips(): void
     {

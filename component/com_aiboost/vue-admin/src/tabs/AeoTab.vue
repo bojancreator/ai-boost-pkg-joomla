@@ -155,30 +155,6 @@
       </div>
     </div>
 
-    <!-- 05 AI Signals -->
-    <div class="ab-section">
-      <div class="ab-section__head">
-        <span class="ab-section__num">05</span>
-        AI Signals
-      </div>
-      <div class="ab-section__body">
-        <label class="ab-toggle-row">
-          <div>
-            <div class="ab-label">Enable AI meta tags</div>
-            <div class="ab-help">
-              Injects <code>&lt;meta name="ai-content-optimized"&gt;</code> and related signals
-              that help AI engines identify and index your content.
-            </div>
-          </div>
-          <span class="ab-toggle" :class="{'is-on': s.aeo_ai_meta_enabled === '1'}">
-            <input v-model="s.aeo_ai_meta_enabled" data-ab-field="aeo_ai_meta_enabled"
-              true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="aeo-ai-meta">
-            <span class="ab-toggle__track"></span>
-          </span>
-        </label>
-      </div>
-    </div>
-
   </div>
 </template>
 

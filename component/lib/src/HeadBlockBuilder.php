@@ -19,7 +19,7 @@
  *     <!-- OpenGraph & Twitter -->
  *     …og:* / twitter:* meta tags…
  *     <!-- AEO -->
- *     …ai-content-verified / markdown discovery…
+ *     …markdown discovery link…
  *     <!-- Analytics -->
  *     …GSC verification / GTM / GA4 / Meta Pixel…
  *     <!-- Custom Code -->
@@ -345,19 +345,7 @@ final class HeadBlockBuilder
             }
         }
 
-        // 2. AI verification meta — single tag, safe per-tag removal.
-        if (preg_match('/name\s*=\s*["\']ai-content-verified["\']/i', $head)) {
-            $trimmed = preg_replace(
-                '#<meta\b[^>]*\bname\s*=\s*["\']ai-content-verified["\'][^>]*>[ \t]*\r?\n?#i',
-                '',
-                $block
-            );
-            if (is_string($trimmed)) {
-                $block = $trimmed;
-            }
-        }
-
-        // 3. Single-instance identity JSON-LD (@type Organization/LocalBusiness/…).
+        // 2. Single-instance identity JSON-LD (@type Organization/LocalBusiness/…).
         //    AI Boost emits SEPARATE <script> per node (no @graph), so each of OUR
         //    scripts has one decisive TOP-LEVEL @type. Remove ONLY our top-level
         //    Organization-like node, and ONLY when THEIR <head> has a STANDALONE
