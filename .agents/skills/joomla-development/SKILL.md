@@ -774,3 +774,29 @@ already carries most of this. Keep new work inside it; do not start new bespoke 
   layout width is fine inline — do NOT manufacture a token for something used once.
 - When adding a screen/tab, build from the shared parts first; add bespoke style only for what
   has no shared equivalent, and flag it so it can be folded in later.
+
+## Cross-platform & integration boundary
+
+The logic layer (Schema / sitemap / llms.txt / OG generators) is deliberately thin and portable;
+the integration layer is a versioned SDK. Keep new work inside these boundaries so a WordPress
+build and standalone+integrative plugins stay possible without rewriting the core. Full snapshot,
+the gaps, and the WP/standalone plan: **`docs/ARCHITECTURE-BOUNDARIES.md`**.
+
+- **New logic goes through the `Cms` adapters, not the CMS directly.** A generator takes its data
+  injected (settings array, `DatabaseInterface`, `AppContextInterface`) and routes URL, filesystem,
+  application, clock, http and events through `AiBoost\Lib\Cms\AdapterRegistry` (Joomla + Wp impls
+  exist). Do NOT add a fresh direct `Route::_()`, `JPATH_…`, `Uri::`, `Factory::…` or `\JFactory`
+  inside a generator — those are exactly what does not port to WordPress.
+- **New integration code follows the SDK pattern.** A bridge is a SEPARATE plugin that extends
+  `AbstractIntegrationPlugin`, returns an `IntegrationDescriptor` from `describe()`, and enriches
+  output only via the SDK: the named `onAiBoostFilter*` events (`Sdk::EVENT_FILTER_*`) and/or
+  `BridgeDetector::register*()`. Every cross-plugin touch is `class_exists()`-guarded so an absent
+  host or absent core never fatals. The core stays generic — it fires filter events and reads back
+  registered data; it never names a specific third-party extension.
+- **A STANDALONE plugin does NOT extend `AbstractIntegrationPlugin`.** That base boots the shared lib
+  from `com_aiboost`, so it hard-depends on AI Boost. A plugin that must run on its own carries its
+  own core logic and treats AI Boost as an OPTIONAL layer — hooking the `onAiBoost*` events behind
+  `class_exists()` only. (This standalone+integrative sub-pattern is a BACKLOG item, not yet built.)
+- The SDK + `Cms` adapters are already WordPress-aware (`Sdk` / `BridgeDetector` guard on
+  `defined('_JEXEC') or defined('ABSPATH')`; `Cms/Wp/*` adapters exist). The remaining WP work is the
+  DATA layer (Joomla `#__` queries → WP equivalents) — see the boundaries doc.
