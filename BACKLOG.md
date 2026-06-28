@@ -39,12 +39,25 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
 
 ## TRUNK — the structural fixes the product most needs before sale
 
-- ✅ **DO — Build ONE CMS-neutral Page-Type / Entity / Indexability / Canonical resolver** *(biggest
-  single task; architecture's #1 pre-sale recommendation — needs owner scheduling).* It (a) kills the
-  ~20× duplicated article gate; (b) retires the known-buggy `detectPageType()` path/featured homepage
-  definition and unifies on the menu-`home` flag; (c) gives the product the **indexability authority** it
-  lacks today, so canonical/sitemap/schema/llms/Markdown stop disagreeing (and fixes the Markdown/llms
-  duplicate-content hazard); (d) is the prerequisite that makes the WordPress seam runnable.
+- 🔄 **IN PROGRESS — Build ONE CMS-neutral Page-Type / Entity / Indexability / Canonical resolver (T1)**
+  *(biggest single task; architecture's #1 pre-sale recommendation).* It (a) kills the ~20× duplicated
+  article gate; (b) retires the known-buggy `detectPageType()` path/featured homepage definition and
+  unifies on the menu-`home` flag; (c) gives the product the **indexability authority** it lacks today, so
+  canonical/sitemap/schema/llms/Markdown stop disagreeing (and fixes the Markdown/llms duplicate-content
+  hazard); (d) is the prerequisite that makes the WordPress seam runnable. Design approved (order 0018,
+  `docs/analysis/T1-resolver-design.md`); shipping slice-by-slice, each behaviour-preserving unless marked:
+  - **S0 ✅ DONE (order 0019, v0.87.62):** `lib/src/Page/*` (PageType, PageContext, PageResolver,
+    IndexabilityPolicy) + `AdapterRegistry::pageResolver()` + bootstrap — wired but consumed by nobody;
+    front-end byte-identical on Pro+Free; 19 unit tests, red-green proven.
+  - **S1** — characterization tests FIRST (lock current output of the 12 P-sites + 4 I-sites on a fixture).
+  - **S2** — migrate the Schema layer's article gates (P3–P10) onto `PageContext` (output-identical).
+  - **S3** — migrate Social (OgTagBuilder/OgTagProDecorator).
+  - **S4** — bulk `IndexabilityPolicy` for the 4 enumerators (sitemap/news/llms/llms-full), SQL-parity-diff-guarded.
+  - **S5** — canonical onto the resolver.
+  - **S6** — expose language facts (active + site-default) via the resolver.
+  - **S7** ⚠ — THE behaviour change: unify homepage detection on the menu `home=1` flag (own sign-off).
+  - **S8** — per-page noindex emitter + Markdown/llms noindex authority (opt-in, default-OFF).
+  - **S9** — cleanup + a contract test forbidding new inline `com_content`/`article` gates outside `lib/src/Page/`.
   *(→ arch §10 T1, §3, §9)*
 - ✅ **DO (Bojan) — Finish the multilingual moat (`falang_schema_translate`).** Translate HowTo step
   names + FAQ items per language (currently English fallback). This sits on the product's only
