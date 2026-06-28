@@ -25,6 +25,7 @@ namespace AiBoost\Plugin\System\AiBoostAeo\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\IndexabilityPolicy;
 use Joomla\Database\DatabaseInterface;
 
 class LlmsTxtGenerator
@@ -330,12 +331,20 @@ class LlmsTxtGenerator
             $query = $db->getQuery(true)
                 ->select($db->quoteName(['id', 'title', 'introtext', 'metadesc']))
                 ->from($db->quoteName('#__content'))
-                ->where($db->quoteName('state') . ' = 1')
-                ->where('(' . $db->quoteName('publish_up') . ' IS NULL OR '
-                    . $db->quoteName('publish_up') . ' <= ' . $db->quote($now) . ')')
-                ->where('(' . $db->quoteName('publish_down') . ' IS NULL OR '
-                    . $db->quoteName('publish_down') . ' >= ' . $db->quote($now) . ')')
                 ->order($db->quoteName('publish_up') . ' DESC');
+
+            // T1·S4 — item indexability via the shared IndexabilityPolicy. llms.txt
+            // uses the 'llms' window (state + publish_up <= now + publish_down >= now,
+            // no access filter), exactly as before → same rows.
+            foreach ((new IndexabilityPolicy())->itemWhereClauses(
+                $db,
+                publishedExpr: 'state',
+                window: 'llms',
+                now: $now,
+            ) as $where) {
+                $query->where($where);
+            }
+
             $db->setQuery($query, 0, $limit);
             $rows = $db->loadObjectList() ?: [];
 

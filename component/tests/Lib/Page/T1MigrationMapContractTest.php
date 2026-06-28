@@ -131,29 +131,34 @@ final class T1MigrationMapContractTest extends TestCase
         ], 'P11 OgTagBuilder');
     }
 
-    // ── indexability filters (I1–I4) ──────────────────────────────────────────
+    // ── indexability filters (I1–I4) — MIGRATED in S4 (order 0024) ─────────────
+    // The four enumerators no longer hand-write their own state/window/access SQL;
+    // each now delegates the item-indexability decision to the shared
+    // IndexabilityPolicy::itemWhereClauses() (called with exactly its former
+    // parameters → identical rows). The actual rule/SQL is now pinned in
+    // IndexabilityPolicyTest; here we lock that each enumerator DELEGATES.
     public function testSitemapIndexabilityFilter(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_sitemap/src/Service/SitemapGenerator.php');
-        $this->assertAllContain($src, ['a.state = 1', 'a.publish_up', 'a.access'], 'I1 SitemapGenerator');
+        $this->assertAllContain($src, ['IndexabilityPolicy', 'itemWhereClauses', "window: 'sitemap'"], 'I1 SitemapGenerator delegates');
     }
 
     public function testNewsSitemapIndexabilityFilter(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_sitemap/src/Service/NewsSitemapGenerator.php');
-        $this->assertAllContain($src, ['a.state = 1', 'a.publish_up'], 'I2 NewsSitemapGenerator');
+        $this->assertAllContain($src, ['IndexabilityPolicy', 'itemWhereClauses', "window: 'recent'"], 'I2 NewsSitemapGenerator delegates');
     }
 
     public function testLlmsTxtIndexabilityFilter(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_aeo/src/Service/LlmsTxtGenerator.php');
-        $this->assertStringContainsString("'state'", $src, 'I3 LlmsTxtGenerator article state filter.');
+        $this->assertAllContain($src, ['IndexabilityPolicy', 'itemWhereClauses', "window: 'llms'"], 'I3 LlmsTxtGenerator delegates');
     }
 
     public function testLlmsFullIndexabilityFilters(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_aeo/src/Service/LlmsTxtProGenerator.php');
-        $this->assertAllContain($src, ['a.state = 1', "'access'", "'published'"], 'I4 LlmsTxtProGenerator');
+        $this->assertAllContain($src, ['IndexabilityPolicy', 'itemWhereClauses', 'publicAccessOnly: true'], 'I4 LlmsTxtProGenerator delegates');
     }
 
     // ── AEO per-request (I5 / I6) ─────────────────────────────────────────────

@@ -21,6 +21,7 @@ namespace AiBoost\Plugin\System\AiBoostSitemap\Service;
 
 defined('_JEXEC') or die;
 
+use AiBoost\Lib\Page\IndexabilityPolicy;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
 
@@ -100,12 +101,22 @@ class NewsSitemapGenerator
                 ->select(['a.id', 'a.title', 'a.alias', 'a.catid', 'a.language', 'a.publish_up', 'c.alias AS cat_alias'])
                 ->from($db->quoteName('#__content', 'a'))
                 ->join('LEFT', $db->quoteName('#__categories', 'c') . ' ON c.id = a.catid')
-                ->where('a.state = 1')
-                ->where('a.catid = ' . $this->categoryId)
-                ->where('a.publish_up IS NOT NULL')
-                ->where('a.publish_up >= ' . $db->quote($cutoff))
-                ->where('a.publish_up <= ' . $db->quote($now))
+                ->where('a.catid = ' . $this->categoryId)   // news-specific (not indexability)
                 ->order('a.publish_up DESC');
+
+            // T1·S4 — item indexability via the shared IndexabilityPolicy. News
+            // uses the 'recent' window (state + publish_up within [cutoff, now],
+            // no publish_down, no access filter), exactly as before → same rows.
+            foreach ((new IndexabilityPolicy())->itemWhereClauses(
+                $db,
+                publishedExpr: 'a.state',
+                window: 'recent',
+                timeColumnPrefix: 'a',
+                now: $now,
+                recentCutoff: $cutoff,
+            ) as $where) {
+                $query->where($where);
+            }
 
             $db->setQuery($query, 0, 1000);
             return $db->loadObjectList() ?: [];

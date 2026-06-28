@@ -69,7 +69,19 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
     that semantics change). Golden diff OG/Twitter byte-identical: Pro staging before↔after (clean v0.87.63
     baseline) + Free same-version isolation (0.87.64 with vs without). Suite 494 + 3/3 green; installed Pro+Free;
     Health 94/100.
-  - **S4** — bulk `IndexabilityPolicy` for the 4 enumerators (sitemap/news/llms/llms-full), SQL-parity-diff-guarded. **(NEXT)**
+  - **S4 ✅ DONE (order 0024, v0.87.65 — Option A, behaviour-preserving):** extended `IndexabilityPolicy`
+    with the §2.3 parameterised SQL-constraint contributor `itemWhereClauses()`; migrated all six fetch
+    methods (I1 sitemap, I2 news, I3 llms.txt, I4a llms-Pro-recent, I4b llms-full, I4c llms-full categories)
+    to build their WHERE via that one method, each called with EXACTLY its current parameters → one
+    authority, **zero URL change**. URL-set golden diff byte-identical (Pro before↔after + Free same-version
+    isolation); 500 PHPUnit + 3/3 green; Health 94/100.
+  - ⏳ **OPEN follow-up (Option B, deferred — tie to S8):** GENUINELY unify the four enumerators' indexability
+    onto ONE identical rule (state + publish-window + guest-access). This **WILL change some URL sets** on
+    sites that use scheduling or non-Public access (e.g. llms-full would start respecting the publish window
+    + use the guest-access set instead of `access=1`; llms.txt/news would apply guest-access). Needs Bojan's
+    explicit approval of the exact URL changes. Decision deferred until the per-page noindex authority (S8)
+    so per-request + bulk indexability are reconciled together. (Detail: `_handoff/outbox/0024-…`.)
+  - **S5** — canonical onto the resolver. **(NEXT)**
   - **S5** — canonical onto the resolver.
   - **S6** — expose language facts (active + site-default) via the resolver.
   - **S7** ⚠ — THE behaviour change: unify homepage detection on the menu `home=1` flag (own sign-off).
