@@ -139,6 +139,18 @@ return [
     ],
 
     [
+        'key'         => 'quick_setup_done',
+        'tab'         => 'general',
+        'section'     => 'conflicts',
+        'label'       => 'Quick Setup completed',
+        'type'        => 'toggle',
+        'default'     => '0',
+        'tier'        => 'free',
+        'sku'         => 'core',
+        'description' => 'Internal flag set once the Quick Setup wizard has been finished (controls whether Quick Setup opens the summary view instead of step 1). Not shown as a control.',
+    ],
+
+    [
         'key'         => 'translation_source_priority',
         'tab'         => 'general',
         'section'     => 'multilingual',

@@ -301,4 +301,55 @@ class BridgeDetectorTest extends TestCase
         $result = BridgeDetector::isInstalled('falang');
         $this->assertIsBool($result);
     }
+
+    // ── B7 (order 0006): x-default follows the SITE DEFAULT language, dynamically ──
+
+    /**
+     * @return array<int, array<string,string>> three published languages, SR is default
+     */
+    private function langs(): array
+    {
+        return [
+            ['lang_code' => 'en-GB', 'sef' => 'en'],
+            ['lang_code' => 'sr-YU', 'sef' => 'sr'],
+            ['lang_code' => 'ru-RU', 'sef' => 'ru'],
+        ];
+    }
+
+    /**
+     * THE universal-correctness case (Bojan's requirement): when the site default
+     * language is NOT English, x-default must resolve to that default's SEF — NOT
+     * the 'en' fallback. Red-green: make resolvePrimaryLanguageSef() ignore the
+     * languages and just return $fallback (the old bug) and this goes red.
+     */
+    public function testPrimarySefFollowsNonEnglishSiteDefault(): void
+    {
+        $this->assertSame(
+            'sr',
+            BridgeDetector::resolvePrimaryLanguageSef('sr-YU', $this->langs(), 'en'),
+            'x-default must follow the site default language (sr-YU → sr), not the en fallback.'
+        );
+    }
+
+    public function testPrimarySefFollowsEnglishSiteDefault(): void
+    {
+        $this->assertSame('en', BridgeDetector::resolvePrimaryLanguageSef('en-GB', $this->langs(), 'zz'));
+    }
+
+    public function testPrimarySefFallsBackWhenDefaultNotPublished(): void
+    {
+        // Configured default language has no matching published language row.
+        $this->assertSame('en', BridgeDetector::resolvePrimaryLanguageSef('de-DE', $this->langs(), 'en'));
+    }
+
+    public function testPrimarySefFallsBackWhenDefaultCodeEmpty(): void
+    {
+        $this->assertSame('sr', BridgeDetector::resolvePrimaryLanguageSef('', $this->langs(), 'sr'));
+    }
+
+    public function testPrimarySefUltimateFallbackIsEn(): void
+    {
+        // No default match AND empty fallback → 'en'.
+        $this->assertSame('en', BridgeDetector::resolvePrimaryLanguageSef('xx-XX', $this->langs(), ''));
+    }
 }

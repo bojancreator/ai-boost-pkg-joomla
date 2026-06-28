@@ -22,6 +22,8 @@
       <router-view v-else v-slot="{ Component }">
         <component :is="Component" />
       </router-view>
+
+      <AppFooter />
     </div>
 
     <ConflictWizard v-if="showWizard" :conflicts="wizardConflicts" @close="onWizardClose" />
@@ -35,12 +37,13 @@ import Sidebar from './Sidebar.vue'
 import ToastStack from './components/ToastStack.vue'
 import ConflictWizard from './ConflictWizard.vue'
 import CriticalBar from './components/CriticalBar.vue'
+import AppFooter from './components/AppFooter.vue'
 import { useColorScheme } from './composables/useColorScheme.js'
 import { ensureLegacyGlobals, isLegacyGlobalsReady } from './composables/useLegacyGlobals.js'
 
 export default {
   name: 'AppShell',
-  components: { Sidebar, ToastStack, ConflictWizard, CriticalBar },
+  components: { Sidebar, ToastStack, ConflictWizard, CriticalBar, AppFooter },
 
   setup() {
     const { scheme } = useColorScheme()
@@ -97,7 +100,34 @@ export default {
       }
     }
 
-    onMounted(() => loadGlobalsForRoute(route))
+    onMounted(() => {
+      loadGlobalsForRoute(route)
+      // Strip ALL ancestor padding/margin between #ab-app and <body> so the
+      // SPA fills the Joomla content area edge-to-edge regardless of version.
+      const root = document.getElementById('ab-app')
+      if (root) {
+        // Licensed (Pro) → mark the root so per-feature "Pro" upsell tags hide
+        // (the sidebar edition badge is excepted in CSS). Free keeps showing them.
+        if (boot.isPro) root.classList.add('ab-is-pro')
+        let el = root.parentElement
+        while (el && el !== document.body) {
+          el.style.setProperty('padding', '0', 'important')
+          el.style.setProperty('margin', '0', 'important')
+          el.style.setProperty('max-width', 'none', 'important')
+          el.style.setProperty('box-shadow', 'none', 'important')
+          el.style.setProperty('border-radius', '0', 'important')
+          el.style.setProperty('background', 'transparent', 'important')
+          el = el.parentElement
+        }
+        // Hide Joomla subhead/breadcrumb bar that sits above the content area
+        const subhead = document.querySelector(
+          '.subhead-main, .subhead, #toolbar-box, .header-subbar, .sticky-top:not(nav)'
+        )
+        if (subhead && !root.contains(subhead)) {
+          subhead.style.setProperty('display', 'none', 'important')
+        }
+      }
+    })
     watch(() => route.fullPath, () => loadGlobalsForRoute(route))
 
     return { scheme, loading, error, legacyHref, showWizard, wizardConflicts, onWizardClose }
@@ -119,7 +149,7 @@ export default {
 .ab-spa-main {
   flex: 1;
   min-width: 0;
-  padding: 0 1rem 1.5rem 1.5rem;
+  padding: 0 0.75rem 1rem 1rem;
 }
 
 .ab-spa-loader {

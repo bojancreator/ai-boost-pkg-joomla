@@ -156,7 +156,7 @@ class DuplicateTagScanner
                 "{$titleCount} <title> tags found in the homepage HTML — only one is allowed. "
                 . 'Another SEO plugin may be outputting a duplicate title tag.',
                 [
-                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=app#/health'],
                     ['label' => 'Disable Joomla Core title', 'url' => 'index.php?option=com_config'],
                 ]
             );
@@ -170,7 +170,7 @@ class DuplicateTagScanner
                 "{$count} <meta name=\"description\"> tags on the homepage — Google only reads the first. "
                 . 'Disable conflicting SEO plugins that also output this tag.',
                 [
-                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=app#/health'],
                 ]
             );
         }
@@ -183,8 +183,8 @@ class DuplicateTagScanner
                 "{$count} <link rel=\"canonical\"> tags found — conflicting canonical signals "
                 . 'confuse search engines and may result in both being ignored.',
                 [
-                    ['label' => 'Disable Canonical in Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-sitemap-btn'],
-                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                    ['label' => 'Disable Canonical in Settings', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=sitemap'],
+                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=app#/health'],
                 ]
             );
         }
@@ -202,8 +202,8 @@ class DuplicateTagScanner
                     . 'A second SEO/social plugin (or Joomla Core OG) is producing the same tag.',
                     [
                         ['label' => 'Disable Joomla Core OG in Global Config', 'url' => 'index.php?option=com_config'],
-                        ['label' => 'Switch AI Boost to Cooperative mode', 'url' => 'index.php?option=com_aiboost&view=settings#tab-general-btn'],
-                        ['label' => 'AI Boost Social Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-social-btn'],
+                        ['label' => 'Switch AI Boost to Cooperative mode', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=technical'],
+                        ['label' => 'AI Boost Social Settings', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=social'],
                     ]
                 );
             }
@@ -222,8 +222,8 @@ class DuplicateTagScanner
                     . 'rejects duplicate structured-data blocks. Another SEO extension (e.g. 4SEO, Sh404SEF) '
                     . 'is emitting its own ' . $stype . ' JSON-LD alongside AI Boost.',
                     [
-                        ['label' => 'Switch AI Boost to Cooperative mode', 'url' => 'index.php?option=com_aiboost&view=settings#tab-general-btn'],
-                        ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                        ['label' => 'Switch AI Boost to Cooperative mode', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=technical'],
+                        ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=app#/health'],
                     ]
                 );
             }
@@ -237,8 +237,8 @@ class DuplicateTagScanner
                 "{$count} <script type=\"application/ld+json\"> blocks detected on the homepage — "
                 . 'this is unusually high. Multiple SEO plugins may be outputting structured data simultaneously.',
                 [
-                    ['label' => 'Switch AI Boost to Cooperative mode', 'url' => 'index.php?option=com_aiboost&view=settings#tab-general-btn'],
-                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                    ['label' => 'Switch AI Boost to Cooperative mode', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=technical'],
+                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=app#/health'],
                 ]
             );
         }
@@ -252,7 +252,7 @@ class DuplicateTagScanner
                 . 'inflates your traffic numbers and breaks attribution.',
                 [
                     ['label' => 'Disable extra GA4 sources', 'url' => 'index.php?option=com_plugins&filter[search]=analytics'],
-                    ['label' => 'AI Boost Analytics Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-analytics-btn'],
+                    ['label' => 'AI Boost Analytics Settings', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=analytics'],
                 ]
             );
         }
@@ -266,8 +266,8 @@ class DuplicateTagScanner
                 . 'Facebook only accepts a single verification token per domain. Another extension or template '
                 . 'is emitting the same tag alongside AI Boost.',
                 [
-                    ['label' => 'AI Boost Social Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-social-btn'],
-                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                    ['label' => 'AI Boost Social Settings', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=social'],
+                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=app#/health'],
                 ]
             );
         }
@@ -280,7 +280,7 @@ class DuplicateTagScanner
                 "{$gtmCount} GTM container loaders detected. Multiple GTM containers double-fire every "
                 . 'event and cause duplicated conversions in Google Ads & GA4.',
                 [
-                    ['label' => 'AI Boost Analytics Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-analytics-btn'],
+                    ['label' => 'AI Boost Analytics Settings', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=analytics'],
                 ]
             );
         }
@@ -297,8 +297,8 @@ class DuplicateTagScanner
                 . 'pixels inflates your conversions and can get your pixel flagged by Meta. Another '
                 . 'extension or your template is loading a pixel alongside AI Boost.',
                 [
-                    ['label' => 'AI Boost Analytics Settings', 'url' => 'index.php?option=com_aiboost&view=settings#tab-analytics-btn'],
-                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=health'],
+                    ['label' => 'AI Boost Analytics Settings', 'url' => 'index.php?option=com_aiboost&view=app#/settings?tab=analytics'],
+                    ['label' => 'Check plugin conflicts', 'url' => 'index.php?option=com_aiboost&view=app#/health'],
                 ]
             );
         }

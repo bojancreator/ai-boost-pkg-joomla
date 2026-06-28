@@ -128,6 +128,52 @@ final class OgTagBuilderTest extends TestCase
         $this->assertStringContainsString('name="twitter:title"', $joined);
     }
 
+    /**
+     * B8 (order 0006) — Joomla 4+ media fields append a "#joomlaImage://…?width=…"
+     * fragment. normaliseImagePath() must strip it so the og:image URL is clean and
+     * getimagesize() can read the real file.
+     *
+     * Red-green: before the fix the fragment survived into the path (and into the
+     * emitted og:image URL); this asserts it is gone.
+     */
+    public function testNormaliseImagePathStripsJoomlaImageFragment(): void
+    {
+        $raw = 'images/galrija-ture/petrus2025/petrus2025.jpg'
+            . '#joomlaImage:/local-images/galrija-ture/petrus2025/petrus2025.jpg?width=1080&height=1350';
+
+        $clean = OgTagBuilder::normaliseImagePath($raw);
+
+        $this->assertSame('images/galrija-ture/petrus2025/petrus2025.jpg', $clean);
+        $this->assertStringNotContainsString('#joomlaImage', $clean);
+        $this->assertStringNotContainsString('?width=', $clean);
+
+        // Clean paths pass through unchanged.
+        $this->assertSame('images/x.jpg', OgTagBuilder::normaliseImagePath('images/x.jpg'));
+
+        // The fragment is also stripped when the value arrives in the JSON
+        // media-field shape {"imagefile":"…#joomlaImage:…"}.
+        $json = '{"imagefile":"images/x.jpg#joomlaImage:/local-images/x.jpg?width=1#"}';
+        $this->assertSame('images/x.jpg', OgTagBuilder::normaliseImagePath($json));
+    }
+
+    /**
+     * B8 end-to-end: a default_og_image carrying the joomlaImage fragment must
+     * emit a clean og:image / twitter:image URL (no fragment leaks into output).
+     */
+    public function testOgImageUrlCarriesNoJoomlaImageFragment(): void
+    {
+        $ctx = $this->stubContext();
+        $db  = $this->createMock(DatabaseInterface::class);
+
+        $props = (new OgTagBuilder([
+            'default_og_image' => 'images/x.jpg#joomlaImage:/local-images/x.jpg?width=1080&height=1350',
+        ], $ctx, $db))->buildProps();
+
+        $this->assertArrayHasKey('og:image', $props['og']);
+        $this->assertStringNotContainsString('#joomlaImage', $props['og']['og:image']);
+        $this->assertStringNotContainsString('#joomlaImage', $props['tw']['twitter:image'] ?? '');
+    }
+
     private function stubContext(): AppContextInterface
     {
         $ctx = $this->createMock(AppContextInterface::class);

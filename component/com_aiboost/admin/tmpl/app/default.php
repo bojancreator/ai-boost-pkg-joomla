@@ -15,6 +15,11 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\HTML\HTMLHelper;
 
+// IBM Plex Sans + Mono — loaded only on AI Boost screens (this template)
+echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
+echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+echo '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">';
+
 HTMLHelper::_('stylesheet', 'com_aiboost/ab-tokens.css',     ['relative' => true, 'version' => 'auto']);
 HTMLHelper::_('stylesheet', 'com_aiboost/ab-components.css', ['relative' => true, 'version' => 'auto']);
 HTMLHelper::_('stylesheet', 'com_aiboost/admin.css',    ['relative' => true, 'version' => 'auto']);

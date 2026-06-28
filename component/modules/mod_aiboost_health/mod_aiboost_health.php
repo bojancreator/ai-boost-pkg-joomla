@@ -155,13 +155,16 @@ try {
 }
 
 // ── Quick-action URLs ─────────────────────────────────────────────────────────
-$abDashboardUrl   = Route::_('index.php?option=com_aiboost&view=dashboard',   false);
-$abHealthUrl      = Route::_('index.php?option=com_aiboost&view=health',      false);
-$abSettingsUrl    = Route::_('index.php?option=com_aiboost&view=settings',    false);
-$abImportUrl      = Route::_('index.php?option=com_aiboost&view=import',      false);
-$abSitemapUrl     = Route::_('index.php?option=com_aiboost&view=redirects',   false);
-$abAnalyzerUrl    = Route::_('index.php?option=com_aiboost&view=analyzer',    false);
-$abUrlCheckerUrl  = Route::_('index.php?option=com_aiboost&view=urlchecker',  false);
+// Open every quick action inside the Vue SPA shell (view=app#/route) so the
+// admin keeps the sidebar and never lands on a legacy standalone PHP page.
+$abAppBase        = Route::_('index.php?option=com_aiboost&view=app', false);
+$abDashboardUrl   = $abAppBase . '#/dashboard';
+$abHealthUrl      = $abAppBase . '#/health';
+$abSettingsUrl    = $abAppBase . '#/settings';
+$abImportUrl      = $abAppBase . '#/import';
+$abSitemapUrl     = $abAppBase . '#/redirects';
+$abAnalyzerUrl    = $abAppBase . '#/analyzers';
+$abUrlCheckerUrl  = $abAppBase . '#/urlchecker';
 
 // ── Indexed URLs count — published #__content items (proxy for sitemap size) ─
 // We count published, accessible articles as the "indexed URLs" signal because

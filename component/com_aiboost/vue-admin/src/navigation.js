@@ -1,15 +1,16 @@
 export function settingsTo(tab) {
-  // 'technical' is the default (no-query) tab — the merged General + Technical SEO page.
-  return { path: '/settings', query: tab === 'technical' ? {} : { tab } }
+  // 'org' (Site Identity) is the default (no-query) settings tab.
+  return { path: '/settings', query: tab === 'org' ? {} : { tab } }
 }
 
 export const settingsRouteAliases = [
-  // The old General tab was merged into Technical SEO.
-  { path: '/general', tab: 'technical' },
+  // Legacy General + Technical SEO tabs were dissolved; their fields now live on
+  // Site Identity / Titles & Meta / Redirects, so old paths land on Site Identity.
+  { path: '/general', tab: 'org' },
   { path: '/site-identity', tab: 'org' },
   { path: '/organization', tab: 'org' },
   { path: '/schema', tab: 'schema' },
-  { path: '/technical-seo', tab: 'technical' },
+  { path: '/technical-seo', tab: 'org' },
   { path: '/titles', tab: 'titles' },
   { path: '/titles-meta', tab: 'titles' },
   { path: '/sitemap', tab: 'sitemap' },
@@ -31,39 +32,39 @@ export const pageRouteAliases = [
 ]
 
 const sidebarGroupFactories = [
-  () => ({ title: 'OVERVIEW', items: [
-    { id: 'dashboard', to: '/dashboard', icon: 'icon-home', label: 'Dashboard' },
-    { id: 'health', to: '/health', icon: 'icon-heart', label: 'Health', badge: 'errors' },
+  () => ({ title: 'Overview', items: [
+    { id: 'dashboard', to: '/dashboard', icon: 'dash', label: 'Dashboard' },
+    { id: 'health', to: '/health', icon: 'heart', label: 'Health', badge: 'errors' },
   ] }),
-  () => ({ title: 'SETUP', items: [
-    { id: 'autopilot', to: '/autopilot', icon: 'icon-lightning', label: 'Quick Setup' },
-    { id: 'org', to: settingsTo('org'), tab: 'org', icon: 'icon-users', label: 'Site Identity' },
-    { id: 'licenses', to: '/licenses', icon: 'icon-key', label: 'License & Updates' },
-    { id: 'integrations', to: '/integrations', icon: 'icon-puzzle-piece', label: 'Integrations' },
-    { id: 'conflicts', to: '/conflicts', icon: 'icon-shield', label: 'Conflict Manager', badge: 'conflicts' },
+  () => ({ title: 'Setup', items: [
+    { id: 'autopilot', to: '/autopilot', icon: 'bolt', label: 'Quick Setup' },
+    { id: 'org', to: settingsTo('org'), tab: 'org', icon: 'id', label: 'Site Identity' },
+    { id: 'licenses', to: '/licenses', icon: 'key', label: 'License & Updates' },
+    { id: 'integrations', to: '/integrations', icon: 'plug', label: 'Integrations' },
+    { id: 'conflicts', to: '/conflicts', icon: 'shield', label: 'Conflict Manager', badge: 'conflicts' },
   ] }),
   () => ({ title: 'SEO', items: [
-    { id: 'technical', to: settingsTo('technical'), tab: 'technical', icon: 'icon-cog', label: 'Technical SEO' },
-    { id: 'titles', to: settingsTo('titles'), tab: 'titles', icon: 'icon-tag', label: 'Titles & Meta' },
-    { id: 'schema', to: settingsTo('schema'), tab: 'schema', icon: 'icon-code', label: 'Schema.org' },
-    { id: 'sitemap', to: settingsTo('sitemap'), tab: 'sitemap', icon: 'icon-list', label: 'Sitemap' },
-    { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'icon-share', label: 'Social Meta / OG' },
-    { id: 'analytics', to: settingsTo('analytics'), tab: 'analytics', icon: 'icon-chart', label: 'Analytics & Tracking' },
+    { id: 'titles', to: settingsTo('titles'), tab: 'titles', icon: 'tag', label: 'Titles & Meta' },
+    { id: 'schema', to: settingsTo('schema'), tab: 'schema', icon: 'schema', label: 'Schema.org' },
+    { id: 'sitemap', to: settingsTo('sitemap'), tab: 'sitemap', icon: 'map', label: 'Sitemap' },
+    { id: 'social', to: settingsTo('social'), tab: 'social', icon: 'share', label: 'Social Meta / OpenGraph' },
+    { id: 'analytics', to: settingsTo('analytics'), tab: 'analytics', icon: 'chart', label: 'Analytics & Tracking' },
   ] }),
-  () => ({ title: 'AI VISIBILITY', items: [
-    { id: 'aeo', to: settingsTo('aeo'), tab: 'aeo', icon: 'icon-comments', label: 'AEO' },
-    { id: 'crawlers', to: settingsTo('crawlers'), tab: 'crawlers', icon: 'icon-link', label: 'Crawlers & Robots' },
+  () => ({ title: 'AI Visibility', items: [
+    { id: 'aeo', to: settingsTo('aeo'), tab: 'aeo', icon: 'ai', label: 'AEO' },
+    { id: 'crawlers', to: settingsTo('crawlers'), tab: 'crawlers', icon: 'robot', label: 'Crawlers & Robots' },
   ] }),
-  () => ({ title: 'TOOLS', items: [
-    { id: 'redirects', to: '/redirects', icon: 'icon-arrow-right', label: 'Redirects' },
-    { id: 'analyzers', to: '/analyzers', icon: 'icon-search', label: 'Analyzers' },
-    { id: 'urlchecker', to: '/urlchecker', icon: 'icon-zoom-in', label: 'URL Checker' },
-    { id: 'import', to: '/import', icon: 'icon-upload', label: 'Import' },
+  () => ({ title: 'Tools', items: [
+    { id: 'redirects', to: '/redirects', icon: 'arrow', label: 'Redirects' },
+    { id: 'analyzers', to: '/analyzers', icon: 'search', label: 'Analyzers' },
+    { id: 'urlchecker', to: '/urlchecker', icon: 'link', label: 'URL Checker' },
+    { id: 'import', to: '/import', icon: 'upload', label: 'Import' },
   ] }),
-  () => ({ title: 'ADVANCED', items: [
-    { id: 'code', to: settingsTo('code'), tab: 'code', icon: 'icon-wrench', label: 'Custom Code' },
-    { id: 'debug', to: settingsTo('debug'), tab: 'debug', icon: 'icon-pencil', label: 'Debug' },
-    { id: 'help', to: '/help', icon: 'icon-question', label: 'Help' },
+  () => ({ title: 'Advanced', items: [
+    { id: 'code', to: settingsTo('code'), tab: 'code', icon: 'code', label: 'Custom Code' },
+    { id: 'debug', to: settingsTo('debug'), tab: 'debug', icon: 'bug', label: 'Debug' },
+    { id: 'help', to: '/help', icon: 'help', label: 'Help' },
+    { id: 'changelog', to: '/changelog', icon: 'info', label: "What's New" },
   ] }),
 ]
 

@@ -1,7 +1,14 @@
 ﻿<template>
   <div class="ab-trans-wrap">
 
-    <button type="button" class="ab-trans-toggle" @click="open = !open">
+    <!-- Multilingual output is off → a compact hint replaces the dropdown.
+         Stored translations are untouched; turning it on restores the editor. -->
+    <a v-if="showInactiveHint" class="ab-trans-toggle ab-trans-toggle--hint" href="#/integrations"
+       title="Multilingual output is off — turn it on in Integrations to translate this field">
+      <span>Turn on Multilingual to translate →</span>
+    </a>
+
+    <button v-else type="button" class="ab-trans-toggle" @click="open = !open">
       <svg
         class="ab-trans-arrow"
         :class="{ 'ab-trans-arrow--open': open }"
@@ -14,7 +21,7 @@
       <span v-if="filledCount > 0" class="ab-trans-count">{{ filledCount }}</span>
     </button>
 
-    <div v-if="open" class="ab-trans-rows">
+    <div v-if="open && !showInactiveHint" class="ab-trans-rows">
 
       <div v-if="transLanguages.length === 0" class="ab-trans-empty">
         No additional languages installed in Joomla.
@@ -58,7 +65,7 @@
 
 <script>
 import { computed, ref } from 'vue'
-import { languages, defaultLang, getT, setT } from '../composables/useTranslations.js'
+import { languages, defaultLang, multilangActive, getT, setT } from '../composables/useTranslations.js'
 import MediaPicker from './MediaPicker.vue'
 
 export default {
@@ -83,7 +90,13 @@ export default {
       transLanguages.value.filter(l => getT(props.fieldKey, l.lang_code) !== '').length
     )
 
-    return { open, transLanguages, filledCount, getT, setT }
+    // When multilingual output is off but extra languages exist, show a compact
+    // "turn it on" hint instead of the editable dropdown (data stays in the DB).
+    const showInactiveHint = computed(() =>
+      !multilangActive.value && transLanguages.value.length > 0
+    )
+
+    return { open, transLanguages, filledCount, showInactiveHint, getT, setT }
   },
 }
 </script>
@@ -96,21 +109,26 @@ export default {
 .ab-trans-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border: 1px solid var(--ab-border-strong);
-  border-radius: 5px;
-  background: var(--ab-bg-muted);
-  color: var(--ab-text);
-  font-size: .78rem;
+  gap: 6px;
+  padding: .3rem .6rem;
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: transparent;
+  color: var(--ab-text-muted);
+  font-family: var(--ab-font-mono);
+  font-size: var(--ab-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: .02em;
   cursor: pointer;
-  transition: background .15s, border-color .15s;
+  transition: color .12s, border-color .12s;
   user-select: none;
 }
 .ab-trans-toggle:hover {
-  background: var(--ab-bg-elev-2);
-  border-color: var(--ab-border-strong);
+  color: var(--ab-text);
+  border-color: var(--ab-primary);
 }
+.ab-trans-toggle--hint { text-decoration: none; }
+.ab-trans-toggle--hint:hover { color: var(--ab-primary); }
 
 .ab-trans-arrow {
   transition: transform .2s;

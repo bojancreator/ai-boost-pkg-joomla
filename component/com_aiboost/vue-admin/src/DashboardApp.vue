@@ -1,429 +1,267 @@
 <template>
   <div class="ab-vue-dashboard">
 
-    <!-- CRITICAL notification (item 12a) — "no settings backup yet" stays
-         always-visible above the collapsible notifications panel. -->
-    <div v-if="showBackupReminder && backupSignalKind === 'never'"
-         class="ab-alert ab-alert--danger d-flex align-items-center justify-content-between flex-wrap gap-2"
-         role="status"
-         aria-live="polite">
-      <span>
-        <span class="icon-warning me-1" aria-hidden="true"></span>
-        <strong>No settings backup yet.</strong>
-        Download one now so you can restore your configuration after a
-        migration, a major update, or anything unexpected.
-      </span>
-      <span class="d-flex align-items-center gap-2">
-        <button type="button"
-                class="ab-btn ab-btn--primary ab-btn--sm"
-                @click="scrollToBackup">
-          Back up now →
-        </button>
-        <button type="button"
-                class="ab-btn ab-btn--ghost ab-btn--sm"
-                title="Hide for 7 days"
-                @click="dismissBackupReminder">
-          Dismiss
-        </button>
-      </span>
-    </div>
+    <PageHeader title="Dashboard" />
 
-    <!-- Settings status. First-run install (no settings row yet) funnels the
-         admin to Autopilot instead of a warning or a backup alarm — there is
-         nothing to back up or fix yet, so the friendliest next step is the
-         5-minute guided setup. -->
-    <a v-if="!data.hasSettings"
-       :href="firstRunSetupHref"
-       class="ab-card ab-setup-banner mb-4"
-       title="Open Quick Setup — guided setup">
-      <div class="ab-card__body d-flex align-items-center gap-3 py-3">
-        <span class="ab-setup-banner__icon" aria-hidden="true">🚀</span>
-        <div class="flex-grow-1">
-          <strong class="ab-setup-banner__title">New here? Set up AI Boost in 5 minutes</strong>
-          <div class="text-muted small mt-1">
+    <div class="ab-page">
+
+      <!-- Post-update highlight — shown once after the installed version changes. -->
+      <div v-if="showWhatsNew" class="ab-alert ab-alert--info" role="status">
+        <AbIcon name="bolt" class="ab-alert__icon" />
+        <div style="flex:1">
+          <div class="ab-alert__title">AI Boost was updated to v{{ data.version }}</div>
+          <div class="ab-alert__body">See what's new and what changed in this version.</div>
+        </div>
+        <div class="ab-row ab-notif__actions">
+          <a :href="changelogHref" class="ab-btn ab-btn--primary ab-btn--sm" @click="markWhatsNewSeen">What's new</a>
+          <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" title="Hide" @click="markWhatsNewSeen">Dismiss</button>
+        </div>
+      </div>
+
+      <!-- Settings status. First-run install (no settings row yet) funnels the
+           admin to Autopilot instead of a warning or a backup alarm. -->
+      <a v-if="!data.hasSettings"
+         :href="firstRunSetupHref"
+         class="ab-alert ab-alert--info ab-link-card"
+         title="Open Quick Setup — guided setup">
+        <AbIcon name="bolt" class="ab-alert__icon" />
+        <div style="flex:1">
+          <div class="ab-alert__title">New here? Set up AI Boost in 5 minutes</div>
+          <div class="ab-alert__body">
             Quick Setup asks a few quick questions about your site, then
             configures Schema.org, sitemap, social tags, and AI-search
             signals for you.
           </div>
         </div>
-        <span class="ab-setup-banner__cta">Set up now →</span>
-      </div>
-    </a>
-    <!-- Non-critical notifications (item 12a) — collapse to a single bar; the
-         open/closed choice is remembered in localStorage. -->
-    <div v-if="data.hasSettings && nonCriticalNotifCount > 0" class="ab-notif-panel mb-4">
-      <button type="button" class="ab-notif-panel__bar"
-              :aria-expanded="notifOpen ? 'true' : 'false'"
-              @click="toggleNotif">
-        <span class="ab-notif-panel__title">
-          <span class="icon-bell me-1" aria-hidden="true"></span>
-          Notifications
-          <span class="ab-badge ab-badge--muted ms-1">{{ nonCriticalNotifCount }}</span>
-        </span>
-        <span class="ab-notif-panel__right">
-          <span v-if="!notifOpen" class="text-muted small me-2">Open to see notifications</span>
-          <span class="ab-notif-panel__chev" :class="{ 'is-open': notifOpen }" aria-hidden="true">▾</span>
-        </span>
-      </button>
-      <div v-show="notifOpen" class="ab-notif-panel__body">
-        <!-- Settings active -->
-        <div class="ab-alert ab-alert--success d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <span>
-            <span class="icon-checkmark me-1" aria-hidden="true"></span>
-            Settings active — all plugins reading from <code>#__aiboost_settings</code>.
-          </span>
-          <span class="text-muted small" style="white-space:nowrap">
-            <span class="icon-calendar me-1" aria-hidden="true"></span>
-            <template v-if="data.lastSaved">Settings last saved: <strong>{{ data.lastSaved }}</strong></template>
-            <template v-else>Never saved</template>
-          </span>
-        </div>
+        <span class="ab-link-card__cta">Set up now →</span>
+      </a>
 
-        <!-- Stale / changed-since backup nag (non-critical) -->
-        <div v-if="showBackupReminder && backupSignalKind !== 'never'"
-             class="ab-alert ab-alert--warning d-flex align-items-center justify-content-between flex-wrap gap-2"
-             role="status" aria-live="polite">
-          <span>
-            <span class="icon-warning me-1" aria-hidden="true"></span>
-            <template v-if="backupSignalKind === 'changes'">
-              <strong>You've changed {{ changesSinceBackup }} settings since your last backup.</strong>
-              Download a fresh backup so you don't lose recent configuration changes if something goes wrong.
-            </template>
-            <template v-else>
-              <strong>Backup is {{ lastBackupAgeDays }} days old.</strong>
-              Download a fresh settings backup so you don't lose recent changes if something goes wrong.
-            </template>
-          </span>
-          <span class="d-flex align-items-center gap-2">
-            <button type="button" class="ab-btn ab-btn--primary ab-btn--sm" @click="scrollToBackup">Back up now →</button>
-            <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" title="Hide for 7 days" @click="dismissBackupReminder">Dismiss</button>
-          </span>
-        </div>
+      <!-- Unified notifications — server-curated from Health / Conflict /
+           licence / backup signals. Critical items stay pinned at the top;
+           warnings + info collapse into a counter panel (open state remembered). -->
+      <template v-if="data.hasSettings">
 
-        <!-- Multilingual detected (Pro discovery) -->
-        <a v-if="data.multilingualLangCount >= 2"
-           :href="multilingualBannerHref"
-           :target="multilingualBannerTarget"
-           :rel="multilingualBannerTarget === '_blank' ? 'noopener' : null"
-           class="ab-card ab-ml-banner"
-           title="Open Settings → Sitemap → hreflang">
-          <div class="ab-card__body d-flex align-items-center gap-3 py-3">
-            <span class="ab-ml-banner__icon" aria-hidden="true">🌐</span>
-            <div class="flex-grow-1">
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <strong class="ab-ml-banner__title">Multilingual — detected</strong>
-                <span class="ab-badge ab-badge--success">{{ data.multilingualLangCount }} languages</span>
-              </div>
-              <div class="text-muted small mt-1">
-                AI Boost can emit hreflang alternates and store per-language
-                translations for every field. Click to configure.
-              </div>
-            </div>
-            <span class="ab-ml-banner__cta">Configure →</span>
+        <!-- Critical — always visible -->
+        <div v-for="n in criticalNotifs" :key="n.id"
+             class="ab-alert ab-alert--danger" role="alert">
+          <AbIcon name="err" class="ab-alert__icon" />
+          <div style="flex:1">
+            <div class="ab-alert__title">{{ n.title }}</div>
+            <div class="ab-alert__body">{{ n.message }}</div>
           </div>
-        </a>
-      </div>
-    </div>
+          <div class="ab-row ab-notif__actions">
+            <a v-for="a in n.actions" :key="a.label" :href="resolveActionHref(a.url)"
+               class="ab-btn ab-btn--danger ab-btn--sm">{{ a.label }}</a>
+            <button v-if="n.dismissible" type="button"
+                    class="ab-btn ab-btn--ghost ab-btn--sm"
+                    title="Hide this notification" @click="dismissNotif(n.id)">Dismiss</button>
+          </div>
+        </div>
 
-    <!-- Module status grid -->
-    <div class="ab-card mb-4">
-      <div class="ab-card__header">
-        <h2 class="ab-card__title fs-5 mb-0">
-          <span class="icon-puzzle-piece me-2" aria-hidden="true"></span>Module Status
-        </h2>
-      </div>
-      <div class="ab-card__body">
-        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
-          <div v-for="(plugin, element) in plugins" :key="element" class="col">
-            <div class="ab-card h-100 ab-module-card"
-                 :style="{ borderLeftColor: plugin.meta.color }">
-              <div class="ab-card__body p-4 d-flex flex-column">
-
-                <!-- Icon + label + tier/status badges (top-right).
-                     flex-wrap keeps the status badge from being clipped when
-                     the tier badge crowds the row on narrow cards. -->
-                <div class="d-flex flex-wrap align-items-start gap-2 mb-2">
-                  <span class="ab-plugin-icon" :style="{ color: plugin.meta.color }"
-                        v-html="plugin.meta.icon"></span>
-                  <div class="fw-bold lh-sm flex-grow-1" style="font-size:1.05rem;min-width:0">{{ plugin.label }}</div>
-                  <span v-if="!isProEdition && plugin.tier === 'pro'" class="ab-tier-badge ab-tier-badge--pro flex-shrink-0" title="This feature is Pro">PRO</span>
-                  <span v-else-if="!isProEdition && plugin.tier === 'mixed'" class="ab-tier-badge ab-tier-badge--mixed flex-shrink-0" title="Free baseline + Pro advanced options">FREE/PRO</span>
-                  <span v-if="!plugin.found"       class="ab-badge flex-shrink-0">Not Installed</span>
-                  <span v-else-if="plugin.enabled" class="ab-badge ab-badge--success flex-shrink-0">Enabled</span>
-                  <span v-else                     class="ab-badge ab-badge--danger flex-shrink-0">Disabled</span>
-                </div>
-
-                <!-- Description -->
-                <p v-if="plugin.desc" class="text-muted flex-grow-1 mb-3"
-                   style="font-size:.875rem;line-height:1.5;margin-top:.1rem">
-                  {{ plugin.desc }}
-                </p>
-                <div v-else class="flex-grow-1"></div>
-
-                <!-- Toggle buttons -->
-                <div v-if="plugin.found && plugin.extension_id" class="ab-toggle-actions mb-2">
-                  <button v-if="!plugin.enabled"
-                          type="button"
-                          class="ab-btn ab-btn--success ab-btn--sm"
-                          :disabled="plugin.busy"
-                          @click="doToggle(element, 1)">
-                    {{ plugin.busy ? 'Enabling…' : 'Enable' }}
-                  </button>
-                  <template v-else>
-                    <button type="button"
-                            :class="['ab-btn ab-btn--sm', plugin.confirming ? 'ab-btn--danger' : 'ab-btn--ghost']"
-                            :disabled="plugin.busy"
-                            @click="startDisable(element)">
-                      {{ plugin.busy ? 'Disabling…' : plugin.confirming ? 'Confirm Disable' : 'Disable' }}
-                    </button>
-                    <a v-if="plugin.confirming"
-                       href="#"
-                       class="text-muted"
-                       style="font-size:.75rem"
-                       @click.prevent="cancelDisable(element)">Cancel</a>
-                  </template>
-                </div>
-
-                <!-- Flash message -->
-                <div v-if="plugin.flash"
-                     class="small mb-1"
-                     :class="plugin.flashOk ? 'text-success' : 'text-danger'">
-                  {{ plugin.flash }}
-                </div>
-
-                <!-- Configure link — deep-links to the plugin's settings tab + field -->
-                <a :href="configureUrl(plugin.meta)" class="ab-configure-link">
-                  <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" class="me-1">
-                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
-                  </svg>
-                  Configure
-                </a>
-
+        <!-- Warnings + info — collapsible counter panel -->
+        <div v-if="minorNotifs.length > 0" class="ab-notif-panel">
+          <button type="button" class="ab-notif-panel__bar"
+                  :aria-expanded="notifOpen ? 'true' : 'false'"
+                  @click="toggleNotif">
+            <span class="ab-notif-panel__title">
+              <AbIcon name="info" style="font-size:14px;margin-right:.2rem" />
+              Notifications
+              <span class="ab-badge ms-1">{{ minorNotifs.length }}</span>
+            </span>
+            <span class="ab-notif-panel__right">
+              <span v-if="!notifOpen" class="ab-hint me-2">Open to see notifications</span>
+              <span class="ab-notif-panel__chev" :class="{ 'is-open': notifOpen }" aria-hidden="true">▾</span>
+            </span>
+          </button>
+          <div v-show="notifOpen" class="ab-notif-panel__body">
+            <div v-for="n in minorNotifs" :key="n.id"
+                 class="ab-alert" :class="severityClass(n.severity)">
+              <AbIcon :name="severityIcon(n.severity)" class="ab-alert__icon" />
+              <div style="flex:1">
+                <div class="ab-alert__title">{{ n.title }}</div>
+                <div class="ab-alert__body">{{ n.message }}</div>
+              </div>
+              <div class="ab-row ab-notif__actions">
+                <a v-for="a in n.actions" :key="a.label" :href="resolveActionHref(a.url)"
+                   class="ab-btn ab-btn--subtle ab-btn--sm">{{ a.label }}</a>
+                <button v-if="n.dismissible" type="button"
+                        class="ab-btn ab-btn--ghost ab-btn--sm"
+                        title="Hide" @click="dismissNotif(n.id)">✕</button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Quick actions — AI Boost Design System (.ab-*) -->
-    <div class="ab-card mb-4">
-      <div class="ab-card__header">
-        <span class="icon-flash" aria-hidden="true"></span>
-        <h2 class="fs-5 mb-0" style="font-weight:inherit">Quick Actions</h2>
+        <!-- All clear -->
+        <div v-if="criticalNotifs.length === 0 && minorNotifs.length === 0" class="ab-section">
+          <div class="ab-section__body ab-row">
+            <AbIcon name="ok" style="font-size:16px;color:var(--ab-success)" />
+            <span class="ab-hint">
+              Everything looks good — no notifications.
+              <a :href="data.urls.health" class="ms-1">Open the full Health report</a> for a deeper check.
+            </span>
+          </div>
+        </div>
+
+      </template>
+
+      <!-- Module status grid -->
+      <div>
+        <div class="ab-eyebrow" style="margin-bottom:.6rem">Module status</div>
+        <div class="ab-grid-cards ab-grid-cards--modules">
+          <div v-for="(plugin, element) in plugins" :key="element" class="ab-modcard">
+
+            <div class="ab-modcard__head">
+              <div class="ab-modcard__heading">
+                <div class="ab-modcard__title">{{ plugin.label }}</div>
+                <div class="ab-modcard__status">
+                  <span v-if="!plugin.found"       class="ab-badge">Not installed</span>
+                  <span v-else-if="plugin.enabled" class="ab-badge ab-badge--success">Enabled</span>
+                  <span v-else                     class="ab-badge ab-badge--danger">Disabled</span>
+                  <span v-if="!isProEdition && plugin.tier === 'pro'" class="ab-tag ab-tag--pro" title="This feature is Pro">Pro</span>
+                  <span v-else-if="!isProEdition && plugin.tier === 'mixed'" class="ab-tag ab-tag--free" title="Free baseline + Pro advanced options">Free / Pro</span>
+                </div>
+              </div>
+              <OnOffSwitch
+                v-if="plugin.found && plugin.extension_id"
+                :model-value="!!plugin.enabled"
+                :disabled="plugin.busy"
+                @change="(v) => doToggle(element, v ? 1 : 0)"
+              />
+            </div>
+
+            <p v-if="plugin.desc">{{ plugin.desc }}</p>
+
+            <!-- Flash message -->
+            <div v-if="plugin.flash"
+                 class="ab-modcard__flash"
+                 :class="plugin.flashOk ? 'ab-text-success' : 'ab-text-danger'">
+              {{ plugin.flash }}
+            </div>
+
+            <!-- Configure — deep-links to the plugin's settings tab + field -->
+            <a :href="configureUrl(plugin.meta)" class="ab-btn ab-btn--ghost ab-btn--sm ab-modcard__configure">Configure</a>
+
+          </div>
+        </div>
       </div>
-      <div class="ab-card__body">
-        <div class="ab-cluster">
-          <a :href="data.urls.settings" class="ab-btn ab-btn--primary">
-            <span class="icon-cog" aria-hidden="true"></span> Open Settings
-          </a>
-          <a :href="data.urls.redirects" class="ab-btn ab-btn--ghost">
-            <span class="icon-arrow-right" aria-hidden="true"></span> Redirect Manager
+
+      <!-- Quick actions -->
+      <div class="ab-section">
+        <div class="ab-section__head">Quick actions</div>
+        <div class="ab-section__body ab-row" style="flex-wrap:wrap">
+          <a :href="data.urls.redirects" class="ab-btn ab-btn--ghost ab-btn--sm">
+            Redirect manager
             <span v-if="data.redirectCount > 0" class="ab-badge ms-1">{{ data.redirectCount }}</span>
           </a>
-          <a :href="data.urls.pluginManager" class="ab-btn ab-btn--ghost">
-            <span class="icon-puzzle-piece" aria-hidden="true"></span> Manage Plugins
-          </a>
+          <a :href="data.urls.pluginManager" class="ab-btn ab-btn--ghost ab-btn--sm">Manage plugins</a>
         </div>
       </div>
-    </div>
 
-    <!-- Plugin conflicts card — visible when critical conflicts detected -->
-    <div v-if="conflictCritical > 0" class="ab-card mb-4" style="border-left:4px solid var(--ab-danger)">
-      <div class="ab-card__header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h2 class="ab-card__title fs-5 mb-0">
-          <span class="icon-warning me-2 text-danger" aria-hidden="true"></span>Plugin Conflicts Detected
-          <span class="ab-badge ab-badge--danger ms-2">{{ conflictCritical }} critical</span>
-          <span v-if="conflictWarnings > 0" class="ab-badge ab-badge--warning ms-1">
-            {{ conflictWarnings }} warning{{ conflictWarnings > 1 ? 's' : '' }}
+      <!-- 404 monitoring: has errors -->
+      <div v-if="data.top404 && data.top404.length" class="ab-section">
+        <div class="ab-section__head" style="justify-content:space-between">
+          <span>
+            Top 404 errors
+            <span class="ab-badge ab-badge--danger ms-2">{{ data.total404 }} URLs</span>
           </span>
-        </h2>
-        <a :href="data.urls.health" class="ab-btn ab-btn--danger ab-btn--sm">
-          <span class="icon-heart me-1" aria-hidden="true"></span> View All
-        </a>
+          <a :href="data.urls.redirects + '&tab=404'" class="ab-btn ab-btn--ghost ab-btn--sm">View all &amp; manage redirects</a>
+        </div>
+        <table class="ab-table">
+          <thead>
+            <tr>
+              <th>404 URL</th>
+              <th style="width:70px">Hits</th>
+              <th style="width:130px">Last seen</th>
+              <th style="width:110px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in data.top404" :key="row.id">
+              <td><span class="ab-mono">{{ row.request_url }}</span></td>
+              <td>
+                <span :class="['ab-badge', Number(row.hits) >= 10 ? 'ab-badge--danger' : 'ab-badge--warning']">
+                  {{ row.hits }}
+                </span>
+              </td>
+              <td class="ab-muted">{{ (row.last_seen || '').substring(0, 10) }}</td>
+              <td>
+                <a :href="data.urls.redirects + '&from_url=' + encodeURIComponent(row.request_url)"
+                   class="ab-btn ab-btn--subtle ab-btn--sm">+ Redirect</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <ul class="ab-list-group ab-list-group--flush">
-        <!-- Show top 3 unresolved critical conflicts only -->
-        <li v-for="c in topCriticalConflicts" :key="c.id"
-            class="ab-list-group__item d-flex align-items-start gap-2 py-2">
-          <span class="icon-warning text-danger flex-shrink-0" style="margin-top:.15rem" aria-hidden="true"></span>
-          <div class="flex-grow-1 me-2">
-            <div class="fw-semibold small">{{ c.label }}</div>
-            <div class="text-muted" style="font-size:.8rem;line-height:1.4">{{ c.message }}</div>
+
+      <!-- 404 monitoring: no errors yet -->
+      <div v-else-if="data.total404 === 0" class="ab-section">
+        <div class="ab-section__head">404 monitoring</div>
+        <div class="ab-section__body ab-hint">
+          No 404 errors logged yet. Enable <strong>Log 404 Errors</strong> in
+          Settings &rarr; Sitemap &rarr; 404 Monitoring to start tracking broken URLs.
+        </div>
+      </div>
+
+      <!-- Settings Backup (Task #490/#497). -->
+      <div class="ab-section">
+        <div class="ab-section__head">Settings backup</div>
+        <div class="ab-section__body">
+          <p class="ab-hint" style="margin:0 0 .9rem">
+            Download a single JSON file with every option, redirect, and translation.
+            <strong>Before any major change</strong> — a migration, a big update, or
+            moving to another site — take a fresh backup. Uninstalling AI Boost keeps
+            your data; see the full details on the
+            <a :href="data.urls.import">Import / Export</a> page.
+          </p>
+          <div class="ab-row" style="flex-wrap:wrap">
+            <button id="ab-backup-button"
+                    type="button"
+                    class="ab-btn ab-btn--primary ab-btn--sm"
+                    data-ab-field="last_backup_at"
+                    :disabled="backupBusy"
+                    @click="backupNow">
+              {{ backupBusy ? 'Preparing backup…' : 'Backup settings now (.json)' }}
+            </button>
+            <a :href="data.urls.import" class="ab-btn ab-btn--ghost ab-btn--sm">Open Import / Export →</a>
           </div>
-          <a :href="(c.fix_actions && c.fix_actions[0]) ? c.fix_actions[0].url : (c.fix_url || data.urls.health)"
-             class="ab-btn ab-btn--ghost ab-btn--sm flex-shrink-0"
-             style="color:var(--ab-danger);border-color:var(--ab-danger)">
-            Fix →
-          </a>
-        </li>
-        <!-- "...and N more" row when >3 critical conflicts -->
-        <li v-if="conflictCritical > 3"
-            class="ab-list-group__item text-muted small py-2 text-center">
-          + {{ conflictCritical - 3 }} more critical issue{{ conflictCritical - 3 > 1 ? 's' : '' }} —
-          <a :href="data.urls.health">view all in Health report</a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Warnings-only card (no criticals) -->
-    <div v-else-if="conflictWarnings > 0" class="ab-card mb-4" style="border-left:4px solid var(--ab-warning)">
-      <div class="ab-card__body py-2 d-flex align-items-center justify-content-between gap-2">
-        <span class="small">
-          <span class="icon-info-circle text-warning me-1" aria-hidden="true"></span>
-          <span class="fw-semibold">{{ conflictWarnings }} compatibility warning{{ conflictWarnings > 1 ? 's' : '' }}</span>
-          detected.
-        </span>
-        <a :href="data.urls.health" class="ab-btn ab-btn--ghost ab-btn--sm"
-           style="color:var(--ab-warning);border-color:var(--ab-warning)">Review</a>
-      </div>
-    </div>
-
-    <!-- No conflicts — compact status bar -->
-    <div v-else-if="Array.isArray(data.conflicts)" class="ab-card mb-4">
-      <div class="ab-card__body py-2 d-flex align-items-center gap-2">
-        <span class="icon-checkmark-circle text-success" aria-hidden="true"></span>
-        <span class="small text-muted">
-          No plugin conflicts detected.
-          <a :href="data.urls.health" class="ms-1">View full Health report</a> for more details.
-        </span>
-      </div>
-    </div>
-
-    <!-- 404 monitoring: has errors -->
-    <div v-if="data.top404 && data.top404.length" class="ab-card mb-4">
-      <div class="ab-card__header d-flex align-items-center justify-content-between flex-wrap gap-2">
-        <h2 class="ab-card__title fs-5 mb-0">
-          <span class="icon-warning me-2" aria-hidden="true"></span>Top 404 Errors
-          <span class="ab-badge ab-badge--danger ms-2">{{ data.total404 }} unique URLs</span>
-        </h2>
-        <a :href="data.urls.redirects + '&tab=404'" class="ab-btn ab-btn--ghost ab-btn--sm">
-          View all &amp; manage redirects
-        </a>
-      </div>
-      <div class="ab-card__body p-0">
-        <div class="table-responsive">
-          <table class="table table-sm ab-table--hover mb-0">
-            <thead style="background: var(--bs-tertiary-bg, rgba(0,0,0,.03));">
-              <tr>
-                <th>404 URL</th>
-                <th class="text-end" style="width:70px">Hits</th>
-                <th style="width:130px">Last seen</th>
-                <th style="width:100px"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in data.top404" :key="row.id">
-                <td class="text-break small font-monospace">{{ row.request_url }}</td>
-                <td class="text-end">
-                  <span :class="['ab-badge', Number(row.hits) >= 10 ? 'ab-badge--danger' : 'ab-badge--warning']">
-                    {{ row.hits }}
-                  </span>
-                </td>
-                <td class="text-muted small">{{ (row.last_seen || '').substring(0, 10) }}</td>
-                <td>
-                  <a :href="data.urls.redirects + '&from_url=' + encodeURIComponent(row.request_url)"
-                     class="ab-btn ab-btn--subtle ab-btn--sm"
-                     style="font-size:.75rem;padding:.15rem .4rem">+ Redirect</a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <p class="ab-modcard__flash" style="margin:.6rem 0 0"
+             :class="[
+               backupFlash
+                 ? (backupFlashOk ? 'ab-muted' : 'ab-text-danger')
+                 : (backupStaleness === 'never'
+                     ? 'ab-text-danger'
+                     : (backupStaleness === 'stale' ? 'ab-text-warning' : 'ab-muted'))
+             ]"
+             aria-live="polite">
+            <template v-if="backupFlash">{{ backupFlash }}</template>
+            <template v-else-if="lastBackupAt">
+              Last backup downloaded: <strong>{{ lastBackupAtLabel }}</strong>
+              <template v-if="changesSinceBackup > 0">
+                — <strong>{{ changesSinceBackup }} setting{{ changesSinceBackup === 1 ? '' : 's' }} changed since</strong>.
+              </template>
+              <template v-if="backupStaleness === 'stale'">
+                That's {{ lastBackupAgeDays }} days ago. Consider taking a fresh backup.
+              </template>
+            </template>
+            <template v-else>
+              <strong>No backup downloaded from this browser yet.</strong>
+              Take one before any major change.
+            </template>
+          </p>
         </div>
       </div>
+
     </div>
-
-    <!-- 404 monitoring: no errors yet -->
-    <div v-else-if="data.total404 === 0" class="ab-card mb-4">
-      <div class="ab-card__header">
-        <h2 class="ab-card__title fs-5 mb-0">
-          <span class="icon-warning me-2" aria-hidden="true"></span>404 Monitoring
-        </h2>
-      </div>
-      <div class="ab-card__body text-muted small">
-        No 404 errors logged yet. Enable <strong>Log 404 Errors</strong> in
-        Settings &rarr; Sitemap &rarr; 404 Monitoring to start tracking broken URLs.
-      </div>
-    </div>
-
-    <!-- Settings Backup (Task #490/#497). The scary "what uninstall does"
-         explanation lives on the Import / Export page now (Phase 2, item 12b);
-         the dashboard keeps a calm one-click backup card + a short pointer. -->
-    <div class="ab-card mb-4">
-      <div class="ab-card__header">
-        <h2 class="ab-card__title fs-5 mb-0">
-          <span class="icon-download me-2" aria-hidden="true"></span>Settings Backup
-        </h2>
-      </div>
-      <div class="ab-card__body">
-        <p class="mb-3 small text-muted">
-          Download a single JSON file with every option, redirect, and translation.
-          <strong>Before any major change</strong> — a migration, a big update, or
-          moving to another site — take a fresh backup. Uninstalling AI Boost keeps
-          your data; see the full details on the
-          <a :href="data.urls.import">Import / Export</a> page.
-        </p>
-        <div class="d-flex flex-wrap gap-2">
-          <button id="ab-backup-button"
-                  type="button"
-                  class="ab-btn ab-btn--primary ab-btn--sm"
-                  data-ab-field="last_backup_at"
-                  :disabled="backupBusy"
-                  @click="backupNow">
-            <span class="icon-download me-1" aria-hidden="true"></span>
-            {{ backupBusy ? 'Preparing backup…' : 'Backup settings now (.json)' }}
-          </button>
-          <a :href="data.urls.import"
-             class="ab-btn ab-btn--ghost ab-btn--sm">
-            Open Import / Export →
-          </a>
-        </div>
-        <p class="small mt-2 mb-0"
-           :class="[
-             backupFlash
-               ? (backupFlashOk ? 'text-muted' : 'text-danger')
-               : (backupStaleness === 'never'
-                   ? 'text-danger fw-semibold'
-                   : (backupStaleness === 'stale' ? 'text-warning fw-semibold' : 'text-muted'))
-           ]"
-           aria-live="polite">
-          <template v-if="backupFlash">{{ backupFlash }}</template>
-          <template v-else-if="lastBackupAt">
-            <span v-if="backupStaleness === 'stale' || changesSinceBackup >= BACKUP_CHANGE_THRESHOLD"
-                  class="icon-warning me-1" aria-hidden="true"></span>
-            Last backup downloaded: <strong>{{ lastBackupAtLabel }}</strong>
-            <template v-if="changesSinceBackup > 0">
-              — <strong>{{ changesSinceBackup }} setting{{ changesSinceBackup === 1 ? '' : 's' }} changed since</strong>.
-            </template>
-            <template v-if="backupStaleness === 'stale'">
-              That's {{ lastBackupAgeDays }} days ago. Consider taking a fresh backup.
-            </template>
-          </template>
-          <template v-else>
-            <span class="icon-warning-2 me-1" aria-hidden="true"></span>
-            <strong>No backup downloaded from this browser yet.</strong>
-            Take one before any major change.
-          </template>
-        </p>
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <p class="text-muted small">
-      &copy; 2025 <a href="https://aiboostnow.com" target="_blank" rel="noopener">AI Boost</a>
-      (aiboostnow.com)&nbsp;&middot;&nbsp;
-      <a href="https://aiboostnow.com/docs" target="_blank" rel="noopener">Documentation</a>&nbsp;&middot;&nbsp;
-      <a href="https://aiboostnow.com/pricing" target="_blank" rel="noopener">Upgrade license</a>
-    </p>
-
   </div>
 </template>
 
 <script>
 import { reactive, computed, ref } from 'vue'
 import { isProInstalled } from './api'
-
-const CONFIRM_TIMEOUT = 3000
+import { invalidateLegacyGlobals } from './composables/useLegacyGlobals.js'
+import PageHeader from './components/PageHeader.vue'
+import OnOffSwitch from './components/OnOffSwitch.vue'
 
 const PLUGIN_META = {
   aiboost_schema:    {
@@ -481,6 +319,8 @@ const PLUGIN_TIER = {
 export default {
   name: 'DashboardApp',
 
+  components: { PageHeader, OnOffSwitch },
+
   setup() {
     const raw = window.aiBoostDashboard || {}
 
@@ -497,6 +337,9 @@ export default {
       total404:             raw.total404             ?? 0,
       redirectCount:        raw.redirectCount        ?? 0,
       conflicts:            raw.conflicts            ?? [],
+      notifications:        raw.notifications        ?? [],
+      version:              raw.version              ?? '',
+      lastSeenVersion:      raw.lastSeenVersion      ?? '',
       tokenName:            raw.tokenName            ?? '',
       multilingualActive:    raw.multilingualActive    ?? false,
       multilingualLangCount: raw.multilingualLangCount ?? 0,
@@ -526,7 +369,6 @@ export default {
         meta:         PLUGIN_META[element] || DEFAULT_META,
         tier:         PLUGIN_TIER[element] || 'free',
         busy:         false,
-        confirming:   false,
         flash:        '',
         flashOk:      true,
         _timer:       null,
@@ -545,13 +387,80 @@ export default {
       data.conflicts.filter(c => c.status === 'critical' && !c.dismissed).slice(0, 3)
     )
 
+    // ── Notifications (server-curated headline list) ─────────────────────────
+    // The Dashboard view (NotificationService) seeds data.notifications with a
+    // deduplicated, severity-sorted list. Critical → pinned at top; warning/info
+    // → counter panel. Dismiss persists via the shared health.dismiss endpoint.
+    const criticalNotifs = computed(() =>
+      (data.notifications || []).filter(n => n && n.severity === 'critical'))
+    const minorNotifs = computed(() =>
+      (data.notifications || []).filter(n => n && (n.severity === 'warning' || n.severity === 'info')))
+
+    function resolveActionHref(url) {
+      if (typeof url !== 'string' || url === '') return data.urls.health
+      // SPA hash targets (#/route) are resolved against the app shell base;
+      // anything else (e.g. a com_plugins admin URL from a conflict) is used as-is.
+      if (url.charAt(0) === '#') {
+        const appBase = data.urls.appBase || data.urls.settings.split('#')[0]
+        return appBase + url
+      }
+      return url
+    }
+    function severityClass(sev) {
+      return sev === 'warning' ? 'ab-alert--warning' : 'ab-alert--info'
+    }
+    function severityIcon(sev) {
+      if (sev === 'critical') return 'err'
+      return sev === 'warning' ? 'warn' : 'info'
+    }
+    // ── Post-update "What's New" highlight ───────────────────────────────────
+    // Shown once after the installed version differs from the last version the
+    // admin acknowledged. Clearing it persists last_seen_version server-side.
+    const showWhatsNew = computed(() =>
+      data.hasSettings && !!data.version && data.lastSeenVersion !== data.version)
+    const changelogHref = computed(() => {
+      const appBase = data.urls.appBase || data.urls.settings.split('#')[0]
+      return appBase + '#/changelog'
+    })
+    function markWhatsNewSeen() {
+      data.lastSeenVersion = data.version   // hide immediately
+      try {
+        const tn = (window.aiBoostBootstrap && window.aiBoostBootstrap.tokenName) || window.aiBoostToken || data.tokenName || ''
+        const body = new URLSearchParams()
+        if (tn) body.append(tn, '1')
+        fetch('index.php?option=com_aiboost&task=dashboard.markVersionSeen&format=json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body.toString(),
+        }).catch(() => { /* non-critical */ })
+      } catch { /* non-critical */ }
+    }
+
+    async function dismissNotif(id) {
+      // Optimistic remove, then persist via the shared health.dismiss endpoint
+      // (writes settings['dismissed_checks']). Fire-and-forget on the network.
+      const idx = (data.notifications || []).findIndex(n => n && n.id === id)
+      if (idx === -1) return
+      data.notifications.splice(idx, 1)
+      try {
+        const body = new URLSearchParams()
+        body.append('check_id', id)
+        body.append('action', 'dismiss')
+        body.append(data.tokenName, '1')
+        await fetch('index.php?option=com_aiboost&task=health.dismiss&format=json', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+          body: body.toString(),
+        })
+      } catch { /* UI already updated; dismissal will re-evaluate on next load */ }
+    }
+
     async function doToggle(element, state) {
       const p = plugins[element]
       if (!p || p.busy) return
 
       if (p._timer) { clearTimeout(p._timer); p._timer = null }
       p.busy       = true
-      p.confirming = false
       p.flash      = ''
 
       const body = new URLSearchParams()
@@ -576,6 +485,14 @@ export default {
           p.enabled = json.newState === 1
           p.flash   = p.enabled ? 'Enabled ✓' : 'Disabled'
           p.flashOk = true
+          // Drop cached Dashboard + Integrations data so their derived state
+          // (notifications, integration cards) re-derives on next visit without a
+          // full page reload. The card above already updated optimistically.
+          try {
+            const lu = (window.aiBoostBootstrap && window.aiBoostBootstrap.legacyUrls) || {}
+            invalidateLegacyGlobals(lu.dashboard)
+            invalidateLegacyGlobals(lu.integrations)
+          } catch (_e) { /* ignore */ }
         } else {
           p.flash   = json.message || 'Error'
           p.flashOk = false
@@ -587,29 +504,6 @@ export default {
         p.busy = false
         setTimeout(() => { p.flash = '' }, 3000)
       }
-    }
-
-    function startDisable(element) {
-      const p = plugins[element]
-      if (!p || p.busy) return
-
-      if (!p.confirming) {
-        p.confirming = true
-        p._timer = setTimeout(() => {
-          p.confirming = false
-          p._timer     = null
-        }, CONFIRM_TIMEOUT)
-      } else {
-        if (p._timer) { clearTimeout(p._timer); p._timer = null }
-        doToggle(element, 0)
-      }
-    }
-
-    function cancelDisable(element) {
-      const p = plugins[element]
-      if (!p) return
-      if (p._timer) { clearTimeout(p._timer); p._timer = null }
-      p.confirming = false
     }
 
     /**
@@ -744,17 +638,10 @@ export default {
       backupReminderDismissedAt.value = nowIso
     }
     function scrollToBackup() {
-      const btn = document.querySelector('.ab-vue-dashboard .ab-btn--primary[disabled], .ab-vue-dashboard button.ab-btn--primary')
-      // Prefer scrolling to the Danger Zone card by its heading text.
-      const cards = document.querySelectorAll('.ab-vue-dashboard .ab-card')
-      for (const c of cards) {
-        const t = c.querySelector('.ab-card__title')
-        if (t && /Danger Zone/i.test(t.textContent || '')) {
-          c.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          return
-        }
-      }
-      if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const btn = document.getElementById('ab-backup-button')
+      if (!btn) return
+      const card = btn.closest('.ab-card')
+      ;(card || btn).scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
     async function backupNow() {
@@ -812,14 +699,6 @@ export default {
       }
     }
 
-    const multilingualBannerHref = computed(() => {
-      const appBase = (data.urls && data.urls.appBase)
-        ? data.urls.appBase
-        : 'index.php?option=com_aiboost&view=app'
-      return appBase + '#/settings?tab=sitemap&field=enable_hreflang'
-    })
-    const multilingualBannerTarget = computed(() => '_self')
-
     // First-run setup banner — deep-link to the Autopilot page inside the
     // SPA shell, built the same way configureUrl() builds its hrefs.
     const firstRunSetupHref = computed(() => {
@@ -855,16 +734,21 @@ export default {
       toggleNotif,
       nonCriticalNotifCount,
       isProEdition,
-      multilingualBannerHref,
-      multilingualBannerTarget,
       firstRunSetupHref,
       conflictCritical,
       conflictWarnings,
       conflictTotal,
       topCriticalConflicts,
+      criticalNotifs,
+      minorNotifs,
+      resolveActionHref,
+      severityClass,
+      severityIcon,
+      dismissNotif,
+      showWhatsNew,
+      changelogHref,
+      markWhatsNewSeen,
       doToggle,
-      startDisable,
-      cancelDisable,
       configureUrl,
       backupBusy,
       backupFlash,
@@ -887,161 +771,28 @@ export default {
 
 <style>
 .ab-vue-dashboard code {
-  color: #d63384;
-  background: var(--secondary-bg, #f8f9fa);
+  color: var(--ab-text);
+  background: var(--ab-bg-muted);
   padding: .1em .3em;
-  border-radius: 3px;
+  border-radius: var(--ab-radius-sm);
 }
 
-/* ── Module cards ─────────────────────────────────────────────── */
-.ab-module-card {
-  border-left-width: 4px !important;
-  border-left-style: solid !important;
-  border-radius: 6px;
-  transition: box-shadow .18s, transform .15s;
-}
-.ab-module-card:hover {
-  box-shadow: 0 4px 18px rgba(0, 0, 0, .13);
-  transform: translateY(-2px);
-}
-[data-bs-theme=dark] .ab-module-card:hover {
-  box-shadow: 0 4px 22px rgba(0, 0, 0, .45);
-}
-
-/* ── Tier badge (PRO / FREE-PRO) ──────────────────────────────── */
-.ab-tier-badge {
-  display: inline-block;
-  padding: 1px 7px;
-  border-radius: 4px;
-  font-size: .62rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-  line-height: 1.5;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-.ab-tier-badge--pro {
-  color: #7a5b00;
-  background: #f9d46d;
-  border-color: #e6b800;
-}
-.ab-tier-badge--mixed {
-  color: #3a4a5a;
-  background: #e2e8f0;
-  border-color: #cbd5e1;
-}
-[data-bs-theme=dark] .ab-tier-badge--mixed { color: #cbd5e1; background: #2a3543; border-color: #3a4a5a; }
-
-/* ── Plugin icon ──────────────────────────────────────────────── */
-.ab-plugin-icon {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  opacity: .9;
-}
-
-/* ── Toggle button area ───────────────────────────────────────── */
-.ab-toggle-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: .25rem;
-  min-height: 2rem;
-}
-
-/* ── Multilingual detected banner (Task #483) ─────────────────── */
-.ab-ml-banner {
-  display: block;
-  border-left: 4px solid #16a34a !important;
-  background: linear-gradient(90deg, rgba(22,163,74,.08), rgba(22,163,74,.02));
-  text-decoration: none !important;
-  color: inherit !important;
-  transition: box-shadow .18s, transform .15s;
-}
-.ab-ml-banner:hover {
-  box-shadow: 0 4px 16px rgba(22,163,74,.20);
-  transform: translateY(-1px);
-}
-[data-bs-theme=dark] .ab-ml-banner {
-  background: linear-gradient(90deg, rgba(22,163,74,.18), rgba(22,163,74,.04));
-}
-.ab-ml-banner__icon {
-  font-size: 1.75rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.ab-ml-banner__title {
-  color: #16a34a;
-  font-size: 1.02rem;
-}
-[data-bs-theme=dark] .ab-ml-banner__title { color: #4ade80; }
-.ab-ml-banner__cta {
-  flex-shrink: 0;
-  font-weight: 600;
-  color: #16a34a;
-  font-size: .9rem;
-  white-space: nowrap;
-}
-[data-bs-theme=dark] .ab-ml-banner__cta { color: #4ade80; }
-
-/* ── First-run setup banner (funnel to Autopilot) ─────────────── */
-.ab-setup-banner {
-  display: block;
-  border-left: 4px solid #2563eb !important;
-  background: linear-gradient(90deg, rgba(37, 99, 235, .08), rgba(37, 99, 235, .02));
-  text-decoration: none !important;
-  color: inherit !important;
-  transition: box-shadow .18s, transform .15s;
-}
-.ab-setup-banner:hover {
-  box-shadow: 0 4px 16px rgba(37, 99, 235, .20);
-  transform: translateY(-1px);
-}
-[data-bs-theme=dark] .ab-setup-banner {
-  background: linear-gradient(90deg, rgba(37, 99, 235, .18), rgba(37, 99, 235, .04));
-}
-.ab-setup-banner__icon {
-  font-size: 1.75rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.ab-setup-banner__title {
-  color: #2563eb;
-  font-size: 1.02rem;
-}
-[data-bs-theme=dark] .ab-setup-banner__title { color: #60a5fa; }
-.ab-setup-banner__cta {
-  flex-shrink: 0;
-  font-weight: 600;
-  color: #2563eb;
-  font-size: .9rem;
-  white-space: nowrap;
-}
-[data-bs-theme=dark] .ab-setup-banner__cta { color: #60a5fa; }
-
-/* ── Configure link ───────────────────────────────────────────── */
-.ab-configure-link {
-  display: inline-flex;
-  align-items: center;
-  font-size: .78rem;
-  color: var(--secondary-color, #6c757d);
-  text-decoration: none;
-  margin-top: auto;
-  padding-top: .5rem;
-  border-top: 1px solid var(--border-color, #f0f0f0);
-  width: 100%;
-}
-.ab-configure-link:hover {
-  color: var(--body-color, #212529);
-  text-decoration: underline;
-}
+/* Module-card header (title + ENABLED/DISABLED) + the ON/OFF switch; flash; configure link */
+.ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ab-vue-dashboard .ab-grid-cards--modules { grid-template-columns: 1fr; } }
+.ab-modcard__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--ab-space-3); }
+.ab-modcard__heading { display: flex; flex-direction: row; align-items: center; gap: var(--ab-space-2); flex-wrap: wrap; min-width: 0; }
+.ab-modcard__status { display: flex; align-items: center; gap: var(--ab-space-2); flex-wrap: wrap; }
+.ab-modcard__flash { font-size: var(--ab-font-size-xs); }
+.ab-modcard__configure { margin-top: auto; align-self: flex-start; }
 
 /* Notifications panel (item 12a) — collapsible non-critical notifications. */
 .ab-notif-panel {
-  border: 1px solid var(--ab-border, #e2e6ec);
-  border-radius: 8px;
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius-md);
   overflow: hidden;
-  background: var(--ab-bg-elev, #fff);
+  background: var(--ab-bg-elev);
 }
 .ab-notif-panel__bar {
   width: 100%;
@@ -1050,14 +801,19 @@ export default {
   justify-content: space-between;
   gap: 12px;
   padding: 10px 14px;
-  background: var(--ab-bg-muted, #eef0f3);
+  background: var(--ab-bg-elev-2);
   border: 0;
   cursor: pointer;
-  font-weight: 600;
-  color: var(--ab-text, inherit);
+  font-family: var(--ab-font-mono);
+  font-size: var(--ab-font-size-xs);
+  font-weight: var(--ab-font-weight-semibold);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ab-text-muted);
   text-align: left;
 }
-.ab-notif-panel__bar:hover { background: var(--ab-border, #e2e6ec); }
+.ab-notif-panel__bar:hover { background: var(--ab-bg-muted); }
+.ab-notif-panel__title { display: inline-flex; align-items: center; }
 .ab-notif-panel__right { display: flex; align-items: center; }
 .ab-notif-panel__chev { transition: transform .15s ease; display: inline-block; font-size: 1.1rem; line-height: 1; }
 .ab-notif-panel__chev.is-open { transform: rotate(180deg); }
@@ -1068,4 +824,7 @@ export default {
   padding: 12px 14px;
 }
 .ab-notif-panel__body > * { margin-bottom: 0 !important; }
+
+/* Action buttons inside a notification row — wrap, never shrink the text column. */
+.ab-vue-dashboard .ab-notif__actions { flex: 0 0 auto; flex-wrap: wrap; align-items: center; }
 </style>

@@ -46,6 +46,7 @@ use AiBoost\Lib\Integration\Sdk;
 use AiBoost\Lib\BridgeDetector;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\PluginRegistry;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
@@ -63,10 +64,10 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         return new IntegrationDescriptor(
             key:            'falang',
             pluginElement:  'aiboost_int_falang',
-            label:          'Multilang',
-            vendor:         'Falang',
+            label:          'Multilingual',
+            vendor:         'Native Joomla & Falang',
             category:       'Multilingual',
-            description:    'Per-language hreflang, Schema.org and OpenGraph for multilingual Joomla sites — native Joomla language associations and Falang. Multilang Pro: no multilingual output without an active licence.',
+            description:    'Per-language hreflang, Schema.org and OpenGraph for multilingual Joomla sites — works with native Joomla language associations and, when present, Falang. Pro: no multilingual output without an active licence.',
             hostType:       'component',
             hostElement:    'com_falang',
             sdkVersion:     Sdk::SDK_VERSION,
@@ -227,7 +228,7 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             BridgeDetector::registerSitemapLanguages($langs);
         }
 
-        $primary = trim((string) $this->aiBoostSetting('falang_primary_language', $this->params->get('falang_primary_language', 'en')));
+        $primary = $this->primaryLanguageSef();
         if ($primary !== '') {
             BridgeDetector::registerPrimaryLanguageSef($primary);
         }
@@ -242,6 +243,49 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
     {
         $mode = (string) $this->aiBoostSetting('falang_hreflang_mode', $this->params->get('falang_hreflang_mode', 'auto'));
         return in_array($mode, ['auto', 'joomla_native', 'falang'], true) ? $mode : 'auto';
+    }
+
+    /**
+     * SEF of the language that x-default must point at — the SITE'S DEFAULT
+     * language, resolved DYNAMICALLY so it is correct on ANY site whatever its
+     * default (the default can change over time and is NOT necessarily English).
+     *
+     * B7 (order 0006): the old code used the `falang_primary_language` setting,
+     * whose manifest default is 'en' — so on a site whose default language was
+     * e.g. sr-YU, x-default pointed at the (wrong) /en/ URL, which in the head
+     * also collided with and overwrote the en-gb self-alternate. Now x-default
+     * follows the native Joomla SITE DEFAULT CONTENT language (Language Manager →
+     * Installed → Site → Default = com_languages params['site']) mapped to its
+     * published SEF — NOT the global config default and NOT the per-request
+     * active language — falling back to the legacy setting then 'en' only when it
+     * cannot be resolved. See [[joomla-site-default-vs-global-language]].
+     */
+    private function primaryLanguageSef(): string
+    {
+        $fallback = trim((string) $this->aiBoostSetting(
+            'falang_primary_language',
+            $this->params->get('falang_primary_language', 'en')
+        ));
+
+        // The frontend / SEO default = the SITE DEFAULT CONTENT language
+        // (Language Manager → Installed Languages → Site → "Default" flag). In
+        // Joomla this is a DISTINCT setting from the global Default Language
+        // (Global Configuration / configuration.php $language): it is stored in
+        // the com_languages component params under the per-client key 'site'.
+        // (See administrator/components/com_languages InstalledModel: the Default
+        // flag reads/writes ComponentHelper::getParams('com_languages')->get(
+        // ApplicationHelper::getClientInfo($clientId)->name).) This is native
+        // Joomla — correct for ANY multilingual site, Falang or not — and is NOT
+        // the per-request active language (which Falang swaps) nor the global
+        // config default. For frontend/hreflang/SEO the SITE default always wins.
+        $defaultLangCode = '';
+        try {
+            $defaultLangCode = trim((string) ComponentHelper::getParams('com_languages')->get('site', ''));
+        } catch (\Throwable) {
+            $defaultLangCode = '';
+        }
+
+        return BridgeDetector::resolvePrimaryLanguageSef($defaultLangCode, $this->getLanguages(), $fallback);
     }
 
     private function aiBoostSetting(string $key, mixed $default = null): mixed
@@ -403,13 +447,12 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
             $menu       = $app->getMenu()->getActive();
             $currentUri = Uri::getInstance();
             $baseUrl    = $currentUri->getScheme() . '://' . $currentUri->getHost();
-            // Canonical source = the manifest-backed setting (same as the sitemap
-            // path), falling back to the legacy plugin param. Keeps x-default in
-            // the head and the sitemap pointing at the same primary language.
-            $primarySef = trim((string) $this->aiBoostSetting(
-                'falang_primary_language',
-                $this->params->get('falang_primary_language', 'en')
-            ));
+            // x-default follows the SITE'S DEFAULT language, resolved dynamically
+            // (see primaryLanguageSef) — identical source as the sitemap path so
+            // head and sitemap x-default stay consistent. Pointing it at the real
+            // default (e.g. /sr/ on a Serbian-default site) also stops it from
+            // colliding with — and overwriting — the en-gb self-alternate.
+            $primarySef = $this->primaryLanguageSef();
             $aliasMap   = $this->loadFalangAliasMap();
             [$defaultUrl] = $this->addLanguageHeadLinks(
                 $document,

@@ -1,164 +1,97 @@
 <template>
   <div class="ab-licenses-page">
-    <header class="ab-page-header">
-      <h2>License &amp; Updates</h2>
-      <p class="text-muted">
-        Enter your AI Boost license key to verify your purchase. A license includes
-        updates and support for one year. Activation is perpetual: if the license later
-        expires, every installed feature keeps working — expiry only pauses updates and support
-        until you renew.
-        Integration plugins (third-party bridges) are licensed separately and appear below once installed.
-      </p>
-    </header>
+
+    <PageHeader
+      title="License &amp; Updates"
+      subtitle="Enter your AI Boost license key to verify your purchase. A license includes updates and support for one year. Activation is perpetual: if the license later expires, every installed feature keeps working — expiry only pauses updates and support until you renew. Integration plugins are licensed separately and appear below once installed."
+    />
 
     <div v-if="loadError" class="ab-alert ab-alert--danger">
       <strong>Failed to load:</strong> {{ loadError }}
     </div>
 
-    <!-- ───── Perpetual activation status ───── -->
-    <div v-if="proActivated" class="ab-alert ab-alert--success" style="margin-top: 12px;">
-      <strong>License activated&nbsp;✓</strong>
-      <span v-if="proActivatedAt">on {{ formatDate(proActivatedAt) }}</span>.
-      If your license later expires, installed features keep working; renewal restores updates &amp; support.
+    <div v-if="proActivated" class="ab-license-active">
+      <strong>License is active.</strong> Updates and support are available.<span v-if="proActivatedAt"> Activated {{ formatDate(proActivatedAt) }}.</span>
     </div>
 
-    <!-- ───── Core: AI Boost (single key) ───── -->
-    <section v-if="!loadError" class="ab-license-section">
-      <h3 class="ab-section-title">AI Boost</h3>
-      <table class="ab-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>License key</th>
-            <th>Status</th>
-            <th>Expires</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <strong>AI Boost</strong>
-              <div class="small text-muted">Updates and support</div>
-            </td>
-            <td>
-              <input
-                type="text"
-                class="ab-input ab-input--mono"
-                v-model="core.key"
-                placeholder="Paste your license key"
-                :disabled="core.busy"
-                style="min-width: 260px;"
-              />
-            </td>
-            <td>
-              <span class="ab-badge" :class="badgeClass(core.status)">
-                {{ statusLabel(core.status) }}
-              </span>
-              <div v-if="core.message" class="small text-muted">{{ core.message }}</div>
-            </td>
-            <td>
-              <span v-if="core.expires_at" class="small">{{ formatDate(core.expires_at) }}</span>
-              <span v-else class="small text-muted">—</span>
-            </td>
-            <td>
-              <button
-                type="button"
-                class="ab-btn ab-btn--sm ab-btn--primary"
-                :disabled="core.busy || !core.key.trim()"
-                @click="verify(core)"
-              >
-                <span v-if="core.busy">Verifying…</span>
-                <span v-else>Verify</span>
-              </button>
-              <button
-                v-if="core.status === 'active'"
-                type="button"
-                class="ab-btn ab-btn--sm ab-btn--ghost"
-                :disabled="core.busy"
-                @click="deactivate(core)"
-                style="margin-left: 6px;"
-              >
-                Release
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+    <!-- Core license -->
+    <div v-if="!loadError" class="ab-section">
+      <div class="ab-section__head">AI Boost</div>
+      <div class="ab-section__body">
+        <div class="ab-license-row">
+          <div class="ab-license-row__product">
+            <strong>AI Boost</strong>
+            <div class="ab-help">Updates and support</div>
+          </div>
+          <div class="ab-license-row__key">
+            <input
+              type="text"
+              class="ab-input ab-input--mono"
+              v-model="core.key"
+              placeholder="Paste your license key"
+              :disabled="core.busy"
+            />
+          </div>
+          <div class="ab-license-row__status">
+            <span class="ab-badge" :class="badgeClass(core.status)">{{ statusLabel(core.status) }}</span>
+            <div v-if="core.message" class="ab-help">{{ core.message }}</div>
+          </div>
+          <div class="ab-license-row__expiry">
+            <span v-if="core.expires_at" class="small">{{ formatDate(core.expires_at) }}</span>
+            <span v-else class="ab-help">—</span>
+          </div>
+          <div class="ab-license-row__actions">
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--primary"
+              :disabled="core.busy || !core.key.trim()" @click="verify(core)">
+              <span v-if="core.busy">Verifying…</span>
+              <span v-else>Verify</span>
+            </button>
+            <button v-if="core.status === 'active'" type="button" class="ab-btn ab-btn--sm ab-btn--ghost ms-1"
+              :disabled="core.busy" @click="deactivate(core)">Release</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- ───── Integration plugins (only if registered) ───── -->
-    <section v-if="!loadError && integrations.length" class="ab-license-section" style="margin-top: 32px;">
-      <h3 class="ab-section-title">Integration plugins</h3>
-      <p class="small text-muted" style="margin-top: -4px;">
-        Each installed integration (Multilang, YOOtheme, …) is sold separately and has its own license key.
-      </p>
-      <table class="ab-table">
-        <thead>
-          <tr>
-            <th>Integration</th>
-            <th>License key</th>
-            <th>Status</th>
-            <th>Expires</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in integrations" :key="row.sku">
-            <td>
-              <strong>{{ row.label }}</strong>
-              <div class="small text-muted">{{ row.sku }}</div>
-            </td>
-            <td>
-              <input
-                type="text"
-                class="ab-input ab-input--mono"
-                v-model="row.key"
-                placeholder="Paste your license key"
-                :disabled="row.busy"
-                style="min-width: 240px;"
-              />
-            </td>
-            <td>
-              <span class="ab-badge" :class="badgeClass(row.status)">
-                {{ statusLabel(row.status) }}
-              </span>
-              <div v-if="row.message" class="small text-muted">{{ row.message }}</div>
-            </td>
-            <td>
-              <span v-if="row.expires_at" class="small">{{ formatDate(row.expires_at) }}</span>
-              <span v-else class="small text-muted">—</span>
-            </td>
-            <td>
-              <button
-                type="button"
-                class="ab-btn ab-btn--sm ab-btn--primary"
-                :disabled="row.busy || !row.key.trim()"
-                @click="verify(row)"
-              >
-                <span v-if="row.busy">Verifying…</span>
-                <span v-else>Verify</span>
-              </button>
-              <button
-                v-if="row.status === 'active'"
-                type="button"
-                class="ab-btn ab-btn--sm ab-btn--ghost"
-                :disabled="row.busy"
-                @click="deactivate(row)"
-                style="margin-left: 6px;"
-              >
-                Release
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+    <!-- Integration plugins -->
+    <div v-if="!loadError && integrations.length" class="ab-section">
+      <div class="ab-section__head">Integration plugins</div>
+      <div class="ab-section__body">
+        <p class="ab-help mb-3">Each installed integration (Multilang, YOOtheme, …) is sold separately and has its own license key.</p>
+        <div v-for="row in integrations" :key="row.sku" class="ab-license-row">
+          <div class="ab-license-row__product">
+            <strong>{{ row.label }}</strong>
+            <div class="ab-help">{{ row.sku }}</div>
+          </div>
+          <div class="ab-license-row__key">
+            <input type="text" class="ab-input ab-input--mono"
+              v-model="row.key" placeholder="Paste your license key" :disabled="row.busy" />
+          </div>
+          <div class="ab-license-row__status">
+            <span class="ab-badge" :class="badgeClass(row.status)">{{ statusLabel(row.status) }}</span>
+            <div v-if="row.message" class="ab-help">{{ row.message }}</div>
+          </div>
+          <div class="ab-license-row__expiry">
+            <span v-if="row.expires_at" class="small">{{ formatDate(row.expires_at) }}</span>
+            <span v-else class="ab-help">—</span>
+          </div>
+          <div class="ab-license-row__actions">
+            <button type="button" class="ab-btn ab-btn--sm ab-btn--primary"
+              :disabled="row.busy || !row.key.trim()" @click="verify(row)">
+              <span v-if="row.busy">Verifying…</span>
+              <span v-else>Verify</span>
+            </button>
+            <button v-if="row.status === 'active'" type="button" class="ab-btn ab-btn--sm ab-btn--ghost ms-1"
+              :disabled="row.busy" @click="deactivate(row)">Release</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- ───── Heartbeat status ───── -->
-    <div class="ab-alert" :class="heartbeatAlertClass" style="margin-top: 24px;">
-      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 240px;">
+    <!-- Heartbeat status -->
+    <div class="ab-alert" :class="heartbeatAlertClass">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="flex-grow-1">
           <template v-if="heartbeat.last_checked_at">
             <strong>Last verified:</strong> {{ formatRelative(heartbeat.last_checked_at) }}
             <span v-if="heartbeat.last_verdict === 'domain_mismatch' || heartbeat.domain_collision">
@@ -168,14 +101,12 @@
             <span v-else-if="heartbeat.status === 'expired' || (heartbeat.last_verdict && heartbeat.last_verdict !== 'ok')">
               — <strong>License lapsed.</strong> Installed features keep working; renewing restores updates &amp; support.
             </span>
-            <span v-else class="small text-muted" style="margin-left: 6px;">
+            <span v-else class="ab-help ms-1">
               (next automatic check
               <template v-if="typeof heartbeat.days_until_next_check === 'number' && heartbeat.days_until_next_check > 0">
                 in {{ heartbeat.days_until_next_check }} day(s)
               </template>
-              <template v-else>
-                due now
-              </template>)
+              <template v-else>due now</template>)
             </span>
           </template>
           <template v-else>
@@ -183,77 +114,53 @@
             Click "Verify now" to run the first phone-home and bind this license to this site.
           </template>
         </div>
-        <button
-          type="button"
-          class="ab-btn ab-btn--sm ab-btn--ghost"
-          :disabled="heartbeatBusy"
-          @click="runHeartbeatNow"
-        >
+        <button type="button" class="ab-btn ab-btn--sm ab-btn--ghost"
+          :disabled="heartbeatBusy" @click="runHeartbeatNow">
           <span v-if="heartbeatBusy">Verifying…</span>
           <span v-else>Verify now</span>
         </button>
       </div>
     </div>
 
-    <!-- ───── How updates work ───── -->
-    <section class="ab-license-section" style="margin-top: 32px;">
-      <h3 class="ab-section-title">How updates work</h3>
-      <ul class="small text-muted" style="margin: 0; padding-left: 18px;">
-        <li>
-          <strong>Free package:</strong> when a new version is published, Joomla's native
-          update notice appears in System&nbsp;&rarr;&nbsp;Update&nbsp;&rarr;&nbsp;Extensions.
-        </li>
-        <li>
-          <strong>Pro package:</strong> new versions are delivered through the Lemon Squeezy
-          "My Orders" portal, and you receive an e-mail notification for each release.
-          Download the new ZIP and install it in Joomla's Extension manager
-          (System&nbsp;&rarr;&nbsp;Install&nbsp;&rarr;&nbsp;Extensions) — your settings and
-          license are preserved on update.
-        </li>
-        <li>
-          <strong>After expiry:</strong> installed features keep working. An expired license
-          only pauses access to new updates and support until you renew.
-        </li>
-      </ul>
-    </section>
-
-    <div class="ab-footer-note">
-      <p class="small text-muted">
-        Don't have a license yet? Get one from
-        <a href="https://aiboostnow.com/pricing" target="_blank" rel="noopener">aiboostnow.com/pricing</a>.
-        A license includes one year of updates and support for AI Boost. Integration plugins are sold separately.
-      </p>
+    <!-- How updates work -->
+    <div class="ab-section">
+      <div class="ab-section__head">How updates work</div>
+      <div class="ab-section__body">
+        <ul class="ab-help mb-0 ps-3">
+          <li><strong>Free package:</strong> when a new version is published, Joomla's native update notice appears in System → Update → Extensions.</li>
+          <li><strong>Pro package:</strong> new versions are delivered through the Lemon Squeezy "My Orders" portal and you receive an e-mail for each release. Download the new ZIP and install via System → Install → Extensions — settings and license are preserved.</li>
+          <li><strong>After expiry:</strong> installed features keep working. An expired license only pauses access to new updates and support until you renew.</li>
+        </ul>
+        <p class="ab-help mt-3 mb-0">
+          Don't have a license yet? Get one from
+          <a href="https://aiboostnow.com/pricing" target="_blank" rel="noopener">aiboostnow.com/pricing</a>.
+        </p>
+      </div>
     </div>
+
   </div>
 </template>
 
 <script>
 import { ref, computed, onMounted } from 'vue'
+import PageHeader from './components/PageHeader.vue'
 
 const CORE_SKU = 'bundle'
 const CORE_LABEL = 'AI Boost'
 
-// Fallback labels if the server omits one; licenseStateGet normally supplies them.
 const INTEGRATION_LABELS = {
   int_falang: 'AI Boost for Multilang',
   int_yootheme: 'AI Boost for YOOtheme',
 }
 
 function emptyCore() {
-  return {
-    sku: CORE_SKU,
-    label: CORE_LABEL,
-    key: '',
-    status: 'not_licensed',
-    message: '',
-    expires_at: null,
-    activations_remaining: null,
-    busy: false,
-  }
+  return { sku: CORE_SKU, label: CORE_LABEL, key: '', status: 'not_licensed', message: '', expires_at: null, activations_remaining: null, busy: false }
 }
 
 export default {
   name: 'LicensesPage',
+
+  components: { PageHeader },
 
   setup() {
     const core = ref(emptyCore())
@@ -263,11 +170,9 @@ export default {
     const boot = window.aiBoostBootstrap || {}
     const heartbeat = ref(boot.licenseHeartbeat || {})
     const heartbeatBusy = ref(false)
-    // Task #565 — perpetual activation status (set once, never cleared).
     const proActivated = ref(!!(boot.license && boot.license.proActivated))
     const proActivatedAt = ref((boot.license && boot.license.proActivatedAt) || null)
-    const ajaxBase = boot.ajaxBase
-      || 'index.php?option=com_aiboost'
+    const ajaxBase = boot.ajaxBase || 'index.php?option=com_aiboost'
     const token = boot.csrfToken || boot.tokenName || ''
 
     function applyStateToRow(target, s) {
@@ -284,35 +189,15 @@ export default {
         const url = `${ajaxBase}&task=settings.licenseStateGet&format=json&${token}=1`
         const res = await fetch(url, { credentials: 'same-origin' })
         const data = await res.json()
-        if (!data || data.success !== true) {
-          loadError.value = (data && data.message) || 'Could not load license states.'
-          return
-        }
+        if (!data || data.success !== true) { loadError.value = (data && data.message) || 'Could not load license states.'; return }
         const states = data.states || {}
-        // Core
         const next = emptyCore()
         if (states[CORE_SKU]) applyStateToRow(next, states[CORE_SKU])
         core.value = next
 
-        // Integration rows, merged by SKU from two sources:
-        //  1) installed sellable integrations reported by the server, so a row
-        //     appears for entering the key BEFORE any verification; and
-        //  2) any stored license_state for a non-core SKU, so an already-licensed
-        //     integration still shows even if dependency detection misses it.
-        // Legacy per-feature SKUs (schema/og/hreflang/code/aeo) are part of the
-        // single Pro license and must never appear as separate rows.
         const LEGACY_CORE = new Set([CORE_SKU, 'schema', 'og', 'hreflang', 'code', 'aeo'])
         const rows = new Map()
-        const emptyRow = (sku, label) => ({
-          sku,
-          label: label || INTEGRATION_LABELS[sku] || sku,
-          key: '',
-          status: 'not_licensed',
-          message: '',
-          expires_at: null,
-          activations_remaining: null,
-          busy: false,
-        })
+        const emptyRow = (sku, label) => ({ sku, label: label || INTEGRATION_LABELS[sku] || sku, key: '', status: 'not_licensed', message: '', expires_at: null, activations_remaining: null, busy: false })
         for (const it of (data.integrations || [])) {
           if (!it || !it.sku || LEGACY_CORE.has(it.sku)) continue
           rows.set(it.sku, emptyRow(it.sku, it.label))
@@ -325,45 +210,28 @@ export default {
           rows.set(sku, row)
         }
         integrations.value = Array.from(rows.values())
-      } catch (e) {
-        loadError.value = String(e)
-      }
+      } catch (e) { loadError.value = String(e) }
     }
 
     async function verify(row) {
-      row.busy = true
-      row.message = ''
+      row.busy = true; row.message = ''
       try {
         const formData = new FormData()
         formData.append('sku', row.sku)
         formData.append('license_key', row.key.trim())
         formData.append(token, '1')
         const url = `${ajaxBase}&task=settings.verifyLicense&format=json`
-        const res = await fetch(url, {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin',
-        })
+        const res = await fetch(url, { method: 'POST', body: formData, credentials: 'same-origin' })
         const data = await res.json()
-        if (!data || data.success !== true) {
-          row.status = 'invalid'
-          row.message = (data && data.message) || 'Verify failed.'
-          return
-        }
+        if (!data || data.success !== true) { row.status = 'invalid'; row.message = (data && data.message) || 'Verify failed.'; return }
         const s = data.state || {}
         row.status = s.status || 'invalid'
         row.message = s.message || ''
         row.expires_at = s.expires_at || null
         row.activations_remaining = typeof s.activations_remaining === 'number' ? s.activations_remaining : null
-        // Reload after verification so the updated license and heartbeat state
-        // is reflected everywhere without the user having to refresh manually.
         setTimeout(() => { window.location.reload() }, 600)
-      } catch (e) {
-        row.status = 'invalid'
-        row.message = String(e)
-      } finally {
-        row.busy = false
-      }
+      } catch (e) { row.status = 'invalid'; row.message = String(e) }
+      finally { row.busy = false }
     }
 
     async function deactivate(row) {
@@ -374,27 +242,14 @@ export default {
         formData.append('sku', row.sku)
         formData.append(token, '1')
         const url = `${ajaxBase}&task=settings.deactivateLicense&format=json`
-        const res = await fetch(url, {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin',
-        })
+        const res = await fetch(url, { method: 'POST', body: formData, credentials: 'same-origin' })
         const data = await res.json()
         if (data && data.success) {
-          row.status = 'deactivated'
-          row.message = data.message || 'License released.'
-          row.expires_at = null
-          // Reload after release so license and heartbeat state refreshes
-          // without requiring a manual page refresh.
+          row.status = 'deactivated'; row.message = data.message || 'License released.'; row.expires_at = null
           setTimeout(() => { window.location.reload() }, 600)
-        } else {
-          row.message = (data && data.message) || 'Deactivate failed.'
-        }
-      } catch (e) {
-        row.message = String(e)
-      } finally {
-        row.busy = false
-      }
+        } else { row.message = (data && data.message) || 'Deactivate failed.' }
+      } catch (e) { row.message = String(e) }
+      finally { row.busy = false }
     }
 
     function badgeClass(status) {
@@ -418,8 +273,7 @@ export default {
       }
     }
     function formatDate(iso) {
-      try { return new Date(iso).toLocaleDateString() }
-      catch { return iso }
+      try { return new Date(iso).toLocaleDateString() } catch { return iso }
     }
 
     onMounted(loadStates)
@@ -437,8 +291,6 @@ export default {
 
     const heartbeatAlertClass = computed(() => {
       const v = heartbeat.value.last_verdict
-      // Task #565 — Pro is never relocked, so a lapsed licence is at most a
-      // (warning) renewal nudge, never a danger. Domain collision stays danger.
       if (v === 'domain_mismatch' || heartbeat.value.domain_collision) return 'ab-alert--danger'
       if (v && v !== 'ok') return 'ab-alert--warning'
       return 'ab-alert--info'
@@ -452,14 +304,9 @@ export default {
         const url = `${ajaxBase}&task=settings.heartbeatRun&format=json`
         const res = await fetch(url, { method: 'POST', body: formData, credentials: 'same-origin' })
         const data = await res.json()
-        if (data && data.success && data.heartbeat) {
-          heartbeat.value = data.heartbeat
-        }
-      } catch (e) {
-        // Non-fatal — alert stays on previous state.
-      } finally {
-        heartbeatBusy.value = false
-      }
+        if (data && data.success && data.heartbeat) heartbeat.value = data.heartbeat
+      } catch (_e) { /* non-fatal */ }
+      finally { heartbeatBusy.value = false }
     }
 
     return {
@@ -473,31 +320,22 @@ export default {
 </script>
 
 <style scoped>
-.ab-licenses-page { padding: 16px 0; }
-.ab-page-header { margin-bottom: 20px; }
-.ab-page-header h2 { margin: 0 0 8px; }
-.ab-license-section { margin-top: 8px; }
-.ab-section-title { margin: 0 0 8px; font-size: 16px; font-weight: 600; }
-.ab-table { width: 100%; border-collapse: collapse; }
-.ab-table th, .ab-table td {
-  padding: 12px 8px;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
-  text-align: left;
-  vertical-align: top;
+.ab-licenses-page { }
+
+/* Responsive license row */
+.ab-license-row {
+  display: grid;
+  grid-template-columns: 1fr 280px 130px 100px auto;
+  gap: var(--ab-space-3);
+  align-items: start;
+  padding: var(--ab-space-3) 0;
+  border-bottom: 1px solid var(--ab-border);
 }
-.ab-table th { font-weight: 600; }
-.ab-input--mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
-.ab-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
+.ab-license-row:last-child { border-bottom: 0; }
+.ab-input--mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .82rem; }
+
+@media (max-width: 900px) {
+  .ab-license-row { grid-template-columns: 1fr 1fr; }
+  .ab-license-row__product { grid-column: 1 / -1; }
 }
-.ab-badge--success { background: #dcfce7; color: #15803d; }
-.ab-badge--warning { background: #fef3c7; color: #92400e; }
-.ab-badge--danger  { background: #fee2e2; color: #991b1b; }
-.ab-badge--muted   { background: #e5e7eb; color: #4b5563; }
-.ab-footer-note { margin-top: 24px; }
-code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
 </style>

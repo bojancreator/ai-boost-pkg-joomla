@@ -76,17 +76,28 @@ class JoomlaAppContext implements AppContextInterface
     public function isHomepage(): bool
     {
         try {
-            $app   = Factory::getApplication();
-            $input = $app->getInput();
-            $path  = ltrim(Uri::getInstance()->getPath(), '/');
+            $app = Factory::getApplication();
 
-            if ($path === '' || $path === 'index.php') {
-                return true;
+            // Authoritative signal: the ACTIVE menu item flagged as the site/
+            // language home (`#__menu.home = 1`). This is the reliable Joomla way
+            // — each (language) home is explicitly flagged, so it is correct on
+            // SEF-off sites and on content pages of a site whose home is a
+            // Featured / Single-Article menu item. The old path/featured heuristic
+            // mis-fired site-wide (Uri::getPath()==='index.php' on non-SEF routes;
+            // view=featured matches any blog page), emitting homepage-only schema
+            // (WebSite/SearchAction) on every page.
+            $menu = $app->getMenu();
+            if ($menu !== null) {
+                $active = $menu->getActive();
+                if ($active !== null) {
+                    return (int) ($active->home ?? 0) === 1;
+                }
             }
-            if ($input->get('option') === 'com_content' && $input->get('view') === 'featured') {
-                return true;
-            }
-            return false;
+
+            // Fallback ONLY when there is no active menu item (e.g. a component
+            // route with no menu match): treat the bare site root as home.
+            $path = ltrim(Uri::getInstance()->getPath(), '/');
+            return $path === '' || $path === 'index.php';
         } catch (\Throwable $e) {
             return false;
         }

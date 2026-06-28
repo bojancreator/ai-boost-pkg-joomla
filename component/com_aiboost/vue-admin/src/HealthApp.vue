@@ -1,20 +1,24 @@
 <template>
   <div class="ab-vue-health">
 
+    <PageHeader title="Health">
+      <span v-if="actionMsg"
+            :class="['ab-hint', actionMsgType === 'error' ? 'ab-text-danger'
+                              : actionMsgType === 'success' ? 'ab-text-success' : '']">
+        {{ actionMsg }}
+      </span>
+      <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" :disabled="rerunning" @click="rerun">
+        {{ rerunning ? 'Running…' : 'Re-run checks' }}
+      </button>
+      <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="copyReport">Copy report</button>
+    </PageHeader>
+
     <!-- Progress bar — animates during Re-run -->
     <div v-if="rerunning" class="ab-hc-progress-wrap">
       <div class="ab-hc-progress-bar" :style="{ width: progress + '%' }"></div>
     </div>
 
-    <!-- Two-column layout: left sidebar + main content -->
-    <div class="ab-ha-layout">
-
-      <!-- Left sidebar removed (v0.12.12) — Health tab opens only Health overview;
-           URL Checker / Analyzers / JSON-LD Validator / AI Visibility are reachable
-           from the horizontal top nav and Quick Actions. -->
-
-      <!-- ── Main content area ── -->
-      <div class="ab-ha-main">
+    <div class="ab-page ab-ha-main">
 
         <!-- ════════════════════════════════════════════════
              HEALTH OVERVIEW
@@ -22,63 +26,39 @@
         <template v-if="currentSection === 'health'">
 
           <!-- Score header card -->
-          <div class="ab-card mb-4">
-            <div class="ab-card__body">
-              <div class="d-flex align-items-center gap-4 flex-wrap">
+          <div class="ab-section">
+            <div class="ab-section__body ab-row" style="gap:1.5rem;align-items:center;flex-wrap:wrap">
 
-                <!-- Score circle with SVG stroke-fill animation.
-                     Tooltip on the wrap explains the scoring formula —
-                     mirrors the doc comment on HealthCheckService::calculateScore(). -->
-                <div :class="['ab-hc-score-wrap flex-shrink-0', enterClass]"
-                     :title="scoreTooltip"
-                     :aria-label="scoreTooltip">
-                  <svg class="ab-hc-score-svg" width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
-                    <circle cx="48" cy="48" r="44" fill="none" stroke-width="5" class="ab-hc-score-track"/>
-                    <circle cx="48" cy="48" r="44" fill="none" stroke-width="5"
-                      stroke-dasharray="276.46"
-                      stroke-dashoffset="276.46"
-                      stroke-linecap="round"
-                      transform="rotate(-90 48 48)"
-                      class="ab-hc-score-arc"
-                      :class="scoreClass"
-                      :style="{ '--ab-score-target': (276.46 * (1 - score / 100)).toFixed(2) + 'px' }"/>
-                  </svg>
-                  <div class="ab-hc-score-num-overlay">
-                    <span :class="['ab-hc-score-num', scoreClass]">{{ displayScore }}</span>
-                  </div>
+              <!-- Score circle with SVG stroke-fill animation. -->
+              <div :class="['ab-hc-score-wrap', enterClass]"
+                   :title="scoreTooltip"
+                   :aria-label="scoreTooltip">
+                <svg class="ab-hc-score-svg" width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+                  <circle cx="48" cy="48" r="44" fill="none" stroke-width="5" class="ab-hc-score-track"/>
+                  <circle cx="48" cy="48" r="44" fill="none" stroke-width="5"
+                    stroke-dasharray="276.46"
+                    stroke-dashoffset="276.46"
+                    stroke-linecap="round"
+                    transform="rotate(-90 48 48)"
+                    class="ab-hc-score-arc"
+                    :class="scoreClass"
+                    :style="{ '--ab-score-target': (276.46 * (1 - score / 100)).toFixed(2) + 'px' }"/>
+                </svg>
+                <div class="ab-hc-score-num-overlay">
+                  <span :class="['ab-hc-score-num', scoreClass]">{{ displayScore }}</span>
+                  <span class="ab-hc-score-label">{{ scoreLabel }}</span>
                 </div>
+              </div>
 
-                <!-- Label + actions -->
-                <div class="flex-grow-1">
-                  <h2 class="fs-4 fw-bold mb-1">
-                    {{ scoreLabel }}
-                    <span class="icon-info-circle ab-hc-score-help"
-                          role="img"
-                          tabindex="0"
-                          :title="scoreTooltip"
-                          :aria-label="scoreTooltip"></span>
-                  </h2>
-                  <p class="text-muted mb-2" style="font-size:.875rem">{{ scoreSummary }}</p>
-                  <div class="d-flex gap-2 flex-wrap align-items-center">
-                    <button type="button" class="ab-btn ab-btn--primary ab-btn--sm"
-                            :disabled="rerunning" @click="rerun">
-                      <span :class="['icon-refresh me-1', rerunning ? 'ab-spin' : '']" aria-hidden="true"></span>
-                      {{ rerunning ? 'Running…' : 'Re-run Checks' }}
-                    </button>
-                    <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="copyReport">
-                      <span class="icon-copy me-1" aria-hidden="true"></span> Copy Report
-                    </button>
-                    <span v-if="actionMsg"
-                          :class="['ms-2 small', actionMsgType === 'error' ? 'text-danger'
-                                                : actionMsgType === 'success' ? 'text-success'
-                                                : 'text-muted']">
-                      {{ actionMsg }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Stats pills -->
-                <div class="d-flex flex-column gap-2 flex-shrink-0 text-end">
+              <!-- Label + stat pills -->
+              <div style="flex:1;min-width:220px">
+                <h3 class="ab-h" style="margin-bottom:.35rem">
+                  {{ scoreLabel }}
+                  <AbIcon name="info" class="ab-hc-score-help" tabindex="0"
+                          :title="scoreTooltip" :aria-label="scoreTooltip" />
+                </h3>
+                <p class="ab-hint" style="margin:0 0 .65rem">{{ scoreSummary }}</p>
+                <div class="ab-stat-pills">
                   <span :class="['ab-badge', critFails > 0 ? 'ab-badge--danger' : 'ab-badge--success']">
                     Critical: {{ critOk }}/{{ critTotal }} OK
                   </span>
@@ -89,125 +69,94 @@
                     Conflicts: {{ conflictFails }}
                   </span>
                 </div>
-
               </div>
+
             </div>
           </div>
 
-          <!-- Quick Actions card — uses AI Boost Design System (.ab-*) for full
-               dark/light parity across Atum, YooTheme, and custom admin templates -->
-          <div class="ab-card mb-4">
-            <div class="ab-card__header">
-              <span class="icon-flash" aria-hidden="true"></span>Quick Actions
-            </div>
-            <div class="ab-card__body" style="padding:.75rem 1rem">
-              <div class="ab-cluster">
-                <a :href="raw.urls && raw.urls.settings ? raw.urls.settings : '#'"
-                   class="ab-btn ab-btn--ghost ab-btn--sm">
-                  <span class="icon-cog" aria-hidden="true"></span>Settings
-                </a>
-                <a :href="raw.urls && raw.urls.import ? raw.urls.import : '#'"
-                   class="ab-btn ab-btn--ghost ab-btn--sm">
-                  <span class="icon-upload" aria-hidden="true"></span>Import
-                </a>
-                <a :href="raw.urls && raw.urls.redirects ? raw.urls.redirects : '#'"
-                   class="ab-btn ab-btn--ghost ab-btn--sm">
-                  <span class="icon-arrow-right" aria-hidden="true"></span>Redirects
-                </a>
-                <a :href="raw.urls && raw.urls.analyzer ? raw.urls.analyzer : '#'"
-                   class="ab-btn ab-btn--subtle ab-btn--sm">
-                  <span class="icon-search" aria-hidden="true"></span>Analyzers
-                </a>
-                <a :href="raw.urls && raw.urls.urlchecker ? raw.urls.urlchecker : '#'"
-                   class="ab-btn ab-btn--subtle ab-btn--sm">
-                  <span class="icon-link" aria-hidden="true"></span>URL Checker
-                </a>
-                <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm"
-                  @click="selectSection('jsonld')">
-                  <span class="icon-code" aria-hidden="true"></span>JSON-LD Validator
-                </button>
-                <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm"
-                  @click="selectSection('aivisibility')">
-                  <span class="icon-lightning" aria-hidden="true"></span>AI Visibility
-                </button>
-                <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm"
-                        @click="selectSection('errors')">
-                  <span class="icon-warning" aria-hidden="true"></span>Error Log
-                </button>
-              </div>
+          <!-- Quick Actions card -->
+          <div class="ab-section">
+            <div class="ab-section__head">Quick actions</div>
+            <div class="ab-section__body ab-row" style="flex-wrap:wrap">
+              <!-- Internal SPA navigation (router-link) — keeps the sidebar/shell
+                   and never drops to the legacy standalone PHP views. -->
+              <router-link to="/settings" class="ab-btn ab-btn--ghost ab-btn--sm">Settings</router-link>
+              <router-link to="/import" class="ab-btn ab-btn--ghost ab-btn--sm">Import</router-link>
+              <router-link to="/redirects" class="ab-btn ab-btn--ghost ab-btn--sm">Redirects</router-link>
+              <router-link to="/analyzers" class="ab-btn ab-btn--subtle ab-btn--sm">Analyzers</router-link>
+              <router-link to="/urlchecker" class="ab-btn ab-btn--subtle ab-btn--sm">URL Checker</router-link>
+              <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="selectSection('jsonld')">JSON-LD Validator</button>
+              <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="selectSection('aivisibility')">AI Visibility</button>
+              <button type="button" class="ab-btn ab-btn--ghost ab-btn--sm" @click="selectSection('errors')">Error Log</button>
             </div>
           </div>
 
           <!-- Category cards (health checks) -->
           <template v-for="cat in categoryOrder" :key="cat">
-            <div v-if="catChecks(cat).length" class="ab-card mb-3">
+            <div v-if="catChecks(cat).length" class="ab-section">
 
-              <div class="ab-card__header"
-                   style="cursor:pointer" @click="toggleCat(cat)">
-                <span :class="[categoryIcons[cat]]" style="color:var(--ab-text-muted)" aria-hidden="true"></span>
-                <strong>{{ cat }}</strong>
-                <span :class="['ab-badge', catFails(cat) > 0 ? 'ab-badge--danger' : 'ab-badge--success']">
-                  {{ catFails(cat) > 0
-                     ? catFails(cat) + ' issue' + (catFails(cat) > 1 ? 's' : '')
-                     : 'All OK' }}
-                </span>
-                <span class="ms-auto icon-chevron-down ab-hc-chevron"
+              <div class="ab-section__head"
+                   style="cursor:pointer;justify-content:flex-start;gap:.5rem" @click="toggleCat(cat)">
+                <span>{{ cat }}</span>
+                <span :class="['ab-badge', catBadgeClass(cat)]">{{ catBadgeLabel(cat) }}</span>
+                <span class="ab-hc-chevron" style="margin-left:auto"
                       :style="{ transform: collapsed[cat] ? 'rotate(-90deg)' : '' }"
-                      aria-hidden="true"></span>
+                      aria-hidden="true">▾</span>
               </div>
 
-              <div class="ab-card__body" style="padding:0" v-show="!collapsed[cat]">
-                <div class="ab-hc-check-list">
-                  <div v-for="check in catChecks(cat)" :key="check.id"
-                       :class="['ab-hc-row', rowClass(check)]">
+              <div class="ab-section__body" style="padding:0 1rem" v-show="!collapsed[cat]">
+                <div v-for="check in catChecks(cat)" :key="check.id"
+                     class="ab-healthrow"
+                     :class="{ 'ab-healthrow--dismissed': check.dismissed }">
 
-                    <span :class="[rowIcon(check), 'ab-hc-row-icon flex-shrink-0']"
-                          aria-hidden="true"></span>
+                  <AbIcon :name="rowIconName(check)" class="ab-healthrow__icon"
+                          :style="{ color: rowIconColor(check) }" />
 
-                    <div class="ab-hc-row-body flex-grow-1">
-                      <div class="ab-hc-row-label">
-                        {{ check.label }}
-                        <span v-if="check.status !== 'info'"
-                              :class="['ab-badge',
-                                       check.status === 'critical' ? 'ab-badge--danger' : 'ab-badge--warning']"
-                              style="font-size:.65rem;vertical-align:middle">
-                          {{ check.status }}
-                        </span>
-                      </div>
-                      <div class="ab-hc-row-msg">{{ check.message }}</div>
-                      <!-- Contributing fields checklist (composite checks only) -->
-                      <ul v-if="check.contributing_fields && check.contributing_fields.length"
-                          class="ab-hc-contrib-list">
-                        <li v-for="field in check.contributing_fields" :key="field.url"
-                            :class="['ab-hc-contrib-item', field.pass ? 'ab-hc-contrib--pass' : 'ab-hc-contrib--fail']">
-                          <span :class="field.pass ? 'icon-checkmark-circle' : 'icon-warning'"
-                                aria-hidden="true"></span>
-                          <a :href="field.url" class="ab-hc-contrib-link">{{ field.label }}</a>
-                        </li>
-                      </ul>
+                  <div class="ab-healthrow__body">
+                    <div class="ab-healthrow__title">
+                      {{ check.label }}
+                      <!-- Severity badge belongs only on a FAILING check; a passing
+                           critical-severity check is "OK", so showing red CRITICAL
+                           next to it (under an "All OK" category) is misleading. -->
+                      <span v-if="!check.pass && !check.dismissed && check.status !== 'info'"
+                            :class="['ab-badge',
+                                     check.status === 'critical' ? 'ab-badge--danger' : 'ab-badge--warning']">
+                        {{ check.status }}
+                      </span>
                     </div>
-
-                    <div class="ab-hc-row-actions flex-shrink-0 d-flex align-items-center gap-2 flex-wrap">
-                      <template v-if="!check.pass && !check.dismissed && check.fix_actions && check.fix_actions.length">
-                        <a v-for="action in check.fix_actions" :key="action.url"
-                           :href="fixActionHref(action)"
-                           :target="fixActionHref(action).startsWith('http') ? '_blank' : '_self'"
-                           :rel="fixActionHref(action).startsWith('http') ? 'noopener noreferrer' : undefined"
-                           class="ab-btn ab-btn--subtle ab-btn--sm">{{ action.label }}</a>
-                      </template>
-                      <a v-else-if="!check.pass && !check.dismissed && check.fix_url"
-                         :href="check.fix_url"
-                         class="ab-btn ab-btn--subtle ab-btn--sm">Fix it</a>
-                      <button v-if="check.status !== 'info'"
-                              type="button"
-                              class="ab-btn ab-btn--ghost ab-btn--sm"
-                              :disabled="check.busy"
-                              @click="toggleDismiss(check)">
-                        {{ check.busy ? '…' : (check.dismissed ? 'Restore' : 'Dismiss') }}
-                      </button>
-                    </div>
-
+                    <p>{{ check.message }}</p>
+                    <!-- Contributing fields checklist (composite checks only) -->
+                    <ul v-if="check.contributing_fields && check.contributing_fields.length"
+                        class="ab-hc-contrib-list">
+                      <li v-for="field in check.contributing_fields" :key="field.url"
+                          class="ab-hc-contrib-item">
+                        <AbIcon :name="field.pass ? 'ok' : 'warn'"
+                                :style="{ color: field.pass ? 'var(--ab-success)' : 'var(--ab-warning)', fontSize: '.85rem' }" />
+                        <a :href="field.url" class="ab-hc-contrib-link">{{ field.label }}</a>
+                      </li>
+                    </ul>
                   </div>
+
+                  <div class="ab-healthrow__act">
+                    <template v-if="!check.pass && !check.dismissed && check.fix_actions && check.fix_actions.length">
+                      <a v-for="action in check.fix_actions" :key="action.url"
+                         :href="fixActionHref(action)"
+                         :target="fixActionHref(action).startsWith('http') ? '_blank' : '_self'"
+                         :rel="fixActionHref(action).startsWith('http') ? 'noopener noreferrer' : undefined"
+                         class="ab-btn ab-btn--subtle ab-btn--sm">{{ action.label }}</a>
+                    </template>
+                    <a v-else-if="!check.pass && !check.dismissed && check.fix_url"
+                       :href="check.fix_url"
+                       class="ab-btn ab-btn--subtle ab-btn--sm">Fix it</a>
+                    <button v-if="check.status !== 'info'"
+                            type="button"
+                            class="ab-btn ab-btn--ghost ab-btn--sm"
+                            :disabled="check.busy"
+                            @click="toggleDismiss(check)">
+                      {{ check.busy ? '…' : (check.dismissed ? 'Restore' : 'Dismiss') }}
+                    </button>
+                  </div>
+
                 </div>
               </div>
 
@@ -216,36 +165,25 @@
 
         </template>
 
-        <!-- ════════════════════════════════════════════════
-             JSON-LD VALIDATOR (placeholder)
-             ════════════════════════════════════════════════ -->
-        <div v-else-if="currentSection === 'jsonld'" class="ab-card">
-          <div class="ab-card__header">
-            <span class="icon-code" aria-hidden="true"></span><strong>JSON-LD Validator</strong>
-          </div>
-          <div class="ab-card__body" style="text-align:center;padding:3rem 1.5rem">
-            <span class="icon-code display-4 text-muted d-block mb-3" aria-hidden="true"></span>
-            <h4 class="mb-2">JSON-LD Validator</h4>
-            <p class="text-muted mb-4">Paste structured data JSON-LD markup and validate it against Schema.org specifications.<br>This feature is coming soon.</p>
+        <!-- JSON-LD VALIDATOR (placeholder) -->
+        <div v-else-if="currentSection === 'jsonld'" class="ab-section">
+          <div class="ab-section__head">JSON-LD Validator</div>
+          <div class="ab-section__body" style="text-align:center;padding:3rem 1.5rem">
+            <h4 class="ab-h" style="margin-bottom:.5rem">JSON-LD Validator</h4>
+            <p class="ab-hint" style="margin-bottom:1.25rem">Paste structured data JSON-LD markup and validate it against Schema.org specifications.<br>This feature is coming soon.</p>
             <a href="https://validator.schema.org" target="_blank" rel="noopener noreferrer"
-               class="ab-btn ab-btn--subtle">
-              <span class="icon-external-link me-1" aria-hidden="true"></span>Use Schema.org Validator (external)
-            </a>
+               class="ab-btn ab-btn--subtle">Use Schema.org Validator (external)</a>
           </div>
         </div>
 
-        <!-- ════════════════════════════════════════════════
-             AI VISIBILITY
-             ════════════════════════════════════════════════ -->
-        <div v-else-if="currentSection === 'aivisibility'">
-          <div class="ab-card mb-3">
-            <div class="ab-card__header">
-              <span class="icon-lightning" aria-hidden="true"></span><strong>AI Visibility Score</strong>
-            </div>
-            <div class="ab-card__body">
-              <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="ab-hc-score-wrap flex-shrink-0">
-                  <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+        <!-- AI VISIBILITY -->
+        <div v-else-if="currentSection === 'aivisibility'" class="ab-stack">
+          <div class="ab-section">
+            <div class="ab-section__head">AI Visibility Score</div>
+            <div class="ab-section__body">
+              <div class="ab-row" style="gap:1.25rem;align-items:center;flex-wrap:wrap">
+                <div class="ab-hc-score-wrap">
+                  <svg class="ab-hc-score-svg" width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
                     <circle cx="48" cy="48" r="44" fill="none" stroke-width="5" class="ab-hc-score-track"/>
                     <circle cx="48" cy="48" r="44" fill="none" stroke-width="5"
                       stroke-dasharray="276.46"
@@ -253,70 +191,64 @@
                       stroke-linecap="round"
                       transform="rotate(-90 48 48)"
                       class="ab-hc-score-arc"
+                      :class="aiScoreClass"
                       :style="{ '--ab-score-target': aiScoreOffset + 'px' }"/>
                   </svg>
                   <div class="ab-hc-score-num-overlay">
                     <span :class="['ab-hc-score-num', aiScoreClass]">{{ aiScore }}</span>
                   </div>
                 </div>
-                <div>
-                  <h5 class="mb-1">{{ aiScoreLabel }}</h5>
-                  <p class="text-muted small mb-0">Based on AI Visibility / GEO signals: Schema.org, llms.txt, IndexNow, robots.txt, author markup</p>
+                <div style="flex:1;min-width:220px">
+                  <h3 class="ab-h" style="margin-bottom:.3rem">{{ aiScoreLabel }}</h3>
+                  <p class="ab-hint" style="margin:0">Based on AI Visibility / GEO signals: Schema.org, llms.txt, IndexNow, robots.txt, author markup</p>
                 </div>
               </div>
 
-              <div v-if="aeoChecks.length === 0" class="ab-alert ab-alert--info">
-                No AI Visibility checks found. Make sure the AI Visibility plugin is enabled and health checks have been run.
+              <div v-if="aeoChecks.length === 0" class="ab-alert ab-alert--info" style="margin-top:1rem">
+                <AbIcon name="info" class="ab-alert__icon" style="font-size:1.15rem" />
+                <div>No AI Visibility checks found. Make sure the AI Visibility plugin is enabled and health checks have been run.</div>
               </div>
             </div>
           </div>
 
           <!-- AI Visibility checks -->
-          <div v-if="aeoChecks.length" class="ab-card mb-3">
-            <div class="ab-card__header">
-              <strong>AI Visibility Checks ({{ aeoChecks.filter(c => c.pass || c.dismissed).length }}/{{ aeoChecks.length }} OK)</strong>
-            </div>
-            <div class="ab-card__body" style="padding:0">
-              <div class="ab-hc-check-list">
-                <div v-for="check in aeoChecks" :key="check.id"
-                     :class="['ab-hc-row', rowClass(check)]">
-                  <span :class="[rowIcon(check), 'ab-hc-row-icon flex-shrink-0']" aria-hidden="true"></span>
-                  <div class="ab-hc-row-body flex-grow-1">
-                    <div class="ab-hc-row-label">{{ check.label }}</div>
-                    <div class="ab-hc-row-msg">{{ check.message }}</div>
-                  </div>
-                  <div class="ab-hc-row-actions flex-shrink-0">
-                    <a v-if="!check.pass && !check.dismissed && check.fix_url"
-                       :href="check.fix_url" class="ab-btn ab-btn--subtle ab-btn--sm">Fix it</a>
-                    <button v-if="check.status !== 'info'" type="button"
-                            class="ab-btn ab-btn--ghost ab-btn--sm"
-                            :disabled="check.busy" @click="toggleDismiss(check)">
-                      {{ check.busy ? '…' : (check.dismissed ? 'Restore' : 'Dismiss') }}
-                    </button>
-                  </div>
+          <div v-if="aeoChecks.length" class="ab-section">
+            <div class="ab-section__head">AI Visibility Checks ({{ aeoChecks.filter(c => c.pass || c.dismissed).length }}/{{ aeoChecks.length }} OK)</div>
+            <div class="ab-section__body" style="padding:0 1rem">
+              <div v-for="check in aeoChecks" :key="check.id"
+                   class="ab-healthrow" :class="{ 'ab-healthrow--dismissed': check.dismissed }">
+                <AbIcon :name="rowIconName(check)" class="ab-healthrow__icon" :style="{ color: rowIconColor(check) }" />
+                <div class="ab-healthrow__body">
+                  <div class="ab-healthrow__title">{{ check.label }}</div>
+                  <p>{{ check.message }}</p>
+                </div>
+                <div class="ab-healthrow__act">
+                  <a v-if="!check.pass && !check.dismissed && check.fix_url"
+                     :href="check.fix_url" class="ab-btn ab-btn--subtle ab-btn--sm">Fix it</a>
+                  <button v-if="check.status !== 'info'" type="button"
+                          class="ab-btn ab-btn--ghost ab-btn--sm"
+                          :disabled="check.busy" @click="toggleDismiss(check)">
+                    {{ check.busy ? '…' : (check.dismissed ? 'Restore' : 'Dismiss') }}
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Schema checks relevant to AI -->
-          <div v-if="schemaChecks.length" class="ab-card mb-3">
-            <div class="ab-card__header">
-              <strong>Schema.org (AI signals)</strong>
-            </div>
-            <div class="ab-card__body" style="padding:0">
-              <div class="ab-hc-check-list">
-                <div v-for="check in schemaChecks" :key="check.id"
-                     :class="['ab-hc-row', rowClass(check)]">
-                  <span :class="[rowIcon(check), 'ab-hc-row-icon flex-shrink-0']" aria-hidden="true"></span>
-                  <div class="ab-hc-row-body flex-grow-1">
-                    <div class="ab-hc-row-label">{{ check.label }}</div>
-                    <div class="ab-hc-row-msg">{{ check.message }}</div>
-                  </div>
-                  <div class="ab-hc-row-actions flex-shrink-0">
-                    <a v-if="!check.pass && !check.dismissed && check.fix_url"
-                       :href="check.fix_url" class="ab-btn ab-btn--subtle ab-btn--sm">Fix it</a>
-                  </div>
+          <div v-if="schemaChecks.length" class="ab-section">
+            <div class="ab-section__head">Schema.org (AI signals)</div>
+            <div class="ab-section__body" style="padding:0 1rem">
+              <div v-for="check in schemaChecks" :key="check.id"
+                   class="ab-healthrow" :class="{ 'ab-healthrow--dismissed': check.dismissed }">
+                <AbIcon :name="rowIconName(check)" class="ab-healthrow__icon" :style="{ color: rowIconColor(check) }" />
+                <div class="ab-healthrow__body">
+                  <div class="ab-healthrow__title">{{ check.label }}</div>
+                  <p>{{ check.message }}</p>
+                </div>
+                <div class="ab-healthrow__act">
+                  <a v-if="!check.pass && !check.dismissed && check.fix_url"
+                     :href="check.fix_url" class="ab-btn ab-btn--subtle ab-btn--sm">Fix it</a>
                 </div>
               </div>
             </div>
@@ -325,17 +257,15 @@
 
         <ErrorsPage v-else-if="currentSection === 'errors'" />
 
-      </div><!-- end main content -->
-    </div><!-- end layout -->
+        <!-- Footer -->
+        <p class="ab-hint" style="margin-top:1rem">
+          &copy; 2025
+          <a href="https://aiboostnow.com" target="_blank" rel="noopener">AI Boost</a>
+          &nbsp;&middot;&nbsp;
+          <a href="https://aiboostnow.com/docs" target="_blank" rel="noopener">Documentation</a>
+        </p>
 
-    <!-- Footer -->
-    <p class="text-muted small mt-3">
-      &copy; 2025
-      <a href="https://aiboostnow.com" target="_blank" rel="noopener">AI Boost</a>
-      &nbsp;&middot;&nbsp;
-      <a href="https://aiboostnow.com/docs" target="_blank" rel="noopener">Documentation</a>
-    </p>
-
+    </div><!-- end .ab-page -->
   </div>
 </template>
 
@@ -343,6 +273,7 @@
 import { reactive, computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ErrorsPage from './ErrorsPage.vue'
+import PageHeader from './components/PageHeader.vue'
 
 const CATEGORY_ORDER = ['General', 'Conflicts', 'Schema', 'Sitemap', 'Social', 'Analytics', 'AEO', 'Crawlers & Robots', 'Integrations', 'License']
 
@@ -375,7 +306,7 @@ const CATEGORY_ICONS = {
 
 export default {
   name: 'HealthApp',
-  components: { ErrorsPage },
+  components: { ErrorsPage, PageHeader },
 
   setup () {
     const raw   = window.aiBoostHealth || {}
@@ -524,6 +455,30 @@ export default {
     function catFails (cat) {
       return catChecks(cat).filter(c => !c.pass && !c.dismissed && c.status !== 'info').length
     }
+    // Severity-aware category badge. The colour and wording must track the WORST
+    // failing check in the category, not just "something failed":
+    //   • a failing critical → red "N critical"
+    //   • only failing warnings → amber "N warnings"
+    //   • nothing failing → green "All OK"
+    // Otherwise a category of mild warnings screams red while its rows show amber.
+    function catFailParts (cat) {
+      const fails = catChecks(cat).filter(c => !c.pass && !c.dismissed && c.status !== 'info')
+      const crit  = fails.filter(c => c.status === 'critical').length
+      return { crit, warn: fails.length - crit, total: fails.length }
+    }
+    function catBadgeClass (cat) {
+      const { crit, total } = catFailParts(cat)
+      if (total === 0) return 'ab-badge--success'
+      return crit > 0 ? 'ab-badge--danger' : 'ab-badge--warning'
+    }
+    function catBadgeLabel (cat) {
+      const { crit, warn, total } = catFailParts(cat)
+      if (total === 0) return 'All OK'
+      const parts = []
+      if (crit) parts.push(crit + ' critical')
+      if (warn) parts.push(warn + ' warning' + (warn > 1 ? 's' : ''))
+      return parts.join(', ')
+    }
     function toggleCat (cat) {
       collapsed[cat] = !collapsed[cat]
     }
@@ -540,6 +495,19 @@ export default {
       if (check.pass || check.status === 'info') return 'icon-checkmark-circle ab-hc-icon--pass'
       if (check.status === 'critical')           return 'icon-warning ab-hc-icon--critical'
       return 'icon-info-circle ab-hc-icon--warning'
+    }
+    // Instrument SVG status icon (name + colour) for a health-check row.
+    function rowIconName (check) {
+      if (check.dismissed)                       return 'info'
+      if (check.pass || check.status === 'info') return 'ok'
+      if (check.status === 'critical')           return 'err'
+      return 'warn'
+    }
+    function rowIconColor (check) {
+      if (check.dismissed)                       return 'var(--ab-text-muted)'
+      if (check.pass || check.status === 'info') return 'var(--ab-success)'
+      if (check.status === 'critical')           return 'var(--ab-danger)'
+      return 'var(--ab-warning)'
     }
 
     // ── Re-run with animated progress bar ───────────────────────────────────
@@ -594,8 +562,8 @@ export default {
     //
     // Resolution order:
     //   1. target_tab naming an SPA page  → view=app hash route
-    //   2. any other target_tab           → Settings form deep link
-    //      (?tab=&field= — same contract as settingsUrl() server-side;
+    //   2. any other target_tab           → Settings tab inside the SPA
+    //      (view=app#/settings?tab=&field= — same hash contract the SPA uses;
     //      covers manifest-declared fix actions, which carry no url)
     //   3. explicit url                   → as-is
     //   4. nothing usable                 → '#'
@@ -611,7 +579,10 @@ export default {
         if (spaRoute) {
           return 'index.php?option=com_aiboost&view=app' + fieldQs + '#' + spaRoute
         }
-        return 'index.php?option=com_aiboost&view=settings&tab=' + encodeURIComponent(tab) + fieldQs
+        // Settings-tab target → stay in the SPA shell: tab + field live inside the
+        // hash (same contract as DashboardApp.configureUrl()). The old form
+        // (view=settings&tab=…) dropped out of the SPA into a sidebar-less page.
+        return 'index.php?option=com_aiboost&view=app#/settings?tab=' + encodeURIComponent(tab) + fieldQs
       }
       return action.url || '#'
     }
@@ -628,11 +599,14 @@ export default {
     function selectSection (section) {
       const next = resolveSection(section)
       currentSection.value = next
+      // push (not replace) so each sub-section is its own history entry — the
+      // browser Back button then returns to the Health overview, not to whatever
+      // page preceded Health (e.g. the Dashboard).
       if (next === 'errors') {
-        router.replace('/health/errors')
+        router.push('/health/errors')
         return
       }
-      router.replace({ path: '/health', query: next === 'health' ? {} : { section: next } })
+      router.push({ path: '/health', query: next === 'health' ? {} : { section: next } })
     }
 
     watch(() => route.fullPath, () => {
@@ -732,8 +706,8 @@ export default {
       conflictFails,
       aeoChecks, schemaChecks,
       aiScore, aiScoreClass, aiScoreLabel, aiScoreOffset,
-      catChecks, catFails, toggleCat,
-      rowClass, rowIcon,
+      catChecks, catFails, catBadgeClass, catBadgeLabel, toggleCat,
+      rowClass, rowIcon, rowIconName, rowIconColor,
       rerun, toggleDismiss, copyReport,
       fixActionHref,
       selectSection,
@@ -758,7 +732,7 @@ export default {
   width: 175px;
   min-width: 155px;
   flex-shrink: 0;
-  border-right: 1px solid var(--ab-border, #dee2e6);
+  border-right: 1px solid var(--ab-border);
   padding-right: 0;
   margin-right: 1.25rem;
   padding-top: 0;
@@ -766,19 +740,19 @@ export default {
 .ab-ha-nav-link {
   padding: .45rem .75rem;
   font-size: .875rem;
-  color: var(--ab-text, inherit);
+  color: var(--ab-text);
   border-radius: 0;
   white-space: nowrap;
 }
 .ab-ha-nav-link:hover {
-  background: var(--ab-bg-muted, #f8f9fa);
-  color: var(--ab-text, inherit);
+  background: var(--ab-surface-raised);
+  color: var(--ab-text);
 }
 .ab-ha-nav-link.active {
-  background: var(--ab-primary-soft, #cfe2ff);
-  color: var(--ab-primary, #2a6496);
+  background: var(--ab-primary-soft, color-mix(in srgb, var(--ab-primary) 12%, var(--ab-surface)));
+  color: var(--ab-primary);
   font-weight: 600;
-  border-left: 3px solid var(--ab-primary, #2a6496);
+  border-left: 3px solid var(--ab-primary);
   padding-left: calc(.75rem - 3px);
 }
 [data-bs-theme=dark] .ab-ha-nav-link.active {
@@ -795,9 +769,13 @@ export default {
 }
 .ab-hc-progress-bar {
   height: 100%;
-  background: #0d6efd;
+  background: var(--ab-primary);
   transition: width .035s linear;
 }
+
+/* Health-row dismissed + category chevron */
+.ab-healthrow--dismissed { opacity: .55; }
+.ab-hc-chevron { display: inline-block; transition: transform .15s ease; font-size: 1rem; line-height: 1; color: var(--ab-text-muted); }
 
 /* Spin animation for Re-run icon */
 @keyframes ab-hc-spin {
@@ -811,16 +789,16 @@ export default {
 /* Score circle SVG layout (v0.12.10 — wrap MUST be a sized positioning context) */
 .ab-hc-score-wrap {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: 116px;
+  height: 116px;
   flex-shrink: 0;
   line-height: 1;
 }
 .ab-hc-score-svg {
   position: absolute;
   top: 0; left: 0;
-  width: 96px;
-  height: 96px;
+  width: 116px;
+  height: 116px;
 }
 .ab-hc-score-num {
   font-size: 1.75rem;
@@ -831,10 +809,7 @@ export default {
   border: 0 !important;
 }
 .ab-hc-score-track {
-  stroke: var(--bs-border-color, #dee2e6);
-}
-[data-bs-theme=dark] .ab-hc-score-track {
-  stroke: #495057;
+  stroke: var(--ab-bg-muted);
 }
 .ab-hc-score-arc {
   animation: ab-hc-stroke-fill .9s ease-out forwards;
@@ -847,29 +822,32 @@ export default {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
 }
-/* Arc colour by class on the arc element itself */
-.ab-hc-score--green  { stroke: #198754; }
-.ab-hc-score--orange { stroke: #fd7e14; }
-.ab-hc-score--red    { stroke: #dc3545; }
-/* Number colour via parent num-overlay */
-.ab-hc-score-num.ab-hc-score--green  { color: #198754; }
-.ab-hc-score-num.ab-hc-score--orange { color: #7c3504; }
-.ab-hc-score-num.ab-hc-score--red    { color: #dc3545; }
-[data-bs-theme=dark] .ab-hc-score-num.ab-hc-score--green  { color: #75b798; }
-[data-bs-theme=dark] .ab-hc-score-num.ab-hc-score--orange { color: #fd7e14; }
-[data-bs-theme=dark] .ab-hc-score-num.ab-hc-score--red    { color: #ea868f; }
-[data-bs-theme=dark] .ab-hc-score--green  { stroke: #75b798; }
-[data-bs-theme=dark] .ab-hc-score--red    { stroke: #ea868f; }
+.ab-hc-score-label {
+  font-family: var(--ab-font-mono);
+  font-size: var(--ab-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  color: var(--ab-text-muted);
+  margin-top: .15rem;
+}
+/* Arc + number colour by class — driven by restrained --ab-* tokens (theme-aware) */
+.ab-hc-score--green  { stroke: var(--ab-success); }
+.ab-hc-score--orange { stroke: var(--ab-warning); }
+.ab-hc-score--red    { stroke: var(--ab-danger); }
+.ab-hc-score-num.ab-hc-score--green  { color: var(--ab-success); }
+.ab-hc-score-num.ab-hc-score--orange { color: var(--ab-warning); }
+.ab-hc-score-num.ab-hc-score--red    { color: var(--ab-danger); }
 
 /* Score help icon (Task #485) — small info-circle next to the label */
 .ab-hc-score-help {
   display: inline-block;
   margin-left: .35rem;
-  color: var(--ab-text-muted, #6c757d);
+  color: var(--ab-text-muted);
   cursor: help;
   font-size: .85rem;
   vertical-align: middle;

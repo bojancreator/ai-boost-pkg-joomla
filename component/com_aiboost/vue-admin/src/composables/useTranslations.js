@@ -32,6 +32,17 @@ export const defaultLang = ref(
 )
 
 /**
+ * Whether multilingual output is actually active (Multilingual bridge plugin
+ * published + master switch on + 2+ published languages). Resolved from the
+ * settings.getLanguages endpoint. When false, the per-field Translation UI is
+ * hidden and replaced by a "Turn on Multilingual" hint — stored translations
+ * are never touched. Defaults true so the dropdowns are not hidden before the
+ * flag loads (and on contexts that don't report it).
+ * @type {import('vue').Ref<boolean>}
+ */
+export const multilangActive = ref(true)
+
+/**
  * Nested translations map: { fieldKey: { langCode: value } }
  * Reactive so TranslationExpander components stay in sync.
  * @type {Record<string, Record<string, string>>}
@@ -69,6 +80,10 @@ export async function loadTranslationData() {
     // Update defaultLang if the server provides a more authoritative value
     if (data.success && typeof data.default_lang === 'string' && data.default_lang !== '') {
       defaultLang.value = data.default_lang
+    }
+    // Whether multilingual output is active — gates the per-field Translation UI.
+    if (data.success && typeof data.multilang_active === 'boolean') {
+      multilangActive.value = data.multilang_active
     }
   } catch (e) {
     // Non-fatal — TranslationExpander simply won't render rows

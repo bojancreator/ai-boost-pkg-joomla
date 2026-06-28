@@ -4,8 +4,7 @@
     <!-- ── Sticky top action bar (Settings A) ───────────────────── -->
     <div class="ab-action-bar">
       <div class="ab-action-bar__title">
-        <span class="ab-action-bar__dot" :style="{ background: activeTabColor }"></span>
-        <h2>Settings</h2>
+        <h2>{{ activeTabLabel }}</h2>
         <span v-if="hasChanges" class="ab-action-bar__dirty">• Unsaved changes</span>
       </div>
       <div class="ab-action-bar__actions">
@@ -23,14 +22,14 @@
           @click="save"
         >
           <span v-if="saving">Saving…</span>
-          <span v-else>💾 Save All Settings</span>
+          <span v-else>Save All Settings</span>
         </button>
       </div>
     </div>
 
     <!-- ── Staging Mode Banner ──────────────────────────────────── -->
     <div v-if="s.staging_mode == 1 || s.staging_mode === '1' || s.staging_mode === true" class="ab-staging-banner">
-      <span class="ab-staging-banner__icon">⚠️</span>
+      <span class="ab-staging-banner__icon icon-warning" aria-hidden="true"></span>
       <span class="ab-staging-banner__text">
         <strong>Staging Mode is ON.</strong>
         These plugins produce <strong>no HTML output</strong> on the front end:
@@ -70,7 +69,6 @@
     <div class="ab-tab-content">
       <OrgTab       v-show="activeTab === 'org'"        :s="s" />
       <SchemaTab    v-show="activeTab === 'schema'"     :s="s" />
-      <TechnicalSeoTab v-show="activeTab === 'technical'" :s="s" />
       <TitlesMetaTab v-show="activeTab === 'titles'"    :s="s" />
       <SitemapTab   v-show="activeTab === 'sitemap'"    :s="s" />
       <SocialTab    v-show="activeTab === 'social'"     :s="s" />
@@ -99,7 +97,6 @@ import { saveSettings } from './api.js'
 import { loadTranslationData, getAllTranslations } from './composables/useTranslations.js'
 import OrgTab       from './tabs/OrgTab.vue'
 import SchemaTab    from './tabs/SchemaTab.vue'
-import TechnicalSeoTab from './tabs/TechnicalSeoTab.vue'
 import TitlesMetaTab from './tabs/TitlesMetaTab.vue'
 import SitemapTab   from './tabs/SitemapTab.vue'
 import SocialTab    from './tabs/SocialTab.vue'
@@ -125,11 +122,12 @@ const ICONS = {
 }
 
 const FIELD_TAB_ALIASES = {
-  // The old "General" tab was merged into "Technical SEO" — its fields now
-  // resolve there so existing deep-links / Health "Fix It" targets still land.
-  auto_domain_detection: 'technical',
-  manual_domain: 'technical',
-  conflict_mode: 'technical',
+  // The Technical SEO tab was dissolved: Domain → Site Identity (org),
+  // Canonical → Titles & Meta, 404 logging → Redirects page, conflict mode →
+  // Conflict Manager. These aliases keep existing deep-links / Health "Fix It"
+  // targets landing on the right tab.
+  auto_domain_detection: 'org',
+  manual_domain: 'org',
   // Page title + meta-description templates moved to their own "Titles & Meta" tab.
   title_separator: 'titles',
   title_template: 'titles',
@@ -145,9 +143,8 @@ const FIELD_TAB_ALIASES = {
   meta_desc_template_article: 'titles',
   meta_desc_template_category: 'titles',
   meta_desc_template_default: 'titles',
-  enable_canonical: 'technical',
-  canonical_url_map: 'technical',
-  redirect_404_log_enabled: 'technical',
+  enable_canonical: 'titles',
+  canonical_url_map: 'titles',
   enable_robots: 'crawlers',
   robots_auto_sync: 'crawlers',
   robots_custom_scrapers: 'crawlers',
@@ -184,11 +181,42 @@ const DEFAULTS = {
   hide_comments:           '0',
   error_log_enabled:       '1',
   error_log_min_severity:  'warning',
+
+  // #14 — manifest default-ON parity. The backend reads an absent toggle key as
+  // ON (`?? 1`), but a Vue checkbox reads an absent key as OFF — so every
+  // manifest toggle with default='1' MUST be mirrored here as '1', or a plain
+  // Save silently flips that feature OFF. Source of truth: the *.php manifests;
+  // enforced by ManifestDefaultsParityTest. The two integration MASTER toggles
+  // (integration_falang_enabled / integration_yootheme_enabled) are deliberately
+  // NOT mirrored — they wait for the "locked upsell" backlog item, so the test
+  // excludes them by name.
+  enable_schema:             '1',
+  page_type_auto_detect:     '1',
+  article_schema_enabled:    '1',
+  website_schema_enabled:    '1',
+  enable_search_action:      '1',
+  faq_auto_detect:           '1',
+  enable_sitemap:            '1',
+  include_articles:          '1',
+  include_categories:        '1',
+  include_menu_items:        '1',
+  ping_google:               '1',
+  ping_bing:                 '1',
+  enable_opengraph:          '1',
+  enable_twitter_cards:      '1',
+  enable_article_og_type:    '1',
+  enable_per_article_fields: '1',
+  llmstxt_enabled:           '1',
+  aeo_ai_meta_enabled:       '1',
+  auto_domain_detection:     '1',
+  enable_canonical:          '1',
+  enable_robots:             '1',
+  redirect_404_log_enabled:  '1',
 }
 
 export default {
   name: 'AiBoostSettings',
-  components: { OrgTab, SchemaTab, TechnicalSeoTab, TitlesMetaTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab, ConfirmDialog },
+  components: { OrgTab, SchemaTab, TitlesMetaTab, SitemapTab, SocialTab, AnalyticsTab, AeoTab, CrawlersRobotsTab, CodeTab, DebugTab, ConfirmDialog },
 
   mounted() {
     // Ctrl/Cmd + S → save (power-user shortcut)
@@ -284,7 +312,7 @@ export default {
 
   data() {
     return {
-      activeTab:   'technical',
+      activeTab:   'org',
       saving: false,
       message: '',
       msgCls: '',
@@ -293,10 +321,9 @@ export default {
       tabs: [
         { id: 'org',       label: 'Site Identity', icon: ICONS.org,       color: '#3b82f6' },
         { id: 'schema',    label: 'Schema.org',    icon: ICONS.schema,    color: '#8b5cf6' },
-        { id: 'technical', label: 'Technical SEO', icon: ICONS.general,   color: '#0ea5e9' },
         { id: 'titles',    label: 'Titles & Meta', icon: ICONS.general,   color: '#0ea5e9' },
         { id: 'sitemap',   label: 'Sitemap',       icon: ICONS.sitemap,   color: '#14b8a6' },
-        { id: 'social',    label: 'Social Meta / OG', icon: ICONS.social,  color: '#ec4899' },
+        { id: 'social',    label: 'Social Meta / OpenGraph', icon: ICONS.social,  color: '#ec4899' },
         { id: 'analytics', label: 'Analytics & Tracking', icon: ICONS.analytics, color: '#f97316' },
         { id: 'aeo',       label: 'AEO',           icon: ICONS.aeo,       color: '#06b6d4' },
         { id: 'crawlers',  label: 'Crawlers & Robots', icon: ICONS.urlchecker, color: '#22c55e' },
@@ -319,6 +346,9 @@ export default {
     activeTabColor() {
       return this.tabs.find(t => t.id === this.activeTab)?.color || '#6366f1'
     },
+    activeTabLabel() {
+      return this.tabs.find(t => t.id === this.activeTab)?.label || 'Settings'
+    },
     hasChanges() {
       return this.dirty
     },
@@ -337,7 +367,7 @@ export default {
     // without remounting this component.
     '$route.query.tab'(tab) {
       if (!this.$route || this.$route.name !== 'settings') return
-      const id = resolveSettingsTab(tab || 'technical', this.$route.query.field)
+      const id = resolveSettingsTab(tab || 'org', this.$route.query.field)
       if (this.tabs.some(t => t.id === id)) this.activeTab = id
     },
   },
@@ -360,9 +390,9 @@ export default {
       // running inside the SPA. In legacy standalone mode there is no
       // router, so we simply set activeTab above.
       if (this.$router && this.$route && this.$route.name === 'settings'
-          && (this.$route.query.tab || 'technical') !== id) {
+          && (this.$route.query.tab || 'org') !== id) {
         this.$router
-          .replace({ path: '/settings', query: id === 'technical' ? {} : { tab: id } })
+          .replace({ path: '/settings', query: id === 'org' ? {} : { tab: id } })
           .catch(() => {})
       }
     },
@@ -482,8 +512,8 @@ export default {
   flex-wrap: wrap;
   padding: 10px 14px;
   margin: -10px -10px 14px;
-  background: var(--body-bg, #fff);
-  border-bottom: 1px solid var(--border-color, #dee2e6);
+  background: var(--ab-surface);
+  border-bottom: 1px solid var(--ab-border);
   box-shadow: 0 2px 6px rgba(0, 0, 0, .04);
 }
 .ab-vue-settings .ab-action-bar__title {
@@ -493,9 +523,10 @@ export default {
 }
 .ab-vue-settings .ab-action-bar__title h2 {
   margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--body-color, #212529);
+  font-size: var(--ab-font-size-xl, 1.25rem);
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--ab-text);
 }
 .ab-vue-settings .ab-action-bar__dot {
   width: 10px;
@@ -523,7 +554,7 @@ export default {
   gap: 2px;
   margin: 0 0 0;
   padding: 0 0 0;
-  border-bottom: 1px solid var(--border-color, #dee2e6);
+  border-bottom: 1px solid var(--ab-border);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: thin;
@@ -536,7 +567,7 @@ export default {
   border: none;
   border-bottom: 3px solid transparent;
   background: transparent;
-  color: var(--secondary-color, #6c757d);
+  color: var(--ab-text-muted);
   font-size: .875rem;
   cursor: pointer;
   white-space: nowrap;
@@ -544,7 +575,7 @@ export default {
   margin-bottom: -1px;
 }
 .ab-vue-settings .ab-tab-strip__btn:hover {
-  color: var(--body-color, #212529);
+  color: var(--ab-text);
   background: color-mix(in srgb, var(--tab-color, #6366f1) 6%, transparent);
 }
 .ab-vue-settings .ab-tab-strip__btn.active {
@@ -567,17 +598,17 @@ export default {
 /* ── Form controls: inherit Atum theme colors ────────────────── */
 .ab-vue-settings .form-select,
 .ab-vue-settings .form-control {
-  background-color: var(--body-bg, #fff);
-  color: var(--body-color, #212529);
-  border-color: var(--border-color, #ced4da);
+  background-color: var(--ab-surface);
+  color: var(--ab-text);
+  border-color: var(--ab-border);
 }
 .ab-vue-settings .form-select:focus,
 .ab-vue-settings .form-control:focus {
-  background-color: var(--body-bg, #fff);
-  color: var(--body-color, #212529);
-  border-color: var(--ab-tab-color, #86b7fe);
+  background-color: var(--ab-surface);
+  color: var(--ab-text);
+  border-color: var(--ab-primary-light, var(--ab-primary));
   outline: 0;
-  box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--ab-tab-color, #6366f1) 25%, transparent);
+  box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--ab-primary) 25%, transparent);
 }
 .ab-vue-settings .form-select,
 .ab-vue-settings select.form-select {
@@ -599,10 +630,10 @@ export default {
 
 /* ── Shared card styles (used in all tabs) ───────────────────── */
 .ab-vue-settings .ab-card {
-  border: 1px solid var(--border-color, #dee2e6);
-  border-radius: 6px;
-  background: var(--body-bg, #fff);
-  color: var(--body-color, #212529);
+  border: 1px solid var(--ab-border);
+  border-radius: var(--ab-radius);
+  background: var(--ab-surface);
+  color: var(--ab-text);
   overflow: hidden;
   margin-bottom: 12px;
 }
@@ -611,32 +642,30 @@ export default {
   align-items: center;
   gap: .45rem;
   padding: .6rem 1rem .6rem .875rem;
-  background: var(--secondary-bg, #f8f9fa);
-  border-bottom: 1px solid var(--border-color, #dee2e6);
-  border-left: 4px solid var(--ab-tab-color, #6366f1);
+  background: var(--ab-surface-raised);
+  border-bottom: 1px solid var(--ab-border);
   font-weight: 600;
   font-size: .9375rem;
-  color: var(--ab-tab-color, #6366f1);
-  transition: border-left-color .2s ease, color .2s ease;
+  color: var(--ab-text);
 }
 .ab-vue-settings .ab-card-body {
   padding: 1rem;
-  color: var(--body-color, #212529);
+  color: var(--ab-text);
 }
 .ab-vue-settings .form-label,
-.ab-vue-settings .form-check-label { color: var(--body-color, #212529); }
+.ab-vue-settings .form-check-label { color: var(--ab-text); }
 .ab-vue-settings .form-text,
-.ab-vue-settings small { color: var(--secondary-color, #6c757d); }
+.ab-vue-settings small { color: var(--ab-text-muted); }
 .ab-vue-settings code {
   color: #d63384;
-  background: var(--secondary-bg, #f8f9fa);
+  background: var(--ab-surface-raised);
   padding: .1em .3em;
   border-radius: 3px;
 }
 .ab-vue-settings pre {
-  background: var(--secondary-bg, #f8f9fa);
-  color: var(--body-color, #212529);
-  border: 1px solid var(--border-color, #dee2e6);
+  background: var(--ab-surface-raised);
+  color: var(--ab-text);
+  border: 1px solid var(--ab-border);
   border-radius: 4px;
   padding: .75rem;
   font-size: .8rem;
@@ -763,10 +792,10 @@ export default {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .07em;
-  color: var(--ab-tab-color, #6366f1);
+  color: var(--ab-tab-color, var(--ab-primary));
   margin: 18px 0 10px;
   padding: 5px 8px 4px;
-  background: color-mix(in srgb, var(--ab-tab-color, #6366f1) 7%, var(--secondary-bg, #f8f9fa));
+  background: color-mix(in srgb, var(--ab-tab-color, var(--ab-primary)) 7%, var(--ab-surface-raised));
   border-radius: 4px;
   border-bottom: none;
   transition: background .2s ease, color .2s ease;
@@ -780,7 +809,7 @@ export default {
   gap: 16px;
   align-items: start;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color, #dee2e6);
+  border-bottom: 1px solid var(--ab-border);
 }
 .ab-vue-settings .ab-field-row:last-child { border-bottom: none; }
 .ab-vue-settings .ab-field-row > .ab-label {

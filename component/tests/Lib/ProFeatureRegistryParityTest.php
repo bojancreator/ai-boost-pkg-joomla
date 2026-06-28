@@ -193,9 +193,15 @@ final class ProFeatureRegistryParityTest extends TestCase
         $src = (string) file_get_contents($tabPath);
 
         $this->assertStringContainsString('SCHEMA_TYPE_OPTIONS', $src);
-        $this->assertStringNotContainsString('pro: true', $src);
-        $this->assertStringNotContainsString('PRO_SCHEMA_TYPES', $src);
-        $this->assertStringNotContainsString('(Pro)', $src);
+
+        // Ignore HTML comments — they are non-rendered documentation (e.g. a
+        // "<!-- More Details (Pro) -->" section marker) and must not trip the
+        // "no Pro-gated schema type" guard, which targets real option flags and
+        // rendered "(Pro)" labels, not developer comments.
+        $scannable = preg_replace('/<!--.*?-->/s', '', $src) ?? $src;
+        $this->assertStringNotContainsString('pro: true', $scannable);
+        $this->assertStringNotContainsString('PRO_SCHEMA_TYPES', $scannable);
+        $this->assertStringNotContainsString('(Pro)', $scannable);
     }
 
     /** @return array{0:list<string>,1:list<string>} */

@@ -72,6 +72,10 @@ scripts/__pycache__/
 .env.*
 CREDENTIALS.local.md
 
+# Advisor/executor handoff channel — lives ONLY at the wrapper root, never inside this repo.
+# Guards against a stray duplicate _handoff/ being committed from here again.
+/_handoff/
+
 # Deliverables (ZIP-ovi, PDF-ovi, marketing materijali — ne idu u git)
 /deliverables/
 # Exception: text reports and docs in deliverables/docs/ are tracked

@@ -31,6 +31,26 @@ export function isLegacyGlobalsReady(legacyUrl) {
   return !legacyUrl || resolved.has(legacyUrl)
 }
 
+/**
+ * Drop the cached globals for a route so the next visit re-fetches fresh data
+ * (AppShell sees a cache miss → reloads + remounts the routed component). Used
+ * after a plugin/integration toggle so other SPA screens (Dashboard
+ * notifications, the Integrations cards) reflect the new state WITHOUT a full
+ * page reload. With no URL, clears every cached view.
+ *
+ * NB: never invalidate the Settings view this way — remounting it would discard
+ * unsaved edits (see isLegacyGlobalsReady). Pass the specific URLs to refresh.
+ */
+export function invalidateLegacyGlobals(legacyUrl) {
+  if (legacyUrl) {
+    cache.delete(legacyUrl)
+    resolved.delete(legacyUrl)
+  } else {
+    cache.clear()
+    resolved.clear()
+  }
+}
+
 function runScript(text) {
   // Wrap in IIFE to keep scope clean; assignment to window.* still leaks out.
   // eslint-disable-next-line no-new-func

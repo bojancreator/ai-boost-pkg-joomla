@@ -1,5 +1,5 @@
 /**
- * AI Boost Design System — Tokens
+ * AI Boost Design System — Tokens · "INSTRUMENT" direction
  *
  * CSS custom properties for the AI Boost admin UI.
  * Scoped to `body[class*="com_aiboost"]` so they never leak into other
@@ -15,60 +15,71 @@
  *   nuking our admin styles.
  * - Our own `--ab-*` namespace cannot be touched by upstream templates.
  *
+ * Design direction: INSTRUMENT
+ * Technical, hairline, single petrol-teal signal accent.
+ * Mono (IBM Plex Mono) for data/labels; IBM Plex Sans for UI.
+ *
+ * NEW tokens added by this direction (not in original contract):
+ *   --ab-sidebar-active-bg / --ab-sidebar-active-text / --ab-sidebar-hover-bg
+ *
  * Used by ab-components.css. Do not use these tokens outside of the
  * AI Boost admin scope.
  */
 
 body[class*="com_aiboost"] {
   /* ── Palette: surfaces ──────────────────────────────────────────── */
-  --ab-bg:              #f7f8fa;
+  --ab-bg:              #f3f3f1;
   --ab-bg-elev:         #ffffff;
-  --ab-bg-elev-2:       #ffffff;
-  --ab-bg-muted:        #eef0f3;
+  --ab-bg-elev-2:       #fafaf8;
+  --ab-bg-muted:        #ebeae6;
+  /* Compatibility aliases — older components reference --ab-surface(-raised);
+     map them to the real elevation tokens so they resolve per-theme (the dark
+     block overrides --ab-bg-elev*). Without these, background:var(--ab-surface)
+     was invalid → transparent (e.g. the sticky settings header showed through). */
+  --ab-surface:         var(--ab-bg-elev);
+  --ab-surface-raised:  var(--ab-bg-elev-2);
 
   /* ── Palette: text ──────────────────────────────────────────────── */
-  --ab-text:            #1f2937;
-  --ab-text-muted:      #6b7280;
+  --ab-text:            #16170f;
+  --ab-text-muted:      #6b6c62;
   --ab-text-on-primary: #ffffff;
 
   /* ── Palette: borders ───────────────────────────────────────────── */
-  --ab-border:          #e2e6ec;
-  --ab-border-strong:   #cdd3db;
+  --ab-border:          #e1e0da;
+  --ab-border-strong:   #c6c5bc;
 
   /* ── Palette: brand & semantic ──────────────────────────────────── */
-  /* A slightly warmer indigo than Bootstrap's #0d6efd so AI Boost is */
-  /* visually distinct from generic Joomla blue.                       */
-  --ab-primary:         #4f46e5;
-  --ab-primary-hover:   #4338ca;
-  --ab-primary-soft:    rgba(79, 70, 229, .08);
+  --ab-primary:         #0e6f64;
+  --ab-primary-hover:   #0a564e;
+  --ab-primary-soft:    rgba(14, 111, 100, .07);
 
-  --ab-success:         #16a34a;
-  --ab-success-hover:   #15803d;
-  --ab-success-soft:    rgba(22, 163, 74, .10);
+  --ab-success:         #2f7a4d;
+  --ab-success-hover:   #266340;
+  --ab-success-soft:    rgba(47, 122, 77, .09);
 
-  --ab-warning:         #d97706;
-  --ab-warning-hover:   #b45309;
-  --ab-warning-soft:    rgba(217, 119, 6, .10);
+  --ab-warning:         #946614;
+  --ab-warning-hover:   #79530f;
+  --ab-warning-soft:    rgba(148, 102, 20, .10);
 
-  --ab-danger:          #dc2626;
-  --ab-danger-hover:    #b91c1c;
-  --ab-danger-soft:     rgba(220, 38, 38, .10);
+  --ab-danger:          #b03a36;
+  --ab-danger-hover:    #94302c;
+  --ab-danger-soft:     rgba(176, 58, 54, .09);
 
-  --ab-info:            #0284c7;
-  --ab-info-hover:      #0369a1;
-  --ab-info-soft:       rgba(2, 132, 199, .10);
+  --ab-info:            #236a8c;
+  --ab-info-hover:      #1b5571;
+  --ab-info-soft:       rgba(35, 106, 140, .09);
 
-  /* ── Typography ─────────────────────────────────────────────────── */
-  --ab-font-family:     -apple-system, BlinkMacSystemFont, "Segoe UI",
-                        Roboto, "Helvetica Neue", Arial, sans-serif;
-  --ab-font-mono:       ui-monospace, SFMono-Regular, "SF Mono", Menlo,
-                        Consolas, "Liberation Mono", monospace;
+  /* ── Typography — IBM Plex Sans (UI) + IBM Plex Mono (data) ─────── */
+  --ab-font-family:     "IBM Plex Sans", -apple-system, BlinkMacSystemFont,
+                        "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ab-font-mono:       "IBM Plex Mono", ui-monospace, SFMono-Regular,
+                        "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
-  --ab-font-size-xs:    .75rem;     /* 12 */
-  --ab-font-size-sm:    .8125rem;   /* 13 */
-  --ab-font-size-base:  .9375rem;   /* 15 */
-  --ab-font-size-lg:    1.0625rem;  /* 17 */
-  --ab-font-size-xl:    1.25rem;    /* 20 */
+  --ab-font-size-xs:    .88rem;     /* ~14 */
+  --ab-font-size-sm:    .94rem;     /* ~15 */
+  --ab-font-size-base:  1.06rem;    /* ~17 */
+  --ab-font-size-lg:    1.19rem;    /* ~19 */
+  --ab-font-size-xl:    1.44rem;    /* ~23 */
 
   --ab-font-weight-normal:   400;
   --ab-font-weight-medium:   500;
@@ -86,34 +97,34 @@ body[class*="com_aiboost"] {
   --ab-space-5:  1.5rem;   /* 24 */
   --ab-space-6:  2rem;     /* 32 */
 
-  /* ── Radius ─────────────────────────────────────────────────────── */
-  --ab-radius-sm:   .25rem;
-  --ab-radius:      .375rem;
-  --ab-radius-md:   .5rem;
-  --ab-radius-lg:   .75rem;
+  /* ── Radius — crisp/technical ───────────────────────────────────── */
+  --ab-radius-sm:   2px;
+  --ab-radius:      2px;
+  --ab-radius-md:   3px;
+  --ab-radius-lg:   4px;
   --ab-radius-pill: 999px;
 
-  /* ── Shadows (light) ────────────────────────────────────────────── */
-  --ab-shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
-  --ab-shadow:    0 2px 6px rgba(15, 23, 42, .08);
-  --ab-shadow-md: 0 4px 14px rgba(15, 23, 42, .10);
-  --ab-shadow-lg: 0 10px 30px rgba(15, 23, 42, .14);
+  /* ── Shadows — minimal; depth from hairline borders, not blur ────── */
+  --ab-shadow-sm: 0 1px 1px rgba(20, 20, 15, .04);
+  --ab-shadow:    0 1px 2px rgba(20, 20, 15, .05);
+  --ab-shadow-md: 0 2px 6px rgba(20, 20, 15, .07);
+  --ab-shadow-lg: 0 8px 24px rgba(20, 20, 15, .14);
 
   /* ── Focus ring ─────────────────────────────────────────────────── */
-  --ab-focus-ring:        0 0 0 .2rem rgba(79, 70, 229, .25);
-  --ab-focus-ring-danger: 0 0 0 .2rem rgba(220, 38, 38, .25);
+  --ab-focus-ring:        0 0 0 2px rgba(14, 111, 100, .32);
+  --ab-focus-ring-danger: 0 0 0 2px rgba(176, 58, 54, .32);
 
   /* ── Transitions ────────────────────────────────────────────────── */
-  --ab-transition:        .15s ease;
+  --ab-transition: .12s ease;
 
-  /* ── Sidebar ────────────────────────────────────────────────────── */
-  /* Always-dark left nav. Light theme: two-tone (dark sidebar + light  */
-  /* content). Dark theme: sidebar shifts darker so it doesn't appear  */
-  /* lighter than the surrounding Joomla Atum frame.                   */
-  --ab-sidebar-bg:     #1e2532;
-  --ab-sidebar-border: #2d3548;
-  --ab-sidebar-text:   #c8d0e0;
-  --ab-sidebar-label:  #8a93a6;
+  /* ── Sidebar (LIGHT theme: light sidebar — white, hairline, teal active) ── */
+  --ab-sidebar-bg:          var(--ab-bg-elev);
+  --ab-sidebar-border:      var(--ab-border);
+  --ab-sidebar-text:        var(--ab-text);
+  --ab-sidebar-label:       var(--ab-text-muted);
+  --ab-sidebar-active-bg:   var(--ab-primary-soft);
+  --ab-sidebar-active-text: var(--ab-primary);
+  --ab-sidebar-hover-bg:    var(--ab-bg-muted);
 }
 
 /* ── Dark variant ─────────────────────────────────────────────────── */
@@ -121,49 +132,51 @@ body[class*="com_aiboost"] {
 /* [data-bs-theme=dark] ancestor wrapping body.com_aiboost.            */
 body[class*="com_aiboost"][data-bs-theme="dark"],
 [data-bs-theme="dark"] body[class*="com_aiboost"] {
-  --ab-bg:              #1a1d23;
-  --ab-bg-elev:         #23272f;
-  --ab-bg-elev-2:       #2b3038;
-  --ab-bg-muted:        #2a2f37;
+  --ab-bg:        #101109;
+  --ab-bg-elev:   #181a11;
+  --ab-bg-elev-2: #1f2116;
+  --ab-bg-muted:  #22241a;
 
-  --ab-text:            #e5e7eb;
-  --ab-text-muted:      #b3bac3;
+  --ab-text:            #e9e9df;
+  --ab-text-muted:      #969787;
   --ab-text-on-primary: #ffffff;
 
-  --ab-border:          #3a414b;
-  --ab-border-strong:   #4d5560;
+  --ab-border:        #2a2c20;
+  --ab-border-strong: #3b3d2f;
 
-  /* Lighter, more saturated tints so they pop on dark surfaces        */
-  --ab-primary:         #8b88f5;
-  --ab-primary-hover:   #a5a3ff;
-  --ab-primary-soft:    rgba(139, 136, 245, .15);
+  --ab-primary:         #4fb3a5;
+  --ab-primary-hover:   #67c2b5;
+  --ab-primary-soft:    rgba(79, 179, 165, .16);
 
-  --ab-success:         #4ade80;
-  --ab-success-hover:   #6ee7a0;
-  --ab-success-soft:    rgba(74, 222, 128, .15);
+  --ab-success:         #5aa86e;
+  --ab-success-hover:   #74bd86;
+  --ab-success-soft:    rgba(90, 168, 110, .16);
 
-  --ab-warning:         #fbbf24;
-  --ab-warning-hover:   #fcd34d;
-  --ab-warning-soft:    rgba(251, 191, 36, .15);
+  --ab-warning:         #c39a4c;
+  --ab-warning-hover:   #d4ae62;
+  --ab-warning-soft:    rgba(195, 154, 76, .16);
 
-  --ab-danger:          #f87171;
-  --ab-danger-hover:    #fca5a5;
-  --ab-danger-soft:     rgba(248, 113, 113, .15);
+  --ab-danger:          #cf6b62;
+  --ab-danger-hover:    #db867e;
+  --ab-danger-soft:     rgba(207, 107, 98, .16);
 
-  --ab-info:            #38bdf8;
-  --ab-info-hover:      #7dd3fc;
-  --ab-info-soft:       rgba(56, 189, 248, .15);
+  --ab-info:            #5a97bf;
+  --ab-info-hover:      #79afd0;
+  --ab-info-soft:       rgba(90, 151, 191, .16);
 
-  --ab-shadow-sm: 0 1px 2px rgba(0, 0, 0, .35);
-  --ab-shadow:    0 2px 6px rgba(0, 0, 0, .40);
-  --ab-shadow-md: 0 4px 14px rgba(0, 0, 0, .45);
-  --ab-shadow-lg: 0 10px 30px rgba(0, 0, 0, .55);
+  --ab-shadow-sm: 0 1px 1px rgba(0, 0, 0, .30);
+  --ab-shadow:    0 1px 2px rgba(0, 0, 0, .38);
+  --ab-shadow-md: 0 2px 6px rgba(0, 0, 0, .45);
+  --ab-shadow-lg: 0 8px 24px rgba(0, 0, 0, .58);
 
-  --ab-focus-ring:        0 0 0 .2rem rgba(139, 136, 245, .35);
-  --ab-focus-ring-danger: 0 0 0 .2rem rgba(248, 113, 113, .35);
+  --ab-focus-ring:        0 0 0 2px rgba(79, 179, 165, .40);
+  --ab-focus-ring-danger: 0 0 0 2px rgba(207, 107, 98, .40);
 
-  --ab-sidebar-bg:     #141920;
-  --ab-sidebar-border: #1e2430;
-  --ab-sidebar-text:   #b3bac3;
-  --ab-sidebar-label:  #687280;
+  --ab-sidebar-bg:          #0b0c06;
+  --ab-sidebar-border:      #20221a;
+  --ab-sidebar-text:        #b6b7a8;
+  --ab-sidebar-label:       #6a6c5e;
+  --ab-sidebar-active-bg:   rgba(79, 179, 165, .18);
+  --ab-sidebar-active-text: #ffffff;
+  --ab-sidebar-hover-bg:    rgba(255, 255, 255, .05);
 }

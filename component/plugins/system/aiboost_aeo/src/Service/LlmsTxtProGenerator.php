@@ -425,7 +425,6 @@ class LlmsTxtProGenerator
             'social_twitter'   => 'Twitter/X',
             'social_linkedin'  => 'LinkedIn',
             'social_tiktok'    => 'TikTok',
-            'social_pinterest' => 'Pinterest',
         ];
 
         $lines = [];

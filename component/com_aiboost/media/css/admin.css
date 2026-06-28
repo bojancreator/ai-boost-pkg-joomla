@@ -1411,6 +1411,35 @@
 [data-bs-theme=dark] .ab-fb-item-name { color: #dee2e6; }
 [data-bs-theme=dark] .ab-fb-crumb:hover { background: #343a40; }
 
+/* ── AI Boost SPA view — strip Joomla's outer wrapper padding ───────────── */
+/* In view=app the full-screen SPA fills edge-to-edge. Atum's .main-card
+   wraps component output with padding that creates the white border around
+   the SPA. Strip it (and the Bootstrap container side-padding) for this
+   view only. body.com_aiboost.view-app is set by the Atum template PHP. */
+body.com_aiboost.view-app .main-card {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+body.com_aiboost.view-app #main-content,
+body.com_aiboost.view-app .container-main,
+body.com_aiboost.view-app .container-xl,
+body.com_aiboost.view-app .container-xxl {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: none;
+}
+body.com_aiboost.view-app #main-content > .row,
+body.com_aiboost.view-app .container-main > .row {
+    margin: 0;
+}
+body.com_aiboost.view-app #main-content > .row > [class*="col"],
+body.com_aiboost.view-app .container-main > .row > [class*="col"] {
+    padding: 0;
+}
+
 /* ── Spin animation for loading states ─────────────────────────────────── */
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 

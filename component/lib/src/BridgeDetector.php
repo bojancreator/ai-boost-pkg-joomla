@@ -346,6 +346,37 @@ final class BridgeDetector
         return self::$primaryLanguageSef;
     }
 
+    /**
+     * Resolve the SEF that x-default must point at — the SITE'S DEFAULT language,
+     * mapped DYNAMICALLY from the configured default language CODE to the matching
+     * published language's SEF. Pure (no I/O) so it is unit-testable.
+     *
+     * B7 (order 0006): x-default must follow whatever the site default is (which
+     * can change over time and is NOT necessarily English) — not a static setting
+     * defaulting to 'en'. Falls back to $fallback (then 'en') only when the
+     * default code does not match a published language.
+     *
+     * @param string $defaultLangCode Joomla config default language code, e.g. 'sr-YU'
+     * @param array<int, array<string,string>> $languages published languages (lang_code + sef)
+     */
+    public static function resolvePrimaryLanguageSef(string $defaultLangCode, array $languages, string $fallback = 'en'): string
+    {
+        $defaultLangCode = trim($defaultLangCode);
+        if ($defaultLangCode !== '') {
+            foreach ($languages as $lang) {
+                if (trim((string) ($lang['lang_code'] ?? '')) === $defaultLangCode) {
+                    $sef = trim((string) ($lang['sef'] ?? ''));
+                    if ($sef !== '') {
+                        return $sef;
+                    }
+                }
+            }
+        }
+
+        $fallback = trim($fallback);
+        return $fallback !== '' ? $fallback : 'en';
+    }
+
     public static function registerHreflangMode(string $mode): void
     {
         $allowed = ['auto', 'joomla_native', 'falang'];

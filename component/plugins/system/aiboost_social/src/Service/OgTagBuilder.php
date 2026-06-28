@@ -251,6 +251,20 @@ class OgTagBuilder
             return '';
         }
 
+        // Joomla 4+ media fields append a "#joomlaImage://…" fragment carrying
+        // crop/resize metadata, e.g.
+        //   images/x.jpg#joomlaImage:/local-images/x.jpg?width=1080&height=1350
+        // Strip it so the emitted og:image/twitter:image URL is clean and so
+        // getimagesize() can read the real on-disk file (dimension auto-detect).
+        $fragPos = strpos($path, '#joomlaImage');
+        if ($fragPos !== false) {
+            $path = trim(substr($path, 0, $fragPos));
+        }
+
+        if ($path === '') {
+            return '';
+        }
+
         if (str_starts_with($path, 'joomlaImage://local-images:')) {
             $path = substr($path, strlen('joomlaImage://local-images:'));
         }
