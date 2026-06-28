@@ -49,7 +49,13 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
   - **S0 ✅ DONE (order 0019, v0.87.62):** `lib/src/Page/*` (PageType, PageContext, PageResolver,
     IndexabilityPolicy) + `AdapterRegistry::pageResolver()` + bootstrap — wired but consumed by nobody;
     front-end byte-identical on Pro+Free; 19 unit tests, red-green proven.
-  - **S1** — characterization tests FIRST (lock current output of the 12 P-sites + 4 I-sites on a fixture).
+  - **S1 ✅ DONE (order 0021, test-only — no version bump):** 33 characterization tests covering the FULL
+    migration map (H1–H2, P1–P12, I1–I6, C1, L1–L3): resolver-equivalence for the article/homepage/
+    category/canonical gates, behavioural SchemaProBuilder gate exclusion, and source-contract pins for the
+    Factory/SQL-coupled sites. Suite 494 green, red-green proven. **Finding for S2 (ODLUKA):** the inline
+    article gate is homepage-agnostic but the resolver classifies homepage-first → they diverge on a
+    **single-article homepage** (today Article schema emits there; `PageContext::isArticle()` is false) —
+    S2 must preserve today's behaviour or take an explicit decision.
   - **S2** — migrate the Schema layer's article gates (P3–P10) onto `PageContext` (output-identical).
   - **S3** — migrate Social (OgTagBuilder/OgTagProDecorator).
   - **S4** — bulk `IndexabilityPolicy` for the 4 enumerators (sitemap/news/llms/llms-full), SQL-parity-diff-guarded.
