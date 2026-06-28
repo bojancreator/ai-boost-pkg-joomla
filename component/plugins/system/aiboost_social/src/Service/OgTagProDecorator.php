@@ -33,6 +33,7 @@ namespace AiBoost\Plugin\System\AiBoostSocial\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\TranslationService;
 use AiBoost\Plugin\System\AiBoostSocial\Service\OgTagBuilder;
 use Joomla\Database\DatabaseInterface;
@@ -58,6 +59,13 @@ class OgTagProDecorator
         // Nullable (D3): when Multilang Pro is not active the decorator still
         // runs on the 'og' bundle Pro, just without per-language overlays.
         private readonly ?TranslationService $translations = null,
+        // T1·S3: the resolved per-request page context. When provided (production,
+        // via AdapterRegistry::pageResolver()), the article gate reads its RAW
+        // primitives; when null (unit tests) it falls back to $props['context'].
+        // Behaviour-identical — the resolver's option/view/rawId are the same
+        // values OgTagBuilder seeds into props['context']. (NOT the homepage-first
+        // isArticle() semantics — that change is S7.)
+        private readonly ?PageContext $pageContext = null,
     ) {}
 
     /**
@@ -116,9 +124,12 @@ class OgTagProDecorator
         }
 
         // ── Article enrichment ────────────────────────────────────────────────
-        $option = (string) ($ctx['option'] ?? '');
-        $view   = (string) ($ctx['view']   ?? '');
-        $id     = (int)    ($ctx['id']     ?? 0);
+        // T1·S3: prefer the resolved PageContext raw primitives (production);
+        // fall back to the props context array (unit tests / no resolver).
+        // Identical values — byte-identical OG output, single-article-home incl.
+        $option = $this->pageContext !== null ? $this->pageContext->option : (string) ($ctx['option'] ?? '');
+        $view   = $this->pageContext !== null ? $this->pageContext->view   : (string) ($ctx['view']   ?? '');
+        $id     = $this->pageContext !== null ? $this->pageContext->rawId  : (int)    ($ctx['id']     ?? 0);
 
         $ogTypeFromField = false;
 

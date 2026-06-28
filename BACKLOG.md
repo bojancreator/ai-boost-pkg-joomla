@@ -62,8 +62,14 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
     single-article-home case is preserved byte-for-byte (the S1 divergence finding → that semantics change is
     S7). Golden diff byte-identical: Pro staging before↔after (clean v0.87.62 baseline) + Free same-version
     isolation diff. Suite 494 green (single-article-home test still green); installed Pro+Free; Health 94/100.
-  - **S3** — migrate Social (OgTagBuilder/OgTagProDecorator). **(NEXT)**
-  - **S4** — bulk `IndexabilityPolicy` for the 4 enumerators (sitemap/news/llms/llms-full), SQL-parity-diff-guarded.
+  - **S3 ✅ DONE (order 0023, v0.87.64):** Social/OG layer reads `AdapterRegistry::pageResolver()` `PageContext`
+    — `OgTagBuilder` (P11) seeds the props `context` block from RAW `option/view/rawId`; `OgTagProDecorator`
+    (P12, `:123`) article gate reads the same raw primitives (falls back to `props['context']`). Raw primitives
+    (NOT homepage-first `isArticle()`) → single-article-home `og:type=article` preserved byte-for-byte (S7 owns
+    that semantics change). Golden diff OG/Twitter byte-identical: Pro staging before↔after (clean v0.87.63
+    baseline) + Free same-version isolation (0.87.64 with vs without). Suite 494 + 3/3 green; installed Pro+Free;
+    Health 94/100.
+  - **S4** — bulk `IndexabilityPolicy` for the 4 enumerators (sitemap/news/llms/llms-full), SQL-parity-diff-guarded. **(NEXT)**
   - **S5** — canonical onto the resolver.
   - **S6** — expose language facts (active + site-default) via the resolver.
   - **S7** ⚠ — THE behaviour change: unify homepage detection on the menu `home=1` flag (own sign-off).
