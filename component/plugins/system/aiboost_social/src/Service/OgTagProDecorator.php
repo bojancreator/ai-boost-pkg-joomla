@@ -85,7 +85,7 @@ class OgTagProDecorator
         $og   = $props['og'] ?? [];
         $tw   = $props['tw'] ?? [];
         $ctx  = $props['context'] ?? ['option' => '', 'view' => '', 'id' => 0];
-        $lc   = $this->ctx->getActiveLanguage();
+        $lc   = ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
 
         // ── Sitewide per-language translations ────────────────────────────────
         $siteNameBase = trim((string) ($settings['site_name'] ?? ''));
@@ -217,7 +217,7 @@ class OgTagProDecorator
 
         // ── Sitewide Pro tags ────────────────────────────────────────────────
         if ((int) ($settings['enable_og_locale'] ?? 1)) {
-            $langTag         = $this->ctx->getActiveLanguage();
+            $langTag         = ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
             $og['og:locale'] = self::LOCALE_MAP[$langTag] ?? str_replace('-', '_', $langTag);
         }
 

@@ -44,6 +44,8 @@ class SchemaProBuilder
     private string $option;
     private string $view;
     private int    $id;
+    /** T1·S6: resolved per-request language (PageContext::language) when available. */
+    private string $lang;
 
     /**
      * @param array<string,mixed> $settings
@@ -70,6 +72,11 @@ class SchemaProBuilder
         $this->option       = $pageContext !== null ? $pageContext->option : $ctx->getCurrentOption();
         $this->view         = $pageContext !== null ? $pageContext->view   : $ctx->getCurrentView();
         $this->id           = $pageContext !== null ? $pageContext->rawId  : $ctx->getCurrentId();
+        // T1·S6: the active page language comes from the single resolver source
+        // (PageContext::language) when provided, falling back to the raw ctx value
+        // (unit tests). PageContext::language IS getActiveLanguage(), so this is
+        // byte-identical to the per-request active language used before.
+        $this->lang         = $pageContext !== null ? $pageContext->language : $ctx->getActiveLanguage();
     }
 
     /**
@@ -147,7 +154,7 @@ class SchemaProBuilder
             return $block;
         }
 
-        $lc = $this->ctx->getActiveLanguage();
+        $lc = $this->lang;
 
         $orgNameRaw    = trim((string) ($this->settings['org_name']           ?? ''));
         $orgDescRaw    = trim((string) ($this->settings['org_description']    ?? ''));
@@ -225,7 +232,7 @@ class SchemaProBuilder
             return null;
         }
 
-        $lc = $this->translations !== null ? $this->ctx->getActiveLanguage() : '';
+        $lc = $this->translations !== null ? $this->lang : '';
 
         $mainEntity = [];
         foreach ($items as $idx => $item) {
@@ -264,7 +271,7 @@ class SchemaProBuilder
             return null;
         }
 
-        $lc = $this->translations !== null ? $this->ctx->getActiveLanguage() : '';
+        $lc = $this->translations !== null ? $this->lang : '';
 
         $mainEntity = [];
         foreach ($items as $idx => $item) {
@@ -478,7 +485,7 @@ class SchemaProBuilder
         $orgUrl  = trim((string) ($this->settings['org_url']  ?? ''));
         $logo    = trim((string) ($this->settings['org_logo'] ?? ''));
         if ($this->translations !== null) {
-            $lc2     = $this->ctx->getActiveLanguage();
+            $lc2     = $this->lang;
             $orgName = $this->translations->get('org_name', $lc2, $orgName);
             $logo    = $this->translations->get('org_logo', $lc2, $logo);
         }
@@ -562,7 +569,7 @@ class SchemaProBuilder
 
         $orgName = trim((string) ($this->settings['org_name'] ?? ''));
         if ($this->translations !== null) {
-            $lc      = $this->ctx->getActiveLanguage();
+            $lc      = $this->lang;
             $orgName = $this->translations->get('org_name', $lc, $orgName);
 
             $eventIndex = $this->resolveEventIndex($this->id);
@@ -614,7 +621,7 @@ class SchemaProBuilder
         // is wired (the Pro + Multilang null-thread), each HowTo string is looked
         // up by its translation key for the active language, falling back to the
         // base (default-language) value entered in schema_howto.
-        $lc = $this->translations !== null ? $this->ctx->getActiveLanguage() : '';
+        $lc = $this->translations !== null ? $this->lang : '';
         if ($lc !== '' && $this->translations !== null) {
             $name = $this->translations->get('howto_name', $lc, $name);
         }
@@ -801,7 +808,7 @@ class SchemaProBuilder
                 $byName[(string) $f->name] = trim((string) $val);
             }
 
-            $lang = strtolower(substr($this->ctx->getActiveLanguage(), 0, 2));
+            $lang = strtolower(substr($this->lang, 0, 2));
             $pick = static function (string $base) use ($byName, $lang): string {
                 foreach ([$base . '_' . $lang, $base . '_en', $base] as $key) {
                     if (isset($byName[$key]) && $byName[$key] !== '') {

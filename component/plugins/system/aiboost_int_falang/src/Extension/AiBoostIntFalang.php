@@ -44,6 +44,7 @@ use AiBoost\Lib\Integration\IntegrationDescriptor;
 use AiBoost\Lib\Integration\Sdk;
 // @pro:start
 use AiBoost\Lib\BridgeDetector;
+use AiBoost\Lib\Cms\AdapterRegistry;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\PluginRegistry;
 use Joomla\CMS\Component\ComponentHelper;
@@ -278,14 +279,48 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
         // Joomla — correct for ANY multilingual site, Falang or not — and is NOT
         // the per-request active language (which Falang swaps) nor the global
         // config default. For frontend/hreflang/SEO the SITE default always wins.
-        $defaultLangCode = '';
-        try {
-            $defaultLangCode = trim((string) ComponentHelper::getParams('com_languages')->get('site', ''));
-        } catch (\Throwable) {
-            $defaultLangCode = '';
-        }
+        $defaultLangCode = $this->resolveSiteDefaultLanguage();
 
         return BridgeDetector::resolvePrimaryLanguageSef($defaultLangCode, $this->getLanguages(), $fallback);
+    }
+
+    /**
+     * T1·S6 — the SITE default CONTENT language, now sourced from the ONE resolver
+     * field `PageContext::siteDefaultLanguage` instead of an ad-hoc
+     * `com_languages 'site'` read.
+     *
+     * PRIMARY source is unchanged — the resolver's `siteDefaultLanguage` IS the
+     * `com_languages 'site'` value — so on every functional multilingual site
+     * (where x-default applies and `site` is always set) the value is identical to
+     * before (golden-diff identical, e.g. staging `sr-YU`).
+     *
+     * Empty-`site` EDGE (per Bojan's fallback-direction rule, a FRONT-END signal
+     * falls back to a FRONT-END default): the resolver falls back to the STABLE
+     * front-end config default language (`$app->get('language')` on the SITE app —
+     * NOT the per-request active language, NOT a hardcoded 'en'). resolvePrimary­
+     * LanguageSef() then maps whatever code this is to a PUBLISHED front-end
+     * language's SEF, so a value that is not a published front-end language can
+     * never leak into x-default; the legacy `falang_primary_language` setting
+     * remains only as the very-last-resort when nothing matches. See
+     * [[joomla-site-default-vs-global-language]].
+     *
+     * Guarded: if the Page classes are absent (partial install) the legacy
+     * `com_languages 'site'` read is used, byte-identical to the pre-S6 behaviour.
+     */
+    private function resolveSiteDefaultLanguage(): string
+    {
+        if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+            try {
+                return trim((string) AdapterRegistry::pageResolver()->resolve()->siteDefaultLanguage);
+            } catch (\Throwable) {
+                // fall through to the legacy read
+            }
+        }
+        try {
+            return trim((string) ComponentHelper::getParams('com_languages')->get('site', ''));
+        } catch (\Throwable) {
+            return '';
+        }
     }
 
     private function aiBoostSetting(string $key, mixed $default = null): mixed

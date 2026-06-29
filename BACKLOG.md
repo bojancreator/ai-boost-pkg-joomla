@@ -89,8 +89,18 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
     Canonical golden diff byte-identical before↔after **incl. a URL-map hit** on Free (j5free) + Pro (j6pro);
     staging canonical is 4SEO-owned (AI Boost defers → unchanged, regression-safe). Suite 506 PHPUnit (7 new,
     red-green) + 3/3 green; phpstan 192=192; installed Free+Pro.
-  - **S6** — expose language facts (active + site-default) via the resolver. **(NEXT)**
-  - **S7** ⚠ — THE behaviour change: unify homepage detection on the menu `home=1` flag (own sign-off).
+  - **S6 ✅ DONE (order 0027, v0.87.67):** language facts onto the resolver. **L1** active language → every
+    front-end Pro emitter reads `PageContext::language` (SchemaProBuilder ×7, OgTagProDecorator ×2,
+    LlmsTxtProGenerator ×2; `?PageContext` null-fallback to `$ctx`). **L2** site-default content language →
+    `AiBoostIntFalang::primaryLanguageSef()` reads `PageContext::siteDefaultLanguage` (PRIMARY = `com_languages`
+    `site`). First STOPPED at the empty-`site` divergence; Bojan's fallback-direction rule (FRONT-END signal →
+    FRONT-END default, never admin/active/`'en'`) resolved it — empty-`site` edge now follows the stable
+    front-end config default, filtered to a published language by `resolvePrimaryLanguageSef()`. L3
+    (`LanguageDetector`) untouched. Language golden diff byte-identical before↔after on Pro staging (hreflang +
+    x-default→/sr/ + og:locale on sr/en/ru + article; sitemap x-default all /sr/); Free language output is
+    Pro-only (none, no regression). Suite 508 PHPUnit (2 new, red-green) + 3/3; phpstan 192=192; Health
+    unchanged. Memory `joomla-site-default-vs-global-language` updated with the fallback-direction rule.
+  - **S7** ⚠ — THE behaviour change: unify homepage detection on the menu `home=1` flag (own sign-off). **(NEXT)**
   - **S8** — per-page noindex emitter + Markdown/llms noindex authority (opt-in, default-OFF).
   - **S9** — cleanup + a contract test forbidding new inline `com_content`/`article` gates outside `lib/src/Page/`.
   *(→ arch §10 T1, §3, §9)*
@@ -135,6 +145,16 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
 - ❓ **OPEN — Google Search Console integration.** The #1 competitive gap vs 4SEO (without measurement the
   tool is "set and hope"). Recommended; decide when reached. Pair with making Markdown/llms **noindex +
   out-of-sitemap** (part of the TRUNK indexability authority). *(→ arch §10 B2, §5)*
+- ✅ **DO (Bojan) — "Handled by X" conflict-takeover notice (general mechanism).** When AI Boost
+  cooperatively defers a feature to a competing plugin (e.g. 4SEO owns the canonical on staging — surfaced
+  during T1·S5), there is today only a coarse Health conflict flag and no plain, human-readable statement
+  of **which plugin took over which function**. Build it as ONE general mechanism (not per-feature): reuse
+  the existing cooperative-skip accounting (`noteSkip()` / `ConflictDetector`) to record, for every yielded
+  function, "feature F is currently output by plugin P", and surface that named statement in **two** places
+  only — the **Health** screen (the natural "what's working / what isn't" place) and the **Conflict Manager**
+  screen (where the admin already chooses takeover/defer). Name the plugin and the function in plain words.
+  Do NOT scatter per-tab banners (clutter for non-technical admins). (Bojan-decided 2026-06-29; scope =
+  general, surface = Health + Conflict Manager.) *(→ conflict-manager feature; T1·S5 deferral finding)*
 - ✅ **DO — Test floor under the flagship surfaces.** Unit tests for `HealthCheckService`, the three
   analyzers, `DuplicateTagScanner`, and especially the URL Checker SSRF allow-list — so a verifier can
   never silently become an always-pass — plus the central output-escaping test (security #5). *(→ arch

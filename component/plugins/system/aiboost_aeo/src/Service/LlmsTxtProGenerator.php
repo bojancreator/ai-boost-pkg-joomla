@@ -25,6 +25,7 @@ defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
 use AiBoost\Lib\Page\IndexabilityPolicy;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\TranslationService;
 use Joomla\Database\DatabaseInterface;
 
@@ -39,6 +40,8 @@ class LlmsTxtProGenerator
     private ?TranslationService $translations;
     /** When non-empty, overrides ctx->getActiveLanguage() for translation lookups. */
     private string $overrideLangCode;
+    /** T1·S6: resolved per-request page context (for PageContext::language). */
+    private ?PageContext $pageContext;
 
     /**
      * @param array<string,mixed> $settings
@@ -48,13 +51,15 @@ class LlmsTxtProGenerator
         AppContextInterface $ctx,
         DatabaseInterface $db,
         ?TranslationService $translations = null,
-        string $overrideLangCode = ''
+        string $overrideLangCode = '',
+        ?PageContext $pageContext = null
     ) {
         $this->settings         = $settings;
         $this->ctx              = $ctx;
         $this->db               = $db;
         $this->translations     = $translations;
         $this->overrideLangCode = $overrideLangCode;
+        $this->pageContext      = $pageContext;
         $this->baseUrl          = $ctx->getBaseUrl();
         $this->siteRoot         = $ctx->getBaseUrl();
     }
@@ -71,7 +76,7 @@ class LlmsTxtProGenerator
         $lines = [];
 
         $siteName   = $this->ctx->getSiteName();
-        $lc         = $this->overrideLangCode !== '' ? $this->overrideLangCode : $this->ctx->getActiveLanguage();
+        $lc         = $this->overrideLangCode !== '' ? $this->overrideLangCode : ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
         $applyTrans = $this->translations !== null;
 
         $orgNameBase = trim((string) ($this->settings['org_name'] ?? ''));
@@ -222,7 +227,7 @@ class LlmsTxtProGenerator
         $lines = [];
 
         $siteName    = $this->ctx->getSiteName();
-        $lc2         = $this->overrideLangCode !== '' ? $this->overrideLangCode : $this->ctx->getActiveLanguage();
+        $lc2         = $this->overrideLangCode !== '' ? $this->overrideLangCode : ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
         $applyTrans2 = $this->translations !== null;
 
         $orgName2Base = trim((string) ($this->settings['org_name'] ?? ''));

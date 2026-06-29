@@ -26,6 +26,7 @@ namespace AiBoost\Plugin\System\AiBoostAeo\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BodyBlockBuilder;
+use AiBoost\Lib\Cms\AdapterRegistry;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
@@ -105,7 +106,7 @@ class AiBoostAeo extends CMSPlugin
                         }
                         if ($langCode !== '' && $langCode !== $defaultLang) {
                             $ctx = new JoomlaAppContext();
-                            $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), $langCode);
+                            $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), $langCode, $this->resolvePageContext());
                             header('Content-Type: text/plain; charset=utf-8');
                             header('Cache-Control: public, max-age=86400');
                             echo $gen->generate();
@@ -117,7 +118,7 @@ class AiBoostAeo extends CMSPlugin
                     if ($isLlmsFull && (int) ($settings['llms_full_txt_enabled'] ?? 0)) {
                         $ctx = new JoomlaAppContext();
                         $db  = Factory::getDbo();
-                        $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang));
+                        $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), '', $this->resolvePageContext());
                         header('Content-Type: text/plain; charset=utf-8');
                         header('Cache-Control: public, max-age=3600');
                         echo $gen->generateFull();
@@ -163,7 +164,7 @@ class AiBoostAeo extends CMSPlugin
             if (class_exists(LlmsTxtProGenerator::class) && PluginRegistry::isProActive($settings)) {
                 try {
                     $defaultLang = (string) Factory::getApplication()->get('language', 'en-GB');
-                    $text = (new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang)))->generate();
+                    $text = (new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), '', $this->resolvePageContext()))->generate();
                 } catch (\Throwable $e) {
                     // keep the Free baseline $text
                 }
@@ -303,6 +304,25 @@ class AiBoostAeo extends CMSPlugin
             if ($url !== '') {
                 $svc->submit($url);
             }
+        }
+    }
+
+    /**
+     * T1·S6 — resolve the per-request PageContext via the wired resolver, so the
+     * llms generators read the active language from the single source
+     * (PageContext::language). Guarded + null-fallback (mirrors AiBoostSchema):
+     * absent Page classes / a resolve throw → null → the generator falls back to
+     * $ctx->getActiveLanguage() (byte-identical to pre-S6).
+     */
+    private function resolvePageContext(): ?\AiBoost\Lib\Page\PageContext
+    {
+        if (!class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+            return null;
+        }
+        try {
+            return AdapterRegistry::pageResolver()->resolve();
+        } catch (\Throwable $e) {
+            return null;
         }
     }
 

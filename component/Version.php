@@ -11,11 +11,11 @@ defined('_JEXEC') or die;
 
 final class Version
 {
-    public const VERSION = '0.87.66';
+    public const VERSION = '0.87.67';
 
     public const MAJOR = 0;
     public const MINOR = 87;
-    public const PATCH = 66;
+    public const PATCH = 67;
 
     public const RELEASE_DATE = '2026-06-29';
 

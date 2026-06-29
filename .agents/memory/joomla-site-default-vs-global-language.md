@@ -21,7 +21,33 @@ default.
 - write (setDefault): `$params->set($client->name, $cid)` then saves the `com_languages` extension params — it does **not** touch `configuration.php`.
 
 **Rule for this codebase:** hreflang/x-default and any "what language does the front
-end default to" logic must read `ComponentHelper::getParams('com_languages')->get('site')`
-(map the lang_code → SEF via the published `#__languages`). Used by
-`AiBoostIntFalang::primaryLanguageSef()` → `BridgeDetector::resolvePrimaryLanguageSef()`.
-Discovered order 0006 (B7) after wrongly reading the global config default first.
+end default to" logic must read the SITE default content language (`com_languages`
+`site`), map the lang_code → SEF via the published `#__languages`. Since **T1·S6**
+(order 0027) this comes from the ONE resolver field **`PageContext::siteDefaultLanguage`**
+(`PageResolver::resolveSiteDefaultLanguage()`), consumed by
+`AiBoostIntFalang::resolveSiteDefaultLanguage()` → `primaryLanguageSef()` →
+`BridgeDetector::resolvePrimaryLanguageSef()`. The resolver's PRIMARY source is still
+`com_languages` `site`. Discovered order 0006 (B7) after wrongly reading the global
+config default first.
+
+**Fallback-direction rule (Bojan, order 0027) — never assume English, never cross the
+front/back boundary:** Joomla always has *some* default, but it need NOT be English (a
+German install may have no English pack); the back-end (admin) and front-end default
+languages can differ, and the front-end may not even contain the back-end language (a
+Japanese admin running an en/fr/it site). Therefore:
+- A **FRONT-END** signal (x-default, hreflang, og:locale, any "site defaults to" value)
+  falls back to a **FRONT-END** default — NEVER the admin/back-end default, NEVER the
+  per-request active language, NEVER a hardcoded `'en'`.
+- A **BACK-END** value falls back to the **BACK-END** default.
+- The admin language must never leak into a front-end signal.
+
+Applied: when `com_languages` `site` is empty, `resolveSiteDefaultLanguage()` falls back
+to the **stable front-end config default** (`$app->get('language')` read on the SITE
+application — stable, NOT the per-request active language; confirmed by B7: staging
+front-end global default = `en-GB` while the active lang on `/sr/` is `sr-YU`).
+`BridgeDetector::resolvePrimaryLanguageSef()` then maps that code to a **published**
+front-end language's SEF, so a value that is not a published front-end language can never
+leak into x-default; the legacy `falang_primary_language`/`'en'` survives ONLY as the
+very-last-resort when nothing matches. On every functional multilingual site `site` is
+set, so x-default is unchanged (golden-diff identical) — the fallback is a broken-config
+safety net, not the normal path.
