@@ -44,6 +44,44 @@ final class SchemaProBuilderGateCharacterizationTest extends TestCase
         'FAQPage', 'QAPage', 'HowTo', 'Event',
     ];
 
+    /**
+     * T1·S7 (order 0028) — "the homepage is ALWAYS the homepage". On a
+     * SINGLE-ARTICLE homepage (article primitives BUT the menu item is home=1),
+     * the article gate is now closed (isArticlePage() == PageContext::isArticle()
+     * is false on a home), so NO article-scoped schema emits — the homepage takes
+     * the Free WebSite/home graph instead. Pre-S7 the gate was homepage-agnostic
+     * and Article schema emitted here; the behavioural before/after is captured
+     * live on staging (the design §3 reviewed diff).
+     */
+    public function testNoArticleScopedBlocksOnSingleArticleHomepage(): void
+    {
+        $settings = [
+            'article_schema_enabled' => '1',
+            'faq_auto_detect'        => '1',
+            'schema_faq_output_type' => 'both',
+            'schema_howto_enabled'   => '1',
+            'schema_howto'           => '{"name":"X","steps":["a","b"]}',
+            'events_enabled'         => '1',
+            'events_category_id'     => '2',
+        ];
+
+        // Article primitives, BUT this is the menu home=1 page.
+        $ctx = $this->ctx('com_content', 'article', 5);
+        $ctx->method('isHomepage')->willReturn(true);
+        $db = $this->createMock(DatabaseInterface::class);
+
+        $builder      = new SchemaProBuilder($settings, $ctx, $db);
+        $blocks       = $builder->decorateAll([]);
+        $emittedTypes = array_map(static fn(array $b): string => (string) ($b['@type'] ?? ''), $blocks);
+        foreach (self::ARTICLE_SCOPED_TYPES as $type) {
+            $this->assertNotContains(
+                $type,
+                $emittedTypes,
+                "S7: article-scoped @type '$type' must NOT emit on a single-article HOMEPAGE."
+            );
+        }
+    }
+
     public function testNoArticleScopedBlocksOnCategoryPage(): void
     {
         $settings = [

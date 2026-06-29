@@ -16,6 +16,7 @@ use AiBoost\Lib\BodyBlockBuilder;
 use AiBoost\Lib\Cms\AdapterRegistry;
 use AiBoost\Lib\ConflictPolicy;
 use AiBoost\Lib\HeadBlockBuilder;
+use AiBoost\Lib\Page\PageType;
 use AiBoost\Version;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Plugin\CMSPlugin;
@@ -397,7 +398,45 @@ CSS;
     }
 
     /**
-     * Detect the current page type for template selection.
+     * T1·S7 — the page type for title/meta template selection now flows from the
+     * shared PageResolver: the menu home=1 page is ALWAYS 'home' WHATEVER it is
+     * built from (single article, featured/blog list, category blog, anything),
+     * which also correctly recognises the localized home (`/sr/`, `/en/`) the old
+     * path-based guesswork could miss. The legacy path/`featured` heuristic
+     * (detectPageType, below) is kept ONLY as the absent-resolver fallback (partial
+     * uninstall / resolve() throws) — so a broken install degrades to pre-S7, never
+     * fatals.
+     *
+     * Returns one of: 'home' | 'article' | 'category' | 'search' | 'tag' | 'default'
+     */
+    private function resolvePageType(): string
+    {
+        if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+            try {
+                $pc = AdapterRegistry::pageResolver()->resolve();
+                if ($pc->isHomepage) {
+                    return 'home';
+                }
+
+                return match ($pc->type) {
+                    PageType::ARTICLE  => 'article',
+                    PageType::CATEGORY => 'category',
+                    PageType::SEARCH   => 'search',
+                    PageType::TAG      => 'tag',
+                    default            => 'default',
+                };
+            } catch (\Throwable $e) {
+                // fall through to the legacy detector (degraded mode)
+            }
+        }
+
+        return $this->detectPageType();
+    }
+
+    /**
+     * Legacy page-type detector — retained ONLY as the absent-resolver fallback for
+     * resolvePageType() (T1·S7). Do NOT call directly: the path/`featured`
+     * heuristic mis-classifies a single-article home and a non-home featured page.
      *
      * Returns one of: 'home' | 'article' | 'category' | 'search' | 'tag' | 'default'
      */
@@ -486,7 +525,7 @@ CSS;
         $separator = trim((string) ($settings['title_separator'] ?? ' | '));
         $year      = date('Y');
 
-        $pageType = $this->detectPageType();
+        $pageType = $this->resolvePageType();
 
         // Per-type template lookup
         $typeKey  = 'title_template_' . $pageType;
@@ -543,7 +582,7 @@ CSS;
     private function applyMetaDescTemplate($document, array $settings): bool
     {
         $app      = Factory::getApplication();
-        $pageType = $this->detectPageType();
+        $pageType = $this->resolvePageType();
 
         $typeKey  = 'meta_desc_template_' . $pageType;
         $template = trim((string) ($settings[$typeKey] ?? ''));

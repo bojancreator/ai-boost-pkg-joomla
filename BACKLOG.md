@@ -100,8 +100,18 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
     x-default→/sr/ + og:locale on sr/en/ru + article; sitemap x-default all /sr/); Free language output is
     Pro-only (none, no regression). Suite 508 PHPUnit (2 new, red-green) + 3/3; phpstan 192=192; Health
     unchanged. Memory `joomla-site-default-vs-global-language` updated with the fallback-direction rule.
-  - **S7** ⚠ — THE behaviour change: unify homepage detection on the menu `home=1` flag (own sign-off). **(NEXT)**
-  - **S8** — per-page noindex emitter + Markdown/llms noindex authority (opt-in, default-OFF).
+  - **S7 ✅ DONE (order 0028, v0.87.68 — THE behaviour change, Bojan-reviewed):** "the homepage is ALWAYS
+    the homepage". Title/meta select via `AiBoostCore::resolvePageType()` (the resolver, homepage-first;
+    legacy `detectPageType()` kept only as the absent-resolver fallback); the Pro schema article gates
+    (`SchemaProBuilder::isArticlePage()` == `PageContext::isArticle()`) and the Pro social article gate
+    (`OgTagProDecorator`) are now homepage-aware. A single-article / featured / category-blog HOME (incl.
+    the localized `/sr/`,`/en/` home) takes the home graph: **og:type article→website, Article/author/
+    datePublished gone, home title template**. Verified live on Pro staging — home /en/ & /sr/ changed as
+    expected; **every inner page byte-identical** (inner single-article menu items + petrus-2025 stay
+    `og:type=article`). Schema is deferred to YOOtheme/4SEO on staging (not visible there) but driven by the
+    SAME `isHomepage` gate as og:type + locked by a new unit test. Suite 509 + 3/3 green, red-green (the
+    title/meta coupling test flipped to the homepage-first expectation).
+  - **S8** — per-page noindex emitter + Markdown/llms noindex authority (opt-in, default-OFF). **(NEXT)**
   - **S9** — cleanup + a contract test forbidding new inline `com_content`/`article` gates outside `lib/src/Page/`.
   *(→ arch §10 T1, §3, §9)*
 - ✅ **DO (Bojan) — Finish the multilingual moat (`falang_schema_translate`).** Translate HowTo step

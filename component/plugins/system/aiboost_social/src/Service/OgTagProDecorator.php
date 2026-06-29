@@ -126,14 +126,17 @@ class OgTagProDecorator
         // ── Article enrichment ────────────────────────────────────────────────
         // T1·S3: prefer the resolved PageContext raw primitives (production);
         // fall back to the props context array (unit tests / no resolver).
-        // Identical values — byte-identical OG output, single-article-home incl.
         $option = $this->pageContext !== null ? $this->pageContext->option : (string) ($ctx['option'] ?? '');
         $view   = $this->pageContext !== null ? $this->pageContext->view   : (string) ($ctx['view']   ?? '');
         $id     = $this->pageContext !== null ? $this->pageContext->rawId  : (int)    ($ctx['id']     ?? 0);
+        // T1·S7: the menu-home truth closes the article gate on the homepage, so a
+        // single-article / featured / category-blog HOME keeps og:type=website (the
+        // Free baseline) and emits NO article:* / author / published_time.
+        $isHomepage = $this->pageContext !== null ? $this->pageContext->isHomepage : (bool) ($ctx['isHomepage'] ?? false);
 
         $ogTypeFromField = false;
 
-        if ($option === 'com_content' && $view === 'article' && $id > 0) {
+        if (!$isHomepage && $option === 'com_content' && $view === 'article' && $id > 0) {
             $article = $this->loadArticle($id);
 
             if ($article) {

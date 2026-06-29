@@ -44,6 +44,8 @@ class SchemaProBuilder
     private string $option;
     private string $view;
     private int    $id;
+    /** T1·S7: the one homepage truth (menu home=1) — closes the article gates on the home. */
+    private bool $isHomepage;
     /** T1·S6: resolved per-request language (PageContext::language) when available. */
     private string $lang;
 
@@ -55,8 +57,10 @@ class SchemaProBuilder
      *        fall back to the raw $ctx primitives. BEHAVIOUR-IDENTICAL: PageContext's
      *        raw option/view/rawId ARE getCurrentOption/View/Id — the article gate
      *        therefore fires on exactly the same pages as before, including a
-     *        single-article homepage (the homepage-first isArticle() semantics are
-     *        deliberately NOT used here; that change is S7).
+     *        single-article homepage. T1·S7 — the article gates are now
+     *        homepage-aware (isArticlePage() == PageContext::isArticle()): a
+     *        single-article / featured / category-blog HOME no longer emits
+     *        article-scoped schema (the homepage takes the Free WebSite/home graph).
      */
     public function __construct(
         array $settings,
@@ -72,11 +76,30 @@ class SchemaProBuilder
         $this->option       = $pageContext !== null ? $pageContext->option : $ctx->getCurrentOption();
         $this->view         = $pageContext !== null ? $pageContext->view   : $ctx->getCurrentView();
         $this->id           = $pageContext !== null ? $pageContext->rawId  : $ctx->getCurrentId();
+        // T1·S7: the menu-home truth. When the resolver is present (production) the
+        // homepage is the menu home=1 page whatever it is built from; the null
+        // fallback (unit tests) is $ctx->isHomepage() (the same menu-home flag).
+        $this->isHomepage   = $pageContext !== null ? $pageContext->isHomepage : $ctx->isHomepage();
         // T1·S6: the active page language comes from the single resolver source
         // (PageContext::language) when provided, falling back to the raw ctx value
         // (unit tests). PageContext::language IS getActiveLanguage(), so this is
         // byte-identical to the per-request active language used before.
         $this->lang         = $pageContext !== null ? $pageContext->language : $ctx->getActiveLanguage();
+    }
+
+    /**
+     * T1·S7 — the homepage-first article gate (== PageContext::isArticle()): a real
+     * article page that is NOT the menu home. A single-article / featured /
+     * category-blog HOME returns false, so no article-scoped schema (Article,
+     * Event, HowTo, auto-detected FAQ, author/datePublished) emits on the home —
+     * the homepage takes the Free WebSite/home graph instead.
+     */
+    private function isArticlePage(): bool
+    {
+        return !$this->isHomepage
+            && $this->option === 'com_content'
+            && $this->view === 'article'
+            && $this->id > 0;
     }
 
     /**
@@ -326,9 +349,7 @@ class SchemaProBuilder
             }
         }
 
-        if ((int) ($this->settings['faq_auto_detect'] ?? 0)
-            && $this->option === 'com_content' && $this->view === 'article' && $this->id > 0
-        ) {
+        if ((int) ($this->settings['faq_auto_detect'] ?? 0) && $this->isArticlePage()) {
             $detected = $this->detectFaqFromCurrentArticle();
             if (!empty($detected)) {
                 $seen = [];
@@ -387,7 +408,7 @@ class SchemaProBuilder
     /** @return array<string,mixed>|null */
     private function buildArticle(): ?array
     {
-        if ($this->option !== 'com_content' || $this->view !== 'article' || $this->id <= 0) {
+        if (!$this->isArticlePage()) {
             return null;
         }
 
@@ -511,7 +532,7 @@ class SchemaProBuilder
         if ($eventsCatId <= 0) {
             return null;
         }
-        if ($this->option !== 'com_content' || $this->view !== 'article' || $this->id <= 0) {
+        if (!$this->isArticlePage()) {
             return null;
         }
 
@@ -589,7 +610,7 @@ class SchemaProBuilder
     /** @return array<string,mixed>|null */
     private function buildHowTo(): ?array
     {
-        if ($this->option !== 'com_content' || $this->view !== 'article' || $this->id <= 0) {
+        if (!$this->isArticlePage()) {
             return null;
         }
 

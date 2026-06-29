@@ -96,23 +96,24 @@ final class T1ResolverEquivalenceTest extends TestCase
     }
 
     /**
-     * THE divergence S2 must preserve: a single-article HOMEPAGE
-     * (option=com_content, view=article, id>0, AND the menu item is home=1).
-     * The inline gate fires (→ Article schema emits today); the resolver
-     * classifies homepage-first (isArticle()=false). Captured so S2 does not
-     * silently drop Article schema on a single-article home.
+     * The single-article HOMEPAGE divergence — RECONCILED in S7 (order 0028).
+     * The OLD inline triple was homepage-agnostic (Article schema / og:type=article
+     * emitted on a single-article home); the resolver classifies homepage-first
+     * (isArticle()=false). S7 switched the schema + social consumers onto
+     * isArticle()/isHomepage, so the homepage now takes the home graph
+     * (WebSite/Organization, og:type=website). This pins WHY they differ.
      */
     public function testArticleGateDivergesOnlyOnSingleArticleHome(): void
     {
         $cfg = ['option' => 'com_content', 'view' => 'article', 'id' => 9, 'home' => true];
         $this->assertTrue(
             $this->inlineArticleGate('com_content', 'article', 9),
-            'Today the inline gate treats a single-article home AS an article (Article schema emits).'
+            'The OLD homepage-agnostic triple treated a single-article home as an article.'
         );
         $pc = $this->resolve($cfg);
         $this->assertFalse(
             $pc->isArticle(),
-            'The resolver classifies a single-article home as HOMEPAGE (isArticle()=false) — divergence S2 must reconcile.'
+            'The resolver (now the consumers, post-S7) classifies a single-article home as HOMEPAGE.'
         );
         $this->assertTrue($pc->isHomepage);
     }

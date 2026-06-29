@@ -66,29 +66,53 @@ final class T1MigrationMapContractTest extends TestCase
         );
     }
 
-    // ── detectPageType heuristic (H2 / P1) ────────────────────────────────────
-    public function testDetectPageTypeHeuristic(): void
+    // ── detectPageType heuristic (H2 / P1) — POST-S7: now the absent-resolver fallback ──
+    // S7 (order 0028) retired detectPageType() as the live path: title/meta now select
+    // via resolvePageType() (the resolver, homepage-first). detectPageType() is kept
+    // ONLY as resolvePageType()'s fallback for a partial uninstall — its heuristic body
+    // is therefore still present (this contract still pins it), but it no longer drives
+    // production behaviour. See testTitleMetaTemplatesSelectViaResolverHomepageFirst.
+    public function testDetectPageTypeHeuristicRetainedAsFallback(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_core/src/Extension/AiBoostCore.php');
         $this->assertAllContain($src, [
             'function detectPageType',
-            "view === 'featured'",   // the buggy featured→home heuristic S7 retires
+            "view === 'featured'",   // still in the fallback body
             "return 'article';",
             "return 'category';",
             "return 'search';",
             "return 'tag';",
-        ], 'H2/P1 detectPageType');
+        ], 'H2/P1 detectPageType (fallback)');
     }
 
-    public function testTitleMetaTemplatesUseDetectPageType(): void
+    /**
+     * S7 — title/meta template selection is now homepage-first via the resolver:
+     * applyTitleTemplate + applyMetaDescTemplate call resolvePageType(), which reads
+     * AdapterRegistry::pageResolver()->resolve() and returns 'home' for the menu
+     * home=1 page WHATEVER it is built from. detectPageType() is no longer called by
+     * the template methods (only by resolvePageType()'s fallback).
+     */
+    public function testTitleMetaTemplatesSelectViaResolverHomepageFirst(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_core/src/Extension/AiBoostCore.php');
-        // Both template methods select per-type via detectPageType today (≥2 calls:
-        // the definition + the two call sites).
+        // def + the two template call sites all use resolvePageType().
         $this->assertGreaterThanOrEqual(
             3,
-            substr_count($src, 'detectPageType('),
-            'H2: applyTitleTemplate + applyMetaDescTemplate must select page type via detectPageType().'
+            substr_count($src, 'resolvePageType('),
+            'S7: title/meta must select page type via resolvePageType().'
+        );
+        $this->assertAllContain($src, [
+            'function resolvePageType',
+            'pageResolver()',          // resolvePageType reads the shared resolver
+            '$pc->isHomepage',         // homepage-first: menu home=1 wins
+            "return 'home';",
+        ], 'S7 resolvePageType');
+        // The template methods no longer call the legacy detector directly — its only
+        // caller is resolvePageType()'s fallback (so exactly ONE $this->detectPageType()).
+        $this->assertSame(
+            1,
+            substr_count($src, '$this->detectPageType()'),
+            'S7: detectPageType() must be called only as resolvePageType()\'s fallback.'
         );
     }
 
