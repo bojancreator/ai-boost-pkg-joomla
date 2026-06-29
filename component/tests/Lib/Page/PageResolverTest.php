@@ -157,4 +157,82 @@ final class PageResolverTest extends TestCase
         $resolver = new PageResolver($ctx, new IndexabilityPolicy(), $db);
         $this->assertSame($resolver->resolve(), $resolver->resolve());
     }
+
+    // ── T1·S5 — canonical owned by the resolver ─────────────────────────────
+    //
+    // These pin PageContext::canonical to the byte-for-byte output of the legacy
+    // AiBoostCore::resolveCanonical(): the bare scheme://host/path (query/fragment
+    // stripped) for the no-map case, and the mapped target for a URL-map hit. The
+    // canonical-only consumer (aiboost_core) threads the raw `canonical_url_map`
+    // setting into resolve(); every other consumer passes nothing.
+
+    private function resolverFor(string $url): PageResolver
+    {
+        $ctx = $this->createMock(AppContextInterface::class);
+        $ctx->method('getCurrentOption')->willReturn('com_content');
+        $ctx->method('getCurrentView')->willReturn('article');
+        $ctx->method('getCurrentId')->willReturn(5);
+        $ctx->method('isHomepage')->willReturn(false);
+        $ctx->method('getActiveLanguage')->willReturn('en-GB');
+        $ctx->method('getDefaultLanguage')->willReturn('en-GB');
+        $ctx->method('getCurrentUrl')->willReturn($url);
+        $db = $this->createMock(DatabaseAdapter::class);
+        $db->method('getConnection')->willThrowException(new \RuntimeException('no db in unit test'));
+
+        return new PageResolver($ctx, new IndexabilityPolicy(), $db);
+    }
+
+    /** No map → bare scheme://host/path; the query string is stripped (legacy parity). */
+    public function testCanonicalNoMapIsBareUrlWithoutQuery(): void
+    {
+        $pc = $this->resolverFor('https://example.com/blog/post?start=20&x=1#frag')->resolve();
+        $this->assertSame('https://example.com/blog/post', $pc->canonical);
+    }
+
+    /** URL-map exact hit → the mapped target (legacy resolveCanonical parity). */
+    public function testCanonicalUrlMapExactHit(): void
+    {
+        $map = json_encode(['blog/post' => 'https://example.com/the-canonical']);
+        $pc  = $this->resolverFor('https://example.com/blog/post?x=1')->resolve($map);
+        $this->assertSame('https://example.com/the-canonical', $pc->canonical);
+    }
+
+    /** URL-map prefix hit (currentPath starts with pattern) → the mapped target. */
+    public function testCanonicalUrlMapPrefixHit(): void
+    {
+        $map = json_encode(['shop' => 'https://example.com/store']);
+        $pc  = $this->resolverFor('https://example.com/shop/item-42?ref=x')->resolve($map);
+        $this->assertSame('https://example.com/store', $pc->canonical);
+    }
+
+    /** Map present but no pattern matches → bare URL fallback. */
+    public function testCanonicalUrlMapNoHitFallsBackToBareUrl(): void
+    {
+        $map = json_encode(['other' => 'https://example.com/nope']);
+        $pc  = $this->resolverFor('https://example.com/blog/post')->resolve($map);
+        $this->assertSame('https://example.com/blog/post', $pc->canonical);
+    }
+
+    /** Invalid / empty map JSON → bare URL fallback (legacy parity). */
+    public function testCanonicalInvalidMapFallsBackToBareUrl(): void
+    {
+        $resolver = $this->resolverFor('https://example.com/blog/post');
+        $this->assertSame('https://example.com/blog/post', $resolver->resolve('not json')->canonical);
+        $this->assertSame('https://example.com/blog/post', $resolver->resolve('')->canonical);
+    }
+
+    /**
+     * A map-threading call must NOT mutate the memoised base: a later no-map
+     * resolve() (the other consumers) still sees the bare URL. This makes the
+     * canonical answer independent of which consumer resolves first.
+     */
+    public function testCanonicalMapDoesNotMutateMemoisedBase(): void
+    {
+        $resolver = $this->resolverFor('https://example.com/blog/post');
+        $map      = json_encode(['blog/post' => 'https://example.com/the-canonical']);
+
+        $this->assertSame('https://example.com/the-canonical', $resolver->resolve($map)->canonical);
+        // Subsequent no-map resolve (schema/social/indexability) is unaffected.
+        $this->assertSame('https://example.com/blog/post', $resolver->resolve()->canonical);
+    }
 }

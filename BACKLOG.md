@@ -81,9 +81,15 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
     + use the guest-access set instead of `access=1`; llms.txt/news would apply guest-access). Needs Bojan's
     explicit approval of the exact URL changes. Decision deferred until the per-page noindex authority (S8)
     so per-request + bulk indexability are reconciled together. (Detail: `_handoff/outbox/0024-…`.)
-  - **S5** — canonical onto the resolver. **(NEXT)**
-  - **S5** — canonical onto the resolver.
-  - **S6** — expose language facts (active + site-default) via the resolver.
+  - **S5 ✅ DONE (order 0026, v0.87.66):** canonical onto the resolver. `resolveCanonical()` logic (URL-map +
+    bare scheme://host/path) moved into `PageResolver`; `AiBoostCore` reads `PageContext::canonical`. The map
+    is threaded in via a new optional `resolve(?string $canonicalUrlMap = null)` arg (default null = no map →
+    bare URL, so S2/S3/S4 callers are byte-unaffected); a map hit returns a context via `PageContext::withCanonical()`
+    WITHOUT mutating the memoised base (order-independent). Legacy `resolveCanonical()` KEPT as guarded fallback.
+    Canonical golden diff byte-identical before↔after **incl. a URL-map hit** on Free (j5free) + Pro (j6pro);
+    staging canonical is 4SEO-owned (AI Boost defers → unchanged, regression-safe). Suite 506 PHPUnit (7 new,
+    red-green) + 3/3 green; phpstan 192=192; installed Free+Pro.
+  - **S6** — expose language facts (active + site-default) via the resolver. **(NEXT)**
   - **S7** ⚠ — THE behaviour change: unify homepage detection on the menu `home=1` flag (own sign-off).
   - **S8** — per-page noindex emitter + Markdown/llms noindex authority (opt-in, default-OFF).
   - **S9** — cleanup + a contract test forbidding new inline `com_content`/`article` gates outside `lib/src/Page/`.

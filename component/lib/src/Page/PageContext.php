@@ -56,6 +56,34 @@ final class PageContext
     ) {
     }
 
+    /**
+     * Return a copy of this context with a different canonical URL (immutable).
+     *
+     * T1·S5: the PageResolver builds the base context with the bare
+     * scheme://host/path canonical, then — only for the canonical consumer that
+     * threads in a URL map — applies a map hit by producing a new context via
+     * this wither. The base stays untouched so consumers that never pass a map
+     * always see the bare URL.
+     */
+    public function withCanonical(string $canonical): self
+    {
+        return new self(
+            type:                  $this->type,
+            entityKind:            $this->entityKind,
+            entityId:              $this->entityId,
+            option:                $this->option,
+            view:                  $this->view,
+            rawId:                 $this->rawId,
+            isHomepage:            $this->isHomepage,
+            language:              $this->language,
+            siteDefaultLanguage:   $this->siteDefaultLanguage,
+            globalDefaultLanguage: $this->globalDefaultLanguage,
+            canonical:             $canonical,
+            indexable:             $this->indexable,
+            noindexReason:         $this->noindexReason,
+        );
+    }
+
     /** True only on a real article page with a positive id. */
     public function isArticle(): bool
     {

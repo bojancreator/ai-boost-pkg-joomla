@@ -13,6 +13,7 @@ namespace AiBoost\Plugin\System\AiBoostCore\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BodyBlockBuilder;
+use AiBoost\Lib\Cms\AdapterRegistry;
 use AiBoost\Lib\ConflictPolicy;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Version;
@@ -241,7 +242,7 @@ CSS;
         // outer block header lists it under "Also emitted via Joomla head".
         if (!empty($settings['enable_canonical'])
             && ConflictPolicy::shouldApplyExclusive(ConflictPolicy::FEATURE_CANONICAL, $settings)) {
-            $canonical = $this->resolveCanonical($settings);
+            $canonical = $this->resolveCanonicalViaResolver($settings);
             if ($canonical) {
                 $document->addHeadLink(htmlspecialchars($canonical), 'canonical');
                 HeadBlockBuilder::noteNative('canonical');
@@ -347,6 +348,33 @@ CSS;
             return;
         }
         $this->log404Request();
+    }
+
+    /**
+     * T1·S5 — canonical now lives in the shared PageResolver. Read the resolved
+     * canonical from PageContext (the single source), threading in the raw
+     * `canonical_url_map` setting so the resolver applies the URL map. The
+     * resolver reproduces the legacy logic byte-for-byte (URL-map hit OR the bare
+     * scheme://host/path). Falls back to the legacy private method below if the
+     * Page classes are absent (partial uninstall) or resolve() throws — so the
+     * absent-resolver path stays byte-identical to pre-S5.
+     *
+     * @param array<string,mixed> $settings
+     */
+    private function resolveCanonicalViaResolver(array $settings): string
+    {
+        if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+            try {
+                $map = $settings['canonical_url_map'] ?? null;
+                return AdapterRegistry::pageResolver()
+                    ->resolve(is_string($map) ? $map : null)
+                    ->canonical;
+            } catch (\Throwable $e) {
+                // fall through to the legacy resolver
+            }
+        }
+
+        return $this->resolveCanonical($settings);
     }
 
     private function resolveCanonical(array $settings): string

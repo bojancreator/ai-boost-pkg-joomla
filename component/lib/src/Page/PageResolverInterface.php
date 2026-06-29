@@ -23,6 +23,17 @@ defined('_JEXEC') or defined('ABSPATH') or die;
 
 interface PageResolverInterface
 {
-    /** Resolve (and memoise) the PageContext for the current request. */
-    public function resolve(): PageContext;
+    /**
+     * Resolve (and memoise) the PageContext for the current request.
+     *
+     * @param ?string $canonicalUrlMap  T1·S5: the raw `canonical_url_map` setting
+     *        (a JSON map of path-prefix → canonical target), threaded in only by
+     *        the canonical consumer (aiboost_core). null = no map → the bare
+     *        scheme://host/path canonical that the base context already carries.
+     *        Every other consumer passes nothing and is byte-unaffected. A map
+     *        hit returns a context carrying the mapped canonical WITHOUT mutating
+     *        the memoised base, so the answer is the same regardless of which
+     *        consumer resolves first.
+     */
+    public function resolve(?string $canonicalUrlMap = null): PageContext;
 }

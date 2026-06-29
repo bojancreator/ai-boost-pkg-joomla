@@ -39,12 +39,27 @@ final class PageResolver implements PageResolverInterface
     ) {
     }
 
-    public function resolve(): PageContext
+    public function resolve(?string $canonicalUrlMap = null): PageContext
     {
-        if ($this->resolved !== null) {
-            return $this->resolved;
-        }
+        $base = $this->resolved ??= $this->build();
 
+        // T1·S5 — canonical URL map. Only the canonical consumer (aiboost_core)
+        // threads in the raw `canonical_url_map` setting; every other consumer
+        // passes nothing and gets the bare scheme://host/path canonical the base
+        // context already carries (byte-unchanged from before S5). A map hit
+        // returns a NEW context carrying the mapped canonical without mutating the
+        // memoised base, so the answer is identical regardless of which consumer
+        // resolves first — no dependence on plugin ordering.
+        if ($canonicalUrlMap === null) {
+            return $base;
+        }
+        $mapped = $this->applyCanonicalUrlMap($canonicalUrlMap, $base->canonical);
+
+        return $mapped === $base->canonical ? $base : $base->withCanonical($mapped);
+    }
+
+    private function build(): PageContext
+    {
         $option = $this->ctx->getCurrentOption();
         $view   = $this->ctx->getCurrentView();
         $rawId  = $this->ctx->getCurrentId();
@@ -55,14 +70,14 @@ final class PageResolver implements PageResolverInterface
         $language       = $this->ctx->getActiveLanguage();
         $globalDefault  = $this->ctx->getDefaultLanguage();
         $siteDefault    = $this->resolveSiteDefaultLanguage($globalDefault);
-        $canonical      = $this->ctx->getCurrentUrl();
+        $canonical      = $this->bareCurrentUrl();
 
         // Per-request indexability. The per-page noindex capability is OFF by
         // default (decision D2), so this is [true, ''] for every rendered page —
         // i.e. no behaviour change. The setting that can flip it arrives at S8.
         [$indexable, $noindexReason] = $this->indexability->forRenderedPage($type, false);
 
-        return $this->resolved = new PageContext(
+        return new PageContext(
             type:                  $type,
             entityKind:            $entityKind,
             entityId:              $entityId,
@@ -77,6 +92,50 @@ final class PageResolver implements PageResolverInterface
             indexable:             $indexable,
             noindexReason:         $noindexReason,
         );
+    }
+
+    /**
+     * The bare canonical URL for the current request: scheme://host/path, with no
+     * query string or fragment. CMS-neutral reproduction of the legacy
+     * AiBoostCore::resolveCanonical() fallback (`$uri->getScheme().'://'.
+     * $uri->getHost().$uri->getPath()`) — derived by parsing the AppContext's
+     * current URL so the resolver never touches Joomla's Uri directly.
+     */
+    private function bareCurrentUrl(): string
+    {
+        $url    = $this->ctx->getCurrentUrl();
+        $scheme = (string) parse_url($url, PHP_URL_SCHEME);
+        $host   = (string) parse_url($url, PHP_URL_HOST);
+        $path   = (string) parse_url($url, PHP_URL_PATH);
+
+        return $scheme . '://' . $host . $path;
+    }
+
+    /**
+     * Apply the canonical URL map verbatim from the legacy
+     * AiBoostCore::resolveCanonical(): decode the JSON map and prefix-match the
+     * current request path (`ltrim(path,'/')`) against each `pattern`; the first
+     * exact-or-prefix hit returns its mapped `target`. No map / invalid JSON /
+     * no hit → the supplied bare-URL fallback. Path is read CMS-neutrally from the
+     * AppContext URL (== the old `Uri::getInstance()->getPath()`).
+     */
+    private function applyCanonicalUrlMap(string $canonicalUrlMap, string $fallback): string
+    {
+        $mapJson = trim($canonicalUrlMap);
+        if ($mapJson !== '') {
+            $map = json_decode($mapJson, true);
+            if (is_array($map)) {
+                $currentPath = ltrim((string) parse_url($this->ctx->getCurrentUrl(), PHP_URL_PATH), '/');
+                foreach ($map as $pattern => $target) {
+                    $pattern = ltrim((string) $pattern, '/');
+                    if ($currentPath === $pattern || strpos($currentPath, $pattern) === 0) {
+                        return (string) $target;
+                    }
+                }
+            }
+        }
+
+        return $fallback;
     }
 
     /**
