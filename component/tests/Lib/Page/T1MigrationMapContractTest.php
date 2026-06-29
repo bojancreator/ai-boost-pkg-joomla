@@ -29,8 +29,9 @@ use PHPUnit\Framework\TestCase;
  *   I2  — NewsSitemapGenerator filter → testNewsSitemapIndexabilityFilter
  *   I3  — LlmsTxtGenerator filter → testLlmsTxtIndexabilityFilter
  *   I4  — LlmsTxtProGenerator filters → testLlmsFullIndexabilityFilters
- *   I5  — AiBoostAeo X-Robots header → testXRobotsHeaderEmitter
+ *   I5  — AiBoostAeo X-Robots header (S8: driven by PageContext::indexable) → testXRobotsHeaderEmitter
  *   I6  — AiBoostAeo Markdown discovery → testMarkdownDiscoveryEmitter
+ *   I5/I6 (S8) — Markdown-alternate noindex (B2 close) → testMarkdownAlternateNoindexEmitter
  *   L1  — JoomlaAppContext::getActiveLanguage → testActiveLanguageSource
  *   L2  — AiBoostIntFalang site-default language → testSiteDefaultLanguageSource
  *   L3  — LanguageDetector (translation-source authority) is OUT of T1 scope → testL3StaysOutOfScope
@@ -185,21 +186,62 @@ final class T1MigrationMapContractTest extends TestCase
         $this->assertAllContain($src, ['IndexabilityPolicy', 'itemWhereClauses', 'publicAccessOnly: true'], 'I4 LlmsTxtProGenerator delegates');
     }
 
-    // ── AEO per-request (I5 / I6) ─────────────────────────────────────────────
+    // ── AEO per-request (I5 / I6) — MIGRATED in S8 (order 0029) ────────────────
+    // S8 wired the per-page noindex MECHANISM: the X-Robots header (and a dormant
+    // head robots meta) now read PageContext::indexable instead of a hardcoded
+    // "index, follow". Under the shipped rule (Option A) the ONLY thing that flips
+    // indexable to false is the Markdown alternate (a duplicate of the HTML page),
+    // behind the opt-in default-OFF markdown_alternate_noindex setting (closes B2).
+    // Normal HTML pages stay indexable, so the OFF path is byte-identical.
     public function testXRobotsHeaderEmitter(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_aeo/src/Extension/AiBoostAeo.php');
         $this->assertAllContain($src, [
             'enable_x_robots_header',
-            'X-Robots-Tag: index, follow',
             'isProActive',
-        ], 'I5 X-Robots-Tag');
+            'resolveRequestIndexability',           // reads PageContext::indexable
+            "? 'index, follow' : 'noindex'",        // the X-Robots branch (was hardcoded)
+        ], 'I5/S8 X-Robots-Tag driven by PageContext::indexable');
+        // The unconditional "index,follow" header is retired (now a branch on indexable).
+        $this->assertStringNotContainsString(
+            "'X-Robots-Tag: index, follow'",
+            $src,
+            'S8: the unconditional index,follow X-Robots header must be retired.'
+        );
     }
 
     public function testMarkdownDiscoveryEmitter(): void
     {
         $src = $this->src(self::PLUGINS . '/aiboost_aeo/src/Extension/AiBoostAeo.php');
         $this->assertAllContain($src, ['markdown_pages_enabled', 'type="text/markdown"'], 'I6 Markdown discovery');
+    }
+
+    /**
+     * S8 (order 0029) — the Markdown alternate (a duplicate of the HTML page) is
+     * kept out of search when the opt-in markdown_alternate_noindex setting is on:
+     * resolveRequestIndexability() flips PageContext::indexable to false ONLY for a
+     * Markdown request, and the Markdown serve path emits X-Robots-Tag: noindex on
+     * the text/markdown response (independent of the Pro X-Robots feature, so it
+     * works on Free too). The HTML original is untouched.
+     */
+    public function testMarkdownAlternateNoindexEmitter(): void
+    {
+        $src = $this->src(self::PLUGINS . '/aiboost_aeo/src/Extension/AiBoostAeo.php');
+        $this->assertAllContain($src, [
+            'function resolveRequestIndexability',
+            'markdown_alternate_noindex',
+            'withIndexable(false',                   // Markdown alternate → non-indexable
+            "setHeader('X-Robots-Tag', 'noindex'",   // emitted on the Markdown response
+            'isMarkdownRequest',                     // only the Markdown alternate, never HTML
+        ], 'S8 Markdown-alternate noindex');
+        // The manifest field must exist (opt-in, default-OFF, free — validated in full
+        // by ManifestDefaultsParityTest + codegen --check).
+        $manifest = $this->src(self::LIB . '/Manifest/aeo.php');
+        $this->assertStringContainsString(
+            "'markdown_alternate_noindex'",
+            $manifest,
+            'S8: the opt-in markdown_alternate_noindex manifest field must exist.'
+        );
     }
 
     // ── language (L1 / L2 / L3) ───────────────────────────────────────────────

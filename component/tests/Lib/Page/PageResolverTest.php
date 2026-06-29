@@ -141,6 +141,44 @@ final class PageResolverTest extends TestCase
         $this->assertSame('', $pc->noindexReason);
     }
 
+    // ── T1·S8 — PageContext::withIndexable (the per-page noindex wither) ─────────
+    //
+    // S8's per-page noindex consumer (AiBoostAeo, for the Markdown alternate behind
+    // the opt-in markdown_alternate_noindex setting) flips indexability through this
+    // immutable wither so every emitter reads ONE field (PageContext::indexable).
+    public function testWithIndexableProducesNonIndexableVariant(): void
+    {
+        $pc      = $this->resolve(['option' => 'com_content', 'view' => 'article', 'id' => 1]);
+        $variant = $pc->withIndexable(false, 'markdown alternate (duplicate of the HTML page)');
+
+        $this->assertFalse($variant->indexable);
+        $this->assertSame('markdown alternate (duplicate of the HTML page)', $variant->noindexReason);
+        // Every other field is preserved.
+        $this->assertSame($pc->type, $variant->type);
+        $this->assertSame($pc->canonical, $variant->canonical);
+        $this->assertSame($pc->language, $variant->language);
+        $this->assertSame($pc->entityId, $variant->entityId);
+    }
+
+    public function testWithIndexableTrueClearsReason(): void
+    {
+        $pc      = $this->resolve(['option' => 'com_content', 'view' => 'article', 'id' => 1]);
+        $variant = $pc->withIndexable(true, 'ignored when indexable');
+
+        $this->assertTrue($variant->indexable);
+        $this->assertSame('', $variant->noindexReason, 'noindexReason must be empty whenever indexable is true.');
+    }
+
+    public function testWithIndexableDoesNotMutateBase(): void
+    {
+        $pc = $this->resolve(['option' => 'com_content', 'view' => 'article', 'id' => 1]);
+        $pc->withIndexable(false, 'noindex');
+
+        // The base is untouched — consumers that never flip it still see indexable=true.
+        $this->assertTrue($pc->indexable);
+        $this->assertSame('', $pc->noindexReason);
+    }
+
     public function testResolveIsMemoised(): void
     {
         $ctx = $this->createMock(AppContextInterface::class);

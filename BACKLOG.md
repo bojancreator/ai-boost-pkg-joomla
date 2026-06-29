@@ -111,8 +111,22 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
     `og:type=article`). Schema is deferred to YOOtheme/4SEO on staging (not visible there) but driven by the
     SAME `isHomepage` gate as og:type + locked by a new unit test. Suite 509 + 3/3 green, red-green (the
     title/meta coupling test flipped to the homepage-first expectation).
-  - **S8** — per-page noindex emitter + Markdown/llms noindex authority (opt-in, default-OFF). **(NEXT)**
-  - **S9** — cleanup + a contract test forbidding new inline `com_content`/`article` gates outside `lib/src/Page/`.
+  - **S8 ✅ DONE (order 0029, v0.88.0)** — per-page noindex MECHANISM wired (X-Robots + head robots
+    meta + sitemap exclusion all read `PageContext::indexable`), behind the NEW opt-in default-OFF
+    setting **`markdown_alternate_noindex`** (`Manifest/aeo.php`). **Bojan chose Option A:** when ON, the
+    ONLY thing that becomes non-indexable is the **Markdown alternate** (a duplicate of the HTML page) —
+    it sends `X-Robots-Tag: noindex` (closes B2); **NO normal HTML page is hidden** (the HTML-page noindex
+    path is wired but dormant until Option C). OFF = byte-identical to v0.87.68. New `PageContext::
+    withIndexable()` wither; Health entry `info_aeo_markdown_noindex_active`. Verified live on clean j6pro
+    (OFF↔ON↔OFF: markdown alt gains/loses `noindex`, HTML pages untouched); Health 94 unchanged on Pro
+    staging. Suite 513 + 3/3 green; red-green (the X-Robots contract flipped to indexable-driven).
+  - ⏳ **Option B (deferred, future slice) — auto-noindex low-value HTML page types** (e.g. search /
+    tag / paginated) via the same `PageContext::indexable` mechanism. Needs Bojan to name the exact
+    types + an SEO sign-off (real ranking impact). NOT bundled into S8.
+  - ⏳ **Option C (deferred, future slice) — admin per-page "noindex this page" control** (a new
+    per-article / per-menu field that flips `PageContext::indexable`). The HTML-page emitter is already
+    wired (S8) and dormant; C adds the field + storage + three-way alignment + Health. Needs Bojan sign-off.
+  - **S9** — cleanup + a contract test forbidding new inline `com_content`/`article` gates outside `lib/src/Page/`. **(NEXT)**
   *(→ arch §10 T1, §3, §9)*
 - ✅ **DO (Bojan) — Finish the multilingual moat (`falang_schema_translate`).** Translate HowTo step
   names + FAQ items per language (currently English fallback). This sits on the product's only

@@ -96,6 +96,7 @@ class HealthCheckService
         'info_social_og_pro_active'           => 'Social',
         'info_fb_domain_verification_active'  => 'Analytics',
         'info_aeo_markdown_discovery_active'  => 'AEO',
+        'info_aeo_markdown_noindex_active'    => 'AEO',
         'info_aeo_faq_auto_detect_active'     => 'AEO',
         'info_position_gtm_noscript_body'         => 'Analytics',
         'info_position_meta_pixel_noscript_body'  => 'Analytics',
@@ -204,6 +205,7 @@ class HealthCheckService
             $this->infoSocialOgPro(),
             $this->infoFbDomainVerification(),
             $this->infoAeoMarkdownDiscovery(),
+            $this->infoAeoMarkdownNoindex(),
             $this->infoAeoFaqAutoDetect(),
             $this->infoPositionGtmNoscriptBody(),
             $this->infoPositionMetaPixelNoscriptBody(),
@@ -1579,6 +1581,55 @@ class HealthCheckService
             false, false,
             'Markdown pages toggle is ON but no <link rel="alternate" type="text/markdown"> was found in the live homepage HTML. Caching or a template override may be stripping the tag.',
             $this->settingsUrl('tab-aeo-btn', 'markdown_pages_enabled'),
+            $fixActions
+        );
+    }
+
+    /**
+     * Info: the Markdown duplicate-content guard (T1·S8). When Markdown pages are
+     * on, the Markdown alternate (.md / ?markdown=1) is a duplicate of the HTML
+     * page; the opt-in `markdown_alternate_noindex` setting sends a noindex
+     * (X-Robots-Tag) signal on that copy so it never competes with the original
+     * in search. Recommendation only (never a failure) — leaving it off is a valid
+     * choice, so this stays `info` and does not move the score.
+     */
+    private function infoAeoMarkdownNoindex(): array
+    {
+        $fixActions = [[
+            'label' => 'Keep the Markdown copy out of search (AEO tab)',
+            'url'   => $this->settingsUrl('tab-aeo-btn', 'markdown_alternate_noindex'),
+            'tab'   => 'tab-aeo-btn',
+            'field' => 'markdown_alternate_noindex',
+        ]];
+
+        $markdownOn = (string) ($this->settings['markdown_pages_enabled'] ?? '0') === '1';
+        $noindexOn  = (string) ($this->settings['markdown_alternate_noindex'] ?? '0') === '1';
+
+        if (!$markdownOn) {
+            return $this->make(
+                'info_aeo_markdown_noindex_active', 'info', 'Markdown Duplicate-Content Guard',
+                true, false,
+                'Markdown pages are off, so there is no Markdown copy that could compete with your pages in search.',
+                '',
+                $fixActions
+            );
+        }
+
+        if ($noindexOn) {
+            return $this->make(
+                'info_aeo_markdown_noindex_active', 'info', 'Markdown Duplicate-Content Guard',
+                true, true,
+                'Markdown copies are kept out of search engines — each Markdown alternate (.md / ?markdown=1) sends a noindex (X-Robots-Tag) signal, so the plain-text copy never competes with the original page. The HTML page stays indexable and in the sitemap.',
+                '',
+                $fixActions
+            );
+        }
+
+        return $this->make(
+            'info_aeo_markdown_noindex_active', 'info', 'Markdown Duplicate-Content Guard',
+            true, true,
+            'Markdown pages are on but their copies are still indexable — the Markdown (.md / ?markdown=1) version of every page can compete with the original in search. Turn on "Keep the Markdown copy out of search engines" to send a noindex signal on the Markdown copy only (the HTML page is unaffected).',
+            $this->settingsUrl('tab-aeo-btn', 'markdown_alternate_noindex'),
             $fixActions
         );
     }

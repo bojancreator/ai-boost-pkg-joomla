@@ -84,6 +84,35 @@ final class PageContext
         );
     }
 
+    /**
+     * Return a copy of this context with a different indexability verdict (immutable).
+     *
+     * T1·S8: the PageResolver builds the base context indexable (rendered pages
+     * are indexable today). The per-page noindex consumer (AiBoostAeo's Markdown
+     * alternate, behind the opt-in `markdown_alternate_noindex` setting) produces
+     * a non-indexable variant via this wither, so every emitter reads ONE field
+     * (`indexable`) instead of re-deriving the rule. The base stays untouched, so
+     * consumers that never flip it always see the indexable original.
+     */
+    public function withIndexable(bool $indexable, string $noindexReason = ''): self
+    {
+        return new self(
+            type:                  $this->type,
+            entityKind:            $this->entityKind,
+            entityId:              $this->entityId,
+            option:                $this->option,
+            view:                  $this->view,
+            rawId:                 $this->rawId,
+            isHomepage:            $this->isHomepage,
+            language:              $this->language,
+            siteDefaultLanguage:   $this->siteDefaultLanguage,
+            globalDefaultLanguage: $this->globalDefaultLanguage,
+            canonical:             $this->canonical,
+            indexable:             $indexable,
+            noindexReason:         $indexable ? '' : $noindexReason,
+        );
+    }
+
     /** True only on a real article page with a positive id. */
     public function isArticle(): bool
     {

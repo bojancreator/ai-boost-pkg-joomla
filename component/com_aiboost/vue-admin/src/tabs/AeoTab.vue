@@ -152,6 +152,21 @@
           to every <code>&lt;head&gt;</code> so agents auto-discover the Markdown URL.
           Navigation, sidebars, and scripts are stripped — only the main content stays.
         </div>
+
+        <label class="ab-toggle-row" v-show="s.markdown_pages_enabled === '1'">
+          <div><div class="ab-label">Keep the Markdown copy out of search engines</div></div>
+          <span class="ab-toggle" :class="{'is-on': s.markdown_alternate_noindex === '1'}">
+            <input v-model="s.markdown_alternate_noindex" data-ab-field="markdown_alternate_noindex"
+              true-value="1" false-value="0" type="checkbox" class="ab-toggle__input" id="aeo-markdown-noindex">
+            <span class="ab-toggle__track"></span>
+          </span>
+        </label>
+        <div class="ab-help" v-show="s.markdown_pages_enabled === '1'">
+          Adds a <code>noindex</code> signal to the Markdown copy of a page (its
+          <code>.md</code> / <code>?markdown=1</code> version) so the plain-text copy never
+          competes with the original page in Google. The normal HTML page is unaffected —
+          it stays indexable and in the sitemap. Recommended when Markdown pages are on.
+        </div>
       </div>
     </div>
 
