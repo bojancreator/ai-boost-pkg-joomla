@@ -514,6 +514,19 @@ def build_package_zip(version: str, dry_run: bool = False, pro_edition: bool = F
                     "https://updates.aiboostnow.com/pkg_aiboost.xml",
                     "https://updates.aiboostnow.com/pro/pkg_aiboost_pro.xml",
                 )
+            else:
+                # FREE feed is UNCONDITIONAL — strip the <dlid> Download-Key element so
+                # Joomla does not block free updates with "Download Key is missing" (the
+                # free user has no key; the free download endpoint ignores it anyway).
+                # Pro + integration _pro packages KEEP their <dlid> (their downloads ARE
+                # key-gated). The <updateserver> (free feed URL) stays. (order 0036)
+                xml_content = re.sub(
+                    r"[ \t]*<!--\s*Download Key:.*?-->[ \t]*\r?\n?",
+                    "",
+                    xml_content,
+                    flags=re.S,
+                )
+                xml_content = re.sub(r"[ \t]*<dlid\b[^>]*/>[ \t]*\r?\n?", "", xml_content)
             zf.writestr("pkg_aiboost.xml", xml_content)
 
             # Package installer script — sync VERSION constant from Version.php
