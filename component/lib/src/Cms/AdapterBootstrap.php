@@ -30,6 +30,9 @@ use AiBoost\Lib\Cms\Joomla\JoomlaEventDispatcherAdapter;
 use AiBoost\Lib\Cms\Joomla\JoomlaFilesystemAdapter;
 use AiBoost\Lib\Cms\Joomla\JoomlaHttpAdapter;
 use AiBoost\Lib\Cms\Joomla\JoomlaRouterAdapter;
+use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Lib\Page\IndexabilityPolicy;
+use AiBoost\Lib\Page\PageResolver;
 use Joomla\CMS\Application\CMSApplication;
 
 final class AdapterBootstrap
@@ -60,6 +63,13 @@ final class AdapterBootstrap
         AdapterRegistry::setEvents(new JoomlaEventDispatcherAdapter());
         AdapterRegistry::setDocument(new JoomlaDocumentAdapter());
         AdapterRegistry::setRouter(new JoomlaRouterAdapter());
+
+        // T1 page resolver (slice S0) — wired but consumed by nobody yet.
+        AdapterRegistry::setPageResolver(new PageResolver(
+            new JoomlaAppContext(),
+            new IndexabilityPolicy(),
+            AdapterRegistry::database()
+        ));
     }
 
     /** Reset the "already registered" flag (for tests). */

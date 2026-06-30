@@ -95,8 +95,8 @@ class HealthCheckService
         'info_og_description_override_active' => 'Social',
         'info_social_og_pro_active'           => 'Social',
         'info_fb_domain_verification_active'  => 'Analytics',
-        'info_aeo_ai_meta_tags_active'        => 'AEO',
         'info_aeo_markdown_discovery_active'  => 'AEO',
+        'info_aeo_markdown_noindex_active'    => 'AEO',
         'info_aeo_faq_auto_detect_active'     => 'AEO',
         'info_position_gtm_noscript_body'         => 'Analytics',
         'info_position_meta_pixel_noscript_body'  => 'Analytics',
@@ -204,8 +204,8 @@ class HealthCheckService
             $this->infoOgDescriptionOverride(),
             $this->infoSocialOgPro(),
             $this->infoFbDomainVerification(),
-            $this->infoAeoAiMetaTags(),
             $this->infoAeoMarkdownDiscovery(),
+            $this->infoAeoMarkdownNoindex(),
             $this->infoAeoFaqAutoDetect(),
             $this->infoPositionGtmNoscriptBody(),
             $this->infoPositionMetaPixelNoscriptBody(),
@@ -1440,103 +1440,6 @@ class HealthCheckService
     }
 
     /**
-     * Confirm that the AEO "AI Signals" toggle (aeo_ai_meta_enabled) is actually
-     * emitting the three <meta> tags on the front-end:
-     *   <meta name="ai-content-verified"  content="true">
-     *   <meta name="ai-content-optimized" content="true">
-     *   <meta name="llms-txt"             content="{root}/llms.txt">
-     *
-     * The emitter (aiboost_aeo/onBeforeCompileHead) is gated on isPro() + the
-     * setting + Cooperative-mode DocumentInspector skip. Reports:
-     *   - info (skip)   : toggle is OFF
-     *   - warning       : toggle ON but plugin disabled / not Pro
-     *   - info (active) : toggle ON, live HTML check passes
-     *   - warning       : toggle ON but tags NOT found in live HTML
-     *
-     * Audit #377 (C1): replaces the previously empty wrapper-comment artifact
-     * with the actual meta tags as the verifiable signal.
-     */
-    private function infoAeoAiMetaTags(): array
-    {
-        $enabled = (string) ($this->settings['aeo_ai_meta_enabled'] ?? '0') === '1';
-
-        $fixActions = [[
-            'label' => 'Toggle AI meta tags (AEO tab)',
-            'url'   => $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-            'tab'   => 'tab-aeo-btn',
-            'field' => 'aeo_ai_meta_enabled',
-        ]];
-
-        if (!$enabled) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'info', 'AI Meta Tags',
-                true, false,
-                'AI meta tags are disabled — <meta name="ai-content-verified">, <meta name="ai-content-optimized"> and <meta name="llms-txt"> will not be emitted.',
-                $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-                $fixActions
-            );
-        }
-
-        if (!$this->isPluginEnabled('aiboost_aeo')) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
-                false, false,
-                'AI meta tags toggle is ON but the AEO plugin is disabled — no <meta> tags are being injected.',
-                $this->pluginManagerUrl('aiboost_aeo'),
-                $fixActions
-            );
-        }
-
-        if ($this->skipHttpScan) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'info', 'AI Meta Tags',
-                true, true,
-                'AI meta tags are enabled (live HTML check skipped in lightweight mode). Expected on every page: <meta name="ai-content-verified">, <meta name="ai-content-optimized">, <meta name="llms-txt">.',
-                '',
-                $fixActions
-            );
-        }
-
-        $html = $this->getHomepageHtml();
-        if ($html === null) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
-                false, false,
-                'AI meta tags are enabled but the homepage could not be fetched to verify <meta> emission — check site availability, network access, or HTTP block rules. The check cannot confirm the three signals (ai-content-verified, ai-content-optimized, llms-txt) are reaching visitors.',
-                $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-                $fixActions
-            );
-        }
-
-        $hasVerified  = stripos($html, 'name="ai-content-verified"')  !== false;
-        $hasOptimized = stripos($html, 'name="ai-content-optimized"') !== false;
-        $hasLlmsTxt   = stripos($html, 'name="llms-txt"')             !== false;
-
-        if ($hasVerified && $hasOptimized && $hasLlmsTxt) {
-            return $this->make(
-                'info_aeo_ai_meta_tags_active', 'info', 'AI Meta Tags',
-                true, true,
-                'AI meta tags are active — all three signals detected in the homepage <head>: ai-content-verified, ai-content-optimized, llms-txt.',
-                '',
-                $fixActions
-            );
-        }
-
-        $missing = [];
-        if (!$hasVerified)  { $missing[] = 'ai-content-verified'; }
-        if (!$hasOptimized) { $missing[] = 'ai-content-optimized'; }
-        if (!$hasLlmsTxt)   { $missing[] = 'llms-txt'; }
-
-        return $this->make(
-            'info_aeo_ai_meta_tags_active', 'warning', 'AI Meta Tags',
-            false, false,
-            'AI meta tags toggle is ON but the following <meta> tag(s) were NOT found in the live homepage HTML: ' . htmlspecialchars(implode(', ', $missing), ENT_QUOTES) . '. Caching, Cooperative-mode skip (another SEO extension is emitting them), or a template override may be intercepting the output.',
-            $this->settingsUrl('tab-aeo-btn', 'aeo_ai_meta_enabled'),
-            $fixActions
-        );
-    }
-
-    /**
     * Info: Markdown discovery <link> tag in <head>.
      *
      * The aiboost_aeo plugin emits, when markdown_pages_enabled=1 and tier=Pro:
@@ -1678,6 +1581,55 @@ class HealthCheckService
             false, false,
             'Markdown pages toggle is ON but no <link rel="alternate" type="text/markdown"> was found in the live homepage HTML. Caching or a template override may be stripping the tag.',
             $this->settingsUrl('tab-aeo-btn', 'markdown_pages_enabled'),
+            $fixActions
+        );
+    }
+
+    /**
+     * Info: the Markdown duplicate-content guard (T1·S8). When Markdown pages are
+     * on, the Markdown alternate (.md / ?markdown=1) is a duplicate of the HTML
+     * page; the opt-in `markdown_alternate_noindex` setting sends a noindex
+     * (X-Robots-Tag) signal on that copy so it never competes with the original
+     * in search. Recommendation only (never a failure) — leaving it off is a valid
+     * choice, so this stays `info` and does not move the score.
+     */
+    private function infoAeoMarkdownNoindex(): array
+    {
+        $fixActions = [[
+            'label' => 'Keep the Markdown copy out of search (AEO tab)',
+            'url'   => $this->settingsUrl('tab-aeo-btn', 'markdown_alternate_noindex'),
+            'tab'   => 'tab-aeo-btn',
+            'field' => 'markdown_alternate_noindex',
+        ]];
+
+        $markdownOn = (string) ($this->settings['markdown_pages_enabled'] ?? '0') === '1';
+        $noindexOn  = (string) ($this->settings['markdown_alternate_noindex'] ?? '0') === '1';
+
+        if (!$markdownOn) {
+            return $this->make(
+                'info_aeo_markdown_noindex_active', 'info', 'Markdown Duplicate-Content Guard',
+                true, false,
+                'Markdown pages are off, so there is no Markdown copy that could compete with your pages in search.',
+                '',
+                $fixActions
+            );
+        }
+
+        if ($noindexOn) {
+            return $this->make(
+                'info_aeo_markdown_noindex_active', 'info', 'Markdown Duplicate-Content Guard',
+                true, true,
+                'Markdown copies are kept out of search engines — each Markdown alternate (.md / ?markdown=1) sends a noindex (X-Robots-Tag) signal, so the plain-text copy never competes with the original page. The HTML page stays indexable and in the sitemap.',
+                '',
+                $fixActions
+            );
+        }
+
+        return $this->make(
+            'info_aeo_markdown_noindex_active', 'info', 'Markdown Duplicate-Content Guard',
+            true, true,
+            'Markdown pages are on but their copies are still indexable — the Markdown (.md / ?markdown=1) version of every page can compete with the original in search. Turn on "Keep the Markdown copy out of search engines" to send a noindex signal on the Markdown copy only (the HTML page is unaffected).',
+            $this->settingsUrl('tab-aeo-btn', 'markdown_alternate_noindex'),
             $fixActions
         );
     }
@@ -2686,8 +2638,9 @@ class HealthCheckService
             'aiboost_og_title', 'aiboost_og_description', 'aiboost_og_image',
             'aiboost_og_type', 'aiboost_og_video', 'aiboost_twitter_card',
         ];
-        $tier  = strtolower((string) ($this->settings['license_tier'] ?? 'free'));
-        $isPro = in_array($tier, ['pro', 'developer', 'agency'], true);
+        // Canonical gate — perpetual pro_activated flag, never the drift-prone
+        // license_tier (which is diagnostic-only). See licensing-and-pro-gating.md.
+        $isPro = PluginRegistry::isProActive($this->settings);
 
         $present = 0;
         try {

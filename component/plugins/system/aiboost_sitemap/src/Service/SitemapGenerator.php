@@ -30,6 +30,7 @@ namespace AiBoost\Plugin\System\AiBoostSitemap\Service;
 
 defined('_JEXEC') or die;
 
+use AiBoost\Lib\Page\IndexabilityPolicy;
 use Joomla\CMS\Router\Route;
 use Joomla\Database\DatabaseInterface;
 
@@ -173,21 +174,26 @@ class SitemapGenerator
                 ])
                 ->from($db->quoteName('#__content', 'a'))
                 ->join('LEFT', $db->quoteName('#__categories', 'c') . ' ON c.id = a.catid')
-                ->where('a.state = 1')
-                ->where('(a.publish_up IS NULL OR a.publish_up <= ' . $db->quote($now) . ')')
-                ->where('(a.publish_down IS NULL OR a.publish_down = ' . $db->quote($db->getNullDate()) . ' OR a.publish_down > ' . $db->quote($now) . ')')
                 ->order('a.modified DESC');
 
-            // Restrict to what a guest can actually see (mirrors front-end ACL):
-            // the article's own access level AND its category's access level +
-            // published state. An article in a restricted or unpublished
-            // category must never be emitted, even if the article row itself
-            // is public.
-            if (!empty($this->guestViewLevels)) {
-                $levels = implode(',', array_map('intval', $this->guestViewLevels));
-                $query->where($db->quoteName('a.access') . ' IN (' . $levels . ')')
-                      ->where($db->quoteName('c.access') . ' IN (' . $levels . ')')
-                      ->where($db->quoteName('c.published') . ' = 1');
+            // T1·S4 — item indexability via the shared IndexabilityPolicy instead
+            // of an inline filter. Called with exactly this enumerator's current
+            // parameters (state + sitemap publish-window + guest-access on the
+            // article AND its category, only when guest view levels are known), so
+            // the row set — and the sitemap URL set — is unchanged.
+            $hasGuestLevels = !empty($this->guestViewLevels);
+            foreach ((new IndexabilityPolicy())->itemWhereClauses(
+                $db,
+                publishedExpr: 'a.state',
+                window: 'sitemap',
+                timeColumnPrefix: 'a',
+                now: $now,
+                nullDate: $db->getNullDate(),
+                guestLevels: $hasGuestLevels ? $this->guestViewLevels : null,
+                accessExpr: 'a.access',
+                requireCategoryGuest: $hasGuestLevels,
+            ) as $where) {
+                $query->where($where);
             }
 
             $db->setQuery($query);

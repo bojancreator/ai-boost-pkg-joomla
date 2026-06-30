@@ -32,30 +32,6 @@ abstract class AbstractService implements ServiceInterface
         return (bool) $this->params->get($this->getServiceKey(), 1);
     }
 
-    protected function getLicenseTier(): string
-    {
-        return strtolower(trim((string) $this->params->get('license_tier', '')));
-    }
-
-    protected function isProTier(): bool
-    {
-        $key = trim((string) $this->params->get('license_key', ''));
-        if ($key === '') {
-            return false;
-        }
-
-        $validFormat = (bool) preg_match(
-            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
-            $key
-        );
-        if (!$validFormat) {
-            return false;
-        }
-
-        $tier = $this->getLicenseTier();
-        return in_array($tier, ['basic', 'professional', 'starter', 'developer', 'agency'], true);
-    }
-
     public function getCurrentDomain(): string
     {
         if ($this->currentDomain === null) {

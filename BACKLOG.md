@@ -1,187 +1,354 @@
-# AI Boost for Joomla — Backlog
+# AI Boost for Joomla — Backlog (foundation-first master list)
 
-The **only** forward list of remaining work, in plain language, organised by **type of work**.
-When you pick up an item, follow the **Definition of Done** in `OPERATING.md`; when it's shipped
-and verified on a Free **and** a Pro test site, delete its line from this file. That deletion *is*
-marking it done — no parallel task panel.
+The **single permanent forward list** of remaining work. It is written to stand alone: assume chat
+memory is wiped — everything needed to know *what is left and why* is here, with a pointer to the
+analysis doc that holds the full detail. When you pick up an item, follow the **Definition of Done** in
+`OPERATING.md`; when it is shipped and verified on a Free **and** a Pro test site, delete its line (that
+deletion *is* marking it done).
 
-**Where we are now (version, branch, what's deployed, what's left to launch):** `STATUS.md`.
-Product strategy and release sequence: `docs/v0.5-product-direction.md`.
+**Where we are now** (version, branch, deployed): `STATUS.md`.
+**Why / full evidence** (every claim has `file:line`):
+`docs/analysis/architecture.md` (the ROOT→TRUNK→BRANCHES→TWIGS plan = §10),
+`docs/analysis/licensing-and-pro-gating.md` (gating, findings P1–P8),
+`docs/analysis/custom-fields.md` (fields, decisions D1–D6),
+`_handoff/docs/option-map.json` (all 276 options with status).
 
-> Pruned 2026-06-18: the entire Admin IA rework (sidebar grouping, Technical SEO page, Crawlers &
-> Robots page, menu renames, Autopilot MVP, Meta Pixel move, AEO rename) shipped (phases 1–4), and
-> the 4SEO/Sh404SEF/JoomSEF conflict-detector element-name bug is fixed — all removed from below.
+**Legend (every item is tagged):**
+✅ **DO** — on the pre-sale path · ❌ **REMOVE** — delete dead weight · ❓ **OPEN** — needs a product
+decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bojan on 2026-06-28 are marked
+**(Bojan)**. Pointers: `→ arch §X` / `→ licensing PX` / `→ fields DX` / `→ option-map` / `→ old-backlog`.
 
----
-
-## New options / features
-
-- **[post-1.0] `manual_faq_scope` — decide: finish or remove** *(order 0006, Bojan undecided)*. The
-  setting (manual FAQ "when to apply": fallback_all / always_all / fallback_home / always_home /
-  disabled) is defined in the manifest + Vue UI + save whitelist but is read by NO consumer — the
-  scope logic was never ported from the legacy standalone plugin into `SchemaProBuilder`, so manual
-  FAQ ignores it. **Decision needed:** either (a) finish it — port the scope filter into
-  `SchemaProBuilder::decorateAll()` using the `ctx->isHomepage()` it already holds (worth it only if
-  customers want their own FAQ on non-article pages), or (b) remove it cleanly (manifest field + UI
-  partial + save-whitelist entry). Do NOT delete until Bojan decides. (Separate, lower-impact: the
-  manual `faq_items` builder reads `question`/`answer` keys; legacy/imported `{q,a}` data is silently
-  skipped — add a q→question / a→answer compatibility shim if old backups must keep working.)
-
-- **Integration improvements (from Plan 1 review, 2026-06-12 — deferred by Bojan):**
-  - **Admin Tools: detect AI-bot blocking** *(high value, AEO-on-brand)* — Admin Tools' WAF /
-    "Block user agents" can block GPTBot/ClaudeBot/PerplexityBot, killing AEO. Detect such rules and
-    warn. Also: redirect-manager overlap, `.htaccess` overlap.
-  - **YOOtheme: validate / rework menu-param schema mapping** — the Event/Product/Organization mapping
-    reads ~30 *guessed* param keys (`yoo_event_name`…) that likely rarely match real builder params.
-    Verify on a real YOOtheme site; if it never fires, parse the YOOtheme builder JSON or drop it
-    (FAQ/gallery are body-based and reliable). Also: configurable gallery selector, DOMDocument instead
-    of regex, HowTo/Breadcrumb schema.
-  - **Falang new options** — `inLanguage` on Schema.org, `og:locale:alternate`, per-language meta
-    title/description templates, per-language sitemap priority.
-  - **Product decision** — should the YOOtheme bridge be Pro (current) or Free (Falang is Free)?
-  - *Verify before reopening:* "render per-feature integration options in the SPA" may already have
-    shipped under Phase 3 ("integration options UI", `ce895f0`) — confirm in the SPA before re-listing.
-- **Alias Assistant** — suggest and fix article aliases, with automatic 301 redirects when an alias
-  changes. *(post-v0.5)*
-- **Warn the admin when custom code is unusually large** — flag injected code that could slow the site
-  down. *(post-v0.5)*
-- **Preview injected custom code before saving it** — let admins see the output before it goes live. *(post-v0.5)*
-- **Extra social-profile fields (replacement for the removed Pinterest field)** — add 2–3 generic social
-  fields (name + URL) so admins can cover networks that aren't on the fixed list (Mastodon, Bluesky,
-  Threads). These feed Schema.org `sameAs`, with a CLEAR label that they must be the company's *official*
-  profiles — not arbitrary links (an arbitrary URL in `sameAs` produces incorrect schema). Do it properly
-  this time (Pinterest was half-done). *(post-1.0)*
-
-## Admin UX / navigation
-
-- **Polish Schema.org card ordering** — reorder cards so foundational schema comes before optional
-  rich-result types (`Schema.org Core`, `Business / Organization Type`, conditional business details,
-  `Opening Hours`, `WebSite`, `Article`, `FAQ/QAPage`, `Author Entity`, `HowTo`, `Event`). Feature set
-  unchanged; this is ordering only. **Deferred post-launch** (high risk / low urgency on the most
-  important page). *This is the only remaining item from the Admin IA rework — the rest shipped.*
-
-## Refactors & technical work
-
-- **Make settings save manifest-driven** — derive accepted keys/defaults/types/tier rules from the
-  manifest registry instead of the `SettingsController.php` whitelist. Gate 2 and most of Gate 3 done
-  (176/318 keys manifest-backed); remaining: Analytics and Sitemap SKU-ownership decisions. Architecture
-  gate required (`docs/architecture-refactor-plan.md`); XHigh before the first slice.
-- **Build a small WordPress vertical slice** — Organization/WebSite schema end-to-end on WordPress first,
-  to expose missing CMS abstractions before the next wave of options. *(post-v0.5 — hold until Joomla
-  v0.5 ships and shared service boundaries are stable.)* Architecture gate + XHigh required.
-- **Thin Joomla plugin classes into platform entrypoints** — keep plugin classes as event/bootstrap
-  layers; move business logic into shared services, starting with `AiBoostCore.php`. Architecture gate +
-  XHigh required. (Biggest long-term risk is future Joomla/WordPress duplication, not the current product.)
-- **Cross-platform boundary work** (from `docs/ARCHITECTURE-BOUNDARIES.md`, 2026-06-24 snapshot) —
-  groundwork so a WordPress build + standalone+integrative plugins don't duplicate the core:
-  - *Route leaking CMS calls through the adapters* — replace the direct `Route::_` (sitemap/hreflang
-    generators), `JPATH_ROOT` (`OgTagBuilder`/`OgTagProDecorator`/`RobotsTxtManager`), `Factory::getContainer`
-    (`SchemaProBuilder`) and `Joomla\CMS\Log\Log` (`IndexNowService`) with `Cms\AdapterRegistry`.
-  - *Add a content-repository seam* — abstract the inline Joomla `#__` data fetch (~40 queries across 8
-    generators; SchemaPro 7, Hreflang 12, Sitemap 6, llms_pro 6, …) behind one interface, so the data layer
-    is the single thing reimplemented per CMS.
-  - *WordPress data adapter (~35% of generation = data fetch)* — `wp_posts`/`wp_terms`/`wp_postmeta` source
-    + finish `Cms/Wp/*` wiring + a WP entry/event layer; the ~65% shape logic transfers as-is. (Sharpens the
-    older "WordPress vertical slice" item above.)
-  - *First standalone+integrative plugin* — a NEW sub-pattern (NOT an `AbstractIntegrationPlugin` copy, which
-    hard-depends on `com_aiboost`): runs on its own, integrates with AI Boost via the SDK `onAiBoost*` events
-    behind `class_exists()`.
-  *(all post-1.0, architecture-gated)*
-- **Pro gate drift in admin/health DISPLAY (#2 follow-up)** — three live places derive isPro from the
-  raw `license_tier` instead of `PluginRegistry::isProActive()`: `mod_aiboost_health.php:78`,
-  `HealthCheckService.php:2690`, `Dashboard/HtmlView.php:269` (`checkIsProEnabled`). Plus two dead
-  helpers: `ProGate` trait `isProEnabled():46`, `AbstractService::isProTier():56`. Effect: a
-  perpetual-Pro customer reads "Free" in the admin/health PANEL after the licence expires — display
-  only, NOT visitor-facing emission, so no Pro leak at the customer. Fix: switch the three live ones to
-  `isProActive()`; delete the two dead helpers. Low priority — cosmetic admin bug. *(post-1.0)*
-- **Converge LIKE prefix scans onto the sql_mode-independent form (#8 follow-up)** — three sites match
-  `aiboost_*_pro` via escaped-underscore `LIKE … ESCAPE '\'`: `PluginRegistry.php:415`,
-  `mod_aiboost_health.php:47`, and `pkg_script.php` (the last was a live NBE bug, fixed in this commit by
-  adding the ESCAPE clause). The explicit ESCAPE clause is correct under all sql_modes, but the lesson's
-  canonical, fully sql_mode-independent form is a coarse escape-free WHERE (`type='plugin' AND
-  folder='system'`) + `str_starts_with($element,'aiboost_') && str_ends_with($element,'_pro')` in PHP.
-  Converge all three onto that. Also fold in the user-search LIKE in `ErrorsController.php:98` (manual
-  `\_`/`\%` escaping with no ESCAPE clause — NBE-fragile too; low impact, admin error-log search). Gated
-  change with a real install-path test (`pkg_script` is install lifecycle). *(post-1.0)*
-- **Harden settings save to merge-on-existing (#16)** — `SettingsController::save()` rebuilds the
-  `#__aiboost_settings` blob from the posted form, so it is safe ONLY because the Vue SPA posts the full
-  snapshot. Make it merge the posted keys onto the loaded existing blob so even a partial save can never
-  wipe siblings, then delete the dead `SettingsPersistenceService::saveSettings()` (a subset-replace
-  writer with no production caller — the only physical instance of the anti-pattern) so the dormant mine
-  disappears. Gated refactor with full licence/Pro save tests (it touches the code that guards billing).
-  Behaviour is locked-as-is by `SettingsWriterRmwContractTest`. *(post-1.0 — not before launch.)*
-- **UI colour tokens — extract the genuine colour bypasses** so a status-colour change is one place.
-  Spots: `App.vue` staging/upgrade banner (~25 amber hex), `HealthApp` pass/fail (`#198754` / `#dc3545`
-  + dark variants), per-tab accent palette (`App.vue`/`DashboardApp`). Add `--ab-warning` / `--ab-success`
-  / `--ab-danger` (+ accent) and point those spots at them. Small, CSS-only, visually verifiable.
-  *(post-1.0 — not before launch.)*
-- **Cards: consolidate the two overlapping families** (`.ab-card` vs `.ab-section`) into one card family.
-  Do this around the WordPress port, where shared components get unified anyway. *(post-1.0)*
-- **AbButton + AbCard wrapper components** to remove repeated markup; sweep the ~180 one-off inline layout
-  styles into utility/scoped rules. Nice-to-have only — these are mostly one-off LAYOUT, not shared theme,
-  so they do NOT block the "one CSS fix = all pages" goal. *(optional, low value — only if there's appetite
-  after 1.0.)*
-- **Integration master toggles shown locked (upsell)** — render `integration_falang_enabled` /
-  `integration_yootheme_enabled` as a ProGate-locked control with an "available as a paid add-on" message
-  whenever `hasPro('int_falang')` / `hasPro('int_yootheme')` is inactive — the same mechanism as the
-  existing Pro Options fields. Why: upsell. Today a Free user sees the switch ON and assumes the integration
-  works (or is broken), instead of seeing what they get by paying. Billing is already protected (two walls:
-  `@pro:start` build-stripping + the `hasPro` licence gate), so this is NOT a security fix — it is a sales
-  one. *(post-1.0 — not before launch.)*
-- **Safer option versioning (#41 DB audit follow-up)** — latent gap: if a future version RENAMES or
-  REMOVES a setting key without also adding it to the manual compatibility list (`COMPATIBILITY_KEYS`),
-  the stored value is silently dropped on the next Save. It doesn't touch current customers; it's a trap
-  for the future. Add automatic/safer option versioning so a value can't be lost when a key is renamed.
-  *(post-1.0)*
-- **Automate the export secret-protection denylist (#42 export/import audit follow-up)** — the protection
-  that keeps licence keys/secrets out of a backup is currently manual (the `SYSTEM_PRESERVED_KEYS`
-  denylist). Automate it so a new sensitive field doesn't have to be remembered into the denylist by hand
-  (risk: forget one and a secret leaks into an export). *(post-1.0)*
-
-## Bugs & fixes
-
-- **301 redirects are missing from export/backup (#42 export/import audit follow-up)** — export/backup
-  currently does NOT include 301 redirects, so when settings are moved to another site the redirects are
-  lost. Add redirects to export/import. *(post-1.0)*
-
-## Testing & infrastructure
-
-- **Targeted screenshot: `--only`+`--theme` on `scripts/ui-audit-screenshots.js`** so one screen can be shot in both themes without the full 46-shot set. Until then the subagent fallback runs the full set and judges only the two relevant PNGs. **Raise priority if the fallback fires often in practice** (decide from real measurement, not assumption).
-- **Markdown feature (`markdown_pages_enabled`) — completeness check** — not exercised in the verification
-  campaign (it was off on staging). Verify alongside the Tassos comparison (see *Competitor analysis*
-  below): does the dedicated `.md` URL work, the `Accept: text/markdown` header, the discovery `<link>` in
-  head, and noindex + canonical on the `.md` version — and complete whatever is missing. *(post-1.0)*
-- **Live BreadcrumbList check on a non-YOOtheme template** — the BreadcrumbList code is confirmed correct
-  but was never verified live (the YOOtheme template doesn't populate the Joomla pathway). Confirm live on
-  a Cassiopeia template (`joomla6-free.testmyweb.info` is already on Cassiopeia). NOTE: this is separate
-  from the YOOtheme Breadcrumb investigation (order 0007) — here we confirm the code works on a standard
-  template; there we investigate why it doesn't fire on YOOtheme. *(post-1.0)*
-
-## Health scan polish
-
-(none open)
-
-## Research & strategy
-
-- **Competitor analysis of the Joomla SEO/schema/AEO market** — produce two concrete lists, NOT an
-  encyclopedia of competitors: (A) where a feature has become a market standard and we lack it (backlog
-  candidates), and (B) where we are stronger (marketing ammunition). Competitors: Tassos "Google Structured
-  Data", 4SEO, sh404SEF, and other active Joomla schema/SEO/AEO extensions. For each, from PUBLIC sources
-  only (site, docs, demo, reviews): which features they have that we don't; which we have that they don't;
-  how honestly they position AI/AEO features (genuine vs inflated marketing). **Legal boundary:** learn the
-  PRINCIPLE from public docs/behaviour — yes; read or copy their CODE — no (commercial + copyright; a GPL
-  copy would force us GPL); reimplement the idea in our OWN code — yes. First concrete inputs already
-  spotted: (a) Tassos HTML→Markdown does a dedicated `.md` URL, `Accept: text/markdown` handling, a
-  `<link rel="alternate" type="text/markdown">` discovery tag in head, and X-Robots noindex + canonical on
-  the `.md` version — compare against our `markdown_pages_enabled` and list the gaps (ties to the Markdown
-  completeness item under *Testing & infrastructure*); (b) a 10-year competitor openly states that llms.txt
-  as "you'll be visible to the AI" does NOT work — confirms our AEO marketing should keep an honest tone
-  (cleaner text for bots when they arrive, not a false ranking promise). *(post-1.0)*
-
-## Documentation / skill
-
-(none open)
+> **The shape of the work (plain framing):** the output engine — how your text and code reach the page —
+> is ship-grade. The one real foundation job left is teaching the product to decide, in ONE place, *which
+> page it is on and whether it should be indexed* (that fix also makes WordPress possible later). After
+> that it is cleanup: finish the multilingual translation, delete the old leftover machinery, correct a
+> few marketing claims the product can't back, and add tests so the health check can't lie. No leftover
+> machinery and no WordPress work is needed to ship Joomla to sale. *(→ arch §0, §9)*
 
 ---
 
-## Not in this backlog (on purpose)
+## ROOT — confirm/harden what the whole product stands on (mostly done; small fixes)
+
+- ✅ **DO — Document/guard the static `finalize()` per-request dependency.** All builder state is
+  `private static` and `reset()` is never called front-end, so order-independence relies on per-request
+  PHP process death (fine on PHP-FPM/mod_php, breaks on Swoole/RoadRunner/FrankenPHP). Document it (or add
+  a front-end `reset()` guard). Doc-only, low urgency — only matters before a persistent-runtime future.
+  *(→ arch §10 R3, §9)*
+
+---
+
+## TRUNK — the structural fixes the product most needs before sale
+
+- ✅ **DONE (T1 COMPLETE, S0–S9, order 0031, v0.88.1) — Build ONE CMS-neutral Page-Type / Entity / Indexability / Canonical resolver (T1)**
+  *(biggest single task; architecture's #1 pre-sale recommendation).* It (a) kills the ~20× duplicated
+  article gate; (b) retires the known-buggy `detectPageType()` path/featured homepage definition and
+  unifies on the menu-`home` flag; (c) gives the product the **indexability authority** it lacks today, so
+  canonical/sitemap/schema/llms/Markdown stop disagreeing (and fixes the Markdown/llms duplicate-content
+  hazard); (d) is the prerequisite that makes the WordPress seam runnable. Design approved (order 0018,
+  `docs/analysis/T1-resolver-design.md`); shipping slice-by-slice, each behaviour-preserving unless marked:
+  - **S0 ✅ DONE (order 0019, v0.87.62):** `lib/src/Page/*` (PageType, PageContext, PageResolver,
+    IndexabilityPolicy) + `AdapterRegistry::pageResolver()` + bootstrap — wired but consumed by nobody;
+    front-end byte-identical on Pro+Free; 19 unit tests, red-green proven.
+  - **S1 ✅ DONE (order 0021, test-only — no version bump):** 33 characterization tests covering the FULL
+    migration map (H1–H2, P1–P12, I1–I6, C1, L1–L3): resolver-equivalence for the article/homepage/
+    category/canonical gates, behavioural SchemaProBuilder gate exclusion, and source-contract pins for the
+    Factory/SQL-coupled sites. Suite 494 green, red-green proven. **Finding for S2 (ODLUKA):** the inline
+    article gate is homepage-agnostic but the resolver classifies homepage-first → they diverge on a
+    **single-article homepage** (today Article schema emits there; `PageContext::isArticle()` is false) —
+    S2 must preserve today's behaviour or take an explicit decision.
+  - **S2 ✅ DONE (order 0022, v0.87.63):** Schema layer reads `AdapterRegistry::pageResolver()` `PageContext`
+    — `SchemaProBuilder` article gates (P3–P8) from RAW `option/view/rawId`, Free `SchemaBuilder::buildWebSite`
+    (P10) from injected `isHomepage`. Used raw primitives (NOT homepage-first `isArticle()`) so the
+    single-article-home case is preserved byte-for-byte (the S1 divergence finding → that semantics change is
+    S7). Golden diff byte-identical: Pro staging before↔after (clean v0.87.62 baseline) + Free same-version
+    isolation diff. Suite 494 green (single-article-home test still green); installed Pro+Free; Health 94/100.
+  - **S3 ✅ DONE (order 0023, v0.87.64):** Social/OG layer reads `AdapterRegistry::pageResolver()` `PageContext`
+    — `OgTagBuilder` (P11) seeds the props `context` block from RAW `option/view/rawId`; `OgTagProDecorator`
+    (P12, `:123`) article gate reads the same raw primitives (falls back to `props['context']`). Raw primitives
+    (NOT homepage-first `isArticle()`) → single-article-home `og:type=article` preserved byte-for-byte (S7 owns
+    that semantics change). Golden diff OG/Twitter byte-identical: Pro staging before↔after (clean v0.87.63
+    baseline) + Free same-version isolation (0.87.64 with vs without). Suite 494 + 3/3 green; installed Pro+Free;
+    Health 94/100.
+  - **S4 ✅ DONE (order 0024, v0.87.65 — Option A, behaviour-preserving):** extended `IndexabilityPolicy`
+    with the §2.3 parameterised SQL-constraint contributor `itemWhereClauses()`; migrated all six fetch
+    methods (I1 sitemap, I2 news, I3 llms.txt, I4a llms-Pro-recent, I4b llms-full, I4c llms-full categories)
+    to build their WHERE via that one method, each called with EXACTLY its current parameters → one
+    authority, **zero URL change**. URL-set golden diff byte-identical (Pro before↔after + Free same-version
+    isolation); 500 PHPUnit + 3/3 green; Health 94/100.
+  - ⏳ **OPEN follow-up (Option B, deferred — tie to S8):** GENUINELY unify the four enumerators' indexability
+    onto ONE identical rule (state + publish-window + guest-access). This **WILL change some URL sets** on
+    sites that use scheduling or non-Public access (e.g. llms-full would start respecting the publish window
+    + use the guest-access set instead of `access=1`; llms.txt/news would apply guest-access). Needs Bojan's
+    explicit approval of the exact URL changes. Decision deferred until the per-page noindex authority (S8)
+    so per-request + bulk indexability are reconciled together. (Detail: `_handoff/outbox/0024-…`.)
+  - **S5 ✅ DONE (order 0026, v0.87.66):** canonical onto the resolver. `resolveCanonical()` logic (URL-map +
+    bare scheme://host/path) moved into `PageResolver`; `AiBoostCore` reads `PageContext::canonical`. The map
+    is threaded in via a new optional `resolve(?string $canonicalUrlMap = null)` arg (default null = no map →
+    bare URL, so S2/S3/S4 callers are byte-unaffected); a map hit returns a context via `PageContext::withCanonical()`
+    WITHOUT mutating the memoised base (order-independent). Legacy `resolveCanonical()` KEPT as guarded fallback.
+    Canonical golden diff byte-identical before↔after **incl. a URL-map hit** on Free (j5free) + Pro (j6pro);
+    staging canonical is 4SEO-owned (AI Boost defers → unchanged, regression-safe). Suite 506 PHPUnit (7 new,
+    red-green) + 3/3 green; phpstan 192=192; installed Free+Pro.
+  - **S6 ✅ DONE (order 0027, v0.87.67):** language facts onto the resolver. **L1** active language → every
+    front-end Pro emitter reads `PageContext::language` (SchemaProBuilder ×7, OgTagProDecorator ×2,
+    LlmsTxtProGenerator ×2; `?PageContext` null-fallback to `$ctx`). **L2** site-default content language →
+    `AiBoostIntFalang::primaryLanguageSef()` reads `PageContext::siteDefaultLanguage` (PRIMARY = `com_languages`
+    `site`). First STOPPED at the empty-`site` divergence; Bojan's fallback-direction rule (FRONT-END signal →
+    FRONT-END default, never admin/active/`'en'`) resolved it — empty-`site` edge now follows the stable
+    front-end config default, filtered to a published language by `resolvePrimaryLanguageSef()`. L3
+    (`LanguageDetector`) untouched. Language golden diff byte-identical before↔after on Pro staging (hreflang +
+    x-default→/sr/ + og:locale on sr/en/ru + article; sitemap x-default all /sr/); Free language output is
+    Pro-only (none, no regression). Suite 508 PHPUnit (2 new, red-green) + 3/3; phpstan 192=192; Health
+    unchanged. Memory `joomla-site-default-vs-global-language` updated with the fallback-direction rule.
+  - **S7 ✅ DONE (order 0028, v0.87.68 — THE behaviour change, Bojan-reviewed):** "the homepage is ALWAYS
+    the homepage". Title/meta select via `AiBoostCore::resolvePageType()` (the resolver, homepage-first;
+    legacy `detectPageType()` kept only as the absent-resolver fallback); the Pro schema article gates
+    (`SchemaProBuilder::isArticlePage()` == `PageContext::isArticle()`) and the Pro social article gate
+    (`OgTagProDecorator`) are now homepage-aware. A single-article / featured / category-blog HOME (incl.
+    the localized `/sr/`,`/en/` home) takes the home graph: **og:type article→website, Article/author/
+    datePublished gone, home title template**. Verified live on Pro staging — home /en/ & /sr/ changed as
+    expected; **every inner page byte-identical** (inner single-article menu items + petrus-2025 stay
+    `og:type=article`). Schema is deferred to YOOtheme/4SEO on staging (not visible there) but driven by the
+    SAME `isHomepage` gate as og:type + locked by a new unit test. Suite 509 + 3/3 green, red-green (the
+    title/meta coupling test flipped to the homepage-first expectation).
+  - **S8 ✅ DONE (order 0029, v0.88.0)** — per-page noindex MECHANISM wired (X-Robots + head robots
+    meta + sitemap exclusion all read `PageContext::indexable`), behind the NEW opt-in default-OFF
+    setting **`markdown_alternate_noindex`** (`Manifest/aeo.php`). **Bojan chose Option A:** when ON, the
+    ONLY thing that becomes non-indexable is the **Markdown alternate** (a duplicate of the HTML page) —
+    it sends `X-Robots-Tag: noindex` (closes B2); **NO normal HTML page is hidden** (the HTML-page noindex
+    path is wired but dormant until Option C). OFF = byte-identical to v0.87.68. New `PageContext::
+    withIndexable()` wither; Health entry `info_aeo_markdown_noindex_active`. Verified live on clean j6pro
+    (OFF↔ON↔OFF: markdown alt gains/loses `noindex`, HTML pages untouched); Health 94 unchanged on Pro
+    staging. Suite 513 + 3/3 green; red-green (the X-Robots contract flipped to indexable-driven).
+  - ⏳ **Option B (deferred, future slice) — auto-noindex low-value HTML page types** (e.g. search /
+    tag / paginated) via the same `PageContext::indexable` mechanism. Needs Bojan to name the exact
+    types + an SEO sign-off (real ranking impact). NOT bundled into S8.
+  - ⏳ **Option C (deferred, future slice) — admin per-page "noindex this page" control** (a new
+    per-article / per-menu field that flips `PageContext::indexable`). The HTML-page emitter is already
+    wired (S8) and dormant; C adds the field + storage + three-way alignment + Health. Needs Bojan sign-off.
+  - **S9 ✅ DONE (order 0031, v0.88.1) — THE LAST SLICE → T1 COMPLETE.** Regression-lock standalone/CI test
+    `scripts/test-resolver-gate-lockin.php`: scans `component/` (excl. `lib/src/Page/` + tests) for inline
+    page-type gates (current `view` vs `'article'`/`'featured'`) and asserts the set EQUALS an explicit
+    allowlist (AiBoostCore ×3, SchemaProBuilder ×1, OgTagProDecorator ×1 — all guarded fallbacks / a
+    not-yet-migrated title-token helper). A NEW gate elsewhere FAILS the build. Red-green proven. Nothing
+    deleted (all gates intentional — "when in doubt KEEP"). Documented the resolver as the single "where am
+    I" authority in CLAUDE.md + the joomla-development skill. Behaviour-preserving (test + docs only; runtime
+    byte-identical to v0.88.0). 513 PHPUnit + 4/4 standalone green; installed Pro+Free; Health unchanged.
+  - **The whole T1 resolver refactor (S0–S9) is FINISHED.** Only remaining T1-adjacent open item: the
+    deferred **S4 Option B** below (needs Bojan's explicit URL-change sign-off).
+  *(→ arch §10 T1, §3, §9)*
+- ✅ **DO (Bojan) — Finish the multilingual moat (`falang_schema_translate`).** Translate HowTo step
+  names + FAQ items per language (currently English fallback). This sits on the product's only
+  live-measured competitive edge (vs 4SEO, order 0009) — finish it before claiming multilingual depth.
+  *(→ arch §10 T2; option-map `falang_schema_translate`)*
+- ✅ **DO (Bojan) — Finish `manual_faq_scope`.** Port the scope filter into `SchemaProBuilder::decorateAll()`
+  (using the `ctx->isHomepage()` it already holds) so manual FAQ on non-article pages actually respects
+  the setting (today the option saves but no consumer reads it). Lower-impact companion: add a
+  `q→question` / `a→answer` compatibility shim so legacy/imported `{q,a}` manual-FAQ data isn't silently
+  skipped. *(→ old-backlog; option-map `manual_faq_scope`, `enable_manual_faqs`; arch §10 T3)*
+- ✅ **DO (Bojan) — Config-surface cleanup (mechanical, codegen-guarded).** Delete the dead options,
+  collapse the 4 parallel hreflang keys to one, align the 4 tier-mismatches, and resolve the phantom
+  keys (wire a UI or remove). Exact targets in the **Config-cleanup appendix** at the bottom. Each
+  deleted dead option is one fewer thing to test, document, and explain to a customer.
+  *(→ arch §10 T3; licensing P6; fields D6; option-map)*
+- ✅ **DO (Bojan) — Pro-installed-but-no-key UX.** Add a lightweight, visible **banner/notice** (NOT a
+  full wizard) that, when `isProInstall && !isProActive`, routes the admin to the Licenses tab with a
+  clear "enter your key to switch on Pro" message. Today a paying customer who never enters a key sees a
+  Free-looking product — the single most likely "I paid and it doesn't work" support risk. *(→ licensing
+  P5/ODLUKA 1)*
+- ✅ **DO (Bojan) — Custom-fields screen + single source-of-truth catalogue.** Build ONE PHP catalogue
+  class that every creator/reader/Health check/screen consumes, then: a read-only screen listing ALL AI
+  Boost custom fields (article + user) with status (exists / populated) and **warnings when a gating
+  toggle is on but its fields are missing**; and an **auto-create button for the 3 event fields** (and
+  `aiboost_schema_type`), extending the existing OG/author auto-create. Field **names stay fixed** and
+  **one-author-per-article stays** — for launch. Also closes the duplicated OG field definitions.
+  *(→ fields D1+D2+D3 (+G9); arch §10 T3)*
+
+---
+
+## MAIN BRANCHES — competitive readiness and honest scope
+
+- ✅ **DO (Bojan) — Correct the marketing claims (the dominant risk) + multilingual positioning.**
+  Positioning = **HYBRID**: broad headline "better for multilingual sites" with Falang + per-language
+  translation as the proof. Also: drop "36 schema types" → ~12 correct graphs; drop FAQ/HowTo
+  rich-result promises (Google killed HowTo rich results 2023, restricted FAQ); de-emphasise SearchAction
+  (sitelinks search box retired Nov 2024); reposition llms.txt/Markdown/AI-Visibility as
+  **AI-agent/documentation accessibility, not AI ranking**; move custom-code out of the headline.
+  *(→ arch §10 B1, §5; memory 4seo-competitor-multilingual)*
+- ❓ **OPEN — Google Search Console integration.** The #1 competitive gap vs 4SEO (without measurement the
+  tool is "set and hope"). Recommended; decide when reached. Pair with making Markdown/llms **noindex +
+  out-of-sitemap** (part of the TRUNK indexability authority). *(→ arch §10 B2, §5)*
+- ✅ **DO (Bojan) — "Handled by X" conflict-takeover notice (general mechanism).** When AI Boost
+  cooperatively defers a feature to a competing plugin (e.g. 4SEO owns the canonical on staging — surfaced
+  during T1·S5), there is today only a coarse Health conflict flag and no plain, human-readable statement
+  of **which plugin took over which function**. Build it as ONE general mechanism (not per-feature): reuse
+  the existing cooperative-skip accounting (`noteSkip()` / `ConflictDetector`) to record, for every yielded
+  function, "feature F is currently output by plugin P", and surface that named statement in **two** places
+  only — the **Health** screen (the natural "what's working / what isn't" place) and the **Conflict Manager**
+  screen (where the admin already chooses takeover/defer). Name the plugin and the function in plain words.
+  Do NOT scatter per-tab banners (clutter for non-technical admins). (Bojan-decided 2026-06-29; scope =
+  general, surface = Health + Conflict Manager.) *(→ conflict-manager feature; T1·S5 deferral finding)*
+- ✅ **DO — Test floor under the flagship surfaces.** Unit tests for `HealthCheckService`, the three
+  analyzers, `DuplicateTagScanner`, and especially the URL Checker SSRF allow-list — so a verifier can
+  never silently become an always-pass — plus the central output-escaping test (security #5). *(→ arch
+  §10 B3, §8)*
+- ✅ **DO (Bojan) — CI/scope hygiene.** Take the legacy top-level `plugins/` tree out of the active CI
+  matrix and re-point `composer test` at the component, so "CI green" means "the live product is green."
+  *(→ arch §10 B4, §9)*
+
+---
+
+## TWIGS — sequenced releases & pre-wide-launch hardening
+
+- ✅ **DO (Bojan) — "Collapse" release: stop shipping the 5 dormant `*_pro` plugins + delete the orphaned
+  packaging.** Remove the 5 `aiboost_*_pro` directories and the dead `build_pro_package_zip()` /
+  `pkg_script_pro.php` / `pkg_aiboost_pro.xml`. **Careful:** install-lifecycle order with a clean-uninstall
+  test on BOTH targets; **keep `sweepCollapsedProDecorators()`** (it cleans sites that still carry the old
+  rows). *(→ licensing P4; arch §10 W1)*
+- ✅ **DO (Bojan) — Dedup the two robots.txt code paths.** `RobotsTxtBuilder` ("# BEGIN AI Boost… managed
+  block") vs the runtime `RobotsTxtManager` ("# [AI Boost AEO — managed section]") use different markers;
+  converge onto the authoritative `RobotsTxtBuilder` (this is also where `robots_custom_rules` becomes
+  live). *(→ arch §10 W2, §2 R2; option-map `robots_custom_rules`)*
+- ⏸ **POST-LAUNCH — Before a WIDE public launch: harden custom-code ACL.** Gate the custom-code save path
+  on `core.admin` / a dedicated `aiboost.editcode` ACL (today any `core.manage` on `com_aiboost` can
+  inject raw HTML), and add a Health warning when `custom_code_*` is non-empty while >1 group holds
+  `core.manage`. *(→ arch §10 W3, §7)*
+- ⏸ **POST-LAUNCH — Fix the 2 broken YOOtheme parsers, then market YOOtheme.** FAQ accordion parser
+  (`buildAccordionFaqSchema` non-greedy regex truncates on nested `<div>`; 0/6 pages) and gallery parser
+  (`buildGallerySchema` expects old `data-caption`, incompatible with `uk-lightbox`; 0/51). Rewrite to
+  read element semantics, not regex. The YOOtheme "moat" cannot be marketed until fixed. *(→ arch §10 W4,
+  §5; option-map broken-4; old-backlog "YOOtheme menu-param mapping")*
+
+---
+
+## POST-LAUNCH / NICE-TO-HAVE (deferred)
+
+**WordPress (architecture-gated):**
+- ⏸ **POST-LAUNCH — FREEZE WordPress work.** Keep the cheap adapter *interfaces* (load-bearing for
+  testability today); build **no** Wp impls / content-repository seam / entry point until Joomla revenue
+  justifies entering the Yoast/Rank Math arena. When you do, the first task is the **content-repository
+  seam** (~200 `#__` queries — the real cost), and a full nonce/capability/`prepare`/`kses` security
+  layer is a hard prerequisite. Subsumes the old "WordPress vertical slice", "thin Joomla plugin classes
+  into platform entrypoints", and the `ARCHITECTURE-BOUNDARIES.md` boundary work (route CMS calls through
+  adapters; content-repository seam; WP data adapter; first standalone+integrative plugin). *(→ arch §10
+  W5, §6; old-backlog "cross-platform boundary work")*
+
+**Custom fields (deferred):**
+- ⏸ **POST-LAUNCH (Bojan) — Configurable custom-field names.** Let admins map AI Boost outputs onto their
+  own existing fields. Only if customers ask — most prefer the one-click create buttons. *(→ fields D4)*
+- ⏸ **POST-LAUNCH (Bojan) — Per-article author override / co-authors.** Today the author is always the
+  article's `created_by`; no override, no multiple authors. Larger product change. *(→ fields D5/G5)*
+
+**Schema / output polish:**
+- ⏸ **POST-LAUNCH — Finish or delete `schema_breadcrumb_pro` / "Enhanced BreadcrumbList".** It is a codegen
+  stub with no output; the basic breadcrumb already works Free. *(→ option-map; arch §5)*
+- ⏸ **POST-LAUNCH — Custom-Code per-menu scope (8 keys) decision.** The picker was removed from the UI but
+  the plugin still honours stored values. Either restore a per-page/per-menu scope picker or remove the
+  keys cleanly (`custom_code_{head,body,footer}_{scope,menu_ids}` + delete the 2 legacy `custom_code_scope`
+  / `custom_code_menu_ids`). *(→ option-map; arch §5)*
+- ⏸ **POST-LAUNCH — Polish Schema.org card ordering.** Reorder cards so foundational schema precedes
+  optional rich-result types. Feature set unchanged; high-risk/low-urgency on the most important page —
+  the only remaining Admin-IA-rework item. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Extra social-profile fields** (replacement for the removed Pinterest field): 2–3
+  generic name+URL fields feeding Schema.org `sameAs`, clearly labelled "official profiles only"
+  (Mastodon/Bluesky/Threads). Do it properly this time. *(→ old-backlog)*
+
+**Admin UX / integrations:**
+- ⏸ **POST-LAUNCH — Integration master toggles shown locked (upsell).** Render
+  `integration_falang_enabled` / `integration_yootheme_enabled` as a ProGate-locked control with an
+  "available as a paid add-on" message when the SKU is inactive. Billing is already protected — this is a
+  sales change, not a security one. *(→ old-backlog; option-map `integration_yootheme_enabled`)*
+- ⏸ **POST-LAUNCH — Admin Tools: detect AI-bot blocking.** Admin Tools' WAF can block
+  GPTBot/ClaudeBot/PerplexityBot, killing AEO — detect such rules and warn. Plus redirect-manager /
+  `.htaccess` overlap awareness. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Falang new options:** `inLanguage` on Schema.org, `og:locale:alternate`, per-language
+  meta title/description templates, per-language sitemap priority. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Verify before reopening:** "render per-feature integration options in the SPA" may
+  already have shipped under Phase 3 (`ce895f0`) — confirm in the SPA before re-listing as work. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Alias Assistant** — suggest/fix article aliases with automatic 301s when an alias
+  changes. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Custom-code safety UX:** warn when injected custom code is unusually large; preview
+  injected code before saving. *(→ old-backlog)*
+
+**Refactors / technical debt (all post-1.0, architecture-gated where noted):**
+- ⏸ **POST-LAUNCH — Make settings save manifest-driven.** Derive accepted keys/defaults/types/tier from
+  the manifest registry instead of the `SettingsController` whitelist. Gate 2 + most of Gate 3 done
+  (176/318 keys); remaining: Analytics + Sitemap SKU-ownership. Architecture gate + XHigh. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Harden settings save to merge-on-existing (#16)** and delete the dead
+  `SettingsPersistenceService::saveSettings()` (the only physical subset-replace writer). Behaviour is
+  locked by `SettingsWriterRmwContractTest`. Touches billing-guard code — full Pro save tests. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Converge LIKE prefix scans onto the sql_mode-independent form (#8).** Replace escaped
+  `LIKE 'aiboost\_%_pro'` at `PluginRegistry.php:415`, `mod_aiboost_health.php:47`, `pkg_script.php`, and
+  `ErrorsController.php:98` with a coarse escape-free WHERE + `str_starts_with`/`str_ends_with` in PHP.
+  Install-path test required. *(→ old-backlog; memory sql-like-prefix-scan)*
+- ⏸ **POST-LAUNCH — Safer option versioning (#41).** Add automatic option versioning so a renamed/removed
+  key can't silently drop a stored value on the next Save (today guarded only by the manual
+  `COMPATIBILITY_KEYS` list). *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Automate the export secret-protection denylist (#42).** Make `SYSTEM_PRESERVED_KEYS`
+  membership automatic so a new sensitive field can't be forgotten out of the export denylist. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — 301 redirects missing from export/backup (#42).** Add redirects to export/import so
+  they survive a site move. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — UI colour tokens.** Extract the genuine colour bypasses (App.vue banner amber,
+  HealthApp pass/fail, per-tab accents) into `--ab-warning`/`--ab-success`/`--ab-danger` (+ accent).
+  Small, CSS-only, visually verifiable. *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Cards: consolidate `.ab-card` vs `.ab-section`** into one family (do it around the
+  WordPress port). And the optional, low-value `AbButton`/`AbCard` wrapper sweep (one-off layout, doesn't
+  block the "one CSS fix = all pages" goal). *(→ old-backlog)*
+
+**Testing & infrastructure:**
+- ⏸ **POST-LAUNCH — Targeted screenshot `--only` + `--theme` on `scripts/ui-audit-screenshots.js`** so one
+  screen can be shot in both themes without the full 46-shot set. Raise priority if the subagent fallback
+  fires often in practice (decide from measurement). *(→ old-backlog)*
+- ⏸ **POST-LAUNCH — Markdown feature (`markdown_pages_enabled`) completeness check.** Not exercised in the
+  verification campaign. Verify the dedicated `.md` URL, `Accept: text/markdown`, the discovery `<link>`,
+  and noindex + canonical on the `.md` version; complete whatever is missing (ties to the GSC/indexability
+  work and the competitor analysis). *(→ old-backlog; arch §5)*
+- ⏸ **POST-LAUNCH — Live BreadcrumbList check on a non-YOOtheme template** (Cassiopeia,
+  `joomla6-free.testmyweb.info`). The code is confirmed correct but never verified live. Separate from the
+  YOOtheme Breadcrumb investigation (order 0007). *(→ old-backlog)*
+
+**Research & strategy:**
+- ⏸ **POST-LAUNCH — Competitor analysis of the Joomla SEO/schema/AEO market.** Two concrete lists, NOT an
+  encyclopedia: (A) market-standard features we lack; (B) where we are stronger (marketing ammunition).
+  Competitors: Tassos "Google Structured Data", 4SEO, sh404SEF. Public sources only; learn the principle,
+  reimplement in our own code (never copy GPL code). Feeds the honest-positioning work (B1) and the
+  Markdown completeness check. *(→ old-backlog; arch §5; memory 4seo-competitor-multilingual)*
+
+---
+
+## OPEN DECISIONS (flagged, not decided)
+
+- ❓ **OPEN — YOOtheme bridge: paid add-on (current) or Free?** Falang is Free; should YOOtheme be too?
+  *(→ old-backlog; licensing E)*
+- ❓ **OPEN — Integration licences relock on expiry while core Pro is perpetual — intended?** Core Pro
+  (`pro_activated`) never relocks; integration Pro (`hasPro('int_*')`) reads the live status and expires.
+  Both are reasonable; the asymmetry is undocumented. Confirm the intended behaviour and document it
+  (OPERATING.md + website pricing copy). *(→ licensing P7/ODLUKA 7)*
+- ❓ **OPEN — Google Search Console integration** — recommended (the #1 gap vs 4SEO); decide when reached.
+  *(listed under MAIN BRANCHES; restated here as an open product call. → arch §10 B2)*
+
+---
+
+## Config-cleanup appendix — exact targets for the TRUNK config-surface item
+
+Precise keys so nothing is lost (status from `_handoff/docs/option-map.json`, order 0010):
+
+**⚫ Dead (6) — saves but no consumer:**
+- `robots_auto_sync` → **REMOVE** (does nothing).
+- `manual_faq_scope` → **FINISH** (Bojan-decided; see TRUNK) — not just delete.
+- `hreflang_sitemap`, `sitemap_hreflang`, `hreflang_enabled`, `hreflang_primary_language` →
+  **collapse to one** (the live consumer is `enable_hreflang`; head hreflang goes through the Falang bridge).
+
+**🟡 Half-done — wire a UI or remove (decide each):**
+- `enable_x_robots_header` (phantom — no UI), `robots_custom_rules` (only the legacy `RobotsTxtManager`
+  reads it → fold into the robots.txt dedup), `llmstxt_include_menu` / `_about` / `_socials` / `_faq`
+  (read by generators, in no manifest — add UI or document as always-on), `enable_manual_faqs` legacy
+  `q/a` data (add the compat shim — see TRUNK `manual_faq_scope`).
+- Custom-Code scope keys (8 + 2 legacy) and `schema_breadcrumb_pro` / "Enhanced BreadcrumbList" → see
+  POST-LAUNCH (decision deferred).
+
+**🔴 Broken (4) — all YOOtheme, all POST-LAUNCH:** `yootheme_faq_enabled`, `yootheme_gallery_enabled`
+(+ the emitted "YOOtheme FAQ" / "YOOtheme ImageGallery" blocks) → fix the parsers before marketing
+YOOtheme (see TWIGS W4). The remaining YOOtheme half-done keys (`yootheme_meta_override`,
+`yootheme_schema_mapping`, `yootheme_accordion_selector`, `yootheme_sitemap_exclude_builder`,
+`integration_yootheme_enabled`) are deferred with the same work.

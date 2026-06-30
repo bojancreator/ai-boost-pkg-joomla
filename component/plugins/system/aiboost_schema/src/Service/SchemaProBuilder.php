@@ -30,6 +30,7 @@ namespace AiBoost\Plugin\System\AiBoostSchema\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\TranslationService;
 use Joomla\Database\DatabaseInterface;
 
@@ -43,23 +44,62 @@ class SchemaProBuilder
     private string $option;
     private string $view;
     private int    $id;
+    /** T1·S7: the one homepage truth (menu home=1) — closes the article gates on the home. */
+    private bool $isHomepage;
+    /** T1·S6: resolved per-request language (PageContext::language) when available. */
+    private string $lang;
 
     /**
      * @param array<string,mixed> $settings
+     * @param ?PageContext        $pageContext  T1·S2: the resolved per-request page
+     *        context. When provided (production, via AdapterRegistry::pageResolver()),
+     *        the page-type primitives are read from it; when null (unit tests) they
+     *        fall back to the raw $ctx primitives. BEHAVIOUR-IDENTICAL: PageContext's
+     *        raw option/view/rawId ARE getCurrentOption/View/Id — the article gate
+     *        therefore fires on exactly the same pages as before, including a
+     *        single-article homepage. T1·S7 — the article gates are now
+     *        homepage-aware (isArticlePage() == PageContext::isArticle()): a
+     *        single-article / featured / category-blog HOME no longer emits
+     *        article-scoped schema (the homepage takes the Free WebSite/home graph).
      */
     public function __construct(
         array $settings,
         AppContextInterface $ctx,
         DatabaseInterface $db,
-        ?TranslationService $translations = null
+        ?TranslationService $translations = null,
+        ?PageContext $pageContext = null
     ) {
         $this->settings     = $settings;
         $this->ctx          = $ctx;
         $this->db           = $db;
         $this->translations = $translations;
-        $this->option       = $ctx->getCurrentOption();
-        $this->view         = $ctx->getCurrentView();
-        $this->id           = $ctx->getCurrentId();
+        $this->option       = $pageContext !== null ? $pageContext->option : $ctx->getCurrentOption();
+        $this->view         = $pageContext !== null ? $pageContext->view   : $ctx->getCurrentView();
+        $this->id           = $pageContext !== null ? $pageContext->rawId  : $ctx->getCurrentId();
+        // T1·S7: the menu-home truth. When the resolver is present (production) the
+        // homepage is the menu home=1 page whatever it is built from; the null
+        // fallback (unit tests) is $ctx->isHomepage() (the same menu-home flag).
+        $this->isHomepage   = $pageContext !== null ? $pageContext->isHomepage : $ctx->isHomepage();
+        // T1·S6: the active page language comes from the single resolver source
+        // (PageContext::language) when provided, falling back to the raw ctx value
+        // (unit tests). PageContext::language IS getActiveLanguage(), so this is
+        // byte-identical to the per-request active language used before.
+        $this->lang         = $pageContext !== null ? $pageContext->language : $ctx->getActiveLanguage();
+    }
+
+    /**
+     * T1·S7 — the homepage-first article gate (== PageContext::isArticle()): a real
+     * article page that is NOT the menu home. A single-article / featured /
+     * category-blog HOME returns false, so no article-scoped schema (Article,
+     * Event, HowTo, auto-detected FAQ, author/datePublished) emits on the home —
+     * the homepage takes the Free WebSite/home graph instead.
+     */
+    private function isArticlePage(): bool
+    {
+        return !$this->isHomepage
+            && $this->option === 'com_content'
+            && $this->view === 'article'
+            && $this->id > 0;
     }
 
     /**
@@ -137,7 +177,7 @@ class SchemaProBuilder
             return $block;
         }
 
-        $lc = $this->ctx->getActiveLanguage();
+        $lc = $this->lang;
 
         $orgNameRaw    = trim((string) ($this->settings['org_name']           ?? ''));
         $orgDescRaw    = trim((string) ($this->settings['org_description']    ?? ''));
@@ -215,7 +255,7 @@ class SchemaProBuilder
             return null;
         }
 
-        $lc = $this->translations !== null ? $this->ctx->getActiveLanguage() : '';
+        $lc = $this->translations !== null ? $this->lang : '';
 
         $mainEntity = [];
         foreach ($items as $idx => $item) {
@@ -254,7 +294,7 @@ class SchemaProBuilder
             return null;
         }
 
-        $lc = $this->translations !== null ? $this->ctx->getActiveLanguage() : '';
+        $lc = $this->translations !== null ? $this->lang : '';
 
         $mainEntity = [];
         foreach ($items as $idx => $item) {
@@ -309,9 +349,7 @@ class SchemaProBuilder
             }
         }
 
-        if ((int) ($this->settings['faq_auto_detect'] ?? 0)
-            && $this->option === 'com_content' && $this->view === 'article' && $this->id > 0
-        ) {
+        if ((int) ($this->settings['faq_auto_detect'] ?? 0) && $this->isArticlePage()) {
             $detected = $this->detectFaqFromCurrentArticle();
             if (!empty($detected)) {
                 $seen = [];
@@ -370,7 +408,7 @@ class SchemaProBuilder
     /** @return array<string,mixed>|null */
     private function buildArticle(): ?array
     {
-        if ($this->option !== 'com_content' || $this->view !== 'article' || $this->id <= 0) {
+        if (!$this->isArticlePage()) {
             return null;
         }
 
@@ -468,7 +506,7 @@ class SchemaProBuilder
         $orgUrl  = trim((string) ($this->settings['org_url']  ?? ''));
         $logo    = trim((string) ($this->settings['org_logo'] ?? ''));
         if ($this->translations !== null) {
-            $lc2     = $this->ctx->getActiveLanguage();
+            $lc2     = $this->lang;
             $orgName = $this->translations->get('org_name', $lc2, $orgName);
             $logo    = $this->translations->get('org_logo', $lc2, $logo);
         }
@@ -494,7 +532,7 @@ class SchemaProBuilder
         if ($eventsCatId <= 0) {
             return null;
         }
-        if ($this->option !== 'com_content' || $this->view !== 'article' || $this->id <= 0) {
+        if (!$this->isArticlePage()) {
             return null;
         }
 
@@ -552,7 +590,7 @@ class SchemaProBuilder
 
         $orgName = trim((string) ($this->settings['org_name'] ?? ''));
         if ($this->translations !== null) {
-            $lc      = $this->ctx->getActiveLanguage();
+            $lc      = $this->lang;
             $orgName = $this->translations->get('org_name', $lc, $orgName);
 
             $eventIndex = $this->resolveEventIndex($this->id);
@@ -572,7 +610,7 @@ class SchemaProBuilder
     /** @return array<string,mixed>|null */
     private function buildHowTo(): ?array
     {
-        if ($this->option !== 'com_content' || $this->view !== 'article' || $this->id <= 0) {
+        if (!$this->isArticlePage()) {
             return null;
         }
 
@@ -604,7 +642,7 @@ class SchemaProBuilder
         // is wired (the Pro + Multilang null-thread), each HowTo string is looked
         // up by its translation key for the active language, falling back to the
         // base (default-language) value entered in schema_howto.
-        $lc = $this->translations !== null ? $this->ctx->getActiveLanguage() : '';
+        $lc = $this->translations !== null ? $this->lang : '';
         if ($lc !== '' && $this->translations !== null) {
             $name = $this->translations->get('howto_name', $lc, $name);
         }
@@ -791,7 +829,7 @@ class SchemaProBuilder
                 $byName[(string) $f->name] = trim((string) $val);
             }
 
-            $lang = strtolower(substr($this->ctx->getActiveLanguage(), 0, 2));
+            $lang = strtolower(substr($this->lang, 0, 2));
             $pick = static function (string $base) use ($byName, $lang): string {
                 foreach ([$base . '_' . $lang, $base . '_en', $base] as $key) {
                     if (isset($byName[$key]) && $byName[$key] !== '') {

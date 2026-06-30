@@ -675,30 +675,10 @@ class SettingsController extends BaseController
             $hasOnlySubform = in_array('only_use_in_subform', $fieldCols, true);
 
             // Ensure field group
-            $groupId = $this->ensureOgFieldGroupInline($db, $context, 'AI Boost — OpenGraph');
+            $groupId = $this->ensureOgFieldGroupInline($db, $context, \AiBoost\Lib\OgCustomFieldCatalog::GROUP_TITLE);
 
-            $listOgTypeParams = json_encode(['options' => [
-                ['name' => '— default (article) —', 'value' => ''],
-                ['name' => 'Article',               'value' => 'article'],
-                ['name' => 'Website',               'value' => 'website'],
-                ['name' => 'Video',                 'value' => 'video.movie'],
-                ['name' => 'Music',                 'value' => 'music.song'],
-                ['name' => 'Product',               'value' => 'product'],
-            ]]);
-            $listTwitterCardParams = json_encode(['options' => [
-                ['name' => '— default (summary_large_image) —', 'value' => ''],
-                ['name' => 'Summary Large Image',               'value' => 'summary_large_image'],
-                ['name' => 'Summary',                           'value' => 'summary'],
-            ]]);
-
-            $fieldDefs = [
-                ['name' => 'aiboost_og_title',       'title' => 'AI Boost — OG Title',       'type' => 'text',    'description' => 'Override the og:title meta tag. Leave empty to use the article title.',            'fieldparams' => '{}',                               'ordering' => 1],
-                ['name' => 'aiboost_og_description', 'title' => 'AI Boost — OG Description', 'type' => 'textarea','description' => 'Override the og:description meta tag for this article.',                           'fieldparams' => '{"rows":"3","cols":""}',            'ordering' => 2],
-                ['name' => 'aiboost_og_image',       'title' => 'AI Boost — OG Image',       'type' => 'media',   'description' => 'Override og:image. Recommended size: 1200×630 px.',                              'fieldparams' => '{"directory":"","preview":"true"}','ordering' => 3],
-                ['name' => 'aiboost_og_type',        'title' => 'AI Boost — OG Type',        'type' => 'list',    'description' => 'Override the og:type meta tag. Defaults to "article" for article pages.',          'fieldparams' => $listOgTypeParams,                  'ordering' => 4],
-                ['name' => 'aiboost_og_video',       'title' => 'AI Boost — OG Video URL',   'type' => 'url',     'description' => 'Optional og:video URL. Enables video preview cards on Facebook and LinkedIn.',    'fieldparams' => '{}',                               'ordering' => 5],
-                ['name' => 'aiboost_twitter_card',   'title' => 'AI Boost — Twitter Card',   'type' => 'list',    'description' => 'Override the twitter:card type. Defaults to summary_large_image.',                 'fieldparams' => $listTwitterCardParams,             'ordering' => 6],
-            ];
+            // Single source of truth — shared with the installer (order 0017, G9).
+            $fieldDefs = \AiBoost\Lib\OgCustomFieldCatalog::fieldsWithJsonParams();
 
             $version = 'manual-' . date('Ymd');
             $note    = 'aiboost_version:' . $version;

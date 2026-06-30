@@ -24,6 +24,8 @@ namespace AiBoost\Plugin\System\AiBoostAeo\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\IndexabilityPolicy;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\TranslationService;
 use Joomla\Database\DatabaseInterface;
 
@@ -38,6 +40,8 @@ class LlmsTxtProGenerator
     private ?TranslationService $translations;
     /** When non-empty, overrides ctx->getActiveLanguage() for translation lookups. */
     private string $overrideLangCode;
+    /** T1·S6: resolved per-request page context (for PageContext::language). */
+    private ?PageContext $pageContext;
 
     /**
      * @param array<string,mixed> $settings
@@ -47,13 +51,15 @@ class LlmsTxtProGenerator
         AppContextInterface $ctx,
         DatabaseInterface $db,
         ?TranslationService $translations = null,
-        string $overrideLangCode = ''
+        string $overrideLangCode = '',
+        ?PageContext $pageContext = null
     ) {
         $this->settings         = $settings;
         $this->ctx              = $ctx;
         $this->db               = $db;
         $this->translations     = $translations;
         $this->overrideLangCode = $overrideLangCode;
+        $this->pageContext      = $pageContext;
         $this->baseUrl          = $ctx->getBaseUrl();
         $this->siteRoot         = $ctx->getBaseUrl();
     }
@@ -70,7 +76,7 @@ class LlmsTxtProGenerator
         $lines = [];
 
         $siteName   = $this->ctx->getSiteName();
-        $lc         = $this->overrideLangCode !== '' ? $this->overrideLangCode : $this->ctx->getActiveLanguage();
+        $lc         = $this->overrideLangCode !== '' ? $this->overrideLangCode : ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
         $applyTrans = $this->translations !== null;
 
         $orgNameBase = trim((string) ($this->settings['org_name'] ?? ''));
@@ -221,7 +227,7 @@ class LlmsTxtProGenerator
         $lines = [];
 
         $siteName    = $this->ctx->getSiteName();
-        $lc2         = $this->overrideLangCode !== '' ? $this->overrideLangCode : $this->ctx->getActiveLanguage();
+        $lc2         = $this->overrideLangCode !== '' ? $this->overrideLangCode : ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
         $applyTrans2 = $this->translations !== null;
 
         $orgName2Base = trim((string) ($this->settings['org_name'] ?? ''));
@@ -514,9 +520,14 @@ class LlmsTxtProGenerator
                 ->select('a.id, a.title, a.alias, a.metadesc, a.catid, c.alias AS cat_alias')
                 ->from('#__content AS a')
                 ->leftJoin('#__categories AS c ON c.id = a.catid')
-                ->where('a.state = 1')
                 ->order('a.created DESC')
                 ->setLimit($limit);
+
+            // T1·S4 — item indexability via the shared IndexabilityPolicy. The Pro
+            // recent list filters on state only (no window, no access), as before.
+            foreach ((new IndexabilityPolicy())->itemWhereClauses($db, publishedExpr: 'a.state') as $where) {
+                $query->where($where);
+            }
 
             $db->setQuery($query);
             $rows = $db->loadObjectList() ?: [];
@@ -556,10 +567,19 @@ class LlmsTxtProGenerator
             $query = $db->getQuery(true)
                 ->select($db->quoteName(['id', 'title', 'introtext', 'modified']))
                 ->from($db->quoteName('#__content'))
-                ->where($db->quoteName('state') . ' = 1')
-                ->where($db->quoteName('access') . ' = 1')
                 ->order($db->quoteName('modified') . ' DESC')
                 ->setLimit($limit);
+
+            // T1·S4 — item indexability via the shared IndexabilityPolicy. The full
+            // index filters on state + public access (access=1), as before.
+            foreach ((new IndexabilityPolicy())->itemWhereClauses(
+                $db,
+                publishedExpr: 'state',
+                accessExpr: 'access',
+                publicAccessOnly: true,
+            ) as $where) {
+                $query->where($where);
+            }
 
             $db->setQuery($query);
             return $db->loadObjectList() ?: [];
@@ -576,10 +596,19 @@ class LlmsTxtProGenerator
             $query = $db->getQuery(true)
                 ->select($db->quoteName(['id', 'title', 'description']))
                 ->from($db->quoteName('#__categories'))
-                ->where($db->quoteName('extension') . ' = ' . $db->quote('com_content'))
-                ->where($db->quoteName('published') . ' = 1')
-                ->where($db->quoteName('access') . ' = 1')
+                ->where($db->quoteName('extension') . ' = ' . $db->quote('com_content'))   // category scope (not indexability)
                 ->order($db->quoteName('lft') . ' ASC');
+
+            // T1·S4 — item indexability via the shared IndexabilityPolicy. Categories
+            // filter on published + public access (access=1), as before.
+            foreach ((new IndexabilityPolicy())->itemWhereClauses(
+                $db,
+                publishedExpr: 'published',
+                accessExpr: 'access',
+                publicAccessOnly: true,
+            ) as $where) {
+                $query->where($where);
+            }
 
             $db->setQuery($query);
             return $db->loadObjectList() ?: [];

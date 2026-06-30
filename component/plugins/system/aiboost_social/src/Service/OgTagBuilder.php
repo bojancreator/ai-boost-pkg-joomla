@@ -24,6 +24,7 @@ namespace AiBoost\Plugin\System\AiBoostSocial\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\PageContext;
 use Joomla\Database\DatabaseInterface;
 
 class OgTagBuilder
@@ -32,18 +33,28 @@ class OgTagBuilder
     private array               $settings;
     private AppContextInterface $ctx;
     private DatabaseInterface   $db;
+    private ?PageContext        $pageContext;
 
     /**
-     * @param array<string,mixed> $settings  Shared AI Boost settings array.
+     * @param array<string,mixed> $settings     Shared AI Boost settings array.
+     * @param ?PageContext        $pageContext  T1·S3: the resolved per-request page
+     *        context. When provided (production, via AdapterRegistry::pageResolver()),
+     *        the page-type primitives seeded into the `context` block are sourced from
+     *        its RAW option/view/rawId; when null (unit tests) they fall back to $ctx.
+     *        BEHAVIOUR-IDENTICAL — PageContext's raw primitives ARE getCurrentOption/
+     *        View/Id. (Free OG output is sitewide og:type=website regardless; the
+     *        primitives only feed the Pro decorator via the props context block.)
      */
     public function __construct(
         array $settings,
         AppContextInterface $ctx,
-        DatabaseInterface $db
+        DatabaseInterface $db,
+        ?PageContext $pageContext = null
     ) {
-        $this->settings = $settings;
-        $this->ctx      = $ctx;
-        $this->db       = $db;
+        $this->settings    = $settings;
+        $this->ctx         = $ctx;
+        $this->db          = $db;
+        $this->pageContext = $pageContext;
     }
 
     /**
@@ -64,9 +75,12 @@ class OgTagBuilder
      */
     public function buildProps(): array
     {
-        $option = $this->ctx->getCurrentOption();
-        $view   = $this->ctx->getCurrentView();
-        $id     = $this->ctx->getCurrentId();
+        // T1·S3: page-type primitives from the resolved PageContext when present
+        // (production), falling back to the raw $ctx primitives (unit tests).
+        // Behaviour-identical: PageContext's raw option/view/rawId ARE getCurrent*().
+        $option = $this->pageContext !== null ? $this->pageContext->option : $this->ctx->getCurrentOption();
+        $view   = $this->pageContext !== null ? $this->pageContext->view   : $this->ctx->getCurrentView();
+        $id     = $this->pageContext !== null ? $this->pageContext->rawId  : $this->ctx->getCurrentId();
 
         // ── Base values from CMS document ────────────────────────────────────
         $siteName = trim((string)($this->settings['site_name'] ?? ''));

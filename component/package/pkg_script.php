@@ -376,6 +376,28 @@ class Pkg_AiboostInstallerScript
     }
 
     /**
+     * Load the shared OG custom-field catalogue (DRY with
+     * SettingsController::repairOgFields() — order 0017, G9). pkg_script cannot
+     * autoload the lib, so the file is required explicitly; returns [] when the
+     * component lib is not yet on disk (caller degrades gracefully).
+     *
+     * @return list<array<string,mixed>>
+     */
+    private function loadOgFieldDefs(): array
+    {
+        if (!class_exists('AiBoost\\Lib\\OgCustomFieldCatalog', false)) {
+            $file = JPATH_ADMINISTRATOR . '/components/com_aiboost/lib/src/OgCustomFieldCatalog.php';
+            if (is_file($file)) {
+                require_once $file;
+            }
+        }
+        if (!class_exists('AiBoost\\Lib\\OgCustomFieldCatalog', false)) {
+            return [];
+        }
+        return \AiBoost\Lib\OgCustomFieldCatalog::fields();
+    }
+
+    /**
      * Auto-create the 6 AI Boost OG custom fields on install and update.
      *
      * Logic (idempotent / non-destructive):
@@ -393,67 +415,20 @@ class Pkg_AiboostInstallerScript
         $version     = self::VERSION;
         $diagnostics = [];
 
-        $fieldDefs = [
-            [
-                'name'        => 'aiboost_og_title',
-                'title'       => 'AI Boost — OG Title',
-                'type'        => 'text',
-                'description' => 'Override the og:title meta tag. Leave empty to use the article title.',
-                'fieldparams' => [],
-                'ordering'    => 1,
-            ],
-            [
-                'name'        => 'aiboost_og_description',
-                'title'       => 'AI Boost — OG Description',
-                'type'        => 'textarea',
-                'description' => 'Override the og:description meta tag for this article.',
-                'fieldparams' => ['rows' => '3', 'cols' => ''],
-                'ordering'    => 2,
-            ],
-            [
-                'name'        => 'aiboost_og_image',
-                'title'       => 'AI Boost — OG Image',
-                'type'        => 'media',
-                'description' => 'Override og:image. Recommended size: 1200x630 px.',
-                'fieldparams' => ['directory' => '', 'preview' => 'true'],
-                'ordering'    => 3,
-            ],
-            [
-                'name'        => 'aiboost_og_type',
-                'title'       => 'AI Boost — OG Type',
-                'type'        => 'list',
-                'description' => 'Override the og:type meta tag. Defaults to "article" for article pages.',
-                'fieldparams' => ['options' => [
-                    ['name' => '— default (article) —', 'value' => ''],
-                    ['name' => 'Article',               'value' => 'article'],
-                    ['name' => 'Website',               'value' => 'website'],
-                    ['name' => 'Video',                 'value' => 'video.movie'],
-                    ['name' => 'Music',                 'value' => 'music.song'],
-                    ['name' => 'Product',               'value' => 'product'],
-                ]],
-                'ordering'    => 4,
-            ],
-            [
-                'name'        => 'aiboost_og_video',
-                'title'       => 'AI Boost — OG Video URL',
-                'type'        => 'url',
-                'description' => 'Optional og:video URL. Enables video preview cards on Facebook and LinkedIn.',
-                'fieldparams' => [],
-                'ordering'    => 5,
-            ],
-            [
-                'name'        => 'aiboost_twitter_card',
-                'title'       => 'AI Boost — Twitter Card',
-                'type'        => 'list',
-                'description' => 'Override the twitter:card type. Defaults to summary_large_image.',
-                'fieldparams' => ['options' => [
-                    ['name' => '— default (summary_large_image) —', 'value' => ''],
-                    ['name' => 'Summary Large Image',               'value' => 'summary_large_image'],
-                    ['name' => 'Summary',                           'value' => 'summary'],
-                ]],
-                'ordering'    => 6,
-            ],
-        ];
+        // Single source of truth — shared with SettingsController::repairOgFields()
+        // (order 0017, G9). pkg_script cannot autoload the lib, so require the
+        // catalogue file explicitly (same pattern as InstallIntegrity/RobotsTxtBuilder).
+        $fieldDefs = $this->loadOgFieldDefs();
+        if ($fieldDefs === []) {
+            $msg = '[AiBoost] OG custom-field catalogue unavailable — skipping field auto-create.';
+            error_log($msg);
+            Factory::getApplication()->enqueueMessage(
+                'AI Boost: could not load the OG field catalogue; create OG fields via the '
+                . '"Create / Repair OG Fields" button on the Social tab.',
+                'warning'
+            );
+            return;
+        }
 
         // ── Step 1: get/create group via Joomla stock model ──
         try {

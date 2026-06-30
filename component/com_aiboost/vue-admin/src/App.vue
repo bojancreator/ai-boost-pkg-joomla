@@ -207,7 +207,6 @@ const DEFAULTS = {
   enable_article_og_type:    '1',
   enable_per_article_fields: '1',
   llmstxt_enabled:           '1',
-  aeo_ai_meta_enabled:       '1',
   auto_domain_detection:     '1',
   enable_canonical:          '1',
   enable_robots:             '1',

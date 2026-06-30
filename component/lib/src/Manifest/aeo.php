@@ -256,15 +256,14 @@ return [
         'tier'        => 'free',
         'sku'         => 'aeo',
     ],
-
-    // ── AI signals (free) ──────────────────────────────────────────
     [
-        'key'         => 'aeo_ai_meta_enabled',
+        'key'         => 'markdown_alternate_noindex',
         'tab'         => 'aeo',
-        'section'     => 'ai_signals',
-        'label'       => 'Enable AI meta tags',
+        'section'     => 'markdown',
+        'label'       => 'Keep the Markdown copy out of search engines',
+        'description' => 'When on, the Markdown/AI alternate of a page (its .md / ?markdown=1 version) sends a noindex signal (X-Robots-Tag) so the plain-text copy never competes with the original page in search results. The normal HTML page is unaffected — it stays indexable and in the sitemap. Requires "Serve pages as Markdown for AI agents" to be on.',
         'type'        => 'toggle',
-        'default'     => '1',
+        'default'     => '0',
         'tier'        => 'free',
         'sku'         => 'aeo',
     ],

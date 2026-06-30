@@ -26,7 +26,7 @@ namespace AiBoost\Plugin\System\AiBoostAeo\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BodyBlockBuilder;
-use AiBoost\Lib\DocumentInspector;
+use AiBoost\Lib\Cms\AdapterRegistry;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
@@ -106,7 +106,7 @@ class AiBoostAeo extends CMSPlugin
                         }
                         if ($langCode !== '' && $langCode !== $defaultLang) {
                             $ctx = new JoomlaAppContext();
-                            $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), $langCode);
+                            $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), $langCode, $this->resolvePageContext());
                             header('Content-Type: text/plain; charset=utf-8');
                             header('Cache-Control: public, max-age=86400');
                             echo $gen->generate();
@@ -118,7 +118,7 @@ class AiBoostAeo extends CMSPlugin
                     if ($isLlmsFull && (int) ($settings['llms_full_txt_enabled'] ?? 0)) {
                         $ctx = new JoomlaAppContext();
                         $db  = Factory::getDbo();
-                        $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang));
+                        $gen = new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), '', $this->resolvePageContext());
                         header('Content-Type: text/plain; charset=utf-8');
                         header('Cache-Control: public, max-age=3600');
                         echo $gen->generateFull();
@@ -164,7 +164,7 @@ class AiBoostAeo extends CMSPlugin
             if (class_exists(LlmsTxtProGenerator::class) && PluginRegistry::isProActive($settings)) {
                 try {
                     $defaultLang = (string) Factory::getApplication()->get('language', 'en-GB');
-                    $text = (new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang)))->generate();
+                    $text = (new LlmsTxtProGenerator($settings, $ctx, $db, new TranslationService($db, $defaultLang), '', $this->resolvePageContext()))->generate();
                 } catch (\Throwable $e) {
                     // keep the Free baseline $text
                 }
@@ -214,31 +214,31 @@ class AiBoostAeo extends CMSPlugin
             return;
         }
 
+        // T1·S8 — the per-request indexability verdict (PageContext::indexable),
+        // the single field both the X-Robots header and the head robots meta read.
+        // Under the shipped rule only the Markdown alternate (a duplicate) flips it
+        // to false; normal HTML pages stay indexable, so the OFF path and every
+        // non-Markdown page are byte-identical to pre-S8.
+        $indexCtx  = $this->resolveRequestIndexability($settings);
+        $indexable = $indexCtx === null ? true : $indexCtx->indexable;
+
         // Pro: X-Robots-Tag header (relocated from aiboost_aeo_pro). isProActive
         // is the single source of truth (emits only a header, no relocated class).
+        // Now driven by PageContext::indexable (was a hardcoded "index, follow").
         if (PluginRegistry::isProActive($settings) && (int) ($settings['enable_x_robots_header'] ?? 0)) {
-            header('X-Robots-Tag: index, follow');
+            header('X-Robots-Tag: ' . ($indexable ? 'index, follow' : 'noindex'));
         }
 
-        // AI Signals (Free) — lightweight hints that tell AI engines the page
-        // is AI-optimised and point them at /llms.txt.
-        if ((int) ($settings['aeo_ai_meta_enabled'] ?? 0)) {
-            $doc = $app->getDocument();
-            if (DocumentInspector::shouldSkip($doc, DocumentInspector::SIG_AI_META_VERIFIED, $settings)) {
-                HeadBlockBuilder::noteSkip(
-                    HeadBlockBuilder::SECTION_AEO,
-                    'AI meta tags already emitted by another extension'
-                );
-            } else {
-                $baseUrl = rtrim(Uri::root(), '/');
-                $llmsUrl = htmlspecialchars($baseUrl . '/llms.txt', ENT_QUOTES);
-                HeadBlockBuilder::pushSection(
-                    HeadBlockBuilder::SECTION_AEO,
-                    '<meta name="ai-content-verified" content="true">' . "\n"
-                    . '<meta name="ai-content-optimized" content="true">' . "\n"
-                    . '<meta name="llms-txt" content="' . $llmsUrl . '">'
-                );
-            }
+        // T1·S8 — per-page noindex META in the head, driven by PageContext::indexable.
+        // The Markdown alternate carries its noindex via the X-Robots header on its
+        // own (text/markdown) response, so this meta is for a non-Markdown HTML page
+        // only. Under the shipped rule no HTML page is ever non-indexable, so this is
+        // wired-but-dormant — ready for a future per-page-noindex flag (Option C).
+        if (!$indexable && !$this->isMarkdownRequest) {
+            HeadBlockBuilder::pushSection(
+                HeadBlockBuilder::SECTION_AEO,
+                '<meta name="robots" content="noindex">'
+            );
         }
 
         // Markdown discovery <link> (Free) — lets AI agents auto-discover the
@@ -329,6 +329,52 @@ class AiBoostAeo extends CMSPlugin
     }
 
     /**
+     * T1·S6 — resolve the per-request PageContext via the wired resolver, so the
+     * llms generators read the active language from the single source
+     * (PageContext::language). Guarded + null-fallback (mirrors AiBoostSchema):
+     * absent Page classes / a resolve throw → null → the generator falls back to
+     * $ctx->getActiveLanguage() (byte-identical to pre-S6).
+     */
+    private function resolvePageContext(): ?\AiBoost\Lib\Page\PageContext
+    {
+        if (!class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+            return null;
+        }
+        try {
+            return AdapterRegistry::pageResolver()->resolve();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * T1·S8 — the per-request indexability verdict, routed through
+     * PageContext::indexable so every emitter reads ONE field instead of
+     * re-deriving the rule.
+     *
+     * Under the shipped rule (Option A) the ONLY thing that flips indexable to
+     * false is the Markdown alternate (a duplicate of the HTML page) when the
+     * opt-in `markdown_alternate_noindex` setting is on — closing the B2
+     * duplicate-content hazard. Normal rendered HTML pages stay indexable=true
+     * (the HTML-page noindex path is wired but dormant until a future per-page
+     * flag — Option C). Returns null when the resolver is unavailable, so callers
+     * treat the request as indexable (byte-identical to pre-S8).
+     *
+     * @param array<string,mixed> $settings
+     */
+    private function resolveRequestIndexability(array $settings): ?\AiBoost\Lib\Page\PageContext
+    {
+        $pc = $this->resolvePageContext();
+        if ($pc === null) {
+            return null;
+        }
+        if ($this->isMarkdownRequest && (int) ($settings['markdown_alternate_noindex'] ?? 0) === 1) {
+            return $pc->withIndexable(false, 'markdown alternate (duplicate of the HTML page)');
+        }
+        return $pc;
+    }
+
+    /**
      * Build the canonical article URL for an IndexNow submission (relocated
      * from aiboost_aeo_pro).
      */
@@ -369,6 +415,20 @@ class AiBoostAeo extends CMSPlugin
                     $app->setHeader('Cache-Control', 'public, max-age=3600', true);
                     try { $app->setHeader('X-Content-Type-Options', 'nosniff', true); } catch (\Throwable $e) {}
                     $app->setBody($markdown);
+
+                    // T1·S8 — keep the Markdown alternate (a duplicate of the HTML
+                    // page) out of search when the opt-in setting is on (closes B2).
+                    // When the Pro X-Robots feature is on it already emitted noindex
+                    // in onBeforeCompileHead, so emit here only when it did NOT — to
+                    // avoid a duplicate header. Not gated on Pro, so it also covers
+                    // Free (Markdown pages are a Free feature).
+                    $settings = $this->getAiBoostSettings();
+                    $noindex  = (int) ($settings['markdown_alternate_noindex'] ?? 0) === 1;
+                    $xRobotsFeatureOn = PluginRegistry::isProActive($settings)
+                        && (int) ($settings['enable_x_robots_header'] ?? 0) === 1;
+                    if ($noindex && !$xRobotsFeatureOn) {
+                        $app->setHeader('X-Robots-Tag', 'noindex', true);
+                    }
                 }
             } catch (\Throwable $e) {
                 // On any conversion error, let the original HTML through.

@@ -27,11 +27,13 @@ namespace AiBoost\Plugin\System\AiBoostSocial\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BodyBlockBuilder;
+use AiBoost\Lib\Cms\AdapterRegistry;
 use AiBoost\Lib\DocumentInspector;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
 use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\PluginRegistry;
 use AiBoost\Lib\TranslationService;
 use AiBoost\Plugin\System\AiBoostSocial\Service\OgTagBuilder;
@@ -99,7 +101,15 @@ class AiBoostSocial extends CMSPlugin
 
         $ctx     = new JoomlaAppContext();
         $db      = Factory::getDbo();
-        $builder = new OgTagBuilder($settings, $ctx, $db);
+
+        // T1·S3: resolve the per-request PageContext once and feed it to the Free
+        // builder (seeds the props context block) and the Pro decorator (article
+        // gate). Behaviour-preserving — the resolver's raw primitives are identical
+        // to what $ctx yields; guarded so any resolver failure falls back to null
+        // (→ builders use $ctx / props['context'], unchanged).
+        $pageContext = $this->resolvePageContext();
+
+        $builder = new OgTagBuilder($settings, $ctx, $db, $pageContext);
         $props   = $builder->buildProps();
 
         // Pro decorator hook — closed-source aiboost_social_pro listens here
@@ -132,7 +142,7 @@ class AiBoostSocial extends CMSPlugin
                 $translations = PluginRegistry::hasPro('int_falang')
                     ? new TranslationService($db, $defaultLang)
                     : null;
-                $props = (new OgTagProDecorator($ctx, $db, $translations))->decorate($props, $settings);
+                $props = (new OgTagProDecorator($ctx, $db, $translations, $pageContext))->decorate($props, $settings);
             } catch (\Throwable $e) {
                 // On any error, leave the Free baseline untouched — never break the page.
             }
@@ -236,6 +246,27 @@ class AiBoostSocial extends CMSPlugin
         $app = Factory::getApplication();
         HeadBlockBuilder::finalize($app, Version::VERSION);
         BodyBlockBuilder::finalize($app);
+    }
+
+    /**
+     * T1·S3 — resolve the per-request PageContext via the wired resolver.
+     *
+     * Returns null (so OgTagBuilder/OgTagProDecorator transparently fall back to
+     * their $ctx / props['context'] reads — unchanged behaviour) when the Page
+     * classes are absent or the resolver throws. The resolver's primitives
+     * (option/view/rawId) are by construction identical to JoomlaAppContext's, so
+     * routing the read through one place is behaviour-preserving.
+     */
+    private function resolvePageContext(): ?PageContext
+    {
+        if (!class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+            return null;
+        }
+        try {
+            return AdapterRegistry::pageResolver()->resolve();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**

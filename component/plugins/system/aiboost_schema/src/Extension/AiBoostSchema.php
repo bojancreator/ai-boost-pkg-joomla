@@ -21,11 +21,13 @@ namespace AiBoost\Plugin\System\AiBoostSchema\Extension;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\BodyBlockBuilder;
+use AiBoost\Lib\Cms\AdapterRegistry;
 use AiBoost\Lib\DocumentInspector;
 use AiBoost\Lib\HeadBlockBuilder;
 use AiBoost\Lib\Integration\FilterDispatcher;
 use AiBoost\Lib\Integration\Sdk;
 use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\PluginRegistry;
 use AiBoost\Lib\TranslationService;
 use AiBoost\Plugin\System\AiBoostSchema\Service\SchemaBuilder;
@@ -98,7 +100,14 @@ class AiBoostSchema extends CMSPlugin
 
         $ctx     = new JoomlaAppContext();
         $db      = Factory::getDbo();
-        $builder = new SchemaBuilder($settings, $ctx, $db);
+
+        // T1·S2: resolve the per-request PageContext once and feed both builders.
+        // Behaviour-preserving — the resolver's raw option/view/rawId + isHomepage
+        // are identical to what the builders read from $ctx today. Guarded so any
+        // resolver failure falls back to null (→ builders use $ctx, unchanged).
+        $pageContext = $this->resolvePageContext();
+
+        $builder = new SchemaBuilder($settings, $ctx, $db, $pageContext);
         $schemas = $builder->buildAll();
 
         // Optional integration hook. Listeners may decorate existing blocks or
@@ -134,7 +143,7 @@ class AiBoostSchema extends CMSPlugin
                 $translations = PluginRegistry::hasPro('int_falang')
                     ? new TranslationService($db, $defaultLang)
                     : null;
-                $schemas = (new SchemaProBuilder($settings, $ctx, $db, $translations))->decorateAll($schemas);
+                $schemas = (new SchemaProBuilder($settings, $ctx, $db, $translations, $pageContext))->decorateAll($schemas);
             } catch (\Throwable $e) {
                 // On any error, leave the base blocks untouched — never break the page.
             }
@@ -180,6 +189,27 @@ class AiBoostSchema extends CMSPlugin
         $app = Factory::getApplication();
         HeadBlockBuilder::finalize($app, Version::VERSION);
         BodyBlockBuilder::finalize($app);
+    }
+
+    /**
+     * T1·S2 — resolve the per-request PageContext via the wired resolver.
+     *
+     * Returns null (so the builders transparently fall back to their $ctx reads,
+     * i.e. unchanged behaviour) when the Page classes are absent or the resolver
+     * throws. The resolver's primitives (option/view/rawId/isHomepage) are by
+     * construction identical to the values the builders read from JoomlaAppContext,
+     * so this is behaviour-preserving; it just routes the read through one place.
+     */
+    private function resolvePageContext(): ?PageContext
+    {
+        if (!class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+            return null;
+        }
+        try {
+            return AdapterRegistry::pageResolver()->resolve();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     /**

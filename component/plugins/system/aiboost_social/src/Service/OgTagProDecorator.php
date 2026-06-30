@@ -4,10 +4,12 @@
  *
  * Pro-only decorator that listens on `EVENT_FILTER_SOCIAL_PROPS` and
  * enriches the structured OG/Twitter props built by the Free
- * `OgTagBuilder`. This file is the physical home for every Pro OpenGraph
- * feature; removing the aiboost_social_pro plugin removes the entire
- * code path, so a Free install cannot deliver any of these features
- * regardless of settings or license-tier patches.
+ * `OgTagBuilder`. Lives in the FREE `aiboost_social` plugin but is the
+ * physical home for every Pro OpenGraph feature; the build strips this file
+ * from the Free package (FREE_EXCLUDE) and the host only instantiates it when
+ * PluginRegistry::isProActive(), so a Free install cannot deliver any of these
+ * features regardless of settings. (Relocated here during the "Pro replaces
+ * Free" collapse; the old aiboost_social_pro home is retired.)
  *
  * Decoration scope:
  *   - Per-language site_name / og_description_override / default_og_image
@@ -31,6 +33,7 @@ namespace AiBoost\Plugin\System\AiBoostSocial\Service;
 defined('_JEXEC') or die;
 
 use AiBoost\Lib\AppContextInterface;
+use AiBoost\Lib\Page\PageContext;
 use AiBoost\Lib\TranslationService;
 use AiBoost\Plugin\System\AiBoostSocial\Service\OgTagBuilder;
 use Joomla\Database\DatabaseInterface;
@@ -56,6 +59,13 @@ class OgTagProDecorator
         // Nullable (D3): when Multilang Pro is not active the decorator still
         // runs on the 'og' bundle Pro, just without per-language overlays.
         private readonly ?TranslationService $translations = null,
+        // T1·S3: the resolved per-request page context. When provided (production,
+        // via AdapterRegistry::pageResolver()), the article gate reads its RAW
+        // primitives; when null (unit tests) it falls back to $props['context'].
+        // Behaviour-identical — the resolver's option/view/rawId are the same
+        // values OgTagBuilder seeds into props['context']. (NOT the homepage-first
+        // isArticle() semantics — that change is S7.)
+        private readonly ?PageContext $pageContext = null,
     ) {}
 
     /**
@@ -75,7 +85,7 @@ class OgTagProDecorator
         $og   = $props['og'] ?? [];
         $tw   = $props['tw'] ?? [];
         $ctx  = $props['context'] ?? ['option' => '', 'view' => '', 'id' => 0];
-        $lc   = $this->ctx->getActiveLanguage();
+        $lc   = ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
 
         // ── Sitewide per-language translations ────────────────────────────────
         $siteNameBase = trim((string) ($settings['site_name'] ?? ''));
@@ -114,13 +124,19 @@ class OgTagProDecorator
         }
 
         // ── Article enrichment ────────────────────────────────────────────────
-        $option = (string) ($ctx['option'] ?? '');
-        $view   = (string) ($ctx['view']   ?? '');
-        $id     = (int)    ($ctx['id']     ?? 0);
+        // T1·S3: prefer the resolved PageContext raw primitives (production);
+        // fall back to the props context array (unit tests / no resolver).
+        $option = $this->pageContext !== null ? $this->pageContext->option : (string) ($ctx['option'] ?? '');
+        $view   = $this->pageContext !== null ? $this->pageContext->view   : (string) ($ctx['view']   ?? '');
+        $id     = $this->pageContext !== null ? $this->pageContext->rawId  : (int)    ($ctx['id']     ?? 0);
+        // T1·S7: the menu-home truth closes the article gate on the homepage, so a
+        // single-article / featured / category-blog HOME keeps og:type=website (the
+        // Free baseline) and emits NO article:* / author / published_time.
+        $isHomepage = $this->pageContext !== null ? $this->pageContext->isHomepage : (bool) ($ctx['isHomepage'] ?? false);
 
         $ogTypeFromField = false;
 
-        if ($option === 'com_content' && $view === 'article' && $id > 0) {
+        if (!$isHomepage && $option === 'com_content' && $view === 'article' && $id > 0) {
             $article = $this->loadArticle($id);
 
             if ($article) {
@@ -204,7 +220,7 @@ class OgTagProDecorator
 
         // ── Sitewide Pro tags ────────────────────────────────────────────────
         if ((int) ($settings['enable_og_locale'] ?? 1)) {
-            $langTag         = $this->ctx->getActiveLanguage();
+            $langTag         = ($this->pageContext?->language ?? $this->ctx->getActiveLanguage());
             $og['og:locale'] = self::LOCALE_MAP[$langTag] ?? str_replace('-', '_', $langTag);
         }
 

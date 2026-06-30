@@ -46,7 +46,8 @@ PRO_TOKEN_RE = re.compile("|".join(PRO_TOKENS))
 # the gating mechanism itself (the gate must live somewhere). Update this list
 # as the architecture evolves.
 ALLOW_FILES = {
-    "admin/lib/src/ProGate.php",
+    # ProGate.php deleted in order 0017 (dead trait); the ProGate:: / use ProGate
+    # tokens above are kept as a defensive guard so the pattern can never return.
     "admin/lib/src/PluginRegistry.php",
     "admin/lib/src/HealthCheckService.php",
     "admin/lib/src/LicenseValidator.php",

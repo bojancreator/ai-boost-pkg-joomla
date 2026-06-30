@@ -36,17 +36,22 @@ use AiBoost\Lib\Cms\Joomla\JoomlaEventDispatcherAdapter;
 use AiBoost\Lib\Cms\Joomla\JoomlaFilesystemAdapter;
 use AiBoost\Lib\Cms\Joomla\JoomlaHttpAdapter;
 use AiBoost\Lib\Cms\Joomla\JoomlaRouterAdapter;
+use AiBoost\Lib\JoomlaAppContext;
+use AiBoost\Lib\Page\IndexabilityPolicy;
+use AiBoost\Lib\Page\PageResolver;
+use AiBoost\Lib\Page\PageResolverInterface;
 
 final class AdapterRegistry
 {
-    private static ?DatabaseAdapter        $database    = null;
-    private static ?HttpAdapter            $http        = null;
-    private static ?FilesystemAdapter      $filesystem  = null;
-    private static ?ApplicationAdapter     $application = null;
-    private static ?ClockAdapter           $clock       = null;
-    private static ?EventDispatcherAdapter $events      = null;
-    private static ?DocumentAdapter        $document    = null;
-    private static ?RouterAdapter          $router      = null;
+    private static ?DatabaseAdapter        $database     = null;
+    private static ?HttpAdapter            $http         = null;
+    private static ?FilesystemAdapter      $filesystem   = null;
+    private static ?ApplicationAdapter     $application  = null;
+    private static ?ClockAdapter           $clock        = null;
+    private static ?EventDispatcherAdapter $events       = null;
+    private static ?DocumentAdapter        $document     = null;
+    private static ?RouterAdapter          $router       = null;
+    private static ?PageResolverInterface  $pageResolver = null;
 
     public static function database(): DatabaseAdapter
     {
@@ -86,6 +91,21 @@ final class AdapterRegistry
     public static function router(): RouterAdapter
     {
         return self::$router ??= new JoomlaRouterAdapter();
+    }
+
+    /**
+     * The per-request page resolver (T1). Defaults to the Joomla implementation,
+     * lazily constructed; the WP loader / unit tests inject via setPageResolver().
+     *
+     * Slice S0: wired but consumed by no plugin/service yet — dormant.
+     */
+    public static function pageResolver(): PageResolverInterface
+    {
+        return self::$pageResolver ??= new PageResolver(
+            new JoomlaAppContext(),
+            new IndexabilityPolicy(),
+            self::database()
+        );
     }
 
     public static function setDatabase(?DatabaseAdapter $adapter): void
@@ -128,16 +148,22 @@ final class AdapterRegistry
         self::$router = $adapter;
     }
 
+    public static function setPageResolver(?PageResolverInterface $resolver): void
+    {
+        self::$pageResolver = $resolver;
+    }
+
     /** Reset all adapters (for tests). */
     public static function reset(): void
     {
-        self::$database    = null;
-        self::$http        = null;
-        self::$filesystem  = null;
-        self::$application = null;
-        self::$clock       = null;
-        self::$events      = null;
-        self::$document    = null;
-        self::$router      = null;
+        self::$database     = null;
+        self::$http         = null;
+        self::$filesystem   = null;
+        self::$application  = null;
+        self::$clock        = null;
+        self::$events       = null;
+        self::$document     = null;
+        self::$router       = null;
+        self::$pageResolver = null;
     }
 }
