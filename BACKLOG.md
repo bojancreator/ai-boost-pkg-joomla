@@ -39,7 +39,7 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
 
 ## TRUNK — the structural fixes the product most needs before sale
 
-- 🔄 **IN PROGRESS — Build ONE CMS-neutral Page-Type / Entity / Indexability / Canonical resolver (T1)**
+- ✅ **DONE (T1 COMPLETE, S0–S9, order 0031, v0.88.1) — Build ONE CMS-neutral Page-Type / Entity / Indexability / Canonical resolver (T1)**
   *(biggest single task; architecture's #1 pre-sale recommendation).* It (a) kills the ~20× duplicated
   article gate; (b) retires the known-buggy `detectPageType()` path/featured homepage definition and
   unifies on the menu-`home` flag; (c) gives the product the **indexability authority** it lacks today, so
@@ -126,7 +126,16 @@ decision · ⏸ **POST-LAUNCH** — deliberately deferred. Items confirmed by Bo
   - ⏳ **Option C (deferred, future slice) — admin per-page "noindex this page" control** (a new
     per-article / per-menu field that flips `PageContext::indexable`). The HTML-page emitter is already
     wired (S8) and dormant; C adds the field + storage + three-way alignment + Health. Needs Bojan sign-off.
-  - **S9** — cleanup + a contract test forbidding new inline `com_content`/`article` gates outside `lib/src/Page/`. **(NEXT)**
+  - **S9 ✅ DONE (order 0031, v0.88.1) — THE LAST SLICE → T1 COMPLETE.** Regression-lock standalone/CI test
+    `scripts/test-resolver-gate-lockin.php`: scans `component/` (excl. `lib/src/Page/` + tests) for inline
+    page-type gates (current `view` vs `'article'`/`'featured'`) and asserts the set EQUALS an explicit
+    allowlist (AiBoostCore ×3, SchemaProBuilder ×1, OgTagProDecorator ×1 — all guarded fallbacks / a
+    not-yet-migrated title-token helper). A NEW gate elsewhere FAILS the build. Red-green proven. Nothing
+    deleted (all gates intentional — "when in doubt KEEP"). Documented the resolver as the single "where am
+    I" authority in CLAUDE.md + the joomla-development skill. Behaviour-preserving (test + docs only; runtime
+    byte-identical to v0.88.0). 513 PHPUnit + 4/4 standalone green; installed Pro+Free; Health unchanged.
+  - **The whole T1 resolver refactor (S0–S9) is FINISHED.** Only remaining T1-adjacent open item: the
+    deferred **S4 Option B** below (needs Bojan's explicit URL-change sign-off).
   *(→ arch §10 T1, §3, §9)*
 - ✅ **DO (Bojan) — Finish the multilingual moat (`falang_schema_translate`).** Translate HowTo step
   names + FAQ items per language (currently English fallback). This sits on the product's only

@@ -799,6 +799,17 @@ the integration layer is a versioned SDK. Keep new work inside these boundaries 
 build and standalone+integrative plugins stay possible without rewriting the core. Full snapshot,
 the gaps, and the WP/standalone plan: **`docs/ARCHITECTURE-BOUNDARIES.md`**.
 
+- **"Which page am I on?" has ONE answer — the `PageResolver` (T1, complete).** Page-type, the primary
+  entity, the single homepage truth, active + site-default content language, canonical URL and the one
+  indexability verdict all come from `AdapterRegistry::pageResolver()->resolve()` → `PageContext`
+  (`component/lib/src/Page/`). **Never re-derive page type inline** — no fresh
+  `$option==='com_content' && $view==='article'` gate, no path/`featured` homepage guesswork, no ad-hoc
+  `ComponentHelper::getParams('com_languages')->get('site')` / `getActiveLanguage()` read. A consumer reads
+  `PageContext` and may keep a guarded null-fallback to its old inline logic ONLY for the absent-Page-classes
+  case. The standalone/CI test `scripts/test-resolver-gate-lockin.php` enforces this: it scans `component/`
+  (excluding `lib/src/Page/`) and FAILS if a NEW inline article/`featured` gate appears outside the explicit
+  allowlist of known guarded fallbacks — so add new page logic to the resolver, not inline. (Design:
+  `docs/analysis/T1-resolver-design.md`.)
 - **New logic goes through the `Cms` adapters, not the CMS directly.** A generator takes its data
   injected (settings array, `DatabaseInterface`, `AppContextInterface`) and routes URL, filesystem,
   application, clock, http and events through `AiBoost\Lib\Cms\AdapterRegistry` (Joomla + Wp impls
