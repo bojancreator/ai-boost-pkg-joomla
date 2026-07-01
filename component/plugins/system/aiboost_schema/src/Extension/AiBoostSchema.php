@@ -202,10 +202,13 @@ class AiBoostSchema extends CMSPlugin
      */
     private function resolvePageContext(): ?PageContext
     {
-        if (!class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
-            return null;
-        }
+        // class_exists is INSIDE the try: under JDEBUG the debug class loader THROWS
+        // on a missing class file (partial uninstall) instead of returning false, so
+        // probing outside try/catch could fatal before this intended null fallback.
         try {
+            if (!class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
+                return null;
+            }
             return AdapterRegistry::pageResolver()->resolve();
         } catch (\Throwable $e) {
             return null;

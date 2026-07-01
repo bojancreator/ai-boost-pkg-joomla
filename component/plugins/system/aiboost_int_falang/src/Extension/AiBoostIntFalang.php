@@ -309,12 +309,15 @@ class AiBoostIntFalang extends AbstractIntegrationPlugin
      */
     private function resolveSiteDefaultLanguage(): string
     {
-        if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
-            try {
+        // class_exists is INSIDE the try: under JDEBUG the debug class loader THROWS
+        // on a missing class file (partial uninstall) instead of returning false, so
+        // probing outside try/catch could fatal before this intended legacy read.
+        try {
+            if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
                 return trim((string) AdapterRegistry::pageResolver()->resolve()->siteDefaultLanguage);
-            } catch (\Throwable) {
-                // fall through to the legacy read
             }
+        } catch (\Throwable) {
+            // fall through to the legacy read
         }
         try {
             return trim((string) ComponentHelper::getParams('com_languages')->get('site', ''));

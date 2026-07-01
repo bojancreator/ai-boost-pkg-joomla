@@ -108,6 +108,13 @@ final class PageResolver implements PageResolverInterface
         $host   = (string) parse_url($url, PHP_URL_HOST);
         $path   = (string) parse_url($url, PHP_URL_PATH);
 
+        // Guard the missing-component case: without scheme+host the naive concat below
+        // yields a malformed "://" (WP stub returns ''; Joomla error paths too). Fall
+        // back to the raw current URL (itself '' at worst) so canonical is never "://".
+        if ($scheme === '' || $host === '') {
+            return $url;
+        }
+
         return $scheme . '://' . $host . $path;
     }
 

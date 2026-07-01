@@ -97,7 +97,10 @@ final class AdapterRegistry
      * The per-request page resolver (T1). Defaults to the Joomla implementation,
      * lazily constructed; the WP loader / unit tests inject via setPageResolver().
      *
-     * Slice S0: wired but consumed by no plugin/service yet — dormant.
+     * T1 complete: this is the single "where am I" source, consumed across the free
+     * plugins — aiboost_core (canonical + page type), aiboost_schema / _social / _aeo
+     * (PageContext primitives + language + indexability) and aiboost_int_falang (site
+     * default language). Each keeps a guarded null-fallback for the absent-classes case.
      */
     public static function pageResolver(): PageResolverInterface
     {

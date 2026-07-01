@@ -273,4 +273,19 @@ final class PageResolverTest extends TestCase
         // Subsequent no-map resolve (schema/social/indexability) is unaffected.
         $this->assertSame('https://example.com/blog/post', $resolver->resolve()->canonical);
     }
+
+    /**
+     * T1 polish — the missing-component case (a WP stub / Joomla error path can return
+     * an empty or scheme+host-less current URL) must NEVER produce a malformed "://"
+     * canonical: it falls back to the raw current URL instead.
+     */
+    public function testCanonicalNeverMalformedWhenUrlLacksSchemeHost(): void
+    {
+        // empty URL → empty canonical (safe), never "://"
+        $this->assertSame('', $this->resolverFor('')->resolve()->canonical);
+        // scheme+host-less URL → the raw current URL, never ":///relative/path"
+        $this->assertSame('/relative/path', $this->resolverFor('/relative/path')->resolve()->canonical);
+        // sanity: a healthy absolute URL is still stripped to scheme://host/path
+        $this->assertSame('https://example.com/p', $this->resolverFor('https://example.com/p?q=1')->resolve()->canonical);
+    }
 }

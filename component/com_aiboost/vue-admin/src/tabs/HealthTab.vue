@@ -292,7 +292,10 @@ const HEALTH_CHECKS = [
     plugin: 'AI Visibility',
     title: 'X-Robots-Tag HTTP header',
     settingsKey: 'enable_x_robots_header',
-    expected: { type: 'header', name: 'x-robots-tag', regex: /index/i },
+    // Must match an INDEX directive but NOT `noindex` — plain /index/i also matched
+    // `noindex` (the substring), so a blocked page passed this check. The negative
+    // lookahead rejects any value containing `noindex`; requires an `index` directive.
+    expected: { type: 'header', name: 'x-robots-tag', regex: /^(?!.*noindex).*index/i },
     expectedLabel: 'X-Robots-Tag: index, follow',
     target: { tab: 'aeo', field: 'enable_x_robots_header' },
     optional: true,

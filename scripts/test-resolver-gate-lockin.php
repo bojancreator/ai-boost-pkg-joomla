@@ -64,13 +64,18 @@ $ALLOWLIST = [
 /** A line is a page-classification gate when it compares the current VIEW to a
  *  page-type literal ('article'/'featured'). Requiring the `view` token on the
  *  line excludes sitemap-entry type checks (`$entry['type'] === 'article'`) and
- *  URL-builder strings (`'...&view=article&id='`), which are not gates. */
+ *  URL-builder strings (`'...&view=article&id='`), which are not gates.
+ *
+ *  Matches any equality/inequality comparison operator (===, !==, ==, !=) so a gate
+ *  written with `!==`/`==` cannot slip past the lock-in; and requires the `view`
+ *  TOKEN as a whole word (not a plain substring) so `preview`/`review`/`overview`
+ *  no longer false-match. */
 function ab_is_gate_line(string $line): bool
 {
-    if (!preg_match("/===\\s*['\"](article|featured)['\"]|['\"](article|featured)['\"]\\s*===/", $line)) {
+    if (!preg_match("/(?:===?|!==?)\\s*['\"](article|featured)['\"]|['\"](article|featured)['\"]\\s*(?:===?|!==?)/", $line)) {
         return false;
     }
-    return strpos($line, 'view') !== false;
+    return preg_match('/\\bview\\b/', $line) === 1;
 }
 
 /** @return array<string,int> component-relative path → gate count */

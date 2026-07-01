@@ -54,13 +54,12 @@ class SchemaProBuilder
      * @param ?PageContext        $pageContext  T1·S2: the resolved per-request page
      *        context. When provided (production, via AdapterRegistry::pageResolver()),
      *        the page-type primitives are read from it; when null (unit tests) they
-     *        fall back to the raw $ctx primitives. BEHAVIOUR-IDENTICAL: PageContext's
-     *        raw option/view/rawId ARE getCurrentOption/View/Id — the article gate
-     *        therefore fires on exactly the same pages as before, including a
-     *        single-article homepage. T1·S7 — the article gates are now
-     *        homepage-aware (isArticlePage() == PageContext::isArticle()): a
-     *        single-article / featured / category-blog HOME no longer emits
-     *        article-scoped schema (the homepage takes the Free WebSite/home graph).
+     *        fall back to the raw $ctx primitives. PageContext's raw option/view/rawId
+     *        ARE getCurrentOption/View/Id, so the primitives are behaviour-identical.
+     *        Since T1·S7 the article gate is homepage-aware
+     *        (isArticlePage() == PageContext::isArticle()): a single-article / featured /
+     *        category-blog HOME no longer emits article-scoped schema (the homepage takes
+     *        the Free WebSite/home graph).
      */
     public function __construct(
         array $settings,

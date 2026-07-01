@@ -364,15 +364,18 @@ CSS;
      */
     private function resolveCanonicalViaResolver(array $settings): string
     {
-        if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
-            try {
+        // class_exists is INSIDE the try: under JDEBUG the debug class loader THROWS
+        // on a missing class file (partial uninstall) instead of returning false, so
+        // probing outside try/catch could fatal before this intended legacy fallback.
+        try {
+            if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
                 $map = $settings['canonical_url_map'] ?? null;
                 return AdapterRegistry::pageResolver()
                     ->resolve(is_string($map) ? $map : null)
                     ->canonical;
-            } catch (\Throwable $e) {
-                // fall through to the legacy resolver
             }
+        } catch (\Throwable $e) {
+            // fall through to the legacy resolver
         }
 
         return $this->resolveCanonical($settings);
@@ -411,8 +414,11 @@ CSS;
      */
     private function resolvePageType(): string
     {
-        if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
-            try {
+        // class_exists is INSIDE the try: under JDEBUG the debug class loader THROWS
+        // on a missing class file (partial uninstall) instead of returning false, so
+        // probing outside try/catch could fatal before this intended legacy fallback.
+        try {
+            if (class_exists('AiBoost\\Lib\\Page\\PageResolver')) {
                 $pc = AdapterRegistry::pageResolver()->resolve();
                 if ($pc->isHomepage) {
                     return 'home';
@@ -425,9 +431,9 @@ CSS;
                     PageType::TAG      => 'tag',
                     default            => 'default',
                 };
-            } catch (\Throwable $e) {
-                // fall through to the legacy detector (degraded mode)
             }
+        } catch (\Throwable $e) {
+            // fall through to the legacy detector (degraded mode)
         }
 
         return $this->detectPageType();
